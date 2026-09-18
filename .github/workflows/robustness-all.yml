@@ -1,0 +1,34 @@
+name: KuaiLive all-domain robustness
+on:
+  workflow_dispatch:
+    inputs:
+      n_neg:
+        required: true
+        default: "199"
+      seeds:
+        required: true
+        default: "20260918"
+jobs:
+  all-domain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+      SCOPE: all
+      N_NEG: ${{ inputs.n_neg }}
+      SEEDS: ${{ inputs.seeds }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python scripts/download_kuailive.py --data-root data
+      - run: bash scripts/run_full.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kuailive-all-robustness-${{ github.run_id }}
+          path: results/**
+          retention-days: 30
