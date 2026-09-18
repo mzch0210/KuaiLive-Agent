@@ -7,7 +7,7 @@ from .evaluate import split_events, candidate_sets
 
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument('--prepared-dir',type=Path,required=True); ap.add_argument('--out-root',type=Path,required=True); ap.add_argument('--dataset',default='KuaiLiveShop'); ap.add_argument('--n-neg',type=int,default=999); ap.add_argument('--seed',type=int,default=20260918)
+    ap=argparse.ArgumentParser(); ap.add_argument('--prepared-dir',type=Path,required=True); ap.add_argument('--out-root',type=Path,required=True); ap.add_argument('--dataset',default='KuaiLiveShop'); ap.add_argument('--n-neg',type=int,default=574); ap.add_argument('--seed',type=int,default=20260918)
     a=ap.parse_args(); events=pd.read_pickle(a.prepared_dir/'events.pkl'); rooms=pd.read_pickle(a.prepared_dir/'rooms.pkl')
     train,dev,test=split_events(events,3)
     # ReChorus SeqReader merges on (user,item,time); remove exact duplicate triples to avoid merge multiplication.
@@ -26,21 +26,31 @@ def main():
         return pd.DataFrame({'user_id':x.user_id.astype(int).map(uidmap),'item_id':x.streamer_id.astype(int).map(imap),'time':x.timestamp.astype('int64')})
     tr=base(train); dv=base(dev); te=base(test)
     def negcol(x,csets):
-        vals=[]
+        vals=[]; lens=[]
         for idx,r in x.iterrows():
             target=int(r.streamer_id); c=csets[idx][1:]
-            # active-at-time negatives from the same room universe; exclude any accidental target and de-duplicate stably
+            # active-at-time negatives from the same room universe; exclude target and de-duplicate stably.
             out=[]; used={target}
             for s in c:
                 s=int(s)
                 if s in imap and s not in used:
                     out.append(imap[s]); used.add(s)
-            vals.append(str(out))
-        return vals
-    dv['neg_items']=negcol(dev,dev_cs); te['neg_items']=negcol(test,test_cs)
+            vals.append(str(out)); lens.append(len(out))
+        return vals, np.asarray(lens,dtype=int)
+    dv_neg,dv_len=negcol(dev,dev_cs); te_neg,te_len=negcol(test,test_cs)
+    # ReChorus BaseReader materializes neg_items as a dense 2-D ndarray; ragged candidate lists are invalid.
+    # Fail here with a useful diagnostic rather than later inside ReChorus.
+    if not (np.all(dv_len==a.n_neg) and np.all(te_len==a.n_neg)):
+        raise ValueError(
+            f'Fixed candidate requirement failed for n_neg={a.n_neg}: '
+            f'dev min/max={dv_len.min()}/{dv_len.max()}, test min/max={te_len.min()}/{te_len.max()}, '
+            f'dev short={(dv_len<a.n_neg).sum()}, test short={(te_len<a.n_neg).sum()}. '
+            'Choose n_neg no larger than the minimum legal active-at-time candidate count.'
+        )
+    dv['neg_items']=dv_neg; te['neg_items']=te_neg
     out=a.out_root/a.dataset; out.mkdir(parents=True,exist_ok=True)
     tr.to_csv(out/'train.csv',sep='\t',index=False); dv.to_csv(out/'dev.csv',sep='\t',index=False); te.to_csv(out/'test.csv',sep='\t',index=False)
-    meta={'dataset':a.dataset,'seed':a.seed,'n_neg_requested':a.n_neg,'train_rows':len(tr),'dev_rows':len(dv),'test_rows':len(te),'users':len(uidmap),'item_universe':len(imap),'positive_items':len(positive),'duplicates_dropped':dup,'mean_dev_negatives':float(dv.neg_items.map(lambda x:len(eval(x))).mean()),'mean_test_negatives':float(te.neg_items.map(lambda x:len(eval(x))).mean())}
+    meta={'dataset':a.dataset,'seed':a.seed,'n_neg':a.n_neg,'train_rows':len(tr),'dev_rows':len(dv),'test_rows':len(te),'users':len(uidmap),'item_universe':len(imap),'positive_items':len(positive),'duplicates_dropped':dup,'dev_neg_min':int(dv_len.min()),'dev_neg_max':int(dv_len.max()),'test_neg_min':int(te_len.min()),'test_neg_max':int(te_len.max())}
     (out/'export_meta.json').write_text(json.dumps(meta,indent=2)+'\n'); print(json.dumps(meta,indent=2))
 
 if __name__=='__main__': main()
