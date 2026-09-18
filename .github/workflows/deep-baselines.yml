@@ -1,0 +1,45 @@
+name: KuaiLive strong sequential baselines
+on:
+  workflow_dispatch:
+    inputs:
+      n_neg:
+        description: active negatives per user
+        required: true
+        default: '999'
+      seed:
+        description: random seed
+        required: true
+        default: '20260918'
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/kuailive_agent/deep_baselines.py'
+      - 'requirements-deep.txt'
+      - '.github/workflows/deep-baselines.yml'
+jobs:
+  strong-baselines:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+      N_NEG: ${{ github.event.inputs.n_neg || '999' }}
+      SEED: ${{ github.event.inputs.seed || '20260918' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements-deep.txt
+      - run: pip install -r requirements-deep.txt
+      - name: Download complete KuaiLive
+        run: python scripts/download_kuailive.py --data-root data
+      - name: Prepare complete shop subset
+        run: python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+      - name: Train and evaluate BPRMF + SASRec + TimeSASRec
+        run: python -m kuailive_agent.deep_baselines --prepared-dir data/prepared/shop --out-dir results/deep --n-neg "$N_NEG" --seed "$SEED" --epochs-bpr 3 --epochs-seq 2 --max-len 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kuailive-deep-baselines-${{ github.run_id }}
+          path: results/deep/**
+          retention-days: 30
