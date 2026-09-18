@@ -17,6 +17,8 @@ jobs:
     timeout-minutes: 90
     env:
       PYTHONPATH: ${{ github.workspace }}/src
+      N_NEG: '574'
+      SEED: '20260918'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -26,13 +28,20 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python scripts/download_kuailive.py --data-root data
       - run: python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
-      - name: Export identical split and active-at-time candidate sets
-        run: python -m kuailive_agent.export_rechorus --prepared-dir data/prepared/shop --out-root rechorus_data --dataset KuaiLiveShop --n-neg 999 --seed 20260918
+      - name: Export fixed-length legal active-at-time candidate sets
+        run: python -m kuailive_agent.export_rechorus --prepared-dir data/prepared/shop --out-root rechorus_data --dataset KuaiLiveShop --n-neg "$N_NEG" --seed "$SEED"
+      - name: Re-evaluate transparent agent policies on exactly the same candidate count
+        run: python -m kuailive_agent.evaluate --prepared-dir data/prepared/shop --out-dir agent_fixed574 --n-neg "$N_NEG" --seed "$SEED"
       - uses: actions/upload-artifact@v4
         with:
           name: rechorus-kuailive-shop-data
           path: rechorus_data/KuaiLiveShop/**
           retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-fixed574-results
+          path: agent_fixed574/**
+          retention-days: 30
 
   grid:
     needs: prepare-data
