@@ -1,0 +1,39 @@
+name: KuaiLive planner heterogeneity
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/kuailive_agent/heterogeneity.py'
+      - '.github/workflows/heterogeneity.yml'
+
+jobs:
+  heterogeneity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Download complete KuaiLive
+        run: python scripts/download_kuailive.py --data-root data
+      - name: Prepare complete shop subset
+        run: python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+      - name: Reproduce agent rankings across three candidate seeds
+        run: |
+          mkdir -p results/shop
+          for seed in 20260918 20260919 20260920; do
+            python -m kuailive_agent.evaluate --prepared-dir data/prepared/shop --out-dir results/shop --n-neg 999 --seed "$seed"
+          done
+      - name: Run preregistered heterogeneity tests
+        run: python -m kuailive_agent.heterogeneity --prepared-dir data/prepared/shop --result-dir results/shop --out-dir results/heterogeneity
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kuailive-heterogeneity-${{ github.run_id }}
+          path: results/heterogeneity/**
+          retention-days: 30
