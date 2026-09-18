@@ -1,0 +1,91 @@
+name: KuaiLive full agent validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "shop (primary) or all (robustness)"
+        required: true
+        default: "shop"
+        type: choice
+        options: [shop, all]
+      n_neg:
+        description: "Active-at-time negative streamers per test case"
+        required: true
+        default: "999"
+      seeds:
+        description: "Space-separated random seeds"
+        required: true
+        default: "20260918 20260919 20260920"
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "scripts/**"
+      - "requirements.txt"
+      - ".github/workflows/full-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: PYTHONPATH=src python tests/smoke_test.py
+
+  full-validation:
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      SCOPE: ${{ inputs.scope || 'shop' }}
+      N_NEG: ${{ inputs.n_neg || '999' }}
+      SEEDS: ${{ inputs.seeds || '20260918 20260919 20260920' }}
+      PYTHONPATH: ${{ github.workspace }}/src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Download and verify complete KuaiLive dataset
+        run: python scripts/download_kuailive.py --data-root data
+      - name: Show disk and dataset location
+        run: |
+          df -h
+          echo "DATA_DIR=$(cat data/dataset_dir.txt)"
+          du -sh data
+      - name: Run full-data primary validation
+        run: bash scripts/run_full.sh
+      - name: Produce manifest
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os, platform
+          from pathlib import Path
+          p=Path('results')/'run_manifest.json'
+          p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps({
+            'sha': os.getenv('GITHUB_SHA'), 'run_id': os.getenv('GITHUB_RUN_ID'),
+            'scope': os.getenv('SCOPE'), 'n_neg': os.getenv('N_NEG'), 'seeds': os.getenv('SEEDS'),
+            'python': platform.python_version(), 'platform': platform.platform()
+          }, indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kuailive-${{ env.SCOPE }}-validation-${{ github.run_id }}
+          path: |
+            results/**
+            data/prepared/${{ env.SCOPE }}/dataset_stats.csv
+          if-no-files-found: warn
+          retention-days: 30
