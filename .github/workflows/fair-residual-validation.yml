@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'analysis/fair_residual_validation.py'
+      - 'analysis/fair_residual_validation_v2.py'
       - '.github/workflows/fair-residual-validation.yml'
 
 permissions:
@@ -32,8 +33,15 @@ jobs:
           pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
           pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
 
-      - name: Static check analysis script
-        run: python -m py_compile analysis/fair_residual_validation.py
+      - name: Static check analysis scripts and NumPy-list parser
+        run: |
+          python -m py_compile analysis/fair_residual_validation.py analysis/fair_residual_validation_v2.py
+          PYTHONPATH=analysis python - <<'PY'
+          from fair_residual_validation_v2 import parse_list
+          import numpy as np
+          assert parse_list('[np.int64(3), np.int64(4)]', int).tolist()==[3,4]
+          assert np.allclose(parse_list('[np.float32(0.1), np.float64(-0.2)]', float), [0.1,-0.2])
+          PY
 
       - name: Reuse frozen Run 3 candidate data
         uses: actions/download-artifact@v4
@@ -101,20 +109,23 @@ jobs:
           test -f sasrec_output/SASRec_lr0.0005_hist50/rec-SASRec-test.csv
 
       - name: Fair-history residual and preregistered selective-gate analysis
+        env:
+          PYTHONPATH: ${{ github.workspace }}/analysis
         run: |
-          python analysis/fair_residual_validation.py \
+          python analysis/fair_residual_validation_v2.py \
             --rechorus-dir rechorus_data/KuaiLiveShop \
             --sasrec-dev sasrec_output/SASRec_lr0.0005_hist50/rec-SASRec-dev.csv \
             --sasrec-test sasrec_output/SASRec_lr0.0005_hist50/rec-SASRec-test.csv \
             --out-dir fair_validation
 
-      - name: Upload validation outputs
+      - name: Upload validation outputs and full prediction exports
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: fair-sasrec-residual-validation-${{ github.run_id }}
           path: |
             fair_validation/**
+            sasrec_output/**/*.csv
             sasrec_output/*.log
             rechorus_data/KuaiLiveShop/export_meta.json
           if-no-files-found: warn
