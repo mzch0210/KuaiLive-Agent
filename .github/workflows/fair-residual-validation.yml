@@ -37,7 +37,17 @@ jobs:
 
       - name: Download and prepare KuaiLive shop data
         run: |
-          python scripts/download_kuailive.py --data-root data
+          ok=0
+          for attempt in 1 2 3 4; do
+            if python scripts/download_kuailive.py --data-root data; then
+              ok=1
+              break
+            fi
+            echo "KuaiLive download attempt ${attempt} failed"
+            rm -rf data/raw data/dataset_dir.txt
+            sleep $((attempt * 15))
+          done
+          test "$ok" -eq 1
           python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
           python -m kuailive_agent.export_rechorus \
             --prepared-dir data/prepared/shop --out-root rechorus_data \
