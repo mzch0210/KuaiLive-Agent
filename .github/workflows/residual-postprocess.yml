@@ -1,0 +1,99 @@
+name: Recover fair residual validation from frozen artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/residual-postprocess.yml'
+      - 'analysis/fair_residual_validation.py'
+      - 'analysis/fair_residual_validation_v2.py'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  recover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install analysis dependencies only
+        run: pip install 'numpy<2' 'pandas<3' 'scipy<2' 'scikit-learn<2'
+
+      - name: Download frozen 574-negative ReChorus data from successful Run 3
+        uses: actions/download-artifact@v4
+        with:
+          name: rechorus-kuailive-shop-data
+          path: rechorus_data/KuaiLiveShop
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35319808840
+
+      - name: Download completed SASRec full rankings from failed-path Run 6
+        uses: actions/download-artifact@v4
+        with:
+          name: fair-sasrec-residual-validation-35432625700
+          path: recovered_run6
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35432625700
+
+      - name: Discover and verify prediction exports
+        shell: bash
+        run: |
+          set -euo pipefail
+          find recovered_run6 -type f -maxdepth 6 -print
+          DEV="$(find recovered_run6 -type f -name 'rec-SASRec-dev.csv' | head -n 1)"
+          TEST="$(find recovered_run6 -type f -name 'rec-SASRec-test.csv' | head -n 1)"
+          test -n "$DEV" && test -f "$DEV"
+          test -n "$TEST" && test -f "$TEST"
+          echo "SASREC_DEV=$DEV" >> "$GITHUB_ENV"
+          echo "SASREC_TEST=$TEST" >> "$GITHUB_ENV"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path('rechorus_data/KuaiLiveShop/export_meta.json').read_text())
+          assert m['seed']==20260918 and m['n_neg']==574
+          assert m['dev_rows']==10222 and m['test_rows']==10222
+          print(m)
+          PY
+
+      - name: Run fair-history residual and dev-learned selective gate
+        env:
+          PYTHONPATH: ${{ github.workspace }}/analysis
+        run: |
+          python analysis/fair_residual_validation_v2.py \
+            --rechorus-dir rechorus_data/KuaiLiveShop \
+            --sasrec-dev "$SASREC_DEV" \
+            --sasrec-test "$SASREC_TEST" \
+            --out-dir fair_validation
+
+      - name: Assert recovered headline metrics
+        run: |
+          python - <<'PY'
+          import json
+          import pandas as pd
+          from pathlib import Path
+          r=json.loads(Path('fair_validation/report.json').read_text())
+          g=pd.read_csv('fair_validation/selective_gate.csv')
+          assert abs(r['sasrec_ndcg10_from_full_predictions']-0.6100980120259171) < 1e-10
+          row=g[g['gate']=='feature_ridge_5fold_oof_threshold'].iloc[0]
+          assert row['test_selective_delta'] > 0
+          assert row['test_selective_ci95_low'] > 0
+          print(json.dumps(r, indent=2))
+          print(g.to_string(index=False))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: recovered-fair-residual-results-${{ github.run_id }}
+          path: fair_validation/**
+          if-no-files-found: warn
+          retention-days: 30
