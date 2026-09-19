@@ -1,0 +1,155 @@
+name: Selective Agent v2 candidate-seed robustness
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/robust_selective_agent.py'
+      - '.github/workflows/selective-agent-v2-candidate-seeds.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+      N_NEG: '574'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Download complete KuaiLive
+        run: python scripts/download_kuailive.py --data-root data
+      - name: Prepare complete shop subset once
+        run: python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+      - name: Export four new fixed candidate seeds
+        run: |
+          for S in 20260919 20260920 20260921 20260922; do
+            python -m kuailive_agent.export_rechorus \
+              --prepared-dir data/prepared/shop --out-root seed_datasets \
+              --dataset KuaiLiveShopSeed${S} --n-neg "$N_NEG" --seed "$S"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kuailive-shop-candidate-seeds
+          path: seed_datasets/**
+          retention-days: 7
+
+  validate:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        candidate_seed: [20260919, 20260920, 20260921, 20260922]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install frozen runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
+      - uses: actions/download-artifact@v4
+        with:
+          name: kuailive-shop-candidate-seeds
+          path: seed_datasets
+      - name: Pin and patch official ReChorus
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus
+          git checkout c164ec4303cc20ddcfbd1b57de366a481811d1e5
+          cd "$GITHUB_WORKSPACE"
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('third_party/ReChorus/src/main.py'); s=p.read_text()
+          assert "save_rec_results(data_dict['dev'], runner, 100)" in s
+          s=s.replace("save_rec_results(data_dict['dev'], runner, 100)", "save_rec_results(data_dict['dev'], runner, 575)")
+          s=s.replace("save_rec_results(data_dict['test'], runner, 100)", "save_rec_results(data_dict['test'], runner, 575)")
+          p.write_text(s)
+          PY
+      - name: Train frozen tuned SASRec on this candidate seed
+        env:
+          CAND_SEED: ${{ matrix.candidate_seed }}
+        run: |
+          DATASET=KuaiLiveShopSeed${CAND_SEED}
+          mkdir -p sasrec_output sasrec_models
+          LOG="$GITHUB_WORKSPACE/sasrec_output/SASRec_seed${CAND_SEED}.log"
+          MODEL="$GITHUB_WORKSPACE/sasrec_models/SASRec_seed${CAND_SEED}.pt"
+          cd third_party/ReChorus/src
+          python main.py \
+            --model_name SASRec --dataset "$DATASET" --path "$GITHUB_WORKSPACE/seed_datasets/" \
+            --gpu '' --random_seed 20260918 --emb_size 64 --num_layers 1 --num_heads 4 \
+            --history_max 50 --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 \
+            --epoch 30 --early_stop 5 --main_metric NDCG@10 --topk 10 --metric NDCG,HR \
+            --num_workers 2 --save_final_results 1 --regenerate 1 \
+            --log_file "$LOG" --model_path "$MODEL"
+      - name: Discover predictions and run locked v2 robustness evaluator
+        env:
+          CAND_SEED: ${{ matrix.candidate_seed }}
+        run: |
+          DEV=$(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-dev.csv' | head -1)
+          TEST=$(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-test.csv' | head -1)
+          test -n "$DEV" && test -n "$TEST"
+          echo "DEV=$DEV"; echo "TEST=$TEST"
+          python analysis/robust_selective_agent.py \
+            --data-dir "seed_datasets/KuaiLiveShopSeed${CAND_SEED}" \
+            --sasrec-dev "$DEV" --sasrec-test "$TEST" --n-neg 574 \
+            --label "candidate_seed_${CAND_SEED}" --out-dir "robustness/seed_${CAND_SEED}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selective-v2-candidate-seed-${{ matrix.candidate_seed }}
+          path: |
+            robustness/**
+            sasrec_output/*.log
+          retention-days: 30
+
+  summarize:
+    needs: validate
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: selective-v2-candidate-seed-*
+          path: all_seed_results
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          python - <<'PY'
+          import json, pathlib, csv, statistics
+          rows=[]
+          for p in pathlib.Path('all_seed_results').rglob('report.json'):
+              rows.append(json.loads(p.read_text()))
+          rows=sorted(rows,key=lambda x:x['label'])
+          pathlib.Path('candidate_seed_summary').mkdir()
+          if rows:
+              with open('candidate_seed_summary/per_seed.csv','w',newline='') as f:
+                  w=csv.DictWriter(f,fieldnames=rows[0].keys()); w.writeheader(); w.writerows(rows)
+              agg={'new_seed_count':len(rows),
+                   'mean_selective_delta':statistics.mean(r['selective_absolute_delta'] for r in rows),
+                   'min_selective_delta':min(r['selective_absolute_delta'] for r in rows),
+                   'min_ci95_low':min(r['ci95_low'] for r in rows),
+                   'all_ci_positive':all(r['ci95_low']>0 for r in rows)}
+              pathlib.Path('candidate_seed_summary/aggregate.json').write_text(json.dumps(agg,indent=2)+'\n')
+              print(json.dumps(agg,indent=2))
+          else:
+              raise SystemExit('No robustness reports found')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: selective-v2-candidate-seed-summary-${{ github.run_id }}
+          path: candidate_seed_summary/**
+          retention-days: 30
