@@ -2,8 +2,120 @@ name: Fair SASRec residual validation
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/fair_residual_validation.py'
+      - '.github/workflows/fair-residual-validation.yml'
 
 permissions:
   contents: read
+  actions: read
 
-actions: {}
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      N_NEG: '574'
+      SEED: '20260918'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install CPU ReChorus and analysis dependencies
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
+
+      - name: Static check analysis script
+        run: python -m py_compile analysis/fair_residual_validation.py
+
+      - name: Reuse frozen Run 3 candidate data
+        uses: actions/download-artifact@v4
+        with:
+          name: rechorus-kuailive-shop-data
+          path: rechorus_data/KuaiLiveShop
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35319808840
+
+      - name: Verify frozen data identity
+        run: |
+          test -f rechorus_data/KuaiLiveShop/train.csv
+          test -f rechorus_data/KuaiLiveShop/dev.csv
+          test -f rechorus_data/KuaiLiveShop/test.csv
+          test -f rechorus_data/KuaiLiveShop/export_meta.json
+          cat rechorus_data/KuaiLiveShop/export_meta.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path('rechorus_data/KuaiLiveShop/export_meta.json').read_text())
+          assert m['seed']==20260918
+          assert m['n_neg']==574
+          assert m['dev_rows']==10222 and m['test_rows']==10222
+          assert m['duplicates_dropped']=={'train':0,'dev':0,'test':0}
+          PY
+
+      - name: Pin official ReChorus
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus
+          git checkout c164ec4303cc20ddcfbd1b57de366a481811d1e5
+
+      - name: Patch prediction export to keep all 575 candidates
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('third_party/ReChorus/src/main.py')
+          s=p.read_text()
+          a="save_rec_results(data_dict['dev'], runner, 100)"
+          b="save_rec_results(data_dict['test'], runner, 100)"
+          assert a in s and b in s
+          s=s.replace(a, "save_rec_results(data_dict['dev'], runner, 575)")
+          s=s.replace(b, "save_rec_results(data_dict['test'], runner, 575)")
+          p.write_text(s)
+          PY
+
+      - name: Train only best SASRec and export full per-user rankings
+        run: |
+          mkdir -p sasrec_output sasrec_models
+          LOG="$GITHUB_WORKSPACE/sasrec_output/SASRec_lr0.0005_hist50.log"
+          MODEL_PATH="$GITHUB_WORKSPACE/sasrec_models/SASRec_lr0.0005_hist50.pt"
+          cd third_party/ReChorus/src
+          python main.py \
+            --model_name SASRec --dataset KuaiLiveShop --path "$GITHUB_WORKSPACE/rechorus_data/" \
+            --gpu '' --random_seed "$SEED" --emb_size 64 --num_layers 1 --num_heads 4 \
+            --history_max 50 --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 \
+            --epoch 30 --early_stop 5 --main_metric NDCG@10 --topk 10 --metric NDCG,HR \
+            --num_workers 2 --save_final_results 1 --regenerate 1 \
+            --log_file "$LOG" --model_path "$MODEL_PATH"
+
+      - name: Verify full prediction exports
+        run: |
+          find sasrec_output -maxdepth 3 -type f -print
+          test -f sasrec_output/SASRec_lr0.0005_hist50/rec-SASRec-dev.csv
+          test -f sasrec_output/SASRec_lr0.0005_hist50/rec-SASRec-test.csv
+
+      - name: Fair-history residual and preregistered selective-gate analysis
+        run: |
+          python analysis/fair_residual_validation.py \
+            --rechorus-dir rechorus_data/KuaiLiveShop \
+            --sasrec-dev sasrec_output/SASRec_lr0.0005_hist50/rec-SASRec-dev.csv \
+            --sasrec-test sasrec_output/SASRec_lr0.0005_hist50/rec-SASRec-test.csv \
+            --out-dir fair_validation
+
+      - name: Upload validation outputs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fair-sasrec-residual-validation-${{ github.run_id }}
+          path: |
+            fair_validation/**
+            sasrec_output/*.log
+            rechorus_data/KuaiLiveShop/export_meta.json
+          if-no-files-found: warn
+          retention-days: 30
