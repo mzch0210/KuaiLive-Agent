@@ -1,0 +1,97 @@
+name: Selective Agent v2 global temporal robustness
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/kuailive_agent/export_global_temporal.py'
+      - 'analysis/robust_selective_agent.py'
+      - '.github/workflows/selective-agent-v2-global-temporal.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 420
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
+      - name: Download and prepare complete KuaiLive shop data
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+      - name: Export leakage-safe global temporal landmark split
+        run: |
+          python -m kuailive_agent.export_global_temporal \
+            --prepared-dir data/prepared/shop --out-root temporal_data \
+            --dataset KuaiLiveShopGlobalTemporal --train-q 0.80 --dev-q 0.90 \
+            --max-n-neg 574 --seed 20260918 --min-train-events 3
+          cat temporal_data/KuaiLiveShopGlobalTemporal/export_meta.json
+      - name: Pin and patch official ReChorus for the actual candidate count
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus
+          git checkout c164ec4303cc20ddcfbd1b57de366a481811d1e5
+          cd "$GITHUB_WORKSPACE"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          meta=json.loads(Path('temporal_data/KuaiLiveShopGlobalTemporal/export_meta.json').read_text())
+          k=int(meta['candidate_count'])
+          p=Path('third_party/ReChorus/src/main.py'); s=p.read_text()
+          assert "save_rec_results(data_dict['dev'], runner, 100)" in s
+          s=s.replace("save_rec_results(data_dict['dev'], runner, 100)", f"save_rec_results(data_dict['dev'], runner, {k})")
+          s=s.replace("save_rec_results(data_dict['test'], runner, 100)", f"save_rec_results(data_dict['test'], runner, {k})")
+          p.write_text(s)
+          print('candidate_count',k)
+          PY
+      - name: Train frozen tuned SASRec configuration
+        run: |
+          mkdir -p sasrec_output sasrec_models
+          LOG="$GITHUB_WORKSPACE/sasrec_output/SASRec_global_temporal.log"
+          MODEL="$GITHUB_WORKSPACE/sasrec_models/SASRec_global_temporal.pt"
+          cd third_party/ReChorus/src
+          python main.py \
+            --model_name SASRec --dataset KuaiLiveShopGlobalTemporal --path "$GITHUB_WORKSPACE/temporal_data/" \
+            --gpu '' --random_seed 20260918 --emb_size 64 --num_layers 1 --num_heads 4 \
+            --history_max 50 --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 \
+            --epoch 30 --early_stop 5 --main_metric NDCG@10 --topk 10 --metric NDCG,HR \
+            --num_workers 2 --save_final_results 1 --regenerate 1 \
+            --log_file "$LOG" --model_path "$MODEL"
+      - name: Discover predictions and run locked v2 evaluator
+        run: |
+          DEV=$(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-dev.csv' | head -1)
+          TEST=$(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-test.csv' | head -1)
+          test -n "$DEV" && test -n "$TEST"
+          NNEG=$(python - <<'PY'
+          import json
+          print(json.load(open('temporal_data/KuaiLiveShopGlobalTemporal/export_meta.json'))['n_neg'])
+          PY
+          )
+          python analysis/robust_selective_agent.py \
+            --data-dir temporal_data/KuaiLiveShopGlobalTemporal \
+            --sasrec-dev "$DEV" --sasrec-test "$TEST" --n-neg "$NNEG" \
+            --label global_temporal_landmark --out-dir robustness/global_temporal
+      - name: Print robustness result
+        run: cat robustness/global_temporal/report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selective-v2-global-temporal-${{ github.run_id }}
+          path: |
+            robustness/**
+            temporal_data/KuaiLiveShopGlobalTemporal/export_meta.json
+            sasrec_output/*.log
+          retention-days: 30
