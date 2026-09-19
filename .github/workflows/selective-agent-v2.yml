@@ -1,0 +1,93 @@
+name: Selective Agent v2 frozen validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/selective_agent_v2.py'
+      - '.github/workflows/selective-agent-v2.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install frozen analysis stack
+        run: |
+          pip install 'numpy==2.3.5' 'pandas==2.2.3' 'scikit-learn==1.8.0' 'scipy<2'
+
+      - name: Reuse successful fair-residual per-user artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: recovered-fair-residual-results-35436149252
+          path: frozen/recovered
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35436149252
+
+      - name: Reuse completed full SASRec rankings from Run 6
+        uses: actions/download-artifact@v4
+        with:
+          name: fair-sasrec-residual-validation-35432625700
+          path: frozen/run6
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35432625700
+
+      - name: Discover frozen inputs
+        run: |
+          RECOVERED_DIR="$(dirname "$(find frozen/recovered -type f -name 'per_user_dev.csv.gz' -print -quit)")"
+          SASREC_DEV="$(find frozen/run6 -type f -name 'rec-SASRec-dev.csv' -print -quit)"
+          SASREC_TEST="$(find frozen/run6 -type f -name 'rec-SASRec-test.csv' -print -quit)"
+          test -f "$RECOVERED_DIR/per_user_dev.csv.gz"
+          test -f "$RECOVERED_DIR/per_user_test.csv.gz"
+          test -f "$SASREC_DEV"
+          test -f "$SASREC_TEST"
+          echo "RECOVERED_DIR=$RECOVERED_DIR" >> "$GITHUB_ENV"
+          echo "SASREC_DEV=$SASREC_DEV" >> "$GITHUB_ENV"
+          echo "SASREC_TEST=$SASREC_TEST" >> "$GITHUB_ENV"
+          echo "Recovered: $RECOVERED_DIR"
+          echo "Dev rankings: $SASREC_DEV"
+          echo "Test rankings: $SASREC_TEST"
+
+      - name: Run Selective Agent v2 locked validation
+        run: |
+          python analysis/selective_agent_v2.py \
+            --recovered-dir "$RECOVERED_DIR" \
+            --sasrec-dev "$SASREC_DEV" \
+            --sasrec-test "$SASREC_TEST" \
+            --out-dir selective_agent_v2_results
+
+      - name: Print headline results
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('selective_agent_v2_results/report.json').read_text())
+          print(json.dumps(r, indent=2))
+          p=r['primary']
+          assert p['test_selective_ndcg10'] > 0.620
+          assert p['ci95_low'] > 0.005
+          s=r['primary_cv_seed_sensitivity']
+          assert s['min_delta'] > 0.009
+          assert s['min_ci_low'] > 0.005
+          PY
+
+      - name: Upload Selective Agent v2 outputs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selective-agent-v2-${{ github.run_id }}
+          path: selective_agent_v2_results/**
+          if-no-files-found: warn
+          retention-days: 30
