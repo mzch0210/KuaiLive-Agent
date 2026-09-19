@@ -1,0 +1,133 @@
+name: Room-level Selective Memory kill gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/kuailive_agent/export_rechorus_room.py'
+      - 'analysis/room_level_selective_agent.py'
+      - '.github/workflows/room-level-kill-gate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+      N_NEG: '574'
+      SEED: '20260918'
+      DATASET: 'KuaiLiveShopRoom'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install CPU runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
+          python -m py_compile src/kuailive_agent/export_rechorus_room.py analysis/room_level_selective_agent.py
+
+      - name: Download complete KuaiLive and prepare shop subset
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          python -m kuailive_agent.prepare \
+            --data-dir "$(cat data/dataset_dir.txt)" \
+            --out-dir data/prepared/shop --scope shop
+
+      - name: Export official-style room-level fixed active candidates
+        run: |
+          python -m kuailive_agent.export_rechorus_room \
+            --prepared-dir data/prepared/shop \
+            --out-root rechorus_room \
+            --dataset "$DATASET" \
+            --n-neg "$N_NEG" --seed "$SEED"
+          cat "rechorus_room/$DATASET/export_meta.json"
+
+      - name: Pin official ReChorus
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus
+          git checkout c164ec4303cc20ddcfbd1b57de366a481811d1e5
+
+      - name: Patch ReChorus to export all room candidates
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('third_party/ReChorus/src/main.py')
+          s=p.read_text()
+          a="save_rec_results(data_dict['dev'], runner, 100)"
+          b="save_rec_results(data_dict['test'], runner, 100)"
+          assert a in s and b in s
+          s=s.replace(a, "save_rec_results(data_dict['dev'], runner, 575)")
+          s=s.replace(b, "save_rec_results(data_dict['test'], runner, 575)")
+          p.write_text(s)
+          PY
+
+      - name: Train frozen tuned SASRec on live_id task
+        run: |
+          mkdir -p sasrec_output sasrec_models predictions
+          LOG="$GITHUB_WORKSPACE/sasrec_output/room_SASRec_lr0.0005_hist50.log"
+          MODEL_PATH="$GITHUB_WORKSPACE/sasrec_models/room_SASRec_lr0.0005_hist50.pt"
+          cd third_party/ReChorus/src
+          python main.py \
+            --model_name SASRec --dataset "$DATASET" --path "$GITHUB_WORKSPACE/rechorus_room/" \
+            --gpu '' --random_seed "$SEED" --emb_size 64 --num_layers 1 --num_heads 4 \
+            --history_max 50 --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 \
+            --epoch 30 --early_stop 5 --main_metric NDCG@10 --topk 10 --metric NDCG,HR \
+            --num_workers 2 --save_final_results 1 --regenerate 1 \
+            --log_file "$LOG" --model_path "$MODEL_PATH"
+
+      - name: Discover and freeze full prediction files
+        run: |
+          find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-*.csv' -print
+          DEV=$(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-dev.csv' | head -n 1)
+          TEST=$(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-test.csv' | head -n 1)
+          test -n "$DEV" && test -n "$TEST"
+          cp "$DEV" predictions/rec-SASRec-dev.csv
+          cp "$TEST" predictions/rec-SASRec-test.csv
+          ls -lh predictions/
+
+      - name: Run frozen Selective Memory v2 room-level kill gate
+        run: |
+          python analysis/room_level_selective_agent.py \
+            --data-dir "rechorus_room/$DATASET" \
+            --sasrec-dev predictions/rec-SASRec-dev.csv \
+            --sasrec-test predictions/rec-SASRec-test.csv \
+            --out-dir room_kill_gate --n-neg "$N_NEG"
+          cat room_kill_gate/report.json
+
+      - name: Print scientific decision without converting a negative result into CI failure
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('room_kill_gate/report.json'))
+          print('\n=== ROOM-LEVEL KILL GATE ===')
+          print('SASRec test NDCG@10:', r['sasrec_test_ndcg10'])
+          print('Memory test NDCG@10:', r['memory_test_ndcg10'])
+          print('Selective test NDCG@10:', r['selective_test_ndcg10'])
+          print('Delta:', r['selective_absolute_delta'])
+          print('95% CI:', [r['ci95_low'], r['ci95_high']])
+          print('PASS:', r['kill_gate_pass'])
+          PY
+
+      - name: Upload room-level audit and results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: room-level-kill-gate-${{ github.run_id }}
+          path: |
+            room_kill_gate/**
+            rechorus_room/KuaiLiveShopRoom/export_meta.json
+            rechorus_room/KuaiLiveShopRoom/room_item_map.tsv
+            sasrec_output/*.log
+            predictions/*.csv
+          if-no-files-found: warn
+          retention-days: 7
