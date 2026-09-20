@@ -1,0 +1,105 @@
+name: Room cold-start audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/room_cold_start_audit.py'
+      - '.github/workflows/room-cold-start-audit.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+      N_NEG: '574'
+      SEED: '20260918'
+      DATASET: 'KuaiLiveShopRoom'
+      FROZEN_RUN: '35455075346'
+      FROZEN_ARTIFACT: 'room-level-kill-gate-35455075346'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install audit runtime
+        run: |
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
+          python -m py_compile analysis/room_cold_start_audit.py src/kuailive_agent/export_rechorus_room.py
+
+      - name: Download frozen successful room-level result artifact
+        run: |
+          mkdir -p frozen_room
+          gh run download "$FROZEN_RUN" --repo "$GITHUB_REPOSITORY" --name "$FROZEN_ARTIFACT" --dir frozen_room
+          test -f frozen_room/room_kill_gate/report.json
+          test -f frozen_room/room_kill_gate/per_user_test.csv.gz
+          test -f frozen_room/rechorus_room/KuaiLiveShopRoom/export_meta.json
+          cat frozen_room/room_kill_gate/report.json
+
+      - name: Download complete KuaiLive and regenerate identical room split/candidates
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          python -m kuailive_agent.prepare \
+            --data-dir "$(cat data/dataset_dir.txt)" \
+            --out-dir data/prepared/shop --scope shop
+          python -m kuailive_agent.export_rechorus_room \
+            --prepared-dir data/prepared/shop \
+            --out-root rechorus_room \
+            --dataset "$DATASET" \
+            --n-neg "$N_NEG" --seed "$SEED"
+
+      - name: Verify regenerated protocol identity against frozen run
+        run: |
+          python - <<'PY'
+          import json
+          a=json.load(open('frozen_room/rechorus_room/KuaiLiveShopRoom/export_meta.json'))
+          b=json.load(open('rechorus_room/KuaiLiveShopRoom/export_meta.json'))
+          keys=['dataset','task','seed','n_neg','candidate_count','train_rows','dev_rows','test_rows','users','room_universe','positive_rooms','duplicates_dropped','dev_target_active_rate','test_target_active_rate','dev_neg_min','dev_neg_max','test_neg_min','test_neg_max']
+          bad={k:(a.get(k),b.get(k)) for k in keys if a.get(k)!=b.get(k)}
+          if bad:
+              raise SystemExit(f'protocol mismatch: {bad}')
+          print('Frozen room export identity verified on', len(keys), 'fields')
+          PY
+
+      - name: Run frozen cold-start audit
+        run: |
+          python analysis/room_cold_start_audit.py \
+            --data-dir "rechorus_room/$DATASET" \
+            --frozen-dir frozen_room \
+            --out-dir room_cold_start_audit \
+            --n-neg "$N_NEG"
+
+      - name: Print decision-facing summary
+        run: |
+          python - <<'PY'
+          import json, pandas as pd
+          r=json.load(open('room_cold_start_audit/report.json'))
+          g=pd.read_csv('room_cold_start_audit/group_metrics.csv')
+          print('\n=== COLD-START DIAGNOSIS ===')
+          print('Diagnosis:', r['diagnosis'])
+          print('Candidate room seen-train rate:', r['candidate_summary']['mean_candidate_room_seen_train_rate'])
+          print('Candidate streamer seen-train rate:', r['candidate_summary']['mean_candidate_streamer_seen_train_rate'])
+          keep=['taxonomy','group','n','share','sasrec_ndcg10','memory_ndcg10','selective_ndcg10','selective_minus_sasrec','selective_ci95_low','selective_ci95_high','gate_rate','gain_contribution_share']
+          print(g[keep].to_string(index=False))
+          PY
+
+      - name: Upload cold-start audit
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: room-cold-start-audit-${{ github.run_id }}
+          path: |
+            room_cold_start_audit/**
+            rechorus_room/KuaiLiveShopRoom/export_meta.json
+          if-no-files-found: warn
+          retention-days: 14
