@@ -1,0 +1,100 @@
+name: GTS rescue evaluate old completed predictions
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/gts-rescue-evaluate.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  OLD_RUN_ID: '35492531047'
+  ROOM_DATASET: 'KuaiLiveShopGTSRoom'
+  STREAMER_DATASET: 'KuaiLiveShopGTSStreamer'
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install evaluation dependencies
+        run: pip install 'numpy<2' 'pandas<3' 'scipy<2' 'scikit-learn<2'
+
+      - name: Download frozen GTS data from old run
+        uses: actions/download-artifact@v4
+        with:
+          name: gts-dual-data-35492531047
+          path: temporal_data
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 35492531047
+
+      - name: Download completed room predictions from old run
+        uses: actions/download-artifact@v4
+        with:
+          name: gts-room-pred-35492531047
+          path: room_old
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 35492531047
+
+      - name: Download completed streamer predictions from old run
+        uses: actions/download-artifact@v4
+        with:
+          name: gts-streamer-pred-35492531047
+          path: streamer_old
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 35492531047
+
+      - name: Validate and map old completed predictions
+        run: |
+          set -euo pipefail
+          ROOM_DEV='room_old/logs/room/rec-SASRec-dev.csv'
+          ROOM_TEST='room_old/logs/room/rec-SASRec-test.csv'
+          STREAMER_DEV='streamer_old/logs/streamer/rec-SASRec-dev.csv'
+          STREAMER_TEST='streamer_old/logs/streamer/rec-SASRec-test.csv'
+          test -s "$ROOM_DEV"
+          test -s "$ROOM_TEST"
+          test -s "$STREAMER_DEV"
+          test -s "$STREAMER_TEST"
+          mkdir -p room_pred/predictions streamer_pred/predictions
+          cp "$ROOM_DEV" room_pred/predictions/dev.csv
+          cp "$ROOM_TEST" room_pred/predictions/test.csv
+          cp "$STREAMER_DEV" streamer_pred/predictions/dev.csv
+          cp "$STREAMER_TEST" streamer_pred/predictions/test.csv
+          wc -l room_pred/predictions/*.csv streamer_pred/predictions/*.csv
+
+      - name: Evaluate GTS-Last and GTS-Successive using old completed predictions
+        run: |
+          python analysis/global_temporal_dual_selective.py \
+            --room-data-dir "temporal_data/$ROOM_DATASET" \
+            --streamer-data-dir "temporal_data/$STREAMER_DATASET" \
+            --room-dev room_pred/predictions/dev.csv \
+            --room-test room_pred/predictions/test.csv \
+            --streamer-dev streamer_pred/predictions/dev.csv \
+            --streamer-test streamer_pred/predictions/test.csv \
+            --out-dir gts_results
+          cat gts_results/report.json
+
+      - name: Upload rescued GTS results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gts-rescued-results-${{ github.run_id }}
+          path: |
+            gts_results/**
+            temporal_data/KuaiLiveShopGTSRoom/export_meta.json
+            temporal_data/KuaiLiveShopGTSStreamer/export_meta.json
+          retention-days: 30
