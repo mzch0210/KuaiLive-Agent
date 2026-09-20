@@ -1,0 +1,112 @@
+name: Official-negative exposure-aware Dual-ID robustness
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/exposure-aware-dual-id.yml'
+
+permissions:
+  contents: read
+
+env:
+  PYTHONPATH: ${{ github.workspace }}/src
+  SEED: '20260918'
+  K_NEG: '10'
+  LOOKBACK_HOURS: '24'
+  BASE_ROOM: 'KuaiLiveShopRoomExposureBase'
+  ROOM_DATASET: 'KuaiLiveShopRoomExposure'
+  STREAMER_DATASET: 'KuaiLiveShopStreamerExposure'
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install CPU runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
+          python -m py_compile src/kuailive_agent/export_exposure_room.py src/kuailive_agent/export_rechorus_streamer_parallel.py analysis/dual_id_room_baseline.py
+      - name: Download KuaiLive and prepare shop data
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          RAW_DIR="$(cat data/dataset_dir.txt)"
+          echo "RAW_DIR=$RAW_DIR" >> "$GITHUB_ENV"
+          python -m kuailive_agent.prepare --data-dir "$RAW_DIR" --out-dir data/prepared/shop --scope shop
+      - name: Build frozen positive split and strict official-exposure candidates
+        run: |
+          python -m kuailive_agent.export_rechorus_room \
+            --prepared-dir data/prepared/shop --out-root exposure_data --dataset "$BASE_ROOM" \
+            --n-neg 10 --seed "$SEED"
+          python -m kuailive_agent.export_exposure_room \
+            --prepared-dir data/prepared/shop --raw-dir "$RAW_DIR" \
+            --base-room-dir "exposure_data/$BASE_ROOM" --out-root exposure_data --dataset "$ROOM_DATASET" \
+            --k "$K_NEG" --lookback-hours "$LOOKBACK_HOURS" --min-users 500
+          python -m kuailive_agent.export_rechorus_streamer_parallel \
+            --room-data-dir "exposure_data/$ROOM_DATASET" --out-root exposure_data --dataset "$STREAMER_DATASET"
+          cat "exposure_data/$ROOM_DATASET/export_meta.json"
+      - name: Pin official ReChorus and export all 11 candidates
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus && git checkout c164ec4303cc20ddcfbd1b57de366a481811d1e5
+          cd "$GITHUB_WORKSPACE"
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('third_party/ReChorus/src/main.py'); s=p.read_text()
+          a="save_rec_results(data_dict['dev'], runner, 100)"; b="save_rec_results(data_dict['test'], runner, 100)"
+          assert a in s and b in s
+          p.write_text(s.replace(a,"save_rec_results(data_dict['dev'], runner, 11)").replace(b,"save_rec_results(data_dict['test'], runner, 11)"))
+          PY
+      - name: Train frozen Room-SASRec under exposure candidates
+        run: |
+          mkdir -p logs models predictions/room predictions/streamer
+          cd third_party/ReChorus/src
+          python main.py --model_name SASRec --dataset "$ROOM_DATASET" --path "$GITHUB_WORKSPACE/exposure_data/" \
+            --gpu '' --random_seed "$SEED" --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+            --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 --epoch 30 --early_stop 5 \
+            --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 2 --save_final_results 1 --regenerate 1 \
+            --log_file "$GITHUB_WORKSPACE/logs/room.log" --model_path "$GITHUB_WORKSPACE/models/room.pt"
+          cd "$GITHUB_WORKSPACE"
+          DEV=$(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-dev.csv' | head -n 1); TEST=$(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-test.csv' | head -n 1)
+          test -n "$DEV" && test -n "$TEST"; cp "$DEV" predictions/room/dev.csv; cp "$TEST" predictions/room/test.csv
+      - name: Train frozen Streamer-SASRec under exposure candidates
+        run: |
+          rm -rf third_party/ReChorus/src/__pycache__
+          cd third_party/ReChorus/src
+          python main.py --model_name SASRec --dataset "$STREAMER_DATASET" --path "$GITHUB_WORKSPACE/exposure_data/" \
+            --gpu '' --random_seed "$SEED" --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+            --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 --epoch 30 --early_stop 5 \
+            --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 2 --save_final_results 1 --regenerate 1 \
+            --log_file "$GITHUB_WORKSPACE/logs/streamer.log" --model_path "$GITHUB_WORKSPACE/models/streamer.pt"
+          cd "$GITHUB_WORKSPACE"
+          mapfile -t DEVS < <(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-dev.csv' -printf '%T@ %p\n' | sort -nr | awk '{print $2}')
+          mapfile -t TESTS < <(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-test.csv' -printf '%T@ %p\n' | sort -nr | awk '{print $2}')
+          cp "${DEVS[0]}" predictions/streamer/dev.csv; cp "${TESTS[0]}" predictions/streamer/test.csv
+      - name: Evaluate Dual-ID plus Memory under real exposure negatives
+        run: |
+          python analysis/dual_id_room_baseline.py \
+            --room-data-dir "exposure_data/$ROOM_DATASET" --streamer-data-dir "exposure_data/$STREAMER_DATASET" \
+            --room-dev predictions/room/dev.csv --room-test predictions/room/test.csv \
+            --streamer-dev predictions/streamer/dev.csv --streamer-test predictions/streamer/test.csv \
+            --out-dir exposure_results --n-neg "$K_NEG"
+          cp "exposure_data/$ROOM_DATASET/export_meta.json" exposure_results/candidate_protocol.json
+          cp "exposure_data/$ROOM_DATASET/test_candidate_diagnostics.csv" exposure_results/test_candidate_diagnostics.csv
+          cat exposure_results/report.json
+      - name: Upload compact exposure-aware results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: exposure-aware-dual-id-${{ github.run_id }}
+          path: |
+            exposure_results/**
+            exposure_data/KuaiLiveShopRoomExposure/export_meta.json
+            logs/*.log
+          if-no-files-found: warn
+          retention-days: 14
