@@ -1,5 +1,8 @@
 name: KuaiLive full agent validation
 
+# Legacy broad validation is intentionally manual-only. Dedicated research
+# workflows now own their own path triggers; auto-running this full suite on
+# every src/scripts change wastes CPU and GitHub concurrency.
 on:
   workflow_dispatch:
     inputs:
@@ -17,13 +20,6 @@ on:
         description: "Space-separated random seeds"
         required: true
         default: "20260918 20260919 20260920"
-  push:
-    branches: [main]
-    paths:
-      - "src/**"
-      - "scripts/**"
-      - "requirements.txt"
-      - ".github/workflows/full-validation.yml"
 
 permissions:
   contents: read
