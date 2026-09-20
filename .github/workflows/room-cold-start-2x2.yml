@@ -1,0 +1,47 @@
+name: Room-streamer 2x2 mechanism audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/room_cold_start_2x2.py'
+      - '.github/workflows/room-cold-start-2x2.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_RUN: '35481681725'
+      SOURCE_ARTIFACT: 'room-cold-start-audit-35481681725'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install runtime
+        run: |
+          pip install 'numpy<2' 'pandas<3'
+          python -m py_compile analysis/room_cold_start_2x2.py
+      - name: Download frozen cold-start audit artifact
+        run: |
+          mkdir -p source
+          gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --name "$SOURCE_ARTIFACT" --dir source
+          test -f source/room_cold_start_audit/per_user_cold_start.csv.gz
+      - name: Run 2x2 mechanism audit
+        run: |
+          python analysis/room_cold_start_2x2.py \
+            --per-user source/room_cold_start_audit/per_user_cold_start.csv.gz \
+            --out-dir room_cold_start_2x2
+      - name: Upload 2x2 audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: room-cold-start-2x2-${{ github.run_id }}
+          path: room_cold_start_2x2/**
+          retention-days: 14
