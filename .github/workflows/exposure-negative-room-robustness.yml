@@ -18,7 +18,9 @@ jobs:
     env:
       PYTHONPATH: ${{ github.workspace }}/src
       N_NEG: '20'
-      WINDOW_HOURS: '24'
+      # Frozen by coverage-only run 35483036052: among protocols retaining >=2000
+      # users in both dev/test, maximize n_neg then minimize window length.
+      WINDOW_HOURS: '504'
       SEED: '20260918'
       DATASET: 'KuaiLiveShopRoomExposure'
     steps:
@@ -39,7 +41,7 @@ jobs:
           python scripts/download_kuailive.py --data-root data
           python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
 
-      - name: Build causal recent official-exposure candidate protocol
+      - name: Build causal coverage-selected official-exposure candidate protocol
         run: |
           python -m kuailive_agent.export_rechorus_exposure_room \
             --prepared-dir data/prepared/shop --raw-data-dir "$(cat data/dataset_dir.txt)" \
@@ -89,7 +91,9 @@ jobs:
           m=json.load(open('rechorus_exposure/KuaiLiveShopRoomExposure/export_meta.json'))
           r=json.load(open('exposure_results/report.json'))
           print('\n=== OFFICIAL EXPOSURE-NEGATIVE ROBUSTNESS ===')
+          print('Coverage-selection source: run 35483036052')
           print('Eligible users:', m['eligible_users'], '/', m['original_common_users'], 'rate=', m['eligible_rate'])
+          print('Window hours:', m['window_hours'], 'n_neg:', m['n_neg'])
           print('Test target familiar-streamer rate:', m['test_target_familiar_streamer_rate'])
           print('Test mean negative familiar-streamer rate:', m['test_mean_negative_familiar_streamer_rate'])
           print('Test any familiar-streamer negative rate:', m['test_any_familiar_streamer_negative_rate'])
