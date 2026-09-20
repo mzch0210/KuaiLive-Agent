@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'analysis/room_cold_start_audit.py'
+      - 'analysis/room_cold_start_audit_v2.py'
       - '.github/workflows/room-cold-start-audit.yml'
 
 permissions:
@@ -35,7 +36,7 @@ jobs:
       - name: Install audit runtime
         run: |
           pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
-          python -m py_compile analysis/room_cold_start_audit.py src/kuailive_agent/export_rechorus_room.py
+          python -m py_compile analysis/room_cold_start_audit_v2.py src/kuailive_agent/export_rechorus_room.py
 
       - name: Download frozen successful room-level result artifact
         run: |
@@ -73,7 +74,7 @@ jobs:
 
       - name: Run frozen cold-start audit
         run: |
-          python analysis/room_cold_start_audit.py \
+          python analysis/room_cold_start_audit_v2.py \
             --data-dir "rechorus_room/$DATASET" \
             --frozen-dir frozen_room \
             --out-dir room_cold_start_audit \
