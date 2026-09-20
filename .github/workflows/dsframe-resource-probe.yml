@@ -1,0 +1,105 @@
+name: DS-Frame official-code CPU resource probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/export_dsframe_probe.py'
+      - '.github/workflows/dsframe-resource-probe.yml'
+
+permissions:
+  contents: read
+
+env:
+  PYTHONPATH: ${{ github.workspace }}/src
+  DS_COMMIT: c216ec4358f0cc2b834c4069e535cd10c7d8d486
+  DATASET: KuaiLiveDSProbe
+  TRAIN_FRACTION: '0.02'
+  SEED: '20260918'
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install CPU runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2'
+      - name: Download and prepare KuaiLive shop
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+      - name: Export representative 2-percent official DS-Frame probe data
+        run: |
+          python scripts/export_dsframe_probe.py \
+            --prepared-dir data/prepared/shop --out-root ds_data --dataset "$DATASET" \
+            --train-fraction "$TRAIN_FRACTION" --eval-users 512 --seed "$SEED" --history-max 50
+          cat "ds_data/$DATASET/probe_meta.json"
+      - name: Pin official DS-Frame source and disable external experiment logging only
+        run: |
+          git clone --filter=blob:none https://github.com/ZichenYuan233/Recommender-System-as-Slow-and-Fast-Thinkers.git third_party/dsframe
+          cd third_party/dsframe && git checkout "$DS_COMMIT"
+          cat > swanlab.py <<'PY'
+          def init(*args, **kwargs): return None
+          def log(*args, **kwargs): return None
+          PY
+      - name: Run one official PRL epoch with resource measurement
+        run: |
+          mkdir -p ds_probe_results
+          set +e
+          /usr/bin/time -v -o "$GITHUB_WORKSPACE/ds_probe_results/time.txt" \
+            timeout 5400 python third_party/dsframe/main.py \
+              --model_name PRL --path "$GITHUB_WORKSPACE/ds_data" --dataset "$DATASET" --gpu '' \
+              --random_seed "$SEED" --epoch 1 --early_stop 0 --emb_size 64 --num_layers 1 --num_heads 4 \
+              --inner_size 128 --dropout 0.2 --temperature 0.07 --reason_step 2 --pl_weight 1.0 \
+              --temp_scale 5.0 --noise_factor 0.01 --cl_weight 0.0 --warmup 2 \
+              --lr 0.0005 --l2 1e-6 --batch_size 512 --eval_batch_size 128 --num_workers 2 \
+              --topk 10 --metric NDCG,HR --main_metric NDCG@10 --test_epoch -1 --regenerate 1 \
+              --log_file "$GITHUB_WORKSPACE/ds_probe_results/prl.log" --model_path "$GITHUB_WORKSPACE/ds_probe_results/prl.pt"
+          CODE=$?
+          echo "$CODE" > ds_probe_results/exit_code.txt
+          set -e
+          python - <<'PY'
+          import json,re
+          from pathlib import Path
+          meta=json.load(open('ds_data/KuaiLiveDSProbe/probe_meta.json'))
+          log=Path('ds_probe_results/prl.log').read_text(errors='ignore') if Path('ds_probe_results/prl.log').exists() else ''
+          tm=Path('ds_probe_results/time.txt').read_text(errors='ignore') if Path('ds_probe_results/time.txt').exists() else ''
+          m=re.search(r'Epoch\s+1\s+loss=.*?\[([0-9.]+) s\]',log)
+          train_sec=float(m.group(1)) if m else None
+          elapsed=None; rss=None
+          z=re.search(r'Elapsed \(wall clock\) time .*?:\s*([0-9:]+(?:\.[0-9]+)?)',tm)
+          if z:
+              parts=list(map(float,z.group(1).split(':')))
+              elapsed=parts[-1]+(parts[-2]*60 if len(parts)>=2 else 0)+(parts[-3]*3600 if len(parts)>=3 else 0)
+          z=re.search(r'Maximum resident set size \(kbytes\):\s*(\d+)',tm)
+          if z: rss=int(z.group(1))
+          frac=float(meta['train_fraction'])
+          projected_full_epoch_min=(train_sec/frac/60) if train_sec is not None else None
+          # Ten epochs is a conservative first feasibility target; official defaults are much larger.
+          projected_10epoch_hours=(projected_full_epoch_min*10/60) if projected_full_epoch_min is not None else None
+          report={'official_dsframe_commit':'c216ec4358f0cc2b834c4069e535cd10c7d8d486',
+                  'model':'PRL','probe_meta':meta,'probe_train_seconds':train_sec,'probe_wall_seconds':elapsed,
+                  'peak_rss_kb':rss,'projected_full_epoch_minutes_linear_train_only':projected_full_epoch_min,
+                  'projected_10epoch_hours_linear_train_only':projected_10epoch_hours,
+                  'github_cpu_full_training_feasible_preliminary':bool(projected_10epoch_hours is not None and projected_10epoch_hours < 4.5),
+                  'guardrail':'Projection excludes full-cohort validation overhead and is used only to decide whether to launch a full CPU run.'}
+          Path('ds_probe_results/resource_report.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report,indent=2))
+          PY
+          cat ds_probe_results/time.txt || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dsframe-resource-probe-${{ github.run_id }}
+          path: |
+            ds_probe_results/**
+            ds_data/KuaiLiveDSProbe/probe_meta.json
+          retention-days: 14
