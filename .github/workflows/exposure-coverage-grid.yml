@@ -1,0 +1,46 @@
+name: Exposure-negative coverage-only audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/exposure_coverage_grid.py'
+      - '.github/workflows/exposure-coverage-grid.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install runtime
+        run: |
+          pip install 'numpy<2' 'pandas<3' tqdm
+          python -m py_compile analysis/exposure_coverage_grid.py
+      - name: Download KuaiLive and prepare shop subset
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+      - name: Run coverage-only grid and freeze selected protocol
+        run: |
+          python analysis/exposure_coverage_grid.py \
+            --prepared-dir data/prepared/shop --raw-data-dir "$(cat data/dataset_dir.txt)" \
+            --out-dir exposure_coverage --min-users 2000
+          cat exposure_coverage/report.json
+          cat exposure_coverage/coverage_grid.csv
+      - name: Upload coverage audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: exposure-coverage-grid-${{ github.run_id }}
+          path: exposure_coverage/**
+          retention-days: 14
