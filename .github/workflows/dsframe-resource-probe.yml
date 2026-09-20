@@ -31,8 +31,6 @@ jobs:
       - name: Install CPU runtime
         run: |
           pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
-          # The pinned DS-Frame snapshot imports requests/openai unconditionally from utils.py
-          # even though PRL training does not make external API calls.
           pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' requests 'openai==1.70.0'
       - name: Download and prepare KuaiLive shop
         run: |
@@ -48,25 +46,16 @@ jobs:
         run: |
           git clone --filter=blob:none https://github.com/ZichenYuan233/Recommender-System-as-Slow-and-Fast-Thinkers.git third_party/dsframe
           cd third_party/dsframe && git checkout "$DS_COMMIT"
-          # Disable external experiment logging only.
           cat > swanlab.py <<'PY'
           def init(*args, **kwargs): return None
           def log(*args, **kwargs): return None
           PY
-          # The official package __init__.py files expose every module via __all__.
-          # `from helpers import *` therefore imports LLMReader (and sklearn) even though
-          # PRL declares reader=BaseReader. Restrict only the import surface needed by PRL;
-          # do not modify PRL/BaseReader/BaseRunner/model logic.
           cat > helpers/__init__.py <<'PY'
           __all__ = ['BaseReader', 'BaseRunner']
           PY
           cat > models/__init__.py <<'PY'
           __all__ = ['PRL']
           PY
-          # Compatibility patch for a bug present in the pinned snapshot and current main:
-          # during warmup, noise_factor=0 => repeat_times=1, so the contrastive branch is
-          # skipped, but PRL.loss() still references cl_loss unconditionally. Initialize it
-          # to a zero tensor; after warmup the original contrastive branch overwrites it.
           python - <<'PY'
           from pathlib import Path
           p=Path('models/PRL.py')
@@ -78,14 +67,14 @@ jobs:
           p.write_text(s.replace(needle,repl,1))
           print('Applied PRL warmup cl_loss initialization compatibility patch')
           PY
-      - name: Run one official PRL epoch with resource measurement
+      - name: Run three official PRL epochs with post-warmup resource measurement
         run: |
           mkdir -p ds_probe_results
           set +e
           /usr/bin/time -v -o "$GITHUB_WORKSPACE/ds_probe_results/time.txt" \
             timeout 5400 python third_party/dsframe/main.py \
               --model_name PRL --path "$GITHUB_WORKSPACE/ds_data" --dataset "$DATASET" --gpu '' \
-              --random_seed "$SEED" --epoch 1 --early_stop 0 --emb_size 64 --num_layers 1 --num_heads 4 \
+              --random_seed "$SEED" --epoch 3 --early_stop 0 --emb_size 64 --num_layers 1 --num_heads 4 \
               --inner_size 128 --dropout 0.2 --temperature 0.07 --reason_step 2 --pl_weight 1.0 \
               --temp_scale 5.0 --noise_factor 0.01 --cl_weight 1.0 --warmup 2 \
               --lr 0.0005 --l2 1e-6 --batch_size 512 --eval_batch_size 128 --num_workers 2 \
@@ -101,8 +90,10 @@ jobs:
           log=Path('ds_probe_results/prl.log').read_text(errors='ignore') if Path('ds_probe_results/prl.log').exists() else ''
           tm=Path('ds_probe_results/time.txt').read_text(errors='ignore') if Path('ds_probe_results/time.txt').exists() else ''
           exit_code=int(Path('ds_probe_results/exit_code.txt').read_text().strip())
-          m=re.search(r'Epoch\s+1\s+loss=.*?\[([0-9.]+) s\]',log)
-          train_sec=float(m.group(1)) if m else None
+          epoch_times={}
+          for e in (1,2,3):
+              m=re.search(rf'Epoch\s+{e}\s+loss=.*?\[([0-9.]+) s\]',log)
+              epoch_times[str(e)]=float(m.group(1)) if m else None
           elapsed=None; rss=None
           z=re.search(r'Elapsed \(wall clock\) time .*?:\s*([0-9:]+(?:\.[0-9]+)?)',tm)
           if z:
@@ -111,28 +102,40 @@ jobs:
           z=re.search(r'Maximum resident set size \(kbytes\):\s*(\d+)',tm)
           if z: rss=int(z.group(1))
           frac=float(meta['train_fraction'])
-          projected_full_epoch_min=(train_sec/frac/60) if train_sec is not None else None
-          projected_10epoch_hours=(projected_full_epoch_min*10/60) if projected_full_epoch_min is not None else None
-          valid=(exit_code==0 and train_sec is not None)
-          report={'official_dsframe_commit':'c216ec4358f0cc2b834c4069e535cd10c7d8d486',
-                  'model':'PRL','compatibility_patch':'initialize cl_loss to zero during warmup; no algorithmic changes otherwise',
-                  'probe_meta':meta,'probe_exit_code':exit_code,'probe_valid':valid,
-                  'probe_train_seconds':train_sec,'probe_wall_seconds':elapsed,'peak_rss_kb':rss,
-                  'projected_full_epoch_minutes_linear_train_only':projected_full_epoch_min,
-                  'projected_10epoch_hours_linear_train_only':projected_10epoch_hours,
-                  'github_cpu_full_training_feasible_preliminary':bool(valid and projected_10epoch_hours is not None and projected_10epoch_hours < 4.5),
-                  'guardrail':'Projection excludes full-cohort validation overhead and is used only to decide whether to launch a full CPU run.'}
+          e1,e2,e3=(epoch_times['1'],epoch_times['2'],epoch_times['3'])
+          projected_full_warmup_epoch_min=(e1/frac/60) if e1 is not None else None
+          projected_full_postwarmup_epoch_min=(e3/frac/60) if e3 is not None else None
+          projected_10epoch_hours=None
+          if all(x is not None for x in (e1,e2,e3)):
+              projected_10epoch_hours=((e1+e2+8*e3)/frac)/3600
+          valid=(exit_code==0 and all(x is not None for x in (e1,e2,e3)))
+          report={
+              'official_dsframe_commit':'c216ec4358f0cc2b834c4069e535cd10c7d8d486',
+              'model':'PRL',
+              'compatibility_patch':'initialize cl_loss to zero during warmup; no algorithmic changes otherwise',
+              'probe_meta':meta,
+              'probe_exit_code':exit_code,
+              'probe_valid':valid,
+              'epoch_train_seconds_2pct':epoch_times,
+              'probe_wall_seconds':elapsed,
+              'peak_rss_kb':rss,
+              'projected_full_warmup_epoch_minutes':projected_full_warmup_epoch_min,
+              'projected_full_postwarmup_epoch_minutes':projected_full_postwarmup_epoch_min,
+              'projected_10epoch_hours_using_epoch3_for_postwarmup':projected_10epoch_hours,
+              'github_cpu_full_training_feasible_preliminary':bool(valid and projected_10epoch_hours is not None and projected_10epoch_hours < 4.5),
+              'guardrail':'10-epoch projection uses measured epochs 1-2 for warmup and measured epoch 3 for epochs 3-10; validation overhead on the full cohort is not included.'
+          }
           Path('ds_probe_results/resource_report.json').write_text(json.dumps(report,indent=2)+'\n')
           print(json.dumps(report,indent=2))
           PY
           cat ds_probe_results/time.txt || true
-      - name: Validate probe reached a real training epoch
+      - name: Validate probe reached the first post-warmup epoch
         run: |
           python - <<'PY'
           import json
           r=json.load(open('ds_probe_results/resource_report.json'))
           if not r['probe_valid']:
-              raise SystemExit(f"Invalid resource probe: exit={r['probe_exit_code']} train_seconds={r['probe_train_seconds']}")
+              raise SystemExit(f"Invalid post-warmup resource probe: exit={r['probe_exit_code']} epoch_times={r['epoch_train_seconds_2pct']}")
           PY
       - uses: actions/upload-artifact@v4
         if: always()
