@@ -79,6 +79,7 @@ jobs:
           print(json.load(open(p))['candidate_count'])
           PY
           )
+          export K
           echo "K=$K" >> "$GITHUB_ENV"
           python - <<'PY'
           import os
