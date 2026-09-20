@@ -32,8 +32,7 @@ jobs:
         run: |
           pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
           # The pinned DS-Frame snapshot imports requests/openai unconditionally from utils.py
-          # even though PRL training does not make external API calls. Install both once here
-          # so the resource probe reaches the real training loop instead of failing at import time.
+          # even though PRL training does not make external API calls.
           pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' requests 'openai==1.70.0'
       - name: Download and prepare KuaiLive shop
         run: |
@@ -45,13 +44,24 @@ jobs:
             --prepared-dir data/prepared/shop --out-root ds_data --dataset "$DATASET" \
             --train-fraction "$TRAIN_FRACTION" --eval-users 512 --seed "$SEED" --history-max 50
           cat "ds_data/$DATASET/probe_meta.json"
-      - name: Pin official DS-Frame source and disable external experiment logging only
+      - name: Pin official DS-Frame source and isolate PRL import surface
         run: |
           git clone --filter=blob:none https://github.com/ZichenYuan233/Recommender-System-as-Slow-and-Fast-Thinkers.git third_party/dsframe
           cd third_party/dsframe && git checkout "$DS_COMMIT"
+          # Disable external experiment logging only.
           cat > swanlab.py <<'PY'
           def init(*args, **kwargs): return None
           def log(*args, **kwargs): return None
+          PY
+          # The official package __init__.py files expose every module via __all__.
+          # `from helpers import *` therefore imports LLMReader (and sklearn) even though
+          # PRL declares reader=BaseReader. Restrict only the import surface needed by PRL;
+          # do not modify PRL/BaseReader/BaseRunner/model logic.
+          cat > helpers/__init__.py <<'PY'
+          __all__ = ['BaseReader', 'BaseRunner']
+          PY
+          cat > models/__init__.py <<'PY'
+          __all__ = ['PRL']
           PY
       - name: Run one official PRL epoch with resource measurement
         run: |
@@ -89,7 +99,7 @@ jobs:
           projected_full_epoch_min=(train_sec/frac/60) if train_sec is not None else None
           projected_10epoch_hours=(projected_full_epoch_min*10/60) if projected_full_epoch_min is not None else None
           valid=(exit_code==0 and train_sec is not None)
-          report={'official_dsframe_commit':'c216ec4358f0cc2b834c4069e535cd10c7d8d486',
+          report={'official_dsframe_commit':'c216ec4358f0cc20ddcfbd1b57de366a481811d1e5' if False else 'c216ec4358f0cc2b834c4069e535cd10c7d8d486',
                   'model':'PRL','probe_meta':meta,'probe_exit_code':exit_code,'probe_valid':valid,
                   'probe_train_seconds':train_sec,'probe_wall_seconds':elapsed,'peak_rss_kb':rss,
                   'projected_full_epoch_minutes_linear_train_only':projected_full_epoch_min,
