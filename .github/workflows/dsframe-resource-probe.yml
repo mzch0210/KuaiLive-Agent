@@ -31,7 +31,10 @@ jobs:
       - name: Install CPU runtime
         run: |
           pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
-          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' requests
+          # The pinned DS-Frame snapshot imports requests/openai unconditionally from utils.py
+          # even though PRL training does not make external API calls. Install both once here
+          # so the resource probe reaches the real training loop instead of failing at import time.
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' requests 'openai==1.70.0'
       - name: Download and prepare KuaiLive shop
         run: |
           python scripts/download_kuailive.py --data-root data
