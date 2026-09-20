@@ -99,9 +99,9 @@ jobs:
             --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 2 --save_final_results 1 --regenerate 1 \
             --log_file "$GITHUB_WORKSPACE/logs/${{ matrix.view }}.log" --model_path "$GITHUB_WORKSPACE/${{ matrix.view }}.pt"
           cd "$GITHUB_WORKSPACE"
-          DEV=$(find third_party/ReChorus -type f -name 'rec-SASRec-dev.csv' | head -1)
-          TEST=$(find third_party/ReChorus -type f -name 'rec-SASRec-test.csv' | head -1)
-          test -n "$DEV" && test -n "$TEST"
+          DEV="$GITHUB_WORKSPACE/logs/${{ matrix.view }}/rec-SASRec-dev.csv"
+          TEST="$GITHUB_WORKSPACE/logs/${{ matrix.view }}/rec-SASRec-test.csv"
+          test -s "$DEV" && test -s "$TEST"
           cp "$DEV" predictions/dev.csv; cp "$TEST" predictions/test.csv
       - uses: actions/upload-artifact@v4
         if: always()
