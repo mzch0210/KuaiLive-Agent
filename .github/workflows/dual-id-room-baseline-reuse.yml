@@ -1,0 +1,110 @@
+name: Dual-ID room baseline reuse frozen room predictions
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/dual-id-room-baseline-reuse.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+      N_NEG: '574'
+      SEED: '20260918'
+      ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+      STREAMER_DATASET: 'KuaiLiveShopStreamerParallel'
+      FROZEN_RUN: '35455075346'
+      FROZEN_ARTIFACT: 'room-level-kill-gate-35455075346'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install CPU runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
+          python -m py_compile src/kuailive_agent/export_rechorus_streamer_parallel.py analysis/dual_id_room_baseline.py
+      - name: Download frozen room-SASRec predictions
+        run: |
+          mkdir -p frozen_room predictions/room predictions/streamer
+          gh run download "$FROZEN_RUN" --repo "$GITHUB_REPOSITORY" --name "$FROZEN_ARTIFACT" --dir frozen_room
+          cp frozen_room/predictions/rec-SASRec-dev.csv predictions/room/dev.csv
+          cp frozen_room/predictions/rec-SASRec-test.csv predictions/room/test.csv
+          test -s predictions/room/dev.csv && test -s predictions/room/test.csv
+      - name: Download KuaiLive and regenerate identical room candidates
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+          python -m kuailive_agent.export_rechorus_room \
+            --prepared-dir data/prepared/shop --out-root rechorus_dual --dataset "$ROOM_DATASET" \
+            --n-neg "$N_NEG" --seed "$SEED"
+          python -m kuailive_agent.export_rechorus_streamer_parallel \
+            --room-data-dir "rechorus_dual/$ROOM_DATASET" --out-root rechorus_dual --dataset "$STREAMER_DATASET"
+      - name: Verify room export identity against frozen kill gate
+        run: |
+          python - <<'PY'
+          import json
+          a=json.load(open('frozen_room/rechorus_room/KuaiLiveShopRoom/export_meta.json'))
+          b=json.load(open('rechorus_dual/KuaiLiveShopRoomDualID/export_meta.json'))
+          keys=['task','seed','n_neg','candidate_count','train_rows','dev_rows','test_rows','users','room_universe','positive_rooms','duplicates_dropped','dev_target_active_rate','test_target_active_rate','dev_neg_min','dev_neg_max','test_neg_min','test_neg_max']
+          bad={k:(a.get(k),b.get(k)) for k in keys if a.get(k)!=b.get(k)}
+          if bad: raise SystemExit(f'room protocol mismatch: {bad}')
+          print('Frozen room predictions are protocol-identical.')
+          PY
+      - name: Pin official ReChorus and export all candidates
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus && git checkout c164ec4303cc20ddcfbd1b57de366a481811d1e5
+          cd "$GITHUB_WORKSPACE"
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('third_party/ReChorus/src/main.py'); s=p.read_text()
+          a="save_rec_results(data_dict['dev'], runner, 100)"; b="save_rec_results(data_dict['test'], runner, 100)"
+          assert a in s and b in s
+          p.write_text(s.replace(a,"save_rec_results(data_dict['dev'], runner, 575)").replace(b,"save_rec_results(data_dict['test'], runner, 575)"))
+          PY
+      - name: Train only streamer-ID SASRec
+        run: |
+          mkdir -p logs models
+          cd third_party/ReChorus/src
+          python main.py --model_name SASRec --dataset "$STREAMER_DATASET" --path "$GITHUB_WORKSPACE/rechorus_dual/" \
+            --gpu '' --random_seed "$SEED" --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+            --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 --epoch 30 --early_stop 5 \
+            --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 2 --save_final_results 1 --regenerate 1 \
+            --log_file "$GITHUB_WORKSPACE/logs/streamer.log" --model_path "$GITHUB_WORKSPACE/models/streamer.pt"
+          cd "$GITHUB_WORKSPACE"
+          DEV=$(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-dev.csv' | head -n 1)
+          TEST=$(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-test.csv' | head -n 1)
+          test -n "$DEV" && test -n "$TEST"
+          cp "$DEV" predictions/streamer/dev.csv; cp "$TEST" predictions/streamer/test.csv
+      - name: Run DualID identity control
+        run: |
+          python analysis/dual_id_room_baseline.py \
+            --room-data-dir "rechorus_dual/$ROOM_DATASET" --streamer-data-dir "rechorus_dual/$STREAMER_DATASET" \
+            --room-dev predictions/room/dev.csv --room-test predictions/room/test.csv \
+            --streamer-dev predictions/streamer/dev.csv --streamer-test predictions/streamer/test.csv \
+            --out-dir dual_id_results --n-neg "$N_NEG"
+          cat dual_id_results/report.json
+      - name: Upload compact reuse results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dual-id-room-reuse-${{ github.run_id }}
+          path: |
+            dual_id_results/**
+            rechorus_dual/KuaiLiveShopRoomDualID/export_meta.json
+            rechorus_dual/KuaiLiveShopStreamerParallel/export_meta.json
+            logs/*.log
+          if-no-files-found: warn
+          retention-days: 14
