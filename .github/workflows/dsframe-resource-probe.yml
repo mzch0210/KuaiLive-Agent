@@ -44,7 +44,7 @@ jobs:
             --prepared-dir data/prepared/shop --out-root ds_data --dataset "$DATASET" \
             --train-fraction "$TRAIN_FRACTION" --eval-users 512 --seed "$SEED" --history-max 50
           cat "ds_data/$DATASET/probe_meta.json"
-      - name: Pin official DS-Frame source and isolate PRL import surface
+      - name: Pin official DS-Frame source and apply documented compatibility patches
         run: |
           git clone --filter=blob:none https://github.com/ZichenYuan233/Recommender-System-as-Slow-and-Fast-Thinkers.git third_party/dsframe
           cd third_party/dsframe && git checkout "$DS_COMMIT"
@@ -63,6 +63,21 @@ jobs:
           cat > models/__init__.py <<'PY'
           __all__ = ['PRL']
           PY
+          # Compatibility patch for a bug present in the pinned snapshot and current main:
+          # during warmup, noise_factor=0 => repeat_times=1, so the contrastive branch is
+          # skipped, but PRL.loss() still references cl_loss unconditionally. Initialize it
+          # to a zero tensor; after warmup the original contrastive branch overwrites it.
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('models/PRL.py')
+          s=p.read_text()
+          needle='        # thinking contrastive loss\n        if repeat_times > 1 and self.cl_weight > 0:\n'
+          repl='        # thinking contrastive loss\n        cl_loss = torch.zeros((), device=logits.device)\n        if repeat_times > 1 and self.cl_weight > 0:\n'
+          if needle not in s:
+              raise SystemExit('Expected PRL contrastive-loss block not found; refusing silent patch')
+          p.write_text(s.replace(needle,repl,1))
+          print('Applied PRL warmup cl_loss initialization compatibility patch')
+          PY
       - name: Run one official PRL epoch with resource measurement
         run: |
           mkdir -p ds_probe_results
@@ -72,7 +87,7 @@ jobs:
               --model_name PRL --path "$GITHUB_WORKSPACE/ds_data" --dataset "$DATASET" --gpu '' \
               --random_seed "$SEED" --epoch 1 --early_stop 0 --emb_size 64 --num_layers 1 --num_heads 4 \
               --inner_size 128 --dropout 0.2 --temperature 0.07 --reason_step 2 --pl_weight 1.0 \
-              --temp_scale 5.0 --noise_factor 0.01 --cl_weight 0.0 --warmup 2 \
+              --temp_scale 5.0 --noise_factor 0.01 --cl_weight 1.0 --warmup 2 \
               --lr 0.0005 --l2 1e-6 --batch_size 512 --eval_batch_size 128 --num_workers 2 \
               --topk 10 --metric NDCG,HR --main_metric NDCG@10 --test_epoch -1 --regenerate 1 \
               --log_file "$GITHUB_WORKSPACE/ds_probe_results/prl.log" --model_path "$GITHUB_WORKSPACE/ds_probe_results/prl.pt"
@@ -99,8 +114,9 @@ jobs:
           projected_full_epoch_min=(train_sec/frac/60) if train_sec is not None else None
           projected_10epoch_hours=(projected_full_epoch_min*10/60) if projected_full_epoch_min is not None else None
           valid=(exit_code==0 and train_sec is not None)
-          report={'official_dsframe_commit':'c216ec4358f0cc20ddcfbd1b57de366a481811d1e5' if False else 'c216ec4358f0cc2b834c4069e535cd10c7d8d486',
-                  'model':'PRL','probe_meta':meta,'probe_exit_code':exit_code,'probe_valid':valid,
+          report={'official_dsframe_commit':'c216ec4358f0cc2b834c4069e535cd10c7d8d486',
+                  'model':'PRL','compatibility_patch':'initialize cl_loss to zero during warmup; no algorithmic changes otherwise',
+                  'probe_meta':meta,'probe_exit_code':exit_code,'probe_valid':valid,
                   'probe_train_seconds':train_sec,'probe_wall_seconds':elapsed,'peak_rss_kb':rss,
                   'projected_full_epoch_minutes_linear_train_only':projected_full_epoch_min,
                   'projected_10epoch_hours_linear_train_only':projected_10epoch_hours,
