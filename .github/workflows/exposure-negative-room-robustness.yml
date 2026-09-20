@@ -1,0 +1,113 @@
+name: Official exposure-negative room robustness
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/kuailive_agent/export_rechorus_exposure_room.py'
+      - '.github/workflows/exposure-negative-room-robustness.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+      N_NEG: '20'
+      WINDOW_HOURS: '24'
+      SEED: '20260918'
+      DATASET: 'KuaiLiveShopRoomExposure'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install CPU runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
+          python -m py_compile src/kuailive_agent/export_rechorus_exposure_room.py analysis/room_level_selective_agent.py
+
+      - name: Download KuaiLive and prepare shop subset
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+
+      - name: Build causal recent official-exposure candidate protocol
+        run: |
+          python -m kuailive_agent.export_rechorus_exposure_room \
+            --prepared-dir data/prepared/shop --raw-data-dir "$(cat data/dataset_dir.txt)" \
+            --out-root rechorus_exposure --dataset "$DATASET" --n-neg "$N_NEG" --window-hours "$WINDOW_HOURS"
+          cat "rechorus_exposure/$DATASET/export_meta.json"
+
+      - name: Pin official ReChorus and export all 21 candidates
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus
+          git checkout c164ec4303cc20ddcfbd1b57de366a481811d1e5
+          cd "$GITHUB_WORKSPACE"
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('third_party/ReChorus/src/main.py'); s=p.read_text()
+          a="save_rec_results(data_dict['dev'], runner, 100)"; b="save_rec_results(data_dict['test'], runner, 100)"
+          assert a in s and b in s
+          p.write_text(s.replace(a,"save_rec_results(data_dict['dev'], runner, 21)").replace(b,"save_rec_results(data_dict['test'], runner, 21)"))
+          PY
+
+      - name: Train frozen SASRec under exposure candidate protocol
+        run: |
+          mkdir -p predictions logs models
+          cd third_party/ReChorus/src
+          python main.py --model_name SASRec --dataset "$DATASET" --path "$GITHUB_WORKSPACE/rechorus_exposure/" \
+            --gpu '' --random_seed "$SEED" --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+            --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 256 --epoch 30 --early_stop 5 \
+            --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 2 --save_final_results 1 --regenerate 1 \
+            --log_file "$GITHUB_WORKSPACE/logs/exposure_room.log" --model_path "$GITHUB_WORKSPACE/models/exposure_room.pt"
+          cd "$GITHUB_WORKSPACE"
+          DEV=$(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-dev.csv' | head -n 1)
+          TEST=$(find "$GITHUB_WORKSPACE" -type f -name 'rec-SASRec-test.csv' | head -n 1)
+          test -n "$DEV" && test -n "$TEST"
+          cp "$DEV" predictions/dev.csv; cp "$TEST" predictions/test.csv
+
+      - name: Evaluate frozen MemoryFusion and v2 gate on official exposure negatives
+        run: |
+          python analysis/room_level_selective_agent.py \
+            --data-dir "rechorus_exposure/$DATASET" --sasrec-dev predictions/dev.csv --sasrec-test predictions/test.csv \
+            --out-dir exposure_results --n-neg "$N_NEG"
+          cat exposure_results/report.json
+
+      - name: Print decision-facing robustness summary
+        run: |
+          python - <<'PY'
+          import json
+          m=json.load(open('rechorus_exposure/KuaiLiveShopRoomExposure/export_meta.json'))
+          r=json.load(open('exposure_results/report.json'))
+          print('\n=== OFFICIAL EXPOSURE-NEGATIVE ROBUSTNESS ===')
+          print('Eligible users:', m['eligible_users'], '/', m['original_common_users'], 'rate=', m['eligible_rate'])
+          print('Test target familiar-streamer rate:', m['test_target_familiar_streamer_rate'])
+          print('Test mean negative familiar-streamer rate:', m['test_mean_negative_familiar_streamer_rate'])
+          print('Test any familiar-streamer negative rate:', m['test_any_familiar_streamer_negative_rate'])
+          print('SASRec:', r['sasrec_test_ndcg10'])
+          print('Memory:', r['memory_test_ndcg10'])
+          print('Selective:', r['selective_test_ndcg10'])
+          print('Selective - SASRec:', r['selective_absolute_delta'], 'CI=', [r['ci95_low'], r['ci95_high']])
+          print('Gate rate:', r['test_gate_rate'])
+          PY
+
+      - name: Upload compact exposure robustness results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: exposure-negative-room-${{ github.run_id }}
+          path: |
+            exposure_results/**
+            rechorus_exposure/KuaiLiveShopRoomExposure/export_meta.json
+            logs/*.log
+          if-no-files-found: warn
+          retention-days: 14
