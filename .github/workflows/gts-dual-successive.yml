@@ -1,0 +1,152 @@
+name: GTS Last and Successive Dual-ID selective-memory validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/kuailive_agent/export_global_temporal_dual_successive.py'
+      - 'analysis/global_temporal_dual_selective.py'
+      - '.github/workflows/gts-dual-successive.yml'
+
+permissions:
+  contents: read
+
+env:
+  PYTHONPATH: ${{ github.workspace }}/src
+  SEED: '20260918'
+  ROOM_DATASET: 'KuaiLiveShopGTSRoom'
+  STREAMER_DATASET: 'KuaiLiveShopGTSStreamer'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: pip install 'numpy<2' 'pandas<3' tqdm
+      - name: Download and prepare KuaiLive shop
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+      - name: Export one shared GTS event stream for Last and Successive
+        run: |
+          python -m kuailive_agent.export_global_temporal_dual_successive \
+            --prepared-dir data/prepared/shop --out-root temporal_data \
+            --room-dataset "$ROOM_DATASET" --streamer-dataset "$STREAMER_DATASET" \
+            --train-q .80 --dev-q .90 --max-n-neg 574 --seed "$SEED" --min-train-events 3
+          cat "temporal_data/$ROOM_DATASET/export_meta.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gts-dual-data-${{ github.run_id }}
+          path: temporal_data/**
+          retention-days: 7
+
+  train:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        view: [room, streamer]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - uses: actions/download-artifact@v4
+        with:
+          name: gts-dual-data-${{ github.run_id }}
+          path: temporal_data
+      - name: Install CPU ReChorus runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus && git checkout c164ec4303cc20ddcfbd1b57de366a481811d1e5
+      - name: Select view and patch full candidate export
+        run: |
+          if [ "${{ matrix.view }}" = room ]; then echo "DATASET=$ROOM_DATASET" >> "$GITHUB_ENV"; else echo "DATASET=$STREAMER_DATASET" >> "$GITHUB_ENV"; fi
+          K=$(python - <<'PY'
+          import json,os
+          p=f"temporal_data/{os.environ['ROOM_DATASET']}/export_meta.json"
+          print(json.load(open(p))['candidate_count'])
+          PY
+          )
+          echo "K=$K" >> "$GITHUB_ENV"
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          p=Path('third_party/ReChorus/src/main.py'); s=p.read_text(); k=os.environ['K']
+          a="save_rec_results(data_dict['dev'], runner, 100)"; b="save_rec_results(data_dict['test'], runner, 100)"
+          assert a in s and b in s
+          p.write_text(s.replace(a,f"save_rec_results(data_dict['dev'], runner, {k})").replace(b,f"save_rec_results(data_dict['test'], runner, {k})"))
+          PY
+      - name: Train frozen SASRec view
+        run: |
+          mkdir -p logs predictions
+          cd third_party/ReChorus/src
+          python main.py --model_name SASRec --dataset "$DATASET" --path "$GITHUB_WORKSPACE/temporal_data/" \
+            --gpu '' --random_seed "$SEED" --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+            --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 --epoch 30 --early_stop 5 \
+            --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 2 --save_final_results 1 --regenerate 1 \
+            --log_file "$GITHUB_WORKSPACE/logs/${{ matrix.view }}.log" --model_path "$GITHUB_WORKSPACE/${{ matrix.view }}.pt"
+          cd "$GITHUB_WORKSPACE"
+          DEV=$(find third_party/ReChorus -type f -name 'rec-SASRec-dev.csv' | head -1)
+          TEST=$(find third_party/ReChorus -type f -name 'rec-SASRec-test.csv' | head -1)
+          test -n "$DEV" && test -n "$TEST"
+          cp "$DEV" predictions/dev.csv; cp "$TEST" predictions/test.csv
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gts-${{ matrix.view }}-pred-${{ github.run_id }}
+          path: |
+            predictions/**
+            logs/**
+          retention-days: 7
+
+  evaluate:
+    needs: [prepare, train]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: pip install 'numpy<2' 'pandas<3' 'scipy<2' 'scikit-learn<2'
+      - uses: actions/download-artifact@v4
+        with:
+          name: gts-dual-data-${{ github.run_id }}
+          path: temporal_data
+      - uses: actions/download-artifact@v4
+        with:
+          name: gts-room-pred-${{ github.run_id }}
+          path: room_pred
+      - uses: actions/download-artifact@v4
+        with:
+          name: gts-streamer-pred-${{ github.run_id }}
+          path: streamer_pred
+      - name: Evaluate GTS-Last and GTS-Successive from the same two trained models
+        run: |
+          python analysis/global_temporal_dual_selective.py \
+            --room-data-dir "temporal_data/$ROOM_DATASET" --streamer-data-dir "temporal_data/$STREAMER_DATASET" \
+            --room-dev room_pred/predictions/dev.csv --room-test room_pred/predictions/test.csv \
+            --streamer-dev streamer_pred/predictions/dev.csv --streamer-test streamer_pred/predictions/test.csv \
+            --out-dir gts_results
+          cat gts_results/report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gts-last-successive-results-${{ github.run_id }}
+          path: |
+            gts_results/**
+            temporal_data/KuaiLiveShopGTSRoom/export_meta.json
+          retention-days: 30
