@@ -31,7 +31,7 @@ jobs:
       - name: Install CPU runtime
         run: |
           pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
-          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2'
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' requests
       - name: Download and prepare KuaiLive shop
         run: |
           python scripts/download_kuailive.py --data-root data
@@ -72,6 +72,7 @@ jobs:
           meta=json.load(open('ds_data/KuaiLiveDSProbe/probe_meta.json'))
           log=Path('ds_probe_results/prl.log').read_text(errors='ignore') if Path('ds_probe_results/prl.log').exists() else ''
           tm=Path('ds_probe_results/time.txt').read_text(errors='ignore') if Path('ds_probe_results/time.txt').exists() else ''
+          exit_code=int(Path('ds_probe_results/exit_code.txt').read_text().strip())
           m=re.search(r'Epoch\s+1\s+loss=.*?\[([0-9.]+) s\]',log)
           train_sec=float(m.group(1)) if m else None
           elapsed=None; rss=None
@@ -83,18 +84,27 @@ jobs:
           if z: rss=int(z.group(1))
           frac=float(meta['train_fraction'])
           projected_full_epoch_min=(train_sec/frac/60) if train_sec is not None else None
-          # Ten epochs is a conservative first feasibility target; official defaults are much larger.
           projected_10epoch_hours=(projected_full_epoch_min*10/60) if projected_full_epoch_min is not None else None
+          valid=(exit_code==0 and train_sec is not None)
           report={'official_dsframe_commit':'c216ec4358f0cc2b834c4069e535cd10c7d8d486',
-                  'model':'PRL','probe_meta':meta,'probe_train_seconds':train_sec,'probe_wall_seconds':elapsed,
-                  'peak_rss_kb':rss,'projected_full_epoch_minutes_linear_train_only':projected_full_epoch_min,
+                  'model':'PRL','probe_meta':meta,'probe_exit_code':exit_code,'probe_valid':valid,
+                  'probe_train_seconds':train_sec,'probe_wall_seconds':elapsed,'peak_rss_kb':rss,
+                  'projected_full_epoch_minutes_linear_train_only':projected_full_epoch_min,
                   'projected_10epoch_hours_linear_train_only':projected_10epoch_hours,
-                  'github_cpu_full_training_feasible_preliminary':bool(projected_10epoch_hours is not None and projected_10epoch_hours < 4.5),
+                  'github_cpu_full_training_feasible_preliminary':bool(valid and projected_10epoch_hours is not None and projected_10epoch_hours < 4.5),
                   'guardrail':'Projection excludes full-cohort validation overhead and is used only to decide whether to launch a full CPU run.'}
           Path('ds_probe_results/resource_report.json').write_text(json.dumps(report,indent=2)+'\n')
           print(json.dumps(report,indent=2))
           PY
           cat ds_probe_results/time.txt || true
+      - name: Validate probe reached a real training epoch
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('ds_probe_results/resource_report.json'))
+          if not r['probe_valid']:
+              raise SystemExit(f"Invalid resource probe: exit={r['probe_exit_code']} train_seconds={r['probe_train_seconds']}")
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
