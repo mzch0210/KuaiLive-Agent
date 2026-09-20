@@ -1,0 +1,52 @@
+name: Official-negative exposure coverage audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/exposure-coverage-audit.yml'
+
+permissions:
+  contents: read
+
+env:
+  PYTHONPATH: ${{ github.workspace }}/src
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install audit runtime
+        run: |
+          pip install 'numpy<2' 'pandas<3'
+          python -m py_compile analysis/exposure_coverage_audit.py
+      - name: Download KuaiLive and prepare shop data
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          RAW_DIR="$(cat data/dataset_dir.txt)"
+          echo "RAW_DIR=$RAW_DIR" >> "$GITHUB_ENV"
+          python -m kuailive_agent.prepare --data-dir "$RAW_DIR" --out-dir data/prepared/shop --scope shop
+      - name: Audit recent pre-click official exposures
+        run: |
+          python analysis/exposure_coverage_audit.py \
+            --prepared-dir data/prepared/shop \
+            --raw-dir "$RAW_DIR" \
+            --out-dir exposure_coverage_audit \
+            --windows-hours 1,6,24,72,168,336 \
+            --ks 5,10,20 \
+            --min-users 2000
+      - name: Upload audit
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: exposure-coverage-audit-${{ github.run_id }}
+          path: exposure_coverage_audit/**
+          if-no-files-found: warn
+          retention-days: 14
