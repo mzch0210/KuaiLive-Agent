@@ -1,381 +1,390 @@
 # KuaiLive-Agent — Revised Next Experiment Plan (P0 / P1 / P2)
 
-**Snapshot timestamp:** 2026-09-21 15:24 +08:00  
-**Repository:** `mzch0210/KuaiLive-Agent`  
-**Purpose:** self-contained handoff for future ChatGPT accounts / collaborators.  
-**Current phase:** paper-closing / validity-closure phase, not model-expansion phase.
+**Original snapshot:** 2026-09-21 15:24 +08:00  
+**Revision:** 2026-09-21, after paper-skeleton / novelty / protocol audit  
+**Current phase:** paper-closing / validity-closure, not model-expansion.
 
 ---
 
 # 1. Executive decision
 
-The earlier project priorities were appropriate and produced high-value evidence:
+Completed questions should remain closed:
 
-- temporal validity: **closed**;
-- identity shortcut: **closed**;
-- adaptive-computation collision: **closed sufficiently for this paper**;
-- inference latency / cost: **closed**.
+- strict temporal validity: **closed**;
+- persistent-streamer identity shortcut: **closed**;
+- generic adaptive-computation collision: **closed sufficiently**;
+- selector/inference latency: **closed**.
 
-The next plan should therefore **not** continue adding large baseline families. The main remaining risks are:
+The remaining high-information risks are:
 
 1. sampled-candidate dependence;
-2. whether predicted conditional utility is visibly calibrated to realized specialist advantage;
-3. whether the final Dual-ID gate still needs state + confidence, not only the earlier SASRec gate;
-4. single-platform external validity.
+2. whether the selector really tracks **specialist-minus-base utility**, not only generic base difficulty;
+3. whether state + confidence remains informative under the final Dual-ID base;
+4. direct room-level competitor compatibility;
+5. cross-platform external validity.
 
-The correct strategy is: **P0 closes internal validity and the central mechanism; P1 tests cross-platform external validity; P2 is optional reviewer-defense / expansion work.**
-
----
-
-# 2. Work that is already complete and should not be reopened
-
-## CLOSED — strict temporal validity
-
-GTS-Last and GTS-Successive both strongly pass the frozen event-level + user-cluster bootstrap criteria.
-
-Scientific result:
-
-- ordinary LOO: memory is globally inferior but selectively useful;
-- temporal shift: memory becomes broadly useful;
-- invocation expands from ~14% to ~60–75%;
-- Selective preserves ~94–97% of full-memory gain.
-
-Do not spend compute on another near-duplicate temporal split unless requested by reviewers.
-
-## CLOSED — persistent-identity shortcut
-
-Dual-ID explicitly models room and streamer sequences; dev fusion is 90% streamer weighted. Memory remains globally inferior, yet frozen Selective improves Dual-ID by +0.01317 with positive CI.
-
-No further identity baseline is currently required.
-
-## CLOSED — generic adaptive-computation collision
-
-DS-Frame is now adequately covered for mechanism differentiation:
-
-- official streamer-level PRL comparison;
-- exact matched-budget routing;
-- streamer-projected live-room collision defense.
-
-Direct official room-ID PRL should not be retried under the unchanged full-softmax objective on the ~1.18M room universe. The failed run reflects the official implementation/objective scaling, not a semantic mapping error.
-
-## CLOSED — inference latency and gate cost
-
-Three-replica warmed CPU latency + gate compression are complete.
-
-Key finding:
-
-- HGB selector cost is a major component of end-to-end overhead;
-- Ridge is dramatically cheaper and is faster end-to-end despite invoking memory more often;
-- invocation rate alone is not a valid compute proxy.
-
-Do not rerun broad latency experiments unless P0 full-active ranking requires a materially different serving implementation.
+Do not add broad model families unless a specific reviewer-risk analysis justifies them.
 
 ---
 
-# 3. NEW P0 — submission-critical internal validity + mechanism closure
+# 2. P0-A — Full-active live-room ranking (highest-risk remaining experiment)
 
-These tasks have the highest expected information value and should be completed before the results section is frozen.
+## Why it remains the top validity test
 
-## P0.1 — Full-active live-room ranking
+The final ordinary-regime room result still uses target + 574 legal active negatives. Five sampled-negative seeds are positive, but full-active ranking is the cleanest answer to candidate-sampling dependence.
 
-### Why this is the most important remaining validity test
+## Critical protocol correction
 
-The current primary room-level evaluations use the positive plus 574 legal active-at-target negatives. Five frozen candidate seeds all produce positive CIs, but a reviewer can still ask whether the effect depends on sampled ranking.
+The old plan treated full-active as if only the evaluation candidate list changed. That is not true in the frozen implementation:
 
-A full-active evaluation directly closes that objection.
+- room and streamer SASRec scores are z-normalized **within the candidate set** before Dual-ID fusion;
+- confidence features (std, range, margins, normalized entropy, top-10 softmax mass) depend on candidate-set size/distribution.
 
-### Frozen protocol
+Therefore 575 → full-active changes the Dual-ID representation and gate feature distribution. Full-active must be reported in two pre-specified modes rather than interpreted as one undifferentiated transfer test.
+
+## P0-A1 — Strict-transfer stress test
+
+Purpose: test whether the original sampled-regime policy transfers under candidate-universe expansion.
+
+Freeze from the sampled-active regime:
+
+- Dual-ID fusion alpha;
+- HGB architecture/model where feature definitions are computable;
+- decision threshold;
+- MemoryFusion semantics.
+
+Recompute only quantities mechanically required by the new candidate universe. Do **not** use full-active test for calibration.
+
+Interpretation:
+
+> transfer robustness of the frozen sampled-candidate policy.
+
+A failure here does not by itself prove the memory mechanism is invalid because candidate-dependent feature calibration has shifted.
+
+## P0-A2 — Full-active-native evaluation
+
+Purpose: answer the scientific validity question under the correct candidate universe.
+
+Allowed on **full-active dev only**:
+
+- select room/streamer fusion alpha;
+- recompute full-active confidence features;
+- refit utility estimator;
+- choose escalation threshold.
+
+Then evaluate full-active test once.
+
+No test-driven rescue tuning.
+
+## Shared frozen semantics
 
 - target = `live_id`;
-- candidates = **all legally active rooms at the target timestamp**;
-- no future rooms / no inactive rooms;
-- reuse frozen room + streamer Dual-ID checkpoints;
-- reuse MemoryFusion semantics;
-- preserve frozen HGB utility policy wherever the feature definition is unchanged;
-- score candidates in streaming/chunked form; never construct dense user × million-room tensors;
-- primary comparison: Dual-ID vs Always Memory vs Selective HGB;
-- Ridge deployment variant secondary only.
+- candidates = all legally active rooms satisfying start <= t < end;
+- no future/inactive rooms;
+- same frozen room/streamer SASRec checkpoints;
+- same MemoryFusion relationship-memory definition;
+- same user-state feature semantics;
+- chunk/stream scores; never construct dense user × million-room tensors.
 
-### Report
+## Report
+
+For both A1 and A2:
 
 - NDCG@10;
-- HR / Recall@10;
-- paired user-cluster bootstrap >= 5,000;
+- HR/Recall@10;
+- paired user bootstrap >= 5,000;
 - invocation rate;
-- mean / median / quantiles of active candidate count;
-- computational feasibility / wall-clock as descriptive systems metadata.
+- active candidate-count mean/median/p10/p90/p95/max;
+- wall-clock and peak-memory descriptive metadata.
 
-### Decision rule
+Also report sampled-active 575 beside both full-active variants.
 
-- **Pass:** Selective − Dual-ID mean > 0 and 95% CI lower > 0.
-- **Weak positive:** keep the mechanism claim but narrow the effectiveness claim.
-- **Null/negative:** do not tune to rescue. Explicitly define sampled-active candidate ranking as a boundary condition.
+## Decision rule
 
-### Priority judgment
+Primary scientific pass is **A2**:
 
-**Keep as P0.** This remains the only remaining experiment that could materially weaken the main room-level effectiveness interpretation.
+- Selective − Dual-ID > 0;
+- 95% CI lower bound > 0.
 
----
+A1 is a transfer/stability diagnostic, not the sole validity criterion.
 
-## P0.2 — Conditional-utility heterogeneity / calibration analysis
-
-### Why it matters
-
-This analysis directly visualizes the paper’s central construct and is more valuable than another conventional baseline.
-
-### Frozen analysis
-
-Using dev-selected utility scores and frozen test outputs:
-
-1. sort users/events by predicted `hat(Delta_memory)`;
-2. divide into deciles (or ventiles if stable);
-3. compute realized `Memory − Base` utility per bin;
-4. report fraction of positive realized utility per bin;
-5. plot cumulative realized gain vs escalation budget;
-6. optionally add rank correlation / monotonic trend test.
-
-### Desired conclusion
-
-> Predicted relative utility tracks realized specialist advantage; the gate is not merely a generic difficulty detector.
-
-### Priority judgment
-
-**Promote to P0 and run in parallel with P0.1.** It is cheap and directly supports the new conceptual thesis.
+If A2 is weak positive: narrow effect-size language.  
+If A2 is null/negative: do not rescue on test; define sampled-active ranking as an empirical boundary condition.
 
 ---
 
-## P0.3 — Dual-ID state / confidence information ablation
+# 3. P0-B — Conditional-utility mechanism closure (run now)
 
-The earlier frozen SASRec-v2 chain already shows state+confidence > state-only. However, the final strongest base is Dual-ID, so the paper should replicate the minimal information-source ablation under this base.
+This is the central conceptual analysis and should become Main Figure 2.
 
-### Required variants
+## P0-B1 — Utility calibration / heterogeneity
 
-- history / simple threshold;
-- state only;
-- confidence only;
-- state + confidence;
-- optional HGB vs Ridge estimator comparison as secondary.
+Using the frozen Dual-ID test artifact:
 
-No test hyperparameter search.
+1. sort by frozen predicted relative utility;
+2. deterministic equal-sized deciles;
+3. realized `Memory − Dual-ID` NDCG@10 per decile;
+4. positive-realized-utility fraction per decile;
+5. Spearman rank association;
+6. cumulative selective gain vs invocation budget.
 
-### Main question
+Desired conclusion:
 
-> Does base confidence still contribute useful relative-utility information after persistent identity has already been absorbed by the Dual-ID model?
+> predicted memory-relative utility tracks realized specialist advantage.
 
-### Priority judgment
+Do not call this probabilistic calibration unless a calibrated probability is explicitly modeled; “utility stratification / monotonicity” is safer.
 
-**Keep as P0**, because it links the method claim to the final primary base.
+## P0-B2 — Generic-difficulty control at matched budget
+
+Train on dev, with exactly the same state+confidence features:
+
+- utility router target: `Memory − Base`;
+- difficulty router target: base ranking loss / `1 − Base NDCG@10`.
+
+On frozen test, invoke Memory for **exactly the same K users/events** as the frozen HGB utility router.
+
+Report:
+
+- Base;
+- relative-utility router;
+- difficulty router;
+- paired bootstrap for utility − difficulty.
+
+This is the direct answer to the reviewer objection that the selector merely escalates hard cases.
+
+## P0-B3 — Oracle headroom
+
+Report:
+
+- exact-K oracle: select the K largest realized `Memory − Base` deltas;
+- unrestricted oracle: invoke Memory exactly where realized delta > 0;
+- fraction of oracle gain captured by the frozen selector.
+
+Purpose: distinguish gate-estimation headroom from specialist-model headroom.
+
+## Current execution
+
+Implemented in:
+
+- `analysis/conditional_utility_closure_dual_id.py`
+- `.github/workflows/conditional-utility-closure-dual-id.yml`
+
+The workflow reuses frozen Dual-ID artifacts; it does **not** retrain the base recommender.
 
 ---
 
-## P0.4 — Statistical consistency cleanup
+# 4. P0-C — Dual-ID information-source ablation (run with P0-B)
 
-Recompute the DS streamer-projected matched-budget bootstrap using **5,000 resamples** instead of the earlier 2,000.
+The earlier state/confidence evidence was mainly tied to the earlier SASRec-v2 chain. The final paper needs the minimal ablation under the final Dual-ID base.
+
+Required rows:
+
+- history threshold;
+- state-only HGB;
+- confidence-only HGB;
+- state + confidence HGB;
+- frozen state+confidence primary row clearly marked as the scientific source of truth.
+
+All threshold/model selection remains dev-only. No test hyperparameter search.
+
+Primary question:
+
+> Does base confidence add useful information about memory-relative utility after persistent streamer identity has already been absorbed into the Dual-ID base?
+
+Do not turn this into a gate-architecture benchmark.
+
+---
+
+# 5. P0-D — DCGLive compatibility audit (promoted from P2)
+
+DCGLive / “Room Matters” (WWW 2026) is a direct modern room-level live-stream competitor with public KuaiLive code. Its repository provides a KuaiLive training/evaluation path.
+
+Run a **compatibility audit before any expensive training**.
+
+Compare:
+
+- target definition;
+- data subset;
+- temporal split;
+- candidate/exposure construction;
+- negative sampling/full ranking semantics;
+- room/streamer identity representation;
+- metric definitions.
+
+Decision:
+
+- if the official setup can be mapped to the frozen next-live-room task without redefining the task, promote DCGLive to a submission baseline;
+- if not, document the incompatibility explicitly and keep it as related work rather than manufacturing an invalid numeric comparison.
+
+Do not delay P0-A for a large DCGLive retraining attempt.
+
+---
+
+# 6. P0-hygiene — Statistical consistency cleanup
+
+Recompute the DS streamer-projected matched-budget bootstrap with 5,000 resamples.
 
 - no retraining;
 - frozen predictions;
 - same exact-K budgets;
-- same dev-selected slow variant;
-- same user-cluster bootstrap semantics.
+- same dev-selected slow variant.
 
-### Priority judgment
-
-**Keep as P0 but lowest P0 cost/urgency.** It is cheap and removes an avoidable inconsistency.
+This is useful statistical hygiene but is not a scientific kill gate.
 
 ---
 
-# 4. NEW P1 — one untouched cross-platform external validation
+# 7. P1 — One untouched cross-platform external validation
 
 ## Preferred dataset: LiveRec Twitch 100k
 
-### Why it is currently the best external test
+Reference repository: https://github.com/JRappaz/liverec
 
-LiveRec provides:
+It provides:
 
-- 100k-user public benchmark subset;
+- 100k users;
 - ~3M interactions;
-- ~162.6k streamer items;
-- dynamic item availability;
-- explicit repeat-consumption motivation;
-- cross-platform validation outside Kuaishou.
+- ~162.6k streamer/channel items;
+- dynamic availability;
+- repeat-consumption structure;
+- a different platform from Kuaishou.
 
-Source: https://github.com/JRappaz/liverec
+## Important adjustment
 
-### Important limitation
+Do **not** make vanilla SASRec the only external base if the official LiveRec implementation can be reproduced reasonably. LiveRec itself explicitly models current availability and repeat consumption, so the strongest validation is:
 
-LiveRec’s target item is the streamer/channel rather than an ephemeral `room_id`. Therefore it cannot replicate the exact room-vs-streamer identity-control geometry of KuaiLive.
+> strong availability/repeat-aware base vs Always explicit memory vs Selective memory.
 
-Its role should be stated narrowly:
+A vanilla SASRec row can remain as a reference baseline.
 
-> **cross-platform validation of the conditional-specialist principle under dynamic availability and repeat consumption**, not replication of every room-level mechanism claim.
+## Frozen external protocol
 
-### Frozen external protocol
+Before inspecting test outcomes:
 
-Before inspecting test results:
-
-- freeze base architecture;
-- define explicit memory specialist using train-history-only repeat/relationship signals;
-- freeze user-state/confidence feature definitions where transferable;
-- fit gate / threshold on dev only;
+- freeze train/dev/test split;
+- freeze availability construction;
+- freeze strong base architecture/configuration from dev;
+- define explicit relationship-memory specialist from history only;
+- transfer the state/confidence feature definitions that are semantically valid;
+- fit gate/threshold on dev only;
 - evaluate test once;
-- respect dynamic item availability;
-- report Base / Always Memory / Selective;
 - bootstrap by user.
 
-### External success criterion
+Success criterion:
 
-Selective − Base mean > 0 with 95% CI lower > 0.
+- Selective − strong Base > 0;
+- 95% CI lower > 0.
 
-If null/negative:
+If null/negative: no test retuning. Treat it as a cross-platform boundary on the prevalence/predictability of memory utility.
 
-- no test retuning;
-- report honestly;
-- narrow generalization claims;
-- interpret as another boundary on specialist-utility regimes, consistent with the paper’s broader thesis.
+Role in the paper:
 
-### Priority judgment
-
-**Keep as P1, not P0.** For ESWA the paper may already be publishable after P0; for KBS / Information Sciences, a successful external dataset would materially strengthen the general mechanism claim.
+> cross-platform validation of the conditional relationship-memory principle, not replication of KuaiLive room-vs-streamer identity geometry.
 
 ---
 
-# 5. P2 — optional expansion / reviewer defense
+# 8. P2 — Optional expansion
 
 ## P2.1 — KuaiLive-M3
 
-Public 2026 dataset:
+Useful contemporary within-ecosystem validation, but weaker externality than Twitch.
 
-- 21,938 users;
-- 35M live interactions;
-- 111M short-video interactions;
-- timestamped segment-level multimodal embeddings;
-- questionnaire-based explicit feedback.
+## P2.2 — Richer uncertainty estimators
 
-Source: https://arxiv.org/abs/2607.24862
+Ensemble variance / MC dropout / calibrated confidence. Low priority because the paper is not about discovering the best uncertainty estimator.
 
-Use only if schedule allows. It strengthens within-domain external confirmation but is still Kuaishou ecosystem data, so it is weaker than Twitch for cross-platform generalization.
+## P2.3 — Secondary behavioral outcomes
 
-## P2.2 — DCGLive stronger live-room dynamics baseline
+Repeat vs novel streamer, head/tail, engagement/satisfaction where valid. Do not introduce causal GMV/purchase claims.
 
-DCGLive (WWW 2026) is the closest room-level dynamics competitor and directly models evolving room-streamer-user collaboration.
+## P2.4 — Genuine LLM/agentic extension
 
-Source: https://doi.org/10.1145/3774904.3792241
-
-Run only if:
-
-- public code/data semantics can be matched to the frozen next-live-room task;
-- compute is reasonable;
-- no task redefinition is required.
-
-Do not delay submission indefinitely for this baseline if the protocols are materially incompatible.
-
-## P2.3 — richer uncertainty estimators
-
-Examples:
-
-- ensemble variance;
-- MC dropout;
-- calibrated probabilistic confidence.
-
-Low priority. The novelty is not “best uncertainty model.” Existing margin/entropy features already establish that base confidence matters.
-
-## P2.4 — secondary behavioral outcomes
-
-Possible only where valid labels exist:
-
-- repeat vs novel streamer;
-- head vs tail;
-- engagement signals;
-- explicit satisfaction on KuaiLive-M3.
-
-Do not introduce causal GMV/purchase claims.
-
-## P2.5 — genuine LLM / agentic extension
-
-Separate paper direction. Current MemoryFusion should not be rebranded as an LLM agent merely because 2026 memory-agent literature is active.
+Separate paper direction. Do not rebrand current MemoryFusion as an LLM agent.
 
 ---
 
-# 6. Tasks to drop / deprioritize
+# 9. Work that stays closed / dropped
 
-## DROP — another official direct room-ID DS-Frame hosted-CPU attempt
+## CLOSED — temporal validity
 
-Reason:
+GTS-Last and GTS-Successive already establish regime dependence.
 
-- ~1.18M room universe;
-- official PRL full-item path;
-- ~75.5M parameters;
-- previous runner shutdown during scoring/training;
-- sampled-softmax / aggressive batch changes alter scientific equivalence.
+## CLOSED — persistent identity shortcut
 
-The streamer-projected room adapter already answers the collision question more cleanly.
+Dual-ID already absorbs room/streamer identity and Selective remains significantly above the base.
+
+## CLOSED — generic adaptive-computation collision
+
+DS-Frame comparisons are sufficient for this paper; do not claim routing superiority.
+
+## CLOSED — latency/gate cost
+
+HGB/Ridge/tiny-MLP evidence is sufficient unless full-active serving changes implementation materially.
+
+## DROP — another official direct room-ID DS-Frame full-softmax attempt
+
+The ~1.18M room universe makes the unchanged official objective impractical; sampled-softmax modifications would change scientific equivalence.
 
 ## DEPRIORITIZE — more sampled-negative seeds
 
-Five seeds already remain positive. Full-active ranking is more informative.
+Five are enough. Full-active is higher-information.
 
-## DEPRIORITIZE — more generic recommender backbones
+## DEPRIORITIZE — more generic sequential backbones
 
-The current evidence includes tuned sequential baselines, room/streamer identity control, memory variants, temporal validation, and adaptive-computation collision defense. Another standard backbone has low marginal value.
-
-## DEPRIORITIZE — replacing HGB as the universal scientific primary gate
-
-Ridge is an excellent deployment variant. Retrofitting the entire robustness/GTS chain to Ridge would consume significant compute without materially strengthening the core mechanism claim.
+Low marginal value relative to P0-A/B/C/D.
 
 ---
 
-# 7. Recommended execution order
+# 10. Execution order from this revision
 
-## Immediate parallel work
+## Already launched
 
-1. **P0.1 Full-active ranking** — highest-risk experiment.
-2. **P0.2 Utility decile/calibration** — cheap, high conceptual value.
-3. **P0.4 DS projected bootstrap 5k** — cheap cleanup.
+1. **P0-B + P0-C**: utility calibration, difficulty control, oracle headroom, Dual-ID information ablation using frozen artifacts.
 
-## Then
+## Immediate engineering
 
-4. **P0.3 Dual-ID state/confidence ablation**.
-5. Freeze main result tables and figures.
-6. Begin full manuscript writing immediately; do **not** wait for P1 to start drafting.
-7. Run **P1 LiveRec Twitch 100k** as the external confirmation.
-8. Decide whether P2 KuaiLive-M3 / DCGLive is worth the delay based on the target journal and P1 outcome.
+2. **P0-A**: implement full-active streaming scorer with two protocols (A1 strict-transfer, A2 dev-native).
+3. **P0-D**: DCGLive compatibility audit in parallel; only train if protocol mapping is scientifically valid.
+4. **P0-hygiene**: DS projected 5k bootstrap.
 
----
+## After P0
 
-# 8. Target-journal-dependent stopping rule
+5. Freeze main figures/tables and update paper skeleton with actual P0 outcomes.
+6. Run **P1 LiveRec Twitch 100k**, preferably against a reproduced strong LiveRec availability/repeat-aware base.
+7. Decide on P2 only after target-journal decision and P1 outcome.
 
-## If targeting ESWA first
-
-Minimum recommended before submission:
-
-- P0.1 full-active ranking;
-- P0.2 utility calibration;
-- P0.3 Dual-ID information ablation;
-- P0.4 bootstrap consistency;
-- polished paper with strong application + deployment framing.
-
-P1 external validation is strongly preferred but not necessarily a hard blocker if P0 is strong.
-
-## If targeting KBS / Information Sciences
-
-A successful P1 external dataset becomes much more valuable because the manuscript’s conceptual claims are more general.
-
-## If targeting IPM
-
-P0.2 and temporal-regime interpretation are especially important; information-value interpretation may matter more than another model baseline.
+Manuscript drafting proceeds in parallel throughout; do not wait for P1 to write the Introduction/Related Work/Methods.
 
 ---
 
-# 9. Final P0 / P1 / P2 verdict
+# 11. Stopping rules by journal
 
-The revised priorities are scientifically reasonable and should be retained with one adjustment from earlier planning:
+## ESWA first
 
-> **Manuscript drafting should begin in parallel with P0 rather than after all new experiments are finished.**
+Recommended submission minimum:
 
-Final hierarchy:
+- P0-A full-active;
+- P0-B conditional-utility mechanism closure;
+- P0-C Dual-ID information ablation;
+- P0-D compatibility audit with either valid DCGLive result or explicit incompatibility rationale;
+- statistical cleanup;
+- polished deployment framing.
 
-- **P0 = full-active internal validity + direct conditional-utility mechanism closure + statistical cleanup**;
-- **P1 = one untouched cross-platform external validation, preferably LiveRec Twitch 100k**;
-- **P2 = second external dataset / DCGLive / richer uncertainty / secondary outcomes**.
+P1 strongly preferred but not necessarily a hard blocker if P0 is strong.
 
-This order minimizes the risk of spending large compute on low-information additions while leaving a reviewer-visible validity gap unresolved.
+## KBS / Information Sciences
+
+Successful P1 materially strengthens the generalized specialist-utility claim.
+
+## IPM
+
+P0-B and temporal-regime interpretation are especially important; emphasize information value/confidence and regime dependence.
+
+---
+
+# 12. Final hierarchy
+
+> **P0 = full-active internal validity + direct relative-utility-vs-difficulty mechanism closure + final-base information ablation + room-competitor compatibility.**  
+> **P1 = one untouched cross-platform validation on Twitch with a strong availability-aware base.**  
+> **P2 = same-ecosystem contemporary validation / richer uncertainty / secondary outcomes / future LLM extension.**
+
+The project remains in paper-closing mode. New experiments should be admitted only when they close a specific reviewer-visible validity or novelty gap.
