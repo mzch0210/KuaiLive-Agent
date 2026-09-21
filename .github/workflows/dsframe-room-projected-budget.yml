@@ -116,16 +116,42 @@ jobs:
 
       - name: Evaluate room-projected fast slow paths at exact budgets
         run: |
-          DS_CAND=$(find ds_data -type f -name 'eval_candidates.npz' | head -1)
-          DS_DATASET_DIR=$(dirname "$DS_CAND")
+          DS_CAND_ORIG=$(find ds_data -type f -name 'eval_candidates.npz' | head -1)
+          DS_DATASET_DIR=$(dirname "$DS_CAND_ORIG")
           DS_ROOT=$(dirname "$DS_DATASET_DIR")
           DS_NAME=$(basename "$DS_DATASET_DIR")
           MODEL=$(find ds_scores -type f -name 'prl.pt' | head -1)
-          DS_SCORES=$(find ds_scores -type f -name 'ds_scores.npz' | head -1)
+          DS_SCORES_ORIG=$(find ds_scores -type f -name 'ds_scores.npz' | head -1)
           ROOM_DEV=$(find frozen_room -type f -name 'rec-SASRec-dev.csv' | head -1)
           ROOM_TEST=$(find frozen_room -type f -name 'rec-SASRec-test.csv' | head -1)
           DUAL_TEST=$(find dual_frozen -type f -name 'per_user_test.csv.gz' | head -1)
-          for f in "$DS_CAND" "$MODEL" "$DS_SCORES" "$ROOM_DEV" "$ROOM_TEST" "$DUAL_TEST"; do test -s "$f"; done
+          for f in "$DS_CAND_ORIG" "$MODEL" "$DS_SCORES_ORIG" "$ROOM_DEV" "$ROOM_TEST" "$DUAL_TEST"; do test -s "$f"; done
+
+          # DS-Frame stores original prepared user IDs, while the room exporter maps the same
+          # sorted common-user sequence to 1..N for ReChorus. Normalize only this metadata
+          # namespace in temporary copies; candidate arrays, hidden states, CE values and model
+          # weights remain unchanged.
+          python - "$DS_CAND_ORIG" "$DS_SCORES_ORIG" <<'PY'
+          import sys, numpy as np
+          cand=np.load(sys.argv[1],allow_pickle=False)
+          c={k:cand[k] for k in cand.files}
+          original=c['user_ids'].astype(np.int64)
+          if len(original)!=10222 or not np.all(np.diff(original)>0):
+              raise SystemExit('unexpected frozen DS user ordering')
+          c['user_ids']=np.arange(1,len(original)+1,dtype=c['user_ids'].dtype)
+          np.savez_compressed('/tmp/ds_candidates_room_ids.npz',**c)
+
+          scores=np.load(sys.argv[2],allow_pickle=False)
+          s={k:scores[k] for k in scores.files}
+          if not np.array_equal(s['user_id'].astype(np.int64),original):
+              raise SystemExit('DS score/candidate original user ordering mismatch')
+          s['user_id']=np.arange(1,len(original)+1,dtype=s['user_id'].dtype)
+          np.savez_compressed('/tmp/ds_scores_room_ids.npz',**s)
+          print('Normalized DS original-user metadata to ReChorus room user namespace 1..N.')
+          PY
+          DS_CAND=/tmp/ds_candidates_room_ids.npz
+          DS_SCORES=/tmp/ds_scores_room_ids.npz
+
           PYTHONPATH="$GITHUB_WORKSPACE/src:$GITHUB_WORKSPACE/analysis" python analysis/dsframe_room_projected_budget.py \
             --ds-source third_party/dsframe --ds-root "$DS_ROOT" --ds-dataset "$DS_NAME" \
             --ds-model "$MODEL" --ds-candidates "$DS_CAND" --ds-scores "$DS_SCORES" \
