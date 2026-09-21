@@ -1,0 +1,76 @@
+name: Dual-ID conditional utility closure
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/conditional_utility_closure_dual_id.py'
+      - '.github/workflows/conditional-utility-closure-dual-id.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SEED: '20260918'
+  N_NEG: '574'
+  ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+  STREAMER_DATASET: 'KuaiLiveShopStreamerParallel'
+  DATA_RUN: '35554842873'
+  DATA_ARTIFACT: 'room-collision-data-35554842873'
+  OURS_RUN: '35554842873'
+  OURS_ARTIFACT: 'room-collision-ours-35554842873'
+  ROOM_RUN: '35455075346'
+  ROOM_ARTIFACT: 'room-level-kill-gate-35455075346'
+
+jobs:
+  closure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONPATH: ${{ github.workspace }}/analysis:${{ github.workspace }}/src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install frozen analysis runtime
+        run: |
+          pip install 'numpy<2' 'pandas<3' 'scipy<2' 'scikit-learn<2'
+          python -m py_compile analysis/conditional_utility_closure_dual_id.py
+      - name: Download locked Dual-ID data and predictions
+        run: |
+          mkdir -p shared frozen_ours frozen_room
+          gh run download "$DATA_RUN" --repo "$GITHUB_REPOSITORY" --name "$DATA_ARTIFACT" --dir shared
+          gh run download "$OURS_RUN" --repo "$GITHUB_REPOSITORY" --name "$OURS_ARTIFACT" --dir frozen_ours
+          gh run download "$ROOM_RUN" --repo "$GITHUB_REPOSITORY" --name "$ROOM_ARTIFACT" --dir frozen_room
+          test -s "shared/rechorus_dual/$ROOM_DATASET/train.csv"
+          test -s "shared/rechorus_dual/$STREAMER_DATASET/streamer_item_map.tsv"
+          test -s frozen_room/predictions/rec-SASRec-dev.csv
+          test -s frozen_ours/logs/streamer/rec-SASRec-dev.csv
+          test -s frozen_ours/dual_id_results/report.json
+          test -s frozen_ours/dual_id_results/per_user_test.csv.gz
+      - name: Run utility calibration, difficulty control, oracle and information ablation
+        run: |
+          python analysis/conditional_utility_closure_dual_id.py \
+            --room-data-dir "shared/rechorus_dual/$ROOM_DATASET" \
+            --streamer-data-dir "shared/rechorus_dual/$STREAMER_DATASET" \
+            --room-dev frozen_room/predictions/rec-SASRec-dev.csv \
+            --streamer-dev frozen_ours/logs/streamer/rec-SASRec-dev.csv \
+            --reference-report frozen_ours/dual_id_results/report.json \
+            --reference-test frozen_ours/dual_id_results/per_user_test.csv.gz \
+            --out-dir conditional_utility_closure \
+            --n-neg "$N_NEG"
+          cat conditional_utility_closure/report.json
+          cat conditional_utility_closure/dual_id_information_ablation.csv
+          cat conditional_utility_closure/matched_budget_routing.csv
+      - name: Upload closure evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: conditional-utility-closure-${{ github.run_id }}
+          path: conditional_utility_closure/**
+          retention-days: 60
