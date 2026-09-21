@@ -1,0 +1,219 @@
+name: DS-Frame room-level matched-budget defense
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/export_dsframe_room.py'
+      - 'analysis/dsframe_room_matched_budget.py'
+      - '.github/workflows/dsframe-room-matched-budget.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PYTHONPATH: ${{ github.workspace }}/src
+  SEED: '20260918'
+  N_NEG: '574'
+  DS_DATASET: 'KuaiLiveDSRoom'
+  ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+  STREAMER_DATASET: 'KuaiLiveShopStreamerParallel'
+  DS_COMMIT: c216ec4358f0cc2b834c4069e535cd10c7d8d486
+  FROZEN_ROOM_RUN: '35455075346'
+  FROZEN_ROOM_ARTIFACT: 'room-level-kill-gate-35455075346'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: pip install 'numpy<2' 'pandas<3' tqdm
+      - name: Download and prepare frozen KuaiLive shop
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+      - name: Export identical room task for ReChorus and DS-Frame
+        run: |
+          mkdir -p shared/rechorus_dual shared/ds_data
+          python -m kuailive_agent.export_rechorus_room --prepared-dir data/prepared/shop --out-root shared/rechorus_dual --dataset "$ROOM_DATASET" --n-neg "$N_NEG" --seed "$SEED"
+          python -m kuailive_agent.export_rechorus_streamer_parallel --room-data-dir "shared/rechorus_dual/$ROOM_DATASET" --out-root shared/rechorus_dual --dataset "$STREAMER_DATASET"
+          python scripts/export_dsframe_room.py --prepared-dir data/prepared/shop --out-root shared/ds_data --dataset "$DS_DATASET" --n-neg "$N_NEG" --seed "$SEED" --history-max 50
+          cat "shared/rechorus_dual/$ROOM_DATASET/export_meta.json"
+          cat "shared/ds_data/$DS_DATASET/export_meta.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: room-collision-data-${{ github.run_id }}
+          path: shared/**
+          retention-days: 7
+
+  train_ours:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - uses: actions/download-artifact@v4
+        with:
+          name: room-collision-data-${{ github.run_id }}
+          path: .
+      - name: Install CPU runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
+      - name: Reuse frozen room-SASRec predictions
+        run: |
+          mkdir -p frozen_room predictions/room predictions/streamer
+          gh run download "$FROZEN_ROOM_RUN" --repo "$GITHUB_REPOSITORY" --name "$FROZEN_ROOM_ARTIFACT" --dir frozen_room
+          cp frozen_room/predictions/rec-SASRec-dev.csv predictions/room/dev.csv
+          cp frozen_room/predictions/rec-SASRec-test.csv predictions/room/test.csv
+          test -s predictions/room/dev.csv && test -s predictions/room/test.csv
+      - name: Train only streamer-ID SASRec for frozen Dual-ID base
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus && git checkout c164ec4303cc20ddcfbd1b57de366a481811d1e5
+          cd "$GITHUB_WORKSPACE"
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('third_party/ReChorus/src/main.py'); s=p.read_text()
+          a="save_rec_results(data_dict['dev'], runner, 100)"; b="save_rec_results(data_dict['test'], runner, 100)"
+          assert a in s and b in s
+          p.write_text(s.replace(a,"save_rec_results(data_dict['dev'], runner, 575)").replace(b,"save_rec_results(data_dict['test'], runner, 575)"))
+          PY
+          mkdir -p logs models
+          cd third_party/ReChorus/src
+          python main.py --model_name SASRec --dataset "$STREAMER_DATASET" --path "$GITHUB_WORKSPACE/shared/rechorus_dual/" \
+            --gpu '' --random_seed "$SEED" --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+            --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 --epoch 30 --early_stop 5 \
+            --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 2 --save_final_results 1 --regenerate 1 \
+            --log_file "$GITHUB_WORKSPACE/logs/streamer.log" --model_path "$GITHUB_WORKSPACE/models/streamer.pt"
+          cd "$GITHUB_WORKSPACE"
+          DEV=$(find third_party/ReChorus -type f -name 'rec-SASRec-dev.csv' | head -1)
+          TEST=$(find third_party/ReChorus -type f -name 'rec-SASRec-test.csv' | head -1)
+          test -n "$DEV" && test -n "$TEST"
+          cp "$DEV" predictions/streamer/dev.csv; cp "$TEST" predictions/streamer/test.csv
+      - name: Recompute frozen Dual-ID selective outputs
+        run: |
+          python analysis/dual_id_room_baseline.py \
+            --room-data-dir "shared/rechorus_dual/$ROOM_DATASET" --streamer-data-dir "shared/rechorus_dual/$STREAMER_DATASET" \
+            --room-dev predictions/room/dev.csv --room-test predictions/room/test.csv \
+            --streamer-dev predictions/streamer/dev.csv --streamer-test predictions/streamer/test.csv \
+            --out-dir dual_id_results --n-neg "$N_NEG"
+          cat dual_id_results/report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: room-collision-ours-${{ github.run_id }}
+          path: |
+            dual_id_results/**
+            logs/**
+          retention-days: 14
+
+  train_dsframe:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - uses: actions/download-artifact@v4
+        with:
+          name: room-collision-data-${{ github.run_id }}
+          path: .
+      - name: Install CPU runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' requests 'openai==1.70.0'
+      - name: Pin official DS-Frame and compatibility patch
+        run: |
+          git clone --filter=blob:none https://github.com/ZichenYuan233/Recommender-System-as-Slow-and-Fast-Thinkers.git third_party/dsframe
+          cd third_party/dsframe && git checkout "$DS_COMMIT"
+          cat > swanlab.py <<'PY'
+          def init(*args, **kwargs): return None
+          def log(*args, **kwargs): return None
+          PY
+          cat > helpers/__init__.py <<'PY'
+          __all__ = ['BaseReader', 'BaseRunner']
+          PY
+          cat > models/__init__.py <<'PY'
+          __all__ = ['PRL']
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('models/PRL.py'); s=p.read_text()
+          needle='        # thinking contrastive loss\n        if repeat_times > 1 and self.cl_weight > 0:\n'
+          repl='        # thinking contrastive loss\n        cl_loss = torch.zeros((), device=logits.device)\n        if repeat_times > 1 and self.cl_weight > 0:\n'
+          if needle not in s: raise SystemExit('Expected PRL warmup bug block not found')
+          p.write_text(s.replace(needle,repl,1))
+          PY
+      - name: Train capacity-matched room PRL
+        run: |
+          mkdir -p ds_results
+          /usr/bin/time -v -o ds_results/time.txt python third_party/dsframe/main.py \
+            --model_name PRL --path "$GITHUB_WORKSPACE/shared/ds_data" --dataset "$DS_DATASET" --gpu '' --random_seed "$SEED" \
+            --epoch 15 --early_stop 5 --emb_size 64 --num_layers 1 --num_heads 4 --inner_size 128 --dropout 0.2 \
+            --temperature 0.07 --reason_step 2 --pl_weight 1.0 --temp_scale 5.0 --noise_factor 0.01 --cl_weight 1.0 --warmup 2 \
+            --lr 0.0005 --l2 1e-6 --batch_size 512 --eval_batch_size 128 --num_workers 2 \
+            --topk 10 --metric NDCG,HR --main_metric NDCG@10 --test_epoch -1 --regenerate 1 \
+            --log_file "$GITHUB_WORKSPACE/ds_results/prl.log" --model_path "$GITHUB_WORKSPACE/ds_results/prl.pt"
+      - name: Export room fast/slow utility and selector features
+        run: |
+          python scripts/export_dsframe_scores.py --ds-source third_party/dsframe --data-root shared/ds_data --dataset "$DS_DATASET" \
+            --model-path ds_results/prl.pt --candidates "shared/ds_data/$DS_DATASET/eval_candidates.npz" --out ds_results/ds_scores.npz --batch-size 128
+          cat ds_results/ds_scores.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: room-collision-dsframe-${{ github.run_id }}
+          path: ds_results/**
+          retention-days: 14
+
+  evaluate:
+    needs: [train_ours, train_dsframe]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3'
+      - uses: actions/download-artifact@v4
+        with:
+          name: room-collision-ours-${{ github.run_id }}
+          path: ours
+      - uses: actions/download-artifact@v4
+        with:
+          name: room-collision-dsframe-${{ github.run_id }}
+          path: ds
+      - name: Exact matched-budget room comparison
+        run: |
+          O=$(find ours -type f -name 'per_user_test.csv.gz' | head -1)
+          D=$(find ds -type f -name 'ds_scores.npz' | head -1)
+          test -n "$O" && test -n "$D"
+          python analysis/dsframe_room_matched_budget.py --dual-test "$O" --ds-scores "$D" --out-dir room_matched_results
+          cat room_matched_results/report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dsframe-room-matched-budget-results-${{ github.run_id }}
+          path: room_matched_results/**
+          retention-days: 30
