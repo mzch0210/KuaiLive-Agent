@@ -1,0 +1,143 @@
+name: DS-Frame room-projected exact matched-budget validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/dsframe_room_projected_budget.py'
+      - '.github/workflows/dsframe-room-projected-budget.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PYTHONPATH: ${{ github.workspace }}/src
+  DS_COMMIT: c216ec4358f0cc2b834c4069e535cd10c7d8d486
+  N_NEG: '574'
+  SEED: '20260918'
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install CPU runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' requests 'openai==1.70.0'
+          python -m py_compile analysis/dsframe_room_projected_budget.py
+
+      - name: Reuse frozen DS-Frame training corpus
+        uses: actions/download-artifact@v4
+        with:
+          name: dsframe-full-data-35495549517
+          repository: mzch0210/KuaiLive-Agent
+          run-id: 35495549517
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ds_data
+
+      - name: Reuse frozen official PRL model and selector features
+        uses: actions/download-artifact@v4
+        with:
+          name: dsframe-full-scores-35495549517
+          repository: mzch0210/KuaiLive-Agent
+          run-id: 35495549517
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ds_scores
+
+      - name: Reuse frozen room predictions
+        uses: actions/download-artifact@v4
+        with:
+          name: room-level-kill-gate-35455075346
+          repository: mzch0210/KuaiLive-Agent
+          run-id: 35455075346
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: frozen_room
+
+      - name: Reuse frozen Dual-ID result and memory gate scores
+        uses: actions/download-artifact@v4
+        with:
+          name: dual-id-room-reuse-35483260437
+          repository: mzch0210/KuaiLive-Agent
+          run-id: 35483260437
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: dual_frozen
+
+      - name: Regenerate identical live-room candidates
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+          python -m kuailive_agent.export_rechorus_room \
+            --prepared-dir data/prepared/shop --out-root room_regen --dataset KuaiLiveShopRoomDualID \
+            --n-neg "$N_NEG" --seed "$SEED"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          frozen=list(Path('frozen_room').rglob('export_meta.json'))
+          frozen=[p for p in frozen if 'KuaiLiveShopRoom' in str(p)]
+          if len(frozen)!=1: raise SystemExit(f'expected one frozen room meta, got {frozen}')
+          a=json.load(open(frozen[0])); b=json.load(open('room_regen/KuaiLiveShopRoomDualID/export_meta.json'))
+          keys=['task','seed','n_neg','candidate_count','train_rows','dev_rows','test_rows','users','room_universe','positive_rooms','duplicates_dropped','dev_target_active_rate','test_target_active_rate','dev_neg_min','dev_neg_max','test_neg_min','test_neg_max']
+          bad={k:(a.get(k),b.get(k)) for k in keys if a.get(k)!=b.get(k)}
+          if bad: raise SystemExit(f'frozen room protocol mismatch: {bad}')
+          print('Frozen room protocol identity verified.')
+          PY
+
+      - name: Pin official DS-Frame source
+        run: |
+          git clone --filter=blob:none https://github.com/ZichenYuan233/Recommender-System-as-Slow-and-Fast-Thinkers.git third_party/dsframe
+          cd third_party/dsframe && git checkout "$DS_COMMIT"
+          cat > swanlab.py <<'PY'
+          def init(*args, **kwargs): return None
+          def log(*args, **kwargs): return None
+          PY
+          cat > helpers/__init__.py <<'PY'
+          __all__ = ['BaseReader', 'BaseRunner']
+          PY
+          cat > models/__init__.py <<'PY'
+          __all__ = ['PRL']
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('models/PRL.py'); s=p.read_text()
+          needle='        # thinking contrastive loss\n        if repeat_times > 1 and self.cl_weight > 0:\n'
+          repl='        # thinking contrastive loss\n        cl_loss = torch.zeros((), device=logits.device)\n        if repeat_times > 1 and self.cl_weight > 0:\n'
+          if needle not in s: raise SystemExit('Expected PRL warmup compatibility block not found')
+          p.write_text(s.replace(needle,repl,1))
+          PY
+
+      - name: Evaluate room-projected fast slow paths at exact budgets
+        run: |
+          DS_CAND=$(find ds_data -type f -name 'eval_candidates.npz' | head -1)
+          DS_DATASET_DIR=$(dirname "$DS_CAND")
+          DS_ROOT=$(dirname "$DS_DATASET_DIR")
+          DS_NAME=$(basename "$DS_DATASET_DIR")
+          MODEL=$(find ds_scores -type f -name 'prl.pt' | head -1)
+          DS_SCORES=$(find ds_scores -type f -name 'ds_scores.npz' | head -1)
+          ROOM_DEV=$(find frozen_room -type f -name 'rec-SASRec-dev.csv' | head -1)
+          ROOM_TEST=$(find frozen_room -type f -name 'rec-SASRec-test.csv' | head -1)
+          DUAL_TEST=$(find dual_frozen -type f -name 'per_user_test.csv.gz' | head -1)
+          for f in "$DS_CAND" "$MODEL" "$DS_SCORES" "$ROOM_DEV" "$ROOM_TEST" "$DUAL_TEST"; do test -s "$f"; done
+          PYTHONPATH="$GITHUB_WORKSPACE/src:$GITHUB_WORKSPACE/analysis" python analysis/dsframe_room_projected_budget.py \
+            --ds-source third_party/dsframe --ds-root "$DS_ROOT" --ds-dataset "$DS_NAME" \
+            --ds-model "$MODEL" --ds-candidates "$DS_CAND" --ds-scores "$DS_SCORES" \
+            --room-data-dir room_regen/KuaiLiveShopRoomDualID \
+            --room-dev-rec "$ROOM_DEV" --room-test-rec "$ROOM_TEST" \
+            --dual-test "$DUAL_TEST" --out-dir room_ds_results --n-neg "$N_NEG" --alpha-room 0.1
+          cat room_ds_results/report.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dsframe-room-projected-results-${{ github.run_id }}
+          path: room_ds_results/**
+          if-no-files-found: warn
+          retention-days: 30
