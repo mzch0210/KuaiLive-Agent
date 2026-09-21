@@ -1,0 +1,81 @@
+name: DS-Frame exact matched-budget evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/dsframe_exact_matched_budget.py'
+      - '.github/workflows/dsframe-exact-budget-eval.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/src
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' 'scikit-learn<2'
+
+      - name: Reuse frozen DS-Frame scores
+        uses: actions/download-artifact@v4
+        with:
+          name: dsframe-full-scores-35495549517
+          repository: mzch0210/KuaiLive-Agent
+          run-id: 35495549517
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ds_frozen
+
+      - name: Reuse frozen SASRec predictions
+        uses: actions/download-artifact@v4
+        with:
+          name: fair-sasrec-residual-validation-35432625700
+          repository: mzch0210/KuaiLive-Agent
+          run-id: 35432625700
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: sas_frozen
+
+      - name: Reuse frozen Selective-v2 per-user tables
+        uses: actions/download-artifact@v4
+        with:
+          name: recovered-fair-residual-results-35436149252
+          repository: mzch0210/KuaiLive-Agent
+          run-id: 35436149252
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: residual_frozen
+
+      - name: Run exact matched-budget comparison
+        run: |
+          DEV=$(find sas_frozen -type f -name 'rec-SASRec-dev.csv' | head -1)
+          TEST=$(find sas_frozen -type f -name 'rec-SASRec-test.csv' | head -1)
+          SCORES=$(find ds_frozen -type f -name 'ds_scores.npz' | head -1)
+          test -n "$DEV" && test -n "$TEST" && test -n "$SCORES"
+          test "$(find sas_frozen -type f -name 'rec-SASRec-dev.csv' | wc -l)" -eq 1
+          test "$(find sas_frozen -type f -name 'rec-SASRec-test.csv' | wc -l)" -eq 1
+          test "$(find ds_frozen -type f -name 'ds_scores.npz' | wc -l)" -eq 1
+          python analysis/dsframe_exact_matched_budget.py \
+            --recovered-dir residual_frozen \
+            --sasrec-dev "$DEV" \
+            --sasrec-test "$TEST" \
+            --ds-scores "$SCORES" \
+            --out-dir exact_results
+          cat exact_results/report.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dsframe-exact-budget-results-${{ github.run_id }}
+          path: exact_results/**
+          retention-days: 30
