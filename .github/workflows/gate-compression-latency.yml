@@ -1,0 +1,172 @@
+name: Gate compression latency validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/gate_compression_dual_id.py'
+      - 'analysis/gate_compression_latency.py'
+      - 'analysis/aggregate_gate_compression.py'
+      - '.github/workflows/gate-compression-latency.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SEED: '20260918'
+  N_NEG: '574'
+  ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+  STREAMER_DATASET: 'KuaiLiveShopStreamerParallel'
+  DATA_RUN: '35554842873'
+  DATA_ARTIFACT: 'room-collision-data-35554842873'
+  OURS_RUN: '35554842873'
+  OURS_ARTIFACT: 'room-collision-ours-35554842873'
+  ROOM_RUN: '35455075346'
+  ROOM_ARTIFACT: 'room-level-kill-gate-35455075346'
+  CKPT_RUN: '35559499838'
+  RECHORUS_COMMIT: c164ec4303cc20ddcfbd1b57de366a481811d1e5
+
+jobs:
+  accuracy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONPATH: ${{ github.workspace }}/analysis:${{ github.workspace }}/src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install frozen analysis runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' 'scipy<2' 'scikit-learn<2' joblib
+          python -m py_compile analysis/gate_compression_dual_id.py analysis/gate_compression_latency.py analysis/aggregate_gate_compression.py
+      - name: Download locked data and prediction artifacts
+        run: |
+          mkdir -p shared frozen_ours frozen_room
+          gh run download "$DATA_RUN" --repo "$GITHUB_REPOSITORY" --name "$DATA_ARTIFACT" --dir shared
+          gh run download "$OURS_RUN" --repo "$GITHUB_REPOSITORY" --name "$OURS_ARTIFACT" --dir frozen_ours
+          gh run download "$ROOM_RUN" --repo "$GITHUB_REPOSITORY" --name "$ROOM_ARTIFACT" --dir frozen_room
+          test -s "shared/rechorus_dual/$ROOM_DATASET/train.csv"
+          test -s "shared/rechorus_dual/$STREAMER_DATASET/streamer_item_map.tsv"
+          test -s frozen_room/predictions/rec-SASRec-dev.csv
+          test -s frozen_ours/logs/streamer/rec-SASRec-dev.csv
+          test -s frozen_ours/dual_id_results/report.json
+          test -s frozen_ours/dual_id_results/per_user_test.csv.gz
+      - name: Fit fixed lightweight gates and enforce HGB reproduction
+        run: |
+          python analysis/gate_compression_dual_id.py \
+            --room-data-dir "shared/rechorus_dual/$ROOM_DATASET" \
+            --streamer-data-dir "shared/rechorus_dual/$STREAMER_DATASET" \
+            --room-dev frozen_room/predictions/rec-SASRec-dev.csv \
+            --streamer-dev frozen_ours/logs/streamer/rec-SASRec-dev.csv \
+            --reference-report frozen_ours/dual_id_results/report.json \
+            --reference-test frozen_ours/dual_id_results/per_user_test.csv.gz \
+            --out-dir gate_results --n-neg "$N_NEG"
+          cat gate_results/report.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gate-compression-accuracy-${{ github.run_id }}
+          path: gate_results/**
+          retention-days: 30
+
+  latency:
+    needs: accuracy
+    strategy:
+      fail-fast: false
+      matrix:
+        replica: [1, 2, 3]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONPATH: ${{ github.workspace }}/analysis:${{ github.workspace }}/src
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install latency runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' 'scipy<2' 'scikit-learn<2' joblib tqdm pyyaml
+      - uses: actions/download-artifact@v4
+        with:
+          name: gate-compression-accuracy-${{ github.run_id }}
+          path: gate_artifact
+      - name: Download frozen checkpoints and data
+        run: |
+          mkdir -p ckpt_room ckpt_streamer shared
+          gh run download "$CKPT_RUN" --repo "$GITHUB_REPOSITORY" --name "latency-room-checkpoint-$CKPT_RUN" --dir ckpt_room
+          gh run download "$CKPT_RUN" --repo "$GITHUB_REPOSITORY" --name "latency-streamer-checkpoint-$CKPT_RUN" --dir ckpt_streamer
+          gh run download "$DATA_RUN" --repo "$GITHUB_REPOSITORY" --name "$DATA_ARTIFACT" --dir shared
+          test -s ckpt_room/latency_models/room.pt
+          test -s ckpt_streamer/latency_models/streamer.pt
+      - name: Pin official ReChorus
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus && git checkout "$RECHORUS_COMMIT"
+      - name: Record runner hardware
+        run: |
+          mkdir -p gate_latency
+          lscpu | tee gate_latency/lscpu.txt
+          free -h | tee gate_latency/memory.txt
+      - name: Benchmark HGB vs Ridge vs tiny MLP on identical runner
+        run: |
+          GATE_DIR=$(dirname "$(find gate_artifact -name report.json -print -quit)")
+          test -n "$GATE_DIR"
+          python analysis/gate_compression_latency.py \
+            --rechorus-source third_party/ReChorus \
+            --data-root shared/rechorus_dual \
+            --room-dataset "$ROOM_DATASET" --streamer-dataset "$STREAMER_DATASET" \
+            --room-model ckpt_room/latency_models/room.pt \
+            --streamer-model ckpt_streamer/latency_models/streamer.pt \
+            --gate-dir "$GATE_DIR" --out-dir gate_latency \
+            --replica '${{ matrix.replica }}' --samples 1200 --warmup 100 --seed "$SEED"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-latency-replica-${{ matrix.replica }}-${{ github.run_id }}
+          path: gate_latency/**
+          retention-days: 30
+
+  aggregate:
+    needs: latency
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install 'numpy<2' 'pandas<3'
+      - uses: actions/download-artifact@v4
+        with:
+          name: gate-compression-accuracy-${{ github.run_id }}
+          path: accuracy
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: gate-latency-replica-*-${{ github.run_id }}
+          path: replicas
+          merge-multiple: false
+      - name: Aggregate accuracy-latency evidence
+        run: |
+          REPORT=$(find accuracy -name report.json -print -quit)
+          test -n "$REPORT"
+          python analysis/aggregate_gate_compression.py --root replicas --accuracy-report "$REPORT" --out-dir gate_final
+          cat gate_final/accuracy_latency_summary.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gate-compression-final-${{ github.run_id }}
+          path: gate_final/**
+          retention-days: 60
