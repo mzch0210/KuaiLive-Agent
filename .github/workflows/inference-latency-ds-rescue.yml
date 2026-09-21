@@ -1,0 +1,142 @@
+name: Inference latency DS-only rescue
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/inference_latency_dsframe.py'
+      - 'analysis/aggregate_inference_latency.py'
+      - '.github/workflows/inference-latency-ds-rescue.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  SEED: '20260918'
+  SOURCE_LATENCY_RUN: '35559499838'
+  DS_RUN: '35495549517'
+  DS_DATA_ARTIFACT: 'dsframe-full-data-35495549517'
+  DS_MODEL_ARTIFACT: 'dsframe-full-scores-35495549517'
+  DS_DATASET: 'KuaiLiveDSFull'
+  DS_COMMIT: c216ec4358f0cc2b834c4069e535cd10c7d8d486
+
+jobs:
+  ds_benchmark:
+    strategy:
+      fail-fast: false
+      matrix:
+        replica: [1, 2, 3]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install DS inference runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' 'scipy<2' 'scikit-learn<2' requests tqdm pyyaml
+          python -c "import requests; print('requests', requests.__version__)"
+
+      - name: Download frozen DS data and checkpoint
+        run: |
+          mkdir -p ds_data ds_model
+          gh run download "$DS_RUN" --repo "$GITHUB_REPOSITORY" --name "$DS_DATA_ARTIFACT" --dir ds_data
+          gh run download "$DS_RUN" --repo "$GITHUB_REPOSITORY" --name "$DS_MODEL_ARTIFACT" --dir ds_model
+          test -s "ds_model/ds_results/prl.pt"
+          test -s "ds_data/$DS_DATASET/eval_candidates.npz"
+
+      - name: Pin official DS-Frame source with import-only compatibility stubs
+        run: |
+          git clone --filter=blob:none https://github.com/ZichenYuan233/Recommender-System-as-Slow-and-Fast-Thinkers.git third_party/dsframe
+          cd third_party/dsframe
+          git checkout "$DS_COMMIT"
+          cat > swanlab.py <<'PY'
+          def init(*args, **kwargs): return None
+          def log(*args, **kwargs): return None
+          PY
+          cat > openai.py <<'PY'
+          # Import-only stub: PRL inference does not call OpenAI APIs.
+          PY
+          cat > helpers/__init__.py <<'PY'
+          __all__ = ['BaseReader', 'BaseRunner']
+          PY
+          cat > models/__init__.py <<'PY'
+          __all__ = ['PRL']
+          PY
+
+      - name: Record runner hardware
+        run: |
+          mkdir -p latency_replica
+          lscpu | tee latency_replica/lscpu.txt
+          free -h | tee latency_replica/memory.txt
+          df -h | tee latency_replica/disk.txt
+
+      - name: Benchmark DS-Frame fast and slow candidate inference
+        run: |
+          python analysis/inference_latency_dsframe.py \
+            --ds-source third_party/dsframe \
+            --data-root ds_data --dataset "$DS_DATASET" \
+            --model-path ds_model/ds_results/prl.pt \
+            --out-dir latency_replica --replica '${{ matrix.replica }}' \
+            --samples 1200 --warmup 100 --seed "$SEED"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ds-latency-replica-${{ matrix.replica }}-${{ github.run_id }}
+          path: latency_replica/**
+          retention-days: 30
+
+  aggregate:
+    needs: ds_benchmark
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install 'numpy<2' 'pandas<3'
+
+      - name: Download successful ours latency replicas from source run
+        run: |
+          mkdir -p replicas
+          for R in 1 2 3; do
+            mkdir -p "replicas/ours-$R"
+            gh run download "$SOURCE_LATENCY_RUN" --repo "$GITHUB_REPOSITORY" \
+              --name "latency-replica-$R-$SOURCE_LATENCY_RUN" --dir "replicas/ours-$R"
+            test -n "$(find "replicas/ours-$R" -name 'ours_latency_replica_*.csv.gz' -print -quit)"
+          done
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ds-latency-replica-*-${{ github.run_id }}
+          path: replicas/ds
+          merge-multiple: false
+
+      - name: Validate DS replicas and aggregate pooled results
+        run: |
+          test "$(find replicas/ds -name 'ds_latency_replica_*.csv.gz' | wc -l)" -eq 3
+          python analysis/aggregate_inference_latency.py --root replicas --out-dir latency_final
+          echo '=== POOLED SUMMARY ==='
+          cat latency_final/pooled_summary.csv
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: inference-latency-final-rescued-${{ github.run_id }}
+          path: latency_final/**
+          retention-days: 60
