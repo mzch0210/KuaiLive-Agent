@@ -45,7 +45,8 @@ jobs:
       - name: Install frozen ReChorus runtime
         run: |
           pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
-          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' pyyaml
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
+          python -c "import sklearn; print('scikit-learn', sklearn.__version__)"
       - name: Download frozen room/streamer data
         run: |
           mkdir -p shared
@@ -89,7 +90,8 @@ jobs:
       - name: Install frozen ReChorus runtime
         run: |
           pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
-          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' pyyaml
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' 'scikit-learn<2' pyyaml
+          python -c "import sklearn; print('scikit-learn', sklearn.__version__)"
       - name: Download frozen room/streamer data
         run: |
           mkdir -p shared
