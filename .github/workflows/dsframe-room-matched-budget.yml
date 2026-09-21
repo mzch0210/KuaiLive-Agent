@@ -68,7 +68,12 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: room-collision-data-${{ github.run_id }}
-          path: .
+          path: shared
+      - name: Verify prepared inputs
+        run: |
+          test -s "shared/rechorus_dual/$STREAMER_DATASET/train.csv"
+          test -s "shared/rechorus_dual/$ROOM_DATASET/dev.csv"
+          test -s "shared/rechorus_dual/$ROOM_DATASET/test.csv"
       - name: Install CPU runtime
         run: |
           pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
@@ -100,9 +105,9 @@ jobs:
             --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 2 --save_final_results 1 --regenerate 1 \
             --log_file "$GITHUB_WORKSPACE/logs/streamer.log" --model_path "$GITHUB_WORKSPACE/models/streamer.pt"
           cd "$GITHUB_WORKSPACE"
-          DEV=$(find third_party/ReChorus -type f -name 'rec-SASRec-dev.csv' | head -1)
-          TEST=$(find third_party/ReChorus -type f -name 'rec-SASRec-test.csv' | head -1)
-          test -n "$DEV" && test -n "$TEST"
+          DEV="$GITHUB_WORKSPACE/logs/streamer/rec-SASRec-dev.csv"
+          TEST="$GITHUB_WORKSPACE/logs/streamer/rec-SASRec-test.csv"
+          test -s "$DEV" && test -s "$TEST"
           cp "$DEV" predictions/streamer/dev.csv; cp "$TEST" predictions/streamer/test.csv
       - name: Recompute frozen Dual-ID selective outputs
         run: |
@@ -134,7 +139,13 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: room-collision-data-${{ github.run_id }}
-          path: .
+          path: shared
+      - name: Verify prepared inputs
+        run: |
+          test -s "shared/ds_data/$DS_DATASET/$DS_DATASET.train.remap.csv"
+          test -s "shared/ds_data/$DS_DATASET/$DS_DATASET.valid.remap.csv"
+          test -s "shared/ds_data/$DS_DATASET/$DS_DATASET.test.remap.csv"
+          test -s "shared/ds_data/$DS_DATASET/eval_candidates.npz"
       - name: Install CPU runtime
         run: |
           pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
@@ -175,6 +186,7 @@ jobs:
         run: |
           python scripts/export_dsframe_scores.py --ds-source third_party/dsframe --data-root shared/ds_data --dataset "$DS_DATASET" \
             --model-path ds_results/prl.pt --candidates "shared/ds_data/$DS_DATASET/eval_candidates.npz" --out ds_results/ds_scores.npz --batch-size 128
+          test -s ds_results/ds_scores.npz
           cat ds_results/ds_scores.json
       - uses: actions/upload-artifact@v4
         if: always()
