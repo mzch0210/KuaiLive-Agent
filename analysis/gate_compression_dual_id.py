@@ -123,21 +123,19 @@ def main():
     ap.add_argument('--room-data-dir', type=Path, required=True)
     ap.add_argument('--streamer-data-dir', type=Path, required=True)
     ap.add_argument('--room-dev', type=Path, required=True)
-    ap.add_argument('--room-test', type=Path, required=True)
     ap.add_argument('--streamer-dev', type=Path, required=True)
-    ap.add_argument('--streamer-test', type=Path, required=True)
     ap.add_argument('--reference-report', type=Path, required=True)
+    ap.add_argument('--reference-test', type=Path, required=True)
     ap.add_argument('--out-dir', type=Path, required=True)
     ap.add_argument('--n-neg', type=int, default=574)
     args = ap.parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
-    train, dev, test, item_to_streamer = load_data(args.room_data_dir, args.n_neg)
+    train, dev, _test, item_to_streamer = load_data(args.room_data_dir, args.n_neg)
     streamer_map = pd.read_csv(args.streamer_data_dir / 'streamer_item_map.tsv', sep='\t')
     streamer_to_item = dict(zip(streamer_map.streamer_id.astype(int), streamer_map.item_id.astype(int)))
 
     dv = aligned_vectors(dev, args.room_dev, args.streamer_dev, item_to_streamer, streamer_to_item, args.n_neg)
-    tv = aligned_vectors(test, args.room_test, args.streamer_test, item_to_streamer, streamer_to_item, args.n_neg)
 
     grid = np.linspace(0.0, 1.0, 41)
     best = None
@@ -149,19 +147,19 @@ def main():
             best = (key, float(alpha))
     alpha = best[1]
     base_dev = evaluate_vectors(dv, alpha, True)
-    base_test = evaluate_vectors(tv, alpha, True)
 
     pop = popularity_by_streamer(train, item_to_streamer)
-    train_dev = pd.concat([train, dev[['user_id', 'item_id', 'time']]], ignore_index=True)
     mem_dev = score_memory(dev, train, pop, args.n_neg, item_to_streamer)
-    mem_test = score_memory(test, train_dev, pop, args.n_neg, item_to_streamer)
     feat_dev = user_features(train, item_to_streamer)
-    feat_test = user_features(train_dev, item_to_streamer)
-
     d = base_dev.merge(mem_dev, on='user_id').merge(feat_dev, on='user_id')
-    t = base_test.merge(mem_test, on='user_id').merge(feat_test, on='user_id')
     d['MemoryFusion_delta'] = d.MemoryFusion_score10 - d.dual_score10
-    t['MemoryFusion_delta'] = t.MemoryFusion_score10 - t.dual_score10
+
+    # Test is reused verbatim from the locked identity-control artifact.
+    t = pd.read_csv(args.reference_test).sort_values('user_id').reset_index(drop=True)
+    needed = set(['user_id', 'dual_score10', 'MemoryFusion_score10'] + FEATURES)
+    missing = sorted(needed - set(t.columns))
+    if missing:
+        raise ValueError(f'reference test missing columns: {missing}')
 
     Xd = d[FEATURES].to_numpy(float)
     Xt = t[FEATURES].to_numpy(float)
@@ -230,7 +228,7 @@ def main():
     report = {
         'experiment': 'dual_id_gate_compression',
         'hypothesis': 'Current Selective Memory latency disadvantage is primarily selector overhead rather than intrinsic memory-specialist cost.',
-        'protocol': 'Same frozen Dual-ID base, MemoryFusion expert, 575 candidates, 5-fold OOF dev threshold, one-shot test.',
+        'protocol': 'Same frozen Dual-ID base, MemoryFusion expert, 575 candidates, 5-fold OOF dev threshold, one-shot frozen test.',
         'users': int(len(t)),
         'candidate_count': int(args.n_neg + 1),
         'alpha_room': float(alpha),
