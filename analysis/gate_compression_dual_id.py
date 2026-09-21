@@ -10,7 +10,7 @@ import pandas as pd
 import torch
 from sklearn.base import clone
 from sklearn.linear_model import Ridge
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, cross_val_predict
 from sklearn.preprocessing import StandardScaler
 
 from dual_id_room_baseline import aligned_vectors, evaluate_vectors
@@ -70,14 +70,6 @@ def predict_tiny(scaler, model, X: np.ndarray) -> np.ndarray:
     Xs = scaler.transform(X).astype(np.float32)
     with torch.inference_mode():
         return model(torch.from_numpy(Xs)).cpu().numpy().astype(float)
-
-
-def oof_hgb(X, y, cv):
-    out = np.empty(len(y), dtype=float)
-    for tr, va in cv.split(X):
-        m = hgb().fit(X[tr], y[tr])
-        out[va] = m.predict(X[va])
-    return out
 
 
 def oof_ridge(X, y, cv):
@@ -171,7 +163,8 @@ def main():
 
     cv = KFold(n_splits=5, shuffle=True, random_state=SEED)
 
-    hgb_oof = oof_hgb(Xd, yd, cv)
+    # Reproduce the original identity-control semantics exactly.
+    hgb_oof = cross_val_predict(hgb(), Xd, yd, cv=cv, method='predict', n_jobs=1)
     hgb_full = clone(hgb()).fit(Xd, yd)
     hgb_test_pred = hgb_full.predict(Xt)
     gh = eval_gate('hgb', hgb_oof, hgb_test_pred, base_d, mem_d, base_t, mem_t)
