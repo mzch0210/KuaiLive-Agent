@@ -1,0 +1,236 @@
+name: Inference latency benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/inference_latency_ours.py'
+      - 'analysis/inference_latency_dsframe.py'
+      - 'analysis/aggregate_inference_latency.py'
+      - '.github/workflows/inference-latency-benchmark.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PYTHONPATH: ${{ github.workspace }}/src
+  SEED: '20260918'
+  ROOM_DATA_RUN: '35554842873'
+  ROOM_DATA_ARTIFACT: 'room-collision-data-35554842873'
+  OURS_RUN: '35554842873'
+  OURS_ARTIFACT: 'room-collision-ours-35554842873'
+  DS_RUN: '35495549517'
+  DS_DATA_ARTIFACT: 'dsframe-full-data-35495549517'
+  DS_MODEL_ARTIFACT: 'dsframe-full-scores-35495549517'
+  ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+  STREAMER_DATASET: 'KuaiLiveShopStreamerParallel'
+  DS_DATASET: 'KuaiLiveDSFull'
+  RECHORUS_COMMIT: c164ec4303cc20ddcfbd1b57de366a481811d1e5
+  DS_COMMIT: c216ec4358f0cc2b834c4069e535cd10c7d8d486
+
+jobs:
+  train_room_checkpoint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install frozen ReChorus runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' pyyaml
+      - name: Download frozen room/streamer data
+        run: |
+          mkdir -p shared
+          gh run download "$ROOM_DATA_RUN" --repo "$GITHUB_REPOSITORY" --name "$ROOM_DATA_ARTIFACT" --dir shared
+          test -s "shared/rechorus_dual/$ROOM_DATASET/train.csv"
+          test -s "shared/rechorus_dual/$ROOM_DATASET/test.csv"
+      - name: Pin official ReChorus
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus && git checkout "$RECHORUS_COMMIT"
+      - name: Rebuild frozen room-SASRec checkpoint
+        run: |
+          mkdir -p latency_models latency_logs
+          cd third_party/ReChorus/src
+          python main.py \
+            --model_name SASRec --dataset "$ROOM_DATASET" --path "$GITHUB_WORKSPACE/shared/rechorus_dual/" \
+            --gpu '' --random_seed "$SEED" --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+            --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 --epoch 30 --early_stop 5 \
+            --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 2 --save_final_results 0 --regenerate 1 \
+            --log_file "$GITHUB_WORKSPACE/latency_logs/room.log" --model_path "$GITHUB_WORKSPACE/latency_models/room.pt"
+          test -s "$GITHUB_WORKSPACE/latency_models/room.pt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: latency-room-checkpoint-${{ github.run_id }}
+          path: |
+            latency_models/room.pt
+            latency_logs/room.log
+          retention-days: 14
+
+  train_streamer_checkpoint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install frozen ReChorus runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' pyyaml
+      - name: Download frozen room/streamer data
+        run: |
+          mkdir -p shared
+          gh run download "$ROOM_DATA_RUN" --repo "$GITHUB_REPOSITORY" --name "$ROOM_DATA_ARTIFACT" --dir shared
+          test -s "shared/rechorus_dual/$STREAMER_DATASET/train.csv"
+          test -s "shared/rechorus_dual/$STREAMER_DATASET/test.csv"
+      - name: Pin official ReChorus
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus && git checkout "$RECHORUS_COMMIT"
+      - name: Rebuild frozen streamer-SASRec checkpoint
+        run: |
+          mkdir -p latency_models latency_logs
+          cd third_party/ReChorus/src
+          python main.py \
+            --model_name SASRec --dataset "$STREAMER_DATASET" --path "$GITHUB_WORKSPACE/shared/rechorus_dual/" \
+            --gpu '' --random_seed "$SEED" --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+            --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 --epoch 30 --early_stop 5 \
+            --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 2 --save_final_results 0 --regenerate 1 \
+            --log_file "$GITHUB_WORKSPACE/latency_logs/streamer.log" --model_path "$GITHUB_WORKSPACE/latency_models/streamer.pt"
+          test -s "$GITHUB_WORKSPACE/latency_models/streamer.pt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: latency-streamer-checkpoint-${{ github.run_id }}
+          path: |
+            latency_models/streamer.pt
+            latency_logs/streamer.log
+          retention-days: 14
+
+  benchmark:
+    needs: [train_room_checkpoint, train_streamer_checkpoint]
+    strategy:
+      fail-fast: false
+      matrix:
+        replica: [1, 2, 3]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install benchmark runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' 'scipy<2' 'scikit-learn<2' tqdm pyyaml
+      - uses: actions/download-artifact@v4
+        with:
+          name: latency-room-checkpoint-${{ github.run_id }}
+          path: ckpt_room
+      - uses: actions/download-artifact@v4
+        with:
+          name: latency-streamer-checkpoint-${{ github.run_id }}
+          path: ckpt_streamer
+      - name: Download frozen scientific artifacts
+        run: |
+          mkdir -p shared frozen_ours ds_data ds_model
+          gh run download "$ROOM_DATA_RUN" --repo "$GITHUB_REPOSITORY" --name "$ROOM_DATA_ARTIFACT" --dir shared
+          gh run download "$OURS_RUN" --repo "$GITHUB_REPOSITORY" --name "$OURS_ARTIFACT" --dir frozen_ours
+          gh run download "$DS_RUN" --repo "$GITHUB_REPOSITORY" --name "$DS_DATA_ARTIFACT" --dir ds_data
+          gh run download "$DS_RUN" --repo "$GITHUB_REPOSITORY" --name "$DS_MODEL_ARTIFACT" --dir ds_model
+          test -s "frozen_ours/dual_id_results/per_user_test.csv.gz"
+          test -s "frozen_ours/dual_id_results/report.json"
+          test -s "ds_model/ds_results/prl.pt"
+          test -s "ds_data/$DS_DATASET/eval_candidates.npz"
+      - name: Pin official sources
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus && git checkout "$RECHORUS_COMMIT"
+          cd "$GITHUB_WORKSPACE"
+          git clone --filter=blob:none https://github.com/ZichenYuan233/Recommender-System-as-Slow-and-Fast-Thinkers.git third_party/dsframe
+          cd third_party/dsframe && git checkout "$DS_COMMIT"
+          cat > swanlab.py <<'PY'
+          def init(*args, **kwargs): return None
+          def log(*args, **kwargs): return None
+          PY
+          cat > helpers/__init__.py <<'PY'
+          __all__ = ['BaseReader', 'BaseRunner']
+          PY
+          cat > models/__init__.py <<'PY'
+          __all__ = ['PRL']
+          PY
+      - name: Record runner hardware
+        run: |
+          mkdir -p latency_replica
+          lscpu | tee latency_replica/lscpu.txt
+          free -h | tee latency_replica/memory.txt
+          df -h | tee latency_replica/disk.txt
+      - name: Benchmark Dual-ID, MemoryFusion, gate and Selective Memory
+        run: |
+          python analysis/inference_latency_ours.py \
+            --rechorus-source third_party/ReChorus \
+            --data-root shared/rechorus_dual \
+            --room-dataset "$ROOM_DATASET" --streamer-dataset "$STREAMER_DATASET" \
+            --room-model ckpt_room/latency_models/room.pt \
+            --streamer-model ckpt_streamer/latency_models/streamer.pt \
+            --frozen-test frozen_ours/dual_id_results/per_user_test.csv.gz \
+            --frozen-report frozen_ours/dual_id_results/report.json \
+            --out-dir latency_replica --replica '${{ matrix.replica }}' --samples 1200 --warmup 100 --seed "$SEED"
+      - name: Benchmark DS-Frame fast/slow candidate inference
+        run: |
+          python analysis/inference_latency_dsframe.py \
+            --ds-source third_party/dsframe \
+            --data-root ds_data --dataset "$DS_DATASET" \
+            --model-path ds_model/ds_results/prl.pt \
+            --out-dir latency_replica --replica '${{ matrix.replica }}' --samples 1200 --warmup 100 --seed "$SEED"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: latency-replica-${{ matrix.replica }}-${{ github.run_id }}
+          path: latency_replica/**
+          retention-days: 30
+
+  aggregate:
+    needs: benchmark
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install 'numpy<2' 'pandas<3'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: latency-replica-*-${{ github.run_id }}
+          path: replicas
+          merge-multiple: false
+      - name: Aggregate pooled p50/p95 and environments
+        run: |
+          python analysis/aggregate_inference_latency.py --root replicas --out-dir latency_final
+          cat latency_final/pooled_summary.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: inference-latency-final-${{ github.run_id }}
+          path: latency_final/**
+          retention-days: 60
