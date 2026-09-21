@@ -1,0 +1,110 @@
+name: LiveRec Twitch P1 official base dev freeze
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/liverec_p1_train_dev_only.py'
+      - 'LIVEREC_P1_PROTOCOL_2026-09-21.md'
+      - 'NEXT_EXPERIMENT_PLAN_2026-09-21T2012+0800.md'
+      - '.github/workflows/liverec-p1-base-reproduction.yml'
+
+permissions:
+  contents: read
+
+env:
+  LIVEREC_OFFICIAL_COMMIT: '27eaf33d258d1c1ea2d6da1da81a5360e8c8ce6b'
+  TWITCH_100K_URL: 'https://mcauleylab.ucsd.edu/public_datasets/gdrive/twitch/100k_a.csv'
+
+jobs:
+  train-dev-freeze:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install CPU reproduction runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm prettytable
+          python -m py_compile analysis/liverec_p1_train_dev_only.py
+
+      - name: Pin official LiveRec source
+        run: |
+          git clone https://github.com/JRappaz/liverec.git third_party/liverec
+          cd third_party/liverec
+          git checkout "$LIVEREC_OFFICIAL_COMMIT"
+          test "$(git rev-parse HEAD)" = "$LIVEREC_OFFICIAL_COMMIT"
+          cp "$GITHUB_WORKSPACE/analysis/liverec_p1_train_dev_only.py" p1_train_dev_only.py
+
+      - name: Download official Twitch 100k benchmark mirror
+        run: |
+          mkdir -p third_party/liverec/dataset liverec_p1_base/models liverec_p1_base/cache
+          curl -L --fail --retry 3 --retry-delay 3 \
+            "$TWITCH_100K_URL" \
+            -o third_party/liverec/dataset/100k.csv
+          test -s third_party/liverec/dataset/100k.csv
+          ls -lh third_party/liverec/dataset/100k.csv
+
+      - name: Train official LiveRec and freeze by dev only
+        env:
+          LIVEREC_REPORT: '${{ github.workspace }}/liverec_p1_base/p1_base_dev_freeze.json'
+        working-directory: third_party/liverec
+        run: |
+          python p1_train_dev_only.py \
+            --model=LiveRec \
+            --dataset='dataset/' \
+            --fr_ctx \
+            --fr_rep \
+            --model_to='liverec_p1' \
+            --device='cpu' \
+            --caching \
+            --model_path='${{ github.workspace }}/liverec_p1_base/models' \
+            --cache_dir='${{ github.workspace }}/liverec_p1_base/cache' \
+            --seed=42 \
+            --lr=0.0005 \
+            --l2=0.1 \
+            --batch_size=100 \
+            --seq_len=16 \
+            --dim=64 \
+            --num_att=2 \
+            --num_att_ctx=2 \
+            --num_heads=4 \
+            --num_heads_ctx=4 \
+            --topk_att=64 \
+            --early_stop=15 \
+            --num_epochs=150 | tee '${{ github.workspace }}/liverec_p1_base/train.log'
+
+      - name: Validate dev-only guardrail
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('liverec_p1_base/p1_base_dev_freeze.json')
+          r=json.loads(p.read_text())
+          assert r['official_commit'] == '27eaf33d258d1c1ea2d6da1da81a5360e8c8ce6b'
+          assert r['test_ranking_inspected'] is False
+          assert r['config']['fr_ctx'] is True and r['config']['fr_rep'] is True
+          assert r['data']['users'] == 100000
+          assert r['data']['streamers'] == 162625
+          assert r['data']['rows'] == 3051733
+          print(json.dumps(r, indent=2))
+          PY
+
+      - name: Upload frozen dev checkpoint and evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: liverec-p1-base-dev-freeze-${{ github.run_id }}
+          path: |
+            liverec_p1_base/p1_base_dev_freeze.json
+            liverec_p1_base/train.log
+            liverec_p1_base/models/**
+          if-no-files-found: warn
+          retention-days: 60
