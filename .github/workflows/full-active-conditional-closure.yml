@@ -1,0 +1,57 @@
+name: Full-active conditional utility closure
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/full_active_conditional_closure.py'
+      - '.github/workflows/full-active-conditional-closure.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  FULL_ACTIVE_RUN: '35580324870'
+  FULL_ACTIVE_ARTIFACT: 'full-active-dual-id-35580324870'
+  PYTHONPATH: ${{ github.workspace }}/analysis:${{ github.workspace }}/src
+
+jobs:
+  closure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install analysis runtime
+        run: |
+          pip install 'numpy<2' 'pandas<3' 'scipy<2' 'scikit-learn<2'
+          python -m py_compile analysis/full_active_conditional_closure.py
+      - name: Download frozen full-active artifact
+        run: |
+          mkdir -p full_active
+          gh run download "$FULL_ACTIVE_RUN" --repo "$GITHUB_REPOSITORY" --name "$FULL_ACTIVE_ARTIFACT" --dir full_active
+          test -s full_active/report.json
+          test -s full_active/per_user_dev_full_active.csv.gz
+          test -s full_active/per_user_test_full_active.csv.gz
+      - name: Run mechanism closure on full-active native protocol
+        run: |
+          python analysis/full_active_conditional_closure.py \
+            --full-active-dir full_active \
+            --out-dir full_active_closure
+          cat full_active_closure/report.json
+          cat full_active_closure/matched_budget_routing.csv
+          cat full_active_closure/full_active_information_ablation.csv
+      - name: Upload closure evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: full-active-conditional-closure-${{ github.run_id }}
+          path: full_active_closure/**
+          retention-days: 60
