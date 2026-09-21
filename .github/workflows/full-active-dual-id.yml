@@ -1,0 +1,110 @@
+name: Full-active Dual-ID candidate-universe validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/full_active_dual_id.py'
+      - '.github/workflows/full-active-dual-id.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PYTHONPATH: ${{ github.workspace }}/analysis:${{ github.workspace }}/src
+  SEED: '20260918'
+  N_NEG: '574'
+  ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+  STREAMER_DATASET: 'KuaiLiveShopStreamerParallel'
+  DATA_RUN: '35554842873'
+  DATA_ARTIFACT: 'room-collision-data-35554842873'
+  CKPT_RUN: '35559499838'
+  GATE_RUN: '35571827672'
+  GATE_ARTIFACT: 'gate-compression-accuracy-35571827672'
+  RECHORUS_COMMIT: 'c164ec4303cc20ddcfbd1b57de366a481811d1e5'
+
+jobs:
+  full_active:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install frozen CPU runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' 'scipy<2' 'scikit-learn<2' joblib tqdm pyyaml
+          python -m py_compile analysis/full_active_dual_id.py
+
+      - name: Download frozen data, checkpoints, and sampled gate
+        run: |
+          mkdir -p shared ckpt_room ckpt_streamer sampled_gate
+          gh run download "$DATA_RUN" --repo "$GITHUB_REPOSITORY" --name "$DATA_ARTIFACT" --dir shared
+          gh run download "$CKPT_RUN" --repo "$GITHUB_REPOSITORY" --name "latency-room-checkpoint-$CKPT_RUN" --dir ckpt_room
+          gh run download "$CKPT_RUN" --repo "$GITHUB_REPOSITORY" --name "latency-streamer-checkpoint-$CKPT_RUN" --dir ckpt_streamer
+          gh run download "$GATE_RUN" --repo "$GITHUB_REPOSITORY" --name "$GATE_ARTIFACT" --dir sampled_gate
+          test -s "shared/rechorus_dual/$ROOM_DATASET/train.csv"
+          test -s "shared/rechorus_dual/$STREAMER_DATASET/streamer_item_map.tsv"
+          test -s ckpt_room/latency_models/room.pt
+          test -s ckpt_streamer/latency_models/streamer.pt
+          test -n "$(find sampled_gate -name report.json -print -quit)"
+          test -n "$(find sampled_gate -name hgb_gate.joblib -print -quit)"
+
+      - name: Regenerate frozen KuaiLive shop metadata for active-room intervals
+        run: |
+          python scripts/download_kuailive.py --data-root data
+          python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+          test -s data/prepared/shop/rooms.pkl
+
+      - name: Pin official ReChorus
+        run: |
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus
+          git checkout "$RECHORUS_COMMIT"
+
+      - name: Run strict-transfer and full-active-native protocols
+        run: |
+          GATE_DIR=$(dirname "$(find sampled_gate -name report.json -print -quit)")
+          test -n "$GATE_DIR"
+          mkdir -p full_active_results
+          /usr/bin/time -v -o full_active_results/time.txt \
+          python analysis/full_active_dual_id.py \
+            --rechorus-source third_party/ReChorus \
+            --data-root shared/rechorus_dual \
+            --prepared-dir data/prepared/shop \
+            --room-dataset "$ROOM_DATASET" \
+            --streamer-dataset "$STREAMER_DATASET" \
+            --room-model ckpt_room/latency_models/room.pt \
+            --streamer-model ckpt_streamer/latency_models/streamer.pt \
+            --sampled-gate-dir "$GATE_DIR" \
+            --out-dir full_active_results \
+            --n-neg "$N_NEG"
+          cat full_active_results/report.json
+          cat full_active_results/full_active_native_gate.json
+
+      - name: Record runner metadata
+        if: always()
+        run: |
+          lscpu > full_active_results/lscpu.txt || true
+          free -h > full_active_results/memory.txt || true
+
+      - name: Upload full-active evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: full-active-dual-id-${{ github.run_id }}
+          path: full_active_results/**
+          if-no-files-found: warn
+          retention-days: 60
