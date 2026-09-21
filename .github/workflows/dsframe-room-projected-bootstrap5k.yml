@@ -1,0 +1,96 @@
+name: DS-Frame projected-room bootstrap 5k cleanup
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/dsframe-room-projected-bootstrap5k.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  OLD_DS_RUN: '35495549517'
+  OLD_DS_DATA_ARTIFACT: 'dsframe-full-data-35495549517'
+  OLD_DS_MODEL_ARTIFACT: 'dsframe-full-scores-35495549517'
+  ROOM_RUN: '35554842873'
+  ROOM_DATA_ARTIFACT: 'room-collision-data-35554842873'
+  OURS_ARTIFACT: 'room-collision-ours-35554842873'
+  DS_COMMIT: 'c216ec4358f0cc2b834c4069e535cd10c7d8d486'
+  DS_DATASET: 'KuaiLiveDSFull'
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install runtime
+        run: |
+          pip install 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          pip install 'numpy<2' 'pandas<3' tqdm 'scipy<2' requests 'openai==1.70.0'
+      - name: Download frozen artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p old_data old_model room_data ours
+          gh run download "$OLD_DS_RUN" --repo "$GITHUB_REPOSITORY" --name "$OLD_DS_DATA_ARTIFACT" --dir old_data
+          gh run download "$OLD_DS_RUN" --repo "$GITHUB_REPOSITORY" --name "$OLD_DS_MODEL_ARTIFACT" --dir old_model
+          gh run download "$ROOM_RUN" --repo "$GITHUB_REPOSITORY" --name "$ROOM_DATA_ARTIFACT" --dir room_data
+          gh run download "$ROOM_RUN" --repo "$GITHUB_REPOSITORY" --name "$OURS_ARTIFACT" --dir ours
+      - name: Pin official DS-Frame source
+        run: |
+          git clone --filter=blob:none https://github.com/ZichenYuan233/Recommender-System-as-Slow-and-Fast-Thinkers.git third_party/dsframe
+          cd third_party/dsframe && git checkout "$DS_COMMIT"
+          cat > swanlab.py <<'PY'
+          def init(*args, **kwargs): return None
+          def log(*args, **kwargs): return None
+          PY
+          cat > helpers/__init__.py <<'PY'
+          __all__ = ['BaseReader', 'BaseRunner']
+          PY
+          cat > models/__init__.py <<'PY'
+          __all__ = ['PRL']
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('models/PRL.py'); s=p.read_text()
+          needle='        # thinking contrastive loss\n        if repeat_times > 1 and self.cl_weight > 0:\n'
+          repl='        # thinking contrastive loss\n        cl_loss = torch.zeros((), device=logits.device)\n        if repeat_times > 1 and self.cl_weight > 0:\n'
+          if needle not in s: raise SystemExit('Expected PRL compatibility block not found')
+          p.write_text(s.replace(needle,repl,1))
+          PY
+      - name: Rerun projected-room evaluation with 5000 bootstrap resamples
+        run: |
+          # Statistical-cleanup-only patch. Model scores, selector fitting, budgets,
+          # and candidate protocol are unchanged from the frozen rescue analysis.
+          sed -i 's/def bootstrap(diff, n=2000, seed=SEED):/def bootstrap(diff, n=5000, seed=SEED):/' analysis/dsframe_streamer_projected_room.py
+          grep 'def bootstrap' analysis/dsframe_streamer_projected_room.py
+          DSDIR=$(find old_data -type d -name "$DS_DATASET" | head -1)
+          MODEL=$(find old_model -type f -name 'prl.pt' | head -1)
+          ROOMDIR=$(find room_data -type d -name 'KuaiLiveShopRoomDualID' | head -1)
+          OURS=$(find ours -type f -name 'per_user_test.csv.gz' | head -1)
+          test -n "$DSDIR" && test -n "$MODEL" && test -n "$ROOMDIR" && test -n "$OURS"
+          python analysis/dsframe_streamer_projected_room.py \
+            --ds-source third_party/dsframe \
+            --ds-data-root "$(dirname "$DSDIR")" \
+            --ds-dataset "$DS_DATASET" \
+            --model-path "$MODEL" \
+            --room-data-dir "$ROOMDIR" \
+            --ours-test "$OURS" \
+            --out-dir projected_results \
+            --batch-size 128
+          cat projected_results/report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dsframe-projected-room-bootstrap5k-${{ github.run_id }}
+          path: projected_results/**
+          if-no-files-found: warn
+          retention-days: 60
