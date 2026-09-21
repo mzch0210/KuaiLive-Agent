@@ -1,0 +1,54 @@
+name: LiveRec Twitch P1 data audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/liverec_p1_data_audit.py'
+      - 'LIVEREC_P1_PROTOCOL_2026-09-21.md'
+      - '.github/workflows/liverec-p1-data-audit.yml'
+
+permissions:
+  contents: read
+
+env:
+  TWITCH_100K_URL: 'https://mcauleylab.ucsd.edu/public_datasets/gdrive/twitch/100k_a.csv'
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install audit runtime
+        run: |
+          pip install 'numpy<2' 'pandas<3'
+          python -m py_compile analysis/liverec_p1_data_audit.py
+      - name: Download official Twitch 100k benchmark mirror
+        run: |
+          mkdir -p external/liverec/dataset
+          curl -L --fail --retry 3 --retry-delay 3 \
+            "$TWITCH_100K_URL" \
+            -o external/liverec/dataset/100k.csv
+          ls -lh external/liverec/dataset/100k.csv
+          test -s external/liverec/dataset/100k.csv
+      - name: Reproduce official split and availability semantics
+        run: |
+          python analysis/liverec_p1_data_audit.py \
+            --csv external/liverec/dataset/100k.csv \
+            --out-dir liverec_p1_audit \
+            --seq-len 16
+          cat liverec_p1_audit/report.json
+      - name: Upload protocol-audit evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: liverec-p1-data-audit-${{ github.run_id }}
+          path: liverec_p1_audit/**
+          if-no-files-found: warn
+          retention-days: 60
