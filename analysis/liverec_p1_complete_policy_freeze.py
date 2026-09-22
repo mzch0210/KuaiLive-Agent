@@ -178,6 +178,11 @@ def main() -> None:
         if params.get(key) != value:
             raise RuntimeError(f"Frozen utility HGB parameter mismatch: {key}={params.get(key)!r}")
 
+    # Compatibility summary used by the workflow guard. The precise component-wise
+    # diagnostics below remain the canonical validation fields.
+    legacy_replay_error = dict(ecdf_self_error)
+    legacy_replay_error["state_complexity"] = state_complexity_error
+
     manifest = {
         "experiment": "liverec_twitch100k_p1_3_policy_preflight_freeze",
         "test_ranking_inspected": False,
@@ -212,6 +217,7 @@ def main() -> None:
             "ecdf_reference_lengths": ecdf_lengths,
             "ecdf_self_replay_max_abs_error": ecdf_self_error,
             "state_complexity_csv_replay_max_abs_error": state_complexity_error,
+            "dev_replay_max_abs_error": legacy_replay_error,
         },
         "utility_strata": {
             "role": "display-only; never used for routing",
