@@ -334,15 +334,16 @@ def _timestep_regularity(starts):
     return float(np.hypot(np.cos(ang).mean(), np.sin(ang).mean()))
 
 
-def _build_strict_histories(data_fu: pd.DataFrame, events: pd.DataFrame):
-    """History rows must have ended no later than the target start timestep."""
+def _build_strict_histories(data_fu: pd.DataFrame, events: pd.DataFrame, split_end: int):
+    """Use official split-eligible rows whose interaction start strictly precedes target."""
+    eligible = data_fu[data_fu.stop < split_end].copy()
     target_step = events.set_index("user_id")["target_step"]
-    cutoff = data_fu["user"].map(target_step)
+    cutoff = eligible["user"].map(target_step)
     mask = cutoff.notna().to_numpy() & (
-        data_fu["stop"].to_numpy() <= cutoff.fillna(-1).to_numpy()
+        eligible["start"].to_numpy() < cutoff.fillna(-1).to_numpy()
     )
-    hist = data_fu.loc[mask, ["user", "streamer", "start", "stop"]].copy()
-    hist["_row"] = np.flatnonzero(mask)
+    hist = eligible.loc[mask, ["user", "streamer", "start", "stop"]].copy()
+    hist["_row"] = eligible.index.to_numpy()[mask]
     hist.sort_values(["user", "start", "_row"], kind="mergesort", inplace=True)
 
     info = {}
@@ -378,11 +379,11 @@ def _build_strict_histories(data_fu: pd.DataFrame, events: pd.DataFrame):
             "preference_drift": _js_divergence(old, recent) if len(old) and len(recent) else 0.0,
             "time_regularity": _timestep_regularity(starts),
         }
-    return info, int(len(hist))
+    return info, int(len(hist)), int(len(eligible))
 
 
 def _train_popularity(data_fu: pd.DataFrame, args):
-    """Train-only popularity: rows completed before pivot_1, matching frozen split semantics."""
+    """Train-only popularity uses the official train-eligible row pool."""
     tr = data_fu.loc[data_fu.stop < args.pivot_1, "streamer"].to_numpy(
         dtype=np.int64, copy=False
     )
@@ -398,7 +399,9 @@ def _train_popularity(data_fu: pd.DataFrame, args):
 
 
 def _add_state_and_memory(events: pd.DataFrame, data_fu: pd.DataFrame, args):
-    hist_info, strict_hist_rows = _build_strict_histories(data_fu, events)
+    hist_info, strict_hist_rows, dev_eligible_rows = _build_strict_histories(
+        data_fu, events, args.pivot_2
+    )
     pop, train_pop_rows = _train_popularity(data_fu, args)
 
     short_dense = np.zeros_like(pop, dtype=np.float64)
@@ -485,6 +488,7 @@ def _add_state_and_memory(events: pd.DataFrame, data_fu: pd.DataFrame, args):
 
     return out, {
         "strict_history_rows": strict_hist_rows,
+        "dev_eligible_rows": dev_eligible_rows,
         "train_popularity_rows": train_pop_rows,
     }
 
@@ -602,6 +606,7 @@ def main():
     summary = _summarize(events)
     report = {
         "experiment": "liverec_twitch100k_p12_dev_memory_horizon",
+        "controller_sha": os.environ.get("GITHUB_SHA"),
         "official_commit": os.environ.get("LIVEREC_OFFICIAL_COMMIT"),
         "base_run_id": int(os.environ.get("LIVEREC_BASE_RUN_ID", "35679482824")),
         "base_best_epoch": int(frozen["best_epoch"]),
@@ -615,14 +620,14 @@ def main():
                 "long": MEM_W_LONG,
                 "popularity": MEM_W_POP,
             },
-            "popularity": "train-only rows with stop < pivot_1; log1p count; min-max over observed streamers",
-            "history": "rows for the same user with stop <= target_start; sorted by start then original row order",
+            "popularity": "official train-eligible rows with stop < pivot_1; log1p count; min-max over observed streamers",
+            "history": "official dev-eligible rows with stop < pivot_2 and start < target_start; sorted by start then original row order",
             "tie_break": "higher MemoryFusion score first; exact score ties by smaller factorized streamer id",
         },
         "relationship_horizon": {
             "recent-visible": "target streamer occurs in the exact LiveRec 16-step input context",
-            "long-horizon-only": "target absent from LiveRec context but present in strict completed pre-target history",
-            "unseen": "target absent from both LiveRec context and strict completed pre-target history",
+            "long-horizon-only": "target absent from LiveRec context but present in chronological pre-target memory history",
+            "unseen": "target absent from both LiveRec context and chronological pre-target memory history",
             "counts": {str(k): int(v) for k, v in horizon_counts.items()},
         },
         "execution": {
