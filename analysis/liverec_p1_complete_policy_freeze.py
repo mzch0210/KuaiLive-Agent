@@ -153,9 +153,7 @@ def main() -> None:
     qcut_bins = np.asarray(qcut_bins, dtype=float)
     if qcut_bins.size != 11 or not np.all(np.diff(qcut_bins) > 0):
         raise RuntimeError(f"Expected 10 distinct frozen OOF utility strata, got {qcut_bins.tolist()}")
-    test_strata_edges = qcut_bins.copy()
-    test_strata_edges[0] = -np.inf
-    test_strata_edges[-1] = np.inf
+    internal_cutpoints = qcut_bins[1:-1]
 
     model = utility_bundle["model"]
     expected_params = {
@@ -207,7 +205,8 @@ def main() -> None:
         "utility_strata": {
             "role": "display-only; never used for routing",
             "labels": [f"D{i}" for i in range(1, 11)],
-            "test_edges": [float(x) for x in test_strata_edges],
+            "internal_cutpoints": [float(x) for x in internal_cutpoints],
+            "outer_intervals": "(-inf, first] and (last, +inf)",
         },
         "memory_rule": {
             "short_k": 10,
@@ -218,8 +217,8 @@ def main() -> None:
         "difficulty_gate_sha256": sha256(difficulty_path),
         "freeze_rule": "No Memory weights, feature set, HGB family/hyperparameters, utility threshold, state transform, difficulty budget rule, or test policy may change after this preflight. P1.3 is one-shot.",
     }
-    (args.out_dir / "p1_3_policy_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    print(json.dumps(manifest, indent=2))
+    (args.out_dir / "p1_3_policy_manifest.json").write_text(json.dumps(manifest, indent=2, allow_nan=False) + "\n")
+    print(json.dumps(manifest, indent=2, allow_nan=False))
 
 
 if __name__ == "__main__":
