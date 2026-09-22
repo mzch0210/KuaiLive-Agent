@@ -1,0 +1,280 @@
+name: LiveRec Twitch P1.2 dev memory horizon
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_owner_run:
+        description: 'Run P1.2 dev-only MemoryFusion and relationship-horizon audit on frozen LiveRec base'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kuailive-gpu-3090
+  cancel-in-progress: false
+
+env:
+  LIVEREC_OFFICIAL_COMMIT: '27eaf33d258d1c1ea2d6da1da81a5360e8c8ce6b'
+  LIVEREC_SOURCE_SHA256: '243ac4f01c408b71e4b87b06e58300b41286c5988b7a71c01a4fa04899072d48'
+  TWITCH_100K_URL: 'https://mcauleylab.ucsd.edu/public_datasets/gdrive/twitch/100k_a.csv'
+  TWITCH_100K_SHA256: '11d3bdb49683f651eb6b0ba806bf317db68646efc0c7de2d02d750201fd8ef69'
+  LIVEREC_BASE_RUN_ID: '35679482824'
+  LIVEREC_BASE_ARTIFACT_ID: '10678092592'
+  LIVEREC_BASE_ARTIFACT_SHA256: '657f5d4bc64bc764b3f80760fa52ac0e1f51fc687433ab368af321eb62806f15'
+  LIVEREC_BASE_CHECKPOINT_NAME: 'liverec_p1_gpu_64_0.1_64_2_16_rep_ctx.pt'
+  LIVEREC_BASE_CHECKPOINT_SHA256: '282b07277cf8a213f58094c7170f9d43fb988926ad554d8cd315aabfe736b6da'
+  LIVEREC_BASE_REPORT_SHA256: '6f7b8ed63553b94c0b49bb1416213f7b1b5d0ac694d662aaef3176bbf3e5a021'
+  EXPECTED_REPOSITORY: 'mzch0210/KuaiLive-Agent'
+  EXPECTED_ACTOR: 'mzch0210'
+  PYTHONHASHSEED: '42'
+  CUDA_VISIBLE_DEVICES: '0'
+  CUBLAS_WORKSPACE_CONFIG: ':4096:8'
+  LIVEREC_NUM_WORKERS: '4'
+
+jobs:
+  p12-dev-memory:
+    if: ${{ github.actor == 'mzch0210' && github.ref == 'refs/heads/main' && inputs.confirm_owner_run }}
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 360
+    steps:
+      - name: Enforce self-hosted runner guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+          test "$GITHUB_ACTOR" = "$EXPECTED_ACTOR"
+          test "$GITHUB_REPOSITORY" = "$EXPECTED_REPOSITORY"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(id -u)" -ne 0
+
+          if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+            echo 'ERROR: runner user has passwordless sudo.' >&2
+            exit 1
+          fi
+          if id -nG | tr ' ' '\n' | grep -qx docker; then
+            echo 'ERROR: runner user is in the docker group.' >&2
+            exit 1
+          fi
+          if [ -n "${SSH_AUTH_SOCK:-}" ]; then
+            echo 'ERROR: SSH agent forwarding is visible to the runner.' >&2
+            exit 1
+          fi
+          for d in "$HOME/.aws" "$HOME/.azure" "$HOME/.config/gcloud"; do
+            test ! -e "$d" || { echo "ERROR: credential directory present: $d" >&2; exit 1; }
+          done
+          if [ -d "$HOME/.ssh" ] && find "$HOME/.ssh" -maxdepth 1 -type f \( -name 'id_rsa' -o -name 'id_ed25519' -o -name 'id_ecdsa' -o -name 'id_dsa' \) | grep -q .; then
+            echo 'ERROR: SSH private key present in runner HOME.' >&2
+            exit 1
+          fi
+
+      - name: Verify frozen GPU runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          test -x "$PY"
+          command -v nvidia-smi
+          "$PY" - <<'PY'
+          import torch
+          assert torch.__version__.startswith('2.4.1'), torch.__version__
+          assert torch.cuda.is_available(), 'CUDA unavailable'
+          name = torch.cuda.get_device_name(0)
+          assert 'RTX 3090' in name, name
+          print('torch=', torch.__version__)
+          print('cuda_build=', torch.version.cuda)
+          print('gpu=', name)
+          PY
+
+      - name: Checkout frozen experiment controller
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+          clean: true
+
+      - name: Prepare clean P1.2 workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          test "$PWD" = "$GITHUB_WORKSPACE"
+          rm -rf third_party/liverec liverec_p12_dev
+          mkdir -p third_party/liverec liverec_p12_dev/base liverec_p12_dev/out liverec_p12_dev/models liverec_p12_dev/cache
+
+      - name: Download and verify frozen P1.1 base artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ZIP="$RUNNER_TEMP/liverec-p1-base-${LIVEREC_BASE_RUN_ID}.zip"
+          URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${LIVEREC_BASE_ARTIFACT_ID}/zip"
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 3 --retry-delay 3 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "$URL" -o "$ZIP"
+          test -s "$ZIP"
+          echo "${LIVEREC_BASE_ARTIFACT_SHA256}  ${ZIP}" | sha256sum -c -
+
+          BASE_DIR="$GITHUB_WORKSPACE/liverec_p12_dev/base" ZIP="$ZIP" \
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import os, zipfile
+          from pathlib import Path
+          zpath = Path(os.environ['ZIP'])
+          out = Path(os.environ['BASE_DIR'])
+          wanted = {
+              'p1_base_dev_freeze.json',
+              'twitch100k.sha256',
+              'liverec-source.sha256',
+              'models/liverec_p1_gpu_64_0.1_64_2_16_rep_ctx.pt',
+          }
+          with zipfile.ZipFile(zpath) as z:
+              names = set(z.namelist())
+              missing = wanted - names
+              if missing:
+                  raise SystemExit(f'missing frozen artifact entries: {sorted(missing)}')
+              for name in wanted:
+                  dest = (out / name).resolve()
+                  if out.resolve() not in dest.parents and dest != out.resolve():
+                      raise SystemExit(f'unsafe artifact path: {name}')
+                  dest.parent.mkdir(parents=True, exist_ok=True)
+                  with z.open(name) as src, open(dest, 'wb') as dst:
+                      dst.write(src.read())
+          PY
+          rm -f "$ZIP"
+
+          REPORT="$GITHUB_WORKSPACE/liverec_p12_dev/base/p1_base_dev_freeze.json"
+          CKPT="$GITHUB_WORKSPACE/liverec_p12_dev/base/models/$LIVEREC_BASE_CHECKPOINT_NAME"
+          test -s "$REPORT"
+          test -s "$CKPT"
+          echo "${LIVEREC_BASE_REPORT_SHA256}  ${REPORT}" | sha256sum -c -
+          echo "${LIVEREC_BASE_CHECKPOINT_SHA256}  ${CKPT}" | sha256sum -c -
+
+      - name: Fetch and verify pinned official LiveRec source
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC_TGZ="$RUNNER_TEMP/liverec-${LIVEREC_OFFICIAL_COMMIT}.tar.gz"
+          SRC_URL="https://codeload.github.com/JRappaz/liverec/tar.gz/${LIVEREC_OFFICIAL_COMMIT}"
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 3 --retry-delay 3 \
+            "$SRC_URL" -o "$SRC_TGZ"
+          echo "${LIVEREC_SOURCE_SHA256}  ${SRC_TGZ}" | sha256sum -c -
+          tar -xzf "$SRC_TGZ" --strip-components=1 -C "$GITHUB_WORKSPACE/third_party/liverec"
+          rm -f "$SRC_TGZ"
+
+          cd "$GITHUB_WORKSPACE/third_party/liverec"
+          for f in arguments.py data.py eval.py models.py main.py; do
+            test -s "$f" || { echo "ERROR: pinned LiveRec file missing: $f" >&2; exit 1; }
+          done
+          cp "$GITHUB_WORKSPACE/analysis/liverec_p12_dev_memory.py" p12_dev_memory.py
+          "$HOME/venvs/kuailive-gpu/bin/python" -m py_compile \
+            p12_dev_memory.py arguments.py data.py eval.py models.py
+
+      - name: Download and verify Twitch 100k benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/third_party/liverec/dataset"
+          DATA="$GITHUB_WORKSPACE/third_party/liverec/dataset/100k.csv"
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 3 --retry-delay 3 \
+            "$TWITCH_100K_URL" -o "$DATA"
+          echo "${TWITCH_100K_SHA256}  ${DATA}" | sha256sum -c -
+
+      - name: Run dev-only horizon and frozen MemoryFusion analysis
+        shell: bash
+        working-directory: third_party/liverec
+        env:
+          LIVEREC_BASE_REPORT: '${{ github.workspace }}/liverec_p12_dev/base/p1_base_dev_freeze.json'
+          LIVEREC_BASE_CHECKPOINT: '${{ github.workspace }}/liverec_p12_dev/base/models/liverec_p1_gpu_64_0.1_64_2_16_rep_ctx.pt'
+          LIVEREC_P12_OUT: '${{ github.workspace }}/liverec_p12_dev/out'
+        run: |
+          set -euo pipefail
+          TELEMETRY="$GITHUB_WORKSPACE/liverec_p12_dev/gpu-telemetry.csv"
+          nvidia-smi \
+            --query-gpu=timestamp,name,utilization.gpu,utilization.memory,memory.used,memory.total,power.draw,temperature.gpu \
+            --format=csv -l 15 > "$TELEMETRY" &
+          TELEMETRY_PID=$!
+          cleanup_telemetry() {
+            kill "$TELEMETRY_PID" 2>/dev/null || true
+            wait "$TELEMETRY_PID" 2>/dev/null || true
+          }
+          trap cleanup_telemetry EXIT
+
+          "$HOME/venvs/kuailive-gpu/bin/python" p12_dev_memory.py \
+            --model=LiveRec \
+            --dataset='dataset/' \
+            --fr_ctx \
+            --fr_rep \
+            --model_to='liverec_p1_gpu' \
+            --device='cuda' \
+            --model_path='${{ github.workspace }}/liverec_p12_dev/models' \
+            --cache_dir='${{ github.workspace }}/liverec_p12_dev/cache' \
+            --seed=42 \
+            --lr=0.0005 \
+            --l2=0.1 \
+            --batch_size=100 \
+            --seq_len=16 \
+            --dim=64 \
+            --num_att=2 \
+            --num_att_ctx=2 \
+            --num_heads=4 \
+            --num_heads_ctx=4 \
+            --topk_att=64 \
+            --early_stop=15 \
+            --num_epochs=150 | tee "$GITHUB_WORKSPACE/liverec_p12_dev/p12.log"
+
+      - name: Validate P1.2 dev-only guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('liverec_p12_dev/out/p12_dev_memory_report.json')
+          r = json.loads(p.read_text())
+          assert r['official_commit'] == '27eaf33d258d1c1ea2d6da1da81a5360e8c8ce6b'
+          assert r['base_run_id'] == 35679482824
+          assert r['base_best_epoch'] == 74
+          assert r['test_ranking_inspected'] is False
+          assert r['dev_targets'] == 46878
+          assert r['execution']['test_sequence_materialized'] is False
+          assert r['execution']['single_frozen_base_forward_pass'] is True
+          assert r['execution']['sparse_context_scoring']['exact_match'] is True
+          assert r['guards']['frozen_base_exact_metric_match']['exact_metric_match'] is True
+          w = r['memory']['weights']
+          assert w == {'short': 0.45, 'long': 0.45, 'popularity': 0.1}
+          counts = r['relationship_horizon']['counts']
+          assert sum(counts.values()) == 46878
+          assert Path('liverec_p12_dev/out/p12_dev_events.csv.gz').stat().st_size > 0
+          print(json.dumps(r, indent=2))
+          PY
+
+      - name: Upload P1.2 dev evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: liverec-p12-dev-memory-${{ github.run_id }}
+          path: |
+            liverec_p12_dev/out/p12_dev_memory_report.json
+            liverec_p12_dev/out/p12_dev_events.csv.gz
+            liverec_p12_dev/p12.log
+            liverec_p12_dev/gpu-telemetry.csv
+          if-no-files-found: warn
+          retention-days: 60
+
+      - name: Remove residual data, source, and checkpoint from persistent runner
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$GITHUB_WORKSPACE/third_party/liverec" \
+                 "$GITHUB_WORKSPACE/liverec_p12_dev/base" \
+                 "$GITHUB_WORKSPACE/liverec_p12_dev/cache" \
+                 "$GITHUB_WORKSPACE/liverec_p12_dev/models"
