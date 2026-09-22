@@ -25,8 +25,10 @@ env:
   TWITCH_100K_URL: 'https://mcauleylab.ucsd.edu/public_datasets/gdrive/twitch/100k_a.csv'
   TWITCH_100K_SHA256: '11d3bdb49683f651eb6b0ba806bf317db68646efc0c7de2d02d750201fd8ef69'
   FROZEN_BASE_ARTIFACT_ID: '10678092592'
-  FROZEN_BASE_ARTIFACT_SHA256: '657f5d4bc64bc764b3f80760fa52ac0e1f51fc687433ab368af321eb62806f15'
   FROZEN_BASE_RUN_ID: '35679482824'
+  FROZEN_BASE_REPORT_SHA256: '6f7b8ed63553b94c0b49bb1416213f7b1b5d0ac694d662aaef3176bbf3e5a021'
+  FROZEN_BASE_CHECKPOINT_SHA256: '282b07277cf8a213f58094c7170f9d43fb988926ad554d8cd315aabfe736b6da'
+  FROZEN_BASE_CHECKPOINT_REL: 'models/liverec_p1_gpu_64_0.1_64_2_16_rep_ctx.pt'
   PYTHONHASHSEED: '42'
   CUDA_VISIBLE_DEVICES: '0'
   CUBLAS_WORKSPACE_CONFIG: ':4096:8'
@@ -124,24 +126,26 @@ jobs:
              "$GITHUB_WORKSPACE/third_party/liverec/data.py" \
              "$GITHUB_WORKSPACE/third_party/liverec/models.py"
 
-      - name: Download and verify frozen P1.1 base artifact
+      - name: Download frozen P1.1 base artifact
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.FROZEN_BASE_ARTIFACT_ID }}
+          path: frozen_p1_base
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.FROZEN_BASE_RUN_ID }}
+
+      - name: Verify frozen P1.1 base contents
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          ZIP="$RUNNER_TEMP/frozen-p1-base.zip"
-          curl --proto '=https' --tlsv1.2 -L --fail --retry 3 \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H 'Accept: application/vnd.github+json' \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$FROZEN_BASE_ARTIFACT_ID/zip" \
-            -o "$ZIP"
-          echo "$FROZEN_BASE_ARTIFACT_SHA256  $ZIP" | sha256sum -c -
-          unzip -q "$ZIP" -d "$GITHUB_WORKSPACE/frozen_p1_base"
-          rm -f "$ZIP"
-
           REPORT="$GITHUB_WORKSPACE/frozen_p1_base/p1_base_dev_freeze.json"
+          CHECKPOINT="$GITHUB_WORKSPACE/frozen_p1_base/$FROZEN_BASE_CHECKPOINT_REL"
           test -s "$REPORT"
+          test -s "$CHECKPOINT"
+          echo "$FROZEN_BASE_REPORT_SHA256  $REPORT" | sha256sum -c -
+          echo "$FROZEN_BASE_CHECKPOINT_SHA256  $CHECKPOINT" | sha256sum -c -
+
           "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
           import json, os
           from pathlib import Path
@@ -150,9 +154,9 @@ jobs:
           assert r['test_ranking_inspected'] is False
           assert r['best_epoch']==74
           assert r['evaluation_equivalence_guard']['exact_match'] is True
-          pts=list(Path('frozen_p1_base/models').glob('*.pt'))
-          assert len(pts)==1, pts
-          print('checkpoint=',pts[0])
+          checkpoint=Path('frozen_p1_base') / os.environ['FROZEN_BASE_CHECKPOINT_REL']
+          assert checkpoint.is_file() and checkpoint.stat().st_size > 0
+          print('checkpoint=', checkpoint)
           PY
 
       - name: Export P1.2 dev base, memory, horizon, state and confidence evidence
@@ -160,8 +164,8 @@ jobs:
         working-directory: third_party/liverec
         run: |
           set -euo pipefail
-          CHECKPOINT=$(find "$GITHUB_WORKSPACE/frozen_p1_base/models" -maxdepth 1 -type f -name '*.pt' -print -quit)
-          test -n "$CHECKPOINT"
+          CHECKPOINT="$GITHUB_WORKSPACE/frozen_p1_base/$FROZEN_BASE_CHECKPOINT_REL"
+          test -s "$CHECKPOINT"
           AV_CACHE="$HOME/.cache/kuailive-public/liverec/preprocessed/availability-${TWITCH_100K_SHA256}-${LIVEREC_OFFICIAL_COMMIT}.npz"
 
           "$HOME/venvs/kuailive-gpu/bin/python" p1_dev_memory_export.py \
