@@ -1,0 +1,76 @@
+name: KBS compact frozen evidence hosted
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-compact-frozen-evidence-hosted.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  compact:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      ROOM_ARTIFACT_ID: '10589702424'
+      ROOM_RUN_ID: '35455075346'
+      P12_ARTIFACT_ID: '10680854557'
+      P12_RUN_ID: '35698158121'
+      P12_OOF_SHA256: '9757064252c097934fa31f10a68e11bb43853ca1132aaa49da2b9794f60d3816'
+    steps:
+      - name: Download frozen room evidence
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.ROOM_ARTIFACT_ID }}
+          path: frozen_room
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.ROOM_RUN_ID }}
+
+      - name: Download frozen LiveRec DEV evidence
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.P12_ARTIFACT_ID }}
+          path: frozen_p12
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.P12_RUN_ID }}
+
+      - name: Verify and compact immutable evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s frozen_room/predictions/rec-SASRec-dev.csv
+          test -s frozen_room/predictions/rec-SASRec-test.csv
+          test -s frozen_room/rechorus_room/KuaiLiveShopRoom/export_meta.json
+          echo "$P12_OOF_SHA256  frozen_p12/gate_freeze/p1_2_dev_oof_predictions.csv.gz" | sha256sum -c -
+          python3 - <<'PY'
+          import json
+          m=json.load(open('frozen_room/rechorus_room/KuaiLiveShopRoom/export_meta.json'))
+          assert m['seed']==20260918 and m['n_neg']==574 and m['candidate_count']==575, m
+          PY
+          mkdir -p compact/room compact/p12
+          cp frozen_room/predictions/rec-SASRec-dev.csv compact/room/rec-SASRec-dev.csv
+          cp frozen_room/predictions/rec-SASRec-test.csv compact/room/rec-SASRec-test.csv
+          cp frozen_room/rechorus_room/KuaiLiveShopRoom/export_meta.json compact/room/export_meta.json
+          cp frozen_p12/gate_freeze/p1_2_dev_oof_predictions.csv.gz compact/p12/p1_2_dev_oof_predictions.csv.gz
+          cat > compact/SOURCES.txt <<EOF
+          room_run_id=$ROOM_RUN_ID
+          room_artifact_id=$ROOM_ARTIFACT_ID
+          p12_run_id=$P12_RUN_ID
+          p12_artifact_id=$P12_ARTIFACT_ID
+          EOF
+          (cd compact && find room p12 -type f -print0 | sort -z | xargs -0 sha256sum) > compact/SHA256SUMS
+          du -h compact/room/* compact/p12/* compact | sort -h
+
+      - name: Upload compact frozen evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-compact-frozen-evidence-${{ github.run_id }}
+          path: compact/**
+          if-no-files-found: error
+          retention-days: 90
