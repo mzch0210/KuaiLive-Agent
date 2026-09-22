@@ -4,7 +4,6 @@ import json
 import math
 import os
 import random
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -33,6 +32,28 @@ def _py(v):
     return v
 
 
+def _runtime_info(device: torch.device) -> dict:
+    info = {
+        "torch_version": torch.__version__,
+        "cuda_build": torch.version.cuda,
+        "cuda_available": bool(torch.cuda.is_available()),
+        "cudnn_version": torch.backends.cudnn.version(),
+        "device": str(device),
+    }
+    if device.type == "cuda":
+        idx = device.index if device.index is not None else torch.cuda.current_device()
+        props = torch.cuda.get_device_properties(idx)
+        info.update(
+            {
+                "gpu_name": torch.cuda.get_device_name(idx),
+                "gpu_capability": [int(props.major), int(props.minor)],
+                "gpu_total_memory_bytes": int(props.total_memory),
+                "gpu_index": int(idx),
+            }
+        )
+    return info
+
+
 def main() -> None:
     args = arg_parse()
     print_args(args)
@@ -44,6 +65,13 @@ def main() -> None:
     torch.manual_seed(args.seed)
 
     args.device = torch.device(args.device)
+    if args.device.type == "cuda":
+        if not torch.cuda.is_available():
+            raise RuntimeError("CUDA execution requested but torch.cuda.is_available() is False")
+        torch.cuda.manual_seed_all(args.seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
     Path(args.model_path).mkdir(parents=True, exist_ok=True)
     Path(args.cache_dir).mkdir(parents=True, exist_ok=True)
 
@@ -60,6 +88,7 @@ def main() -> None:
     remaining = args.early_stop
 
     print("training (dev-only freeze; test ranking intentionally disabled)...")
+    print(json.dumps({"runtime": _runtime_info(args.device)}, indent=2))
     for epoch in range(args.num_epochs):
         loss_all = 0.0
         loss_cnt = 0
@@ -105,6 +134,7 @@ def main() -> None:
         "best_dev_h1": float(best_val_h1),
         "best_dev_scores": best_scores,
         "checkpoint": str(model_path),
+        "runtime": _runtime_info(args.device),
         "config": {
             "seed": args.seed,
             "model": args.model,
