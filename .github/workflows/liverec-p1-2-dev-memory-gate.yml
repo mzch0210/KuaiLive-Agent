@@ -1,0 +1,301 @@
+name: LiveRec Twitch P1.2 dev memory utility freeze
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_owner_run:
+        description: 'Run P1.2 dev-only memory and utility-gate freeze'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kuailive-gpu-3090
+  cancel-in-progress: false
+
+env:
+  EXPECTED_REPOSITORY: 'mzch0210/KuaiLive-Agent'
+  EXPECTED_ACTOR: 'mzch0210'
+  LIVEREC_OFFICIAL_COMMIT: '27eaf33d258d1c1ea2d6da1da81a5360e8c8ce6b'
+  LIVEREC_SOURCE_SHA256: '243ac4f01c408b71e4b87b06e58300b41286c5988b7a71c01a4fa04899072d48'
+  TWITCH_100K_URL: 'https://mcauleylab.ucsd.edu/public_datasets/gdrive/twitch/100k_a.csv'
+  TWITCH_100K_SHA256: '11d3bdb49683f651eb6b0ba806bf317db68646efc0c7de2d02d750201fd8ef69'
+  FROZEN_BASE_ARTIFACT_ID: '10678092592'
+  FROZEN_BASE_ARTIFACT_SHA256: '657f5d4bc64bc764b3f80760fa52ac0e1f51fc687433ab368af321eb62806f15'
+  FROZEN_BASE_RUN_ID: '35679482824'
+  PYTHONHASHSEED: '42'
+  CUDA_VISIBLE_DEVICES: '0'
+  CUBLAS_WORKSPACE_CONFIG: ':4096:8'
+
+jobs:
+  export-dev-memory:
+    if: ${{ github.actor == 'mzch0210' && github.ref == 'refs/heads/main' && inputs.confirm_owner_run }}
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 360
+    steps:
+      - name: Enforce self-hosted runner guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+          test "$GITHUB_ACTOR" = "$EXPECTED_ACTOR"
+          test "$GITHUB_REPOSITORY" = "$EXPECTED_REPOSITORY"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(id -u)" -ne 0
+          if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+            echo 'ERROR: runner user has passwordless sudo.' >&2; exit 1
+          fi
+          if id -nG | tr ' ' '\n' | grep -qx docker; then
+            echo 'ERROR: runner user is in docker group.' >&2; exit 1
+          fi
+          test -z "${SSH_AUTH_SOCK:-}" || { echo 'ERROR: SSH agent visible.' >&2; exit 1; }
+          for d in "$HOME/.aws" "$HOME/.azure" "$HOME/.config/gcloud"; do
+            test ! -e "$d" || { echo "ERROR: credential directory present: $d" >&2; exit 1; }
+          done
+          if [ -d "$HOME/.ssh" ] && find "$HOME/.ssh" -maxdepth 1 -type f \( -name 'id_rsa' -o -name 'id_ed25519' -o -name 'id_ecdsa' -o -name 'id_dsa' \) | grep -q .; then
+            echo 'ERROR: SSH private key present in runner HOME.' >&2; exit 1
+          fi
+
+      - name: Verify frozen GPU runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          test -x "$PY"
+          "$PY" - <<'PY'
+          import torch
+          assert torch.__version__.startswith('2.4.1'), torch.__version__
+          assert torch.cuda.is_available()
+          assert 'RTX 3090' in torch.cuda.get_device_name(0)
+          print(torch.__version__, torch.version.cuda, torch.cuda.get_device_name(0))
+          PY
+
+      - name: Checkout frozen P1.2 controller
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          clean: true
+
+      - name: Prepare clean workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          rm -rf third_party/liverec liverec_p1_2 frozen_p1_base
+          mkdir -p third_party/liverec liverec_p1_2 frozen_p1_base
+
+      - name: Restore verified public source and dataset caches
+        shell: bash
+        run: |
+          set -euo pipefail
+          CACHE_ROOT="$HOME/.cache/kuailive-public/liverec"
+          mkdir -p "$CACHE_ROOT/source" "$CACHE_ROOT/data" "$CACHE_ROOT/preprocessed"
+
+          SRC_TGZ="$CACHE_ROOT/source/liverec-${LIVEREC_OFFICIAL_COMMIT}.tar.gz"
+          if [ ! -s "$SRC_TGZ" ] || [ "$(sha256sum "$SRC_TGZ" | awk '{print $1}')" != "$LIVEREC_SOURCE_SHA256" ]; then
+            rm -f "$SRC_TGZ"
+            curl --proto '=https' --tlsv1.2 -L --fail --retry 3 --retry-delay 3 \
+              "https://codeload.github.com/JRappaz/liverec/tar.gz/${LIVEREC_OFFICIAL_COMMIT}" -o "$SRC_TGZ"
+          fi
+          echo "$LIVEREC_SOURCE_SHA256  $SRC_TGZ" | sha256sum -c -
+          tar -xzf "$SRC_TGZ" --strip-components=1 -C "$GITHUB_WORKSPACE/third_party/liverec"
+
+          DATA="$CACHE_ROOT/data/twitch100k-${TWITCH_100K_SHA256}.csv"
+          if [ ! -s "$DATA" ] || [ "$(sha256sum "$DATA" | awk '{print $1}')" != "$TWITCH_100K_SHA256" ]; then
+            rm -f "$DATA"
+            curl --proto '=https' --tlsv1.2 -L --fail --retry 3 --retry-delay 3 "$TWITCH_100K_URL" -o "$DATA"
+          fi
+          echo "$TWITCH_100K_SHA256  $DATA" | sha256sum -c -
+          mkdir -p "$GITHUB_WORKSPACE/third_party/liverec/dataset"
+          ln -s "$DATA" "$GITHUB_WORKSPACE/third_party/liverec/dataset/100k.csv"
+
+          cp "$GITHUB_WORKSPACE/analysis/liverec_p1_dev_memory_export.py" \
+             "$GITHUB_WORKSPACE/third_party/liverec/p1_dev_memory_export.py"
+          "$HOME/venvs/kuailive-gpu/bin/python" -m py_compile \
+             "$GITHUB_WORKSPACE/third_party/liverec/p1_dev_memory_export.py" \
+             "$GITHUB_WORKSPACE/third_party/liverec/arguments.py" \
+             "$GITHUB_WORKSPACE/third_party/liverec/data.py" \
+             "$GITHUB_WORKSPACE/third_party/liverec/models.py"
+
+      - name: Download and verify frozen P1.1 base artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ZIP="$RUNNER_TEMP/frozen-p1-base.zip"
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 3 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$FROZEN_BASE_ARTIFACT_ID/zip" \
+            -o "$ZIP"
+          echo "$FROZEN_BASE_ARTIFACT_SHA256  $ZIP" | sha256sum -c -
+          unzip -q "$ZIP" -d "$GITHUB_WORKSPACE/frozen_p1_base"
+          rm -f "$ZIP"
+
+          REPORT="$GITHUB_WORKSPACE/frozen_p1_base/p1_base_dev_freeze.json"
+          test -s "$REPORT"
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json, os
+          from pathlib import Path
+          r=json.loads(Path('frozen_p1_base/p1_base_dev_freeze.json').read_text())
+          assert r['official_commit']==os.environ['LIVEREC_OFFICIAL_COMMIT']
+          assert r['test_ranking_inspected'] is False
+          assert r['best_epoch']==74
+          assert r['evaluation_equivalence_guard']['exact_match'] is True
+          pts=list(Path('frozen_p1_base/models').glob('*.pt'))
+          assert len(pts)==1, pts
+          print('checkpoint=',pts[0])
+          PY
+
+      - name: Export P1.2 dev base, memory, horizon, state and confidence evidence
+        shell: bash
+        working-directory: third_party/liverec
+        run: |
+          set -euo pipefail
+          CHECKPOINT=$(find "$GITHUB_WORKSPACE/frozen_p1_base/models" -maxdepth 1 -type f -name '*.pt' -print -quit)
+          test -n "$CHECKPOINT"
+          AV_CACHE="$HOME/.cache/kuailive-public/liverec/preprocessed/availability-${TWITCH_100K_SHA256}-${LIVEREC_OFFICIAL_COMMIT}.pkl"
+
+          "$HOME/venvs/kuailive-gpu/bin/python" p1_dev_memory_export.py \
+            --checkpoint "$CHECKPOINT" \
+            --out-dir "$GITHUB_WORKSPACE/liverec_p1_2/dev_export" \
+            --availability-cache "$AV_CACHE" \
+            --model=LiveRec \
+            --dataset='dataset/' \
+            --fr_ctx --fr_rep \
+            --model_to='liverec_p1_gpu' \
+            --device='cuda' \
+            --seed=42 \
+            --lr=0.0005 --l2=0.1 \
+            --batch_size=100 --seq_len=16 --dim=64 \
+            --num_att=2 --num_att_ctx=2 \
+            --num_heads=4 --num_heads_ctx=4 \
+            --topk_att=64 --early_stop=15 --num_epochs=150
+
+          cd "$GITHUB_WORKSPACE/liverec_p1_2/dev_export"
+          sha256sum p1_2_dev_events.csv.gz p1_2_state_ecdf.json p1_2_dev_export_summary.json > SHA256SUMS
+
+      - name: Validate dev-only guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('liverec_p1_2/dev_export/p1_2_dev_export_summary.json')
+          r=json.loads(p.read_text())
+          assert r['test_ranking_inspected'] is False
+          assert r['n_dev']==46878
+          assert r['base_rank_equivalence_guard']['exact_match'] is True
+          assert abs(r['base']['ndcg10']-0.5718533988252721)<5e-6
+          assert abs(r['base']['h1']-0.39299884807372326)<5e-6
+          assert set(r['horizon_counts']) <= {'recent_visible','long_horizon_only','unseen'}
+          assert sum(r['horizon_counts'].values())==46878
+          print(json.dumps(r,indent=2))
+          PY
+
+      - name: Upload dev export for isolated CPU gate fitting
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: liverec-p1-2-dev-export-${{ github.run_id }}
+          path: |
+            liverec_p1_2/dev_export/p1_2_dev_events.csv.gz
+            liverec_p1_2/dev_export/p1_2_state_ecdf.json
+            liverec_p1_2/dev_export/p1_2_dev_export_summary.json
+            liverec_p1_2/dev_export/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 60
+
+      - name: Remove residual frozen model and workspace data
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$GITHUB_WORKSPACE/frozen_p1_base" "$GITHUB_WORKSPACE/third_party/liverec/dataset"
+
+  fit-dev-gate:
+    needs: export-dev-memory
+    if: ${{ needs.export-dev-memory.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - name: Checkout same frozen controller commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Download P1.2 dev export
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: liverec-p1-2-dev-export-${{ github.run_id }}
+          path: liverec_p1_2/dev_export
+
+      - name: Verify exported evidence hashes
+        shell: bash
+        working-directory: liverec_p1_2/dev_export
+        run: |
+          set -euo pipefail
+          sha256sum -c SHA256SUMS
+
+      - name: Install isolated pinned analysis dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            'numpy==1.26.4' 'pandas==2.3.3' 'scikit-learn==1.5.2' 'joblib==1.4.2'
+          python -m py_compile analysis/liverec_p1_dev_gate_fit.py
+
+      - name: Fit OOF utility and matched-budget difficulty gates on dev only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p liverec_p1_2/gate_freeze
+          python analysis/liverec_p1_dev_gate_fit.py \
+            --dev-events liverec_p1_2/dev_export/p1_2_dev_events.csv.gz \
+            --out-dir liverec_p1_2/gate_freeze
+          cd liverec_p1_2/gate_freeze
+          sha256sum p1_2_dev_gate_report.json p1_2_dev_oof_predictions.csv.gz p1_2_frozen_utility_gate.joblib > SHA256SUMS
+
+      - name: Validate P1.2 freeze guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('liverec_p1_2/gate_freeze/p1_2_dev_gate_report.json').read_text())
+          assert r['test_ranking_inspected'] is False
+          assert r['utility_router']['k']==r['difficulty_router_exact_k']['k']
+          assert 0 <= r['utility_router']['invocation_rate'] <= 1
+          assert len(r['relationship_horizon'])==3
+          assert 'Do not alter' in r['freeze_rule']
+          print(json.dumps(r,indent=2))
+          PY
+
+      - name: Upload frozen P1.2 dev policy and evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: liverec-p1-2-dev-freeze-${{ github.run_id }}
+          path: |
+            liverec_p1_2/dev_export/p1_2_dev_export_summary.json
+            liverec_p1_2/dev_export/p1_2_state_ecdf.json
+            liverec_p1_2/gate_freeze/p1_2_dev_gate_report.json
+            liverec_p1_2/gate_freeze/p1_2_dev_oof_predictions.csv.gz
+            liverec_p1_2/gate_freeze/p1_2_frozen_utility_gate.joblib
+            liverec_p1_2/gate_freeze/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 60
