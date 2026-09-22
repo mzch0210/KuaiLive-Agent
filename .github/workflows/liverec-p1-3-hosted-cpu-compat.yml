@@ -153,6 +153,7 @@ jobs:
           python -m py_compile \
             analysis/liverec_p1_dev_memory_export.py \
             analysis/liverec_p1_test_export.py \
+            analysis/liverec_p1_cpu_exact_export.py \
             analysis/liverec_p1_complete_policy_freeze.py \
             analysis/liverec_p1_cpu_compat_compare.py
 
@@ -175,16 +176,19 @@ jobs:
 
           cp analysis/liverec_p1_dev_memory_export.py third_party/liverec/p1_dev_memory_export.py
           cp analysis/liverec_p1_test_export.py third_party/liverec/p1_test_export.py
+          cp analysis/liverec_p1_cpu_exact_export.py third_party/liverec/p1_cpu_exact_export.py
           python -m py_compile \
             third_party/liverec/p1_dev_memory_export.py \
             third_party/liverec/p1_test_export.py \
+            third_party/liverec/p1_cpu_exact_export.py \
             third_party/liverec/arguments.py \
             third_party/liverec/data.py \
             third_party/liverec/eval.py \
             third_party/liverec/models.py
           (cd third_party/liverec && python - <<'PY'
           import arguments, data, eval, models
-          print('official LiveRec runtime imports: OK')
+          import p1_cpu_exact_export
+          print('official LiveRec + CPU exact exporter runtime imports: OK')
           PY
           )
 
@@ -216,7 +220,7 @@ jobs:
           set -euo pipefail
           CHECKPOINT="$GITHUB_WORKSPACE/frozen_p1_base/$FROZEN_BASE_CHECKPOINT_REL"
           AV_CACHE="$GITHUB_WORKSPACE/hosted_cpu_compat/availability-${TWITCH_100K_SHA256}-${LIVEREC_OFFICIAL_COMMIT}.npz"
-          /usr/bin/time -v python p1_test_export.py \
+          /usr/bin/time -v python p1_cpu_exact_export.py \
             --split dev \
             --checkpoint "$CHECKPOINT" \
             --state-ecdf "$GITHUB_WORKSPACE/hosted_cpu_compat/policy/p1_2_state_ecdf.json" \
