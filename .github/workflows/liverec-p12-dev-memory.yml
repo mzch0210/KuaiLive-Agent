@@ -235,11 +235,11 @@ jobs:
         run: |
           set -euo pipefail
           "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
-          import json
+          import json, os
           from pathlib import Path
           p = Path('liverec_p12_dev/out/p12_dev_memory_report.json')
           r = json.loads(p.read_text())
-          assert r['controller_sha'] == os.environ['GITHUB_SHA'] if False else True
+          assert r['controller_sha'] == os.environ['GITHUB_SHA']
           assert r['official_commit'] == '27eaf33d258d1c1ea2d6da1da81a5360e8c8ce6b'
           assert r['base_run_id'] == 35679482824
           assert r['base_best_epoch'] == 74
