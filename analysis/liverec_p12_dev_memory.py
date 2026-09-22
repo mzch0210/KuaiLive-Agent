@@ -163,7 +163,7 @@ def _assert_sparse_equivalence(model, loader, args, probe_batches: int = 2):
 
 def _confidence_batch(scores_full, lengths):
     """Vectorized confidence features over ragged legal-active candidate sets."""
-    bsz, width = scores_full.shape
+    _, width = scores_full.shape
     ar = torch.arange(width, device=scores_full.device).unsqueeze(0)
     valid = ar < lengths.unsqueeze(1)
     n = lengths.to(scores_full.dtype).clamp_min(1)
@@ -226,9 +226,11 @@ def _score_frozen_base(model, loader, args):
             ctx, batch_inds = model.get_ctx_att(data, feats)
             scores_full = _sparse_scores(model, data, feats, ctx, batch_inds, args)
 
-            lengths_cpu = np.fromiter((len(args.ts[int(s)]) for s in steps), dtype=np.int64, count=len(steps))
+            lengths_cpu = np.fromiter(
+                (len(args.ts[int(s)]) for s in steps), dtype=np.int64, count=len(steps)
+            )
             lengths = torch.as_tensor(lengths_cpu, device=args.device, dtype=torch.long)
-            if torch.any(lengths < 11):
+            if int(lengths_cpu.min()) < 11:
                 raise RuntimeError("Confidence feature definition requires >=11 active candidates")
             conf = _confidence_batch(scores_full, lengths)
 
@@ -257,6 +259,7 @@ def _score_frozen_base(model, loader, args):
                     "user_id": int(users[b]),
                     "target_streamer": int(targets[b]),
                     "target_step": int(steps[b]),
+                    "candidate_count": int(lengths_cpu[b]),
                     "official_repeat": bool(official_repeat[b]),
                     "recent_visible": bool(recent_visible[b]),
                     "base_rank0": int(packed[b, 0]),
@@ -312,26 +315,32 @@ def _js_divergence(a, b):
     keys = sorted(set(ca) | set(cb))
     pa = np.asarray([ca[k] for k in keys], dtype=np.float64)
     pb = np.asarray([cb[k] for k in keys], dtype=np.float64)
-    pa /= pa.sum(); pb /= pb.sum(); m = 0.5 * (pa + pb)
+    pa /= pa.sum()
+    pb /= pb.sum()
+    m = 0.5 * (pa + pb)
+
     def kl(p, q):
         z = p > 0
         return float((p[z] * np.log2(p[z] / q[z])).sum())
+
     return 0.5 * kl(pa, m) + 0.5 * kl(pb, m)
 
 
 def _timestep_regularity(starts):
     if len(starts) == 0:
         return 0.0
-    phase = np.asarray(starts, dtype=np.float64) % 144.0  # 144 ten-minute bins/day
+    phase = np.asarray(starts, dtype=np.float64) % 144.0
     ang = 2.0 * np.pi * phase / 144.0
     return float(np.hypot(np.cos(ang).mean(), np.sin(ang).mean()))
 
 
 def _build_strict_histories(data_fu: pd.DataFrame, events: pd.DataFrame):
-    """History rows must have completed strictly before the target starts."""
+    """History rows must have ended no later than the target start timestep."""
     target_step = events.set_index("user_id")["target_step"]
     cutoff = data_fu["user"].map(target_step)
-    mask = cutoff.notna().to_numpy() & (data_fu["stop"].to_numpy() < cutoff.fillna(-1).to_numpy())
+    mask = cutoff.notna().to_numpy() & (
+        data_fu["stop"].to_numpy() <= cutoff.fillna(-1).to_numpy()
+    )
     hist = data_fu.loc[mask, ["user", "streamer", "start", "stop"]].copy()
     hist["_row"] = np.flatnonzero(mask)
     hist.sort_values(["user", "start", "_row"], kind="mergesort", inplace=True)
@@ -373,8 +382,10 @@ def _build_strict_histories(data_fu: pd.DataFrame, events: pd.DataFrame):
 
 
 def _train_popularity(data_fu: pd.DataFrame, args):
-    """Train-only popularity: rows completed before pivot_1, matching the frozen transfer rule."""
-    tr = data_fu.loc[data_fu.stop < args.pivot_1, "streamer"].to_numpy(dtype=np.int64, copy=False)
+    """Train-only popularity: rows completed before pivot_1, matching frozen split semantics."""
+    tr = data_fu.loc[data_fu.stop < args.pivot_1, "streamer"].to_numpy(
+        dtype=np.int64, copy=False
+    )
     counts = np.bincount(tr, minlength=int(args.N) + 1).astype(np.float64)
     pop = np.zeros_like(counts)
     nz = counts > 0
@@ -397,7 +408,9 @@ def _add_state_and_memory(events: pd.DataFrame, data_fu: pd.DataFrame, args):
     state_rows = []
 
     for j, r in enumerate(events.itertuples(index=False)):
-        uid = int(r.user_id); target = int(r.target_streamer); step = int(r.target_step)
+        uid = int(r.user_id)
+        target = int(r.target_streamer)
+        step = int(r.target_step)
         h = hist_info.get(uid)
         if h is None:
             hist_items = np.empty(0, dtype=np.int64)
@@ -414,12 +427,23 @@ def _add_state_and_memory(events: pd.DataFrame, data_fu: pd.DataFrame, args):
             long_dense[hist_items] = h["long_vals"]
             short_dense[h["short_items"]] = h["short_vals"]
             touched = hist_items
-            state = {k: h[k] for k in ["history_len", "repeat_rate", "preference_entropy", "preference_drift", "time_regularity"]}
+            state = {
+                k: h[k]
+                for k in [
+                    "history_len",
+                    "repeat_rate",
+                    "preference_entropy",
+                    "preference_drift",
+                    "time_regularity",
+                ]
+            }
 
         cands = np.asarray(args.ts[step], dtype=np.int64)
         hit = np.flatnonzero(cands == target)
         if hit.size != 1:
-            raise RuntimeError(f"Memory target availability mismatch user={uid} step={step} matches={hit.size}")
+            raise RuntimeError(
+                f"Memory target availability mismatch user={uid} step={step} matches={hit.size}"
+            )
         scores = (
             MEM_W_SHORT * short_dense[cands]
             + MEM_W_LONG * long_dense[cands]
@@ -454,10 +478,15 @@ def _add_state_and_memory(events: pd.DataFrame, data_fu: pd.DataFrame, args):
     out["entropy_pct"] = out.preference_entropy.rank(pct=True, method="average")
     out["drift_pct"] = out.preference_drift.rank(pct=True, method="average")
     out["history_pct"] = out.log_history_len.rank(pct=True, method="average")
-    out["state_complexity"] = 0.4 * out.entropy_pct + 0.4 * out.drift_pct + 0.2 * out.history_pct
+    out["state_complexity"] = (
+        0.4 * out.entropy_pct + 0.4 * out.drift_pct + 0.2 * out.history_pct
+    )
     out.drop(columns=["entropy_pct", "drift_pct", "history_pct"], inplace=True)
 
-    return out, {"strict_history_rows": strict_hist_rows, "train_popularity_rows": train_pop_rows}
+    return out, {
+        "strict_history_rows": strict_hist_rows,
+        "train_popularity_rows": train_pop_rows,
+    }
 
 
 def _slice_summary(df: pd.DataFrame):
@@ -511,11 +540,21 @@ def main():
         raise RuntimeError("Frozen base official commit does not match P1.2 source pin")
     if int(frozen["best_epoch"]) != 74:
         raise RuntimeError(f"Unexpected frozen base epoch: {frozen['best_epoch']}")
+
     fc = frozen["config"]
     expected_cfg = {
-        "seed": 42, "model": "LiveRec", "fr_ctx": True, "fr_rep": True,
-        "batch_size": 100, "seq_len": 16, "dim": 64, "num_att": 2,
-        "num_att_ctx": 2, "num_heads": 4, "num_heads_ctx": 4, "topk_att": 64,
+        "seed": 42,
+        "model": "LiveRec",
+        "fr_ctx": True,
+        "fr_rep": True,
+        "batch_size": 100,
+        "seq_len": 16,
+        "dim": 64,
+        "num_att": 2,
+        "num_att_ctx": 2,
+        "num_heads": 4,
+        "num_heads_ctx": 4,
+        "topk_att": 64,
     }
     for k, v in expected_cfg.items():
         if fc.get(k) != v:
@@ -524,13 +563,17 @@ def main():
     data_fu = load_data(args)
     fd = frozen["data"]
     observed_data = {
-        "users": int(data_fu.user.nunique()), "streamers": int(data_fu.streamer.nunique()),
-        "rows": int(len(data_fu)), "max_step": int(args.max_step),
-        "pivot_1": int(args.pivot_1), "pivot_2": int(args.pivot_2),
+        "users": int(data_fu.user.nunique()),
+        "streamers": int(data_fu.streamer.nunique()),
+        "rows": int(len(data_fu)),
+        "max_step": int(args.max_step),
+        "pivot_1": int(args.pivot_1),
+        "pivot_2": int(args.pivot_2),
     }
     for k, v in observed_data.items():
         if int(fd[k]) != v:
             raise RuntimeError(f"Frozen base data mismatch {k}: {fd[k]} != {v}")
+
     workers = int(os.environ.get("LIVEREC_NUM_WORKERS", "4"))
     val_loader = _make_val_loader(data_fu, args, workers)
 
@@ -567,9 +610,13 @@ def main():
         "memory": {
             "short_k": SHORT_K,
             "short_decay": SHORT_DECAY,
-            "weights": {"short": MEM_W_SHORT, "long": MEM_W_LONG, "popularity": MEM_W_POP},
+            "weights": {
+                "short": MEM_W_SHORT,
+                "long": MEM_W_LONG,
+                "popularity": MEM_W_POP,
+            },
             "popularity": "train-only rows with stop < pivot_1; log1p count; min-max over observed streamers",
-            "history": "rows for the same user with stop < target_start; sorted by start then original row order",
+            "history": "rows for the same user with stop <= target_start; sorted by start then original row order",
             "tie_break": "higher MemoryFusion score first; exact score ties by smaller factorized streamer id",
         },
         "relationship_horizon": {
@@ -594,17 +641,38 @@ def main():
         },
         "history_meta": history_meta,
         "summary": summary,
+        "candidate_count": {
+            "mean": float(events.candidate_count.mean()),
+            "median": float(events.candidate_count.median()),
+            "p95": float(events.candidate_count.quantile(0.95)),
+            "min": int(events.candidate_count.min()),
+            "max": int(events.candidate_count.max()),
+        },
         "gate_feature_columns": STATE_FEATURES + CONF_FEATURES,
     }
 
     cols = [
-        "user_id", "target_streamer", "target_step", "official_repeat", "recent_visible",
-        "relationship_horizon", "base_rank0", "memory_rank0", "base_ndcg10", "memory_ndcg10",
-        "memory_delta_ndcg10", "history_len",
+        "user_id",
+        "target_streamer",
+        "target_step",
+        "candidate_count",
+        "official_repeat",
+        "recent_visible",
+        "relationship_horizon",
+        "base_rank0",
+        "memory_rank0",
+        "base_ndcg10",
+        "memory_ndcg10",
+        "memory_delta_ndcg10",
+        "history_len",
     ] + STATE_FEATURES + CONF_FEATURES
     cols = list(dict.fromkeys(cols))
-    events[cols].to_csv(out_dir / "p12_dev_events.csv.gz", index=False, compression="gzip")
-    (out_dir / "p12_dev_memory_report.json").write_text(json.dumps(_py(report), indent=2) + "\n")
+    events[cols].to_csv(
+        out_dir / "p12_dev_events.csv.gz", index=False, compression="gzip"
+    )
+    (out_dir / "p12_dev_memory_report.json").write_text(
+        json.dumps(_py(report), indent=2) + "\n"
+    )
     print(json.dumps(_py(report), indent=2))
 
 
