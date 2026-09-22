@@ -18,6 +18,8 @@ P1.2 produced the mechanism pattern the protocol was designed to test:
 
 Therefore stop dev tuning and proceed to the already specified one-shot P1.3 test.
 
+A subsequent **DEV-only execution-platform compatibility audit** tested whether the frozen CUDA policy could be migrated to a standard GitHub-hosted CPU runner. The hosted CPU had ample compute capacity, but it did **not** reproduce the frozen CUDA policy exactly: 27 event-level Base NDCG@10 values and 19 H@10 values differed; six Utility-router invocation decisions and four matched-budget Difficulty-router decisions changed. The state features reproduced, but the LiveRec base-confidence features showed device-dependent numerical differences. Therefore the hosted-CPU fallback is **rejected**. This is an execution-environment decision only and does not modify P1.2 or P1.3 scientifically.
+
 ---
 
 # 2. P1.2 — CLOSED / FROZEN
@@ -81,6 +83,7 @@ These requirements complete the frozen protocol; they do **not** modify the expe
 5. Before opening test, replay the complete P1.3 export path on dev and require reproduction of frozen P1.2 Base, Memory, repeat fraction and relationship-horizon counts.
 6. Enforce one-shot execution with both repository-artifact and persistent self-hosted-runner sentinels.
 7. Final workflow validation must check protocol integrity only; it must **not** fail because effectiveness is null or negative.
+8. The P1.3 ranking/feature export must run on the frozen CUDA/RTX3090 path. The standard GitHub-hosted CPU fallback is not protocol-compatible and must not be used for the one-shot test.
 
 ---
 
@@ -100,10 +103,12 @@ Use:
 
 Do not change batch size, precision, TF32, model architecture, optimizer, sequence length, Memory weights, gate family, features, or threshold for speed.
 
+The DEV-only hosted-CPU audit remains diagnostic evidence only. Do not introduce CPU-to-GPU calibration, post-hoc feature rounding, threshold compensation, or any other device-specific rescue transformation after observing the compatibility result.
+
 ---
 
 # 6. Updated stopping rule
 
-> **P1.3 preflight freeze → full dev replay → arm one-shot guard → untouched test export once → frozen policy evaluation → manuscript freeze.**
+> **P1.3 preflight freeze → full CUDA dev replay → arm one-shot guard → untouched CUDA test export once → frozen policy evaluation → manuscript freeze.**
 
 No P2 expansion unless the frozen P1.3 result exposes a specific reviewer-risk question. No test-based rescue tuning under any outcome.
