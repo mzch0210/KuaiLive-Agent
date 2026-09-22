@@ -1,5 +1,6 @@
 name: KBS compact frozen evidence hosted
 
+# Hosted-only repack of immutable frozen inputs for the self-hosted GPU benchmark.
 on:
   workflow_dispatch:
   push:
