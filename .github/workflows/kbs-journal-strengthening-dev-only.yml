@@ -1,0 +1,173 @@
+name: KBS journal strengthening DEV-only
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-journal-strengthening-dev-only.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kbs-journal-strengthening-dev-only
+  cancel-in-progress: false
+
+env:
+  EXPECTED_REPOSITORY: 'mzch0210/KuaiLive-Agent'
+  EXPECTED_ACTOR: 'mzch0210'
+  FROZEN_P1_2_ARTIFACT_ID: '10680854557'
+  FROZEN_P1_2_RUN_ID: '35698158121'
+  P1_2_GATE_REPORT_SHA256: 'b095b46eb6d9ce673d20edd3e86ef49759b2eb923d62f3b19520581727b21492'
+  P1_2_OOF_SHA256: '9757064252c097934fa31f10a68e11bb43853ca1132aaa49da2b9794f60d3816'
+  P1_2_STATE_ECDF_SHA256: 'b5921df7f821240c687958ba1d2d5d3a77d2ac8b5d6594b8f9fd4b09900ce70e'
+  P1_2_DEV_SUMMARY_SHA256: '8880e58fede742fe6b5b2d8bc46b1d37128f33932a03da621510b9943c734850'
+  TWITCH_100K_URL: 'https://mcauleylab.ucsd.edu/public_datasets/gdrive/twitch/100k_a.csv'
+  TWITCH_100K_SHA256: '11d3bdb49683f651eb6b0ba806bf317db68646efc0c7de2d02d750201fd8ef69'
+  PYTHONHASHSEED: '42'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  OPENBLAS_NUM_THREADS: '1'
+
+jobs:
+  dev-only-strengthening:
+    if: ${{ github.actor == 'mzch0210' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout journal-strengthening controller
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Enforce DEV-only guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "$EXPECTED_REPOSITORY"
+          test "$GITHUB_ACTOR" = "$EXPECTED_ACTOR"
+          test "$GITHUB_REF" = 'refs/heads/main'
+          echo 'KBS strengthening is DEV-only. P1.3 test artifacts must not be downloaded or inspected.'
+
+      - name: Download exact frozen P1.2 DEV evidence
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.FROZEN_P1_2_ARTIFACT_ID }}
+          path: frozen_p1_2
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.FROZEN_P1_2_RUN_ID }}
+
+      - name: Verify frozen P1.2 evidence and DEV-only status
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$P1_2_GATE_REPORT_SHA256  frozen_p1_2/gate_freeze/p1_2_dev_gate_report.json" | sha256sum -c -
+          echo "$P1_2_OOF_SHA256  frozen_p1_2/gate_freeze/p1_2_dev_oof_predictions.csv.gz" | sha256sum -c -
+          echo "$P1_2_STATE_ECDF_SHA256  frozen_p1_2/dev_export/p1_2_state_ecdf.json" | sha256sum -c -
+          echo "$P1_2_DEV_SUMMARY_SHA256  frozen_p1_2/dev_export/p1_2_dev_export_summary.json" | sha256sum -c -
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          gate=json.loads(Path('frozen_p1_2/gate_freeze/p1_2_dev_gate_report.json').read_text())
+          dev=json.loads(Path('frozen_p1_2/dev_export/p1_2_dev_export_summary.json').read_text())
+          assert gate['test_ranking_inspected'] is False
+          assert dev['test_ranking_inspected'] is False
+          assert gate['utility_router']['k']==6563
+          assert dev['n_dev']==46878
+          print('Frozen P1.2 DEV evidence verified.')
+          PY
+
+      - name: Install pinned analysis runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import sys
+          assert sys.version_info[:2] == (3, 12), sys.version
+          print(sys.version)
+          PY
+          python -m pip install --disable-pip-version-check \
+            'numpy==1.26.4' 'pandas==2.3.3' 'scipy==1.17.1' \
+            'scikit-learn==1.5.2' 'joblib==1.4.2' 'threadpoolctl==3.7.0'
+          python -m py_compile \
+            analysis/liverec_kbs_memory_component_horizon_ablation.py \
+            analysis/liverec_kbs_gate_feature_family_ablation.py
+
+      - name: Download and verify public Twitch 100k data once
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p kbs_strengthening/data kbs_strengthening/results
+          DATA="$GITHUB_WORKSPACE/kbs_strengthening/data/twitch100k.csv"
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 5 --retry-all-errors --retry-delay 3 \
+            "$TWITCH_100K_URL" -o "$DATA"
+          echo "$TWITCH_100K_SHA256  $DATA" | sha256sum -c -
+
+      - name: Run Memory component by relationship-horizon ablation
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v python analysis/liverec_kbs_memory_component_horizon_ablation.py \
+            --dev-oof frozen_p1_2/gate_freeze/p1_2_dev_oof_predictions.csv.gz \
+            --twitch-csv kbs_strengthening/data/twitch100k.csv \
+            --out-dir kbs_strengthening/results/memory_components \
+            --n-boot 5000 \
+            2>&1 | tee kbs_strengthening/memory-component.log
+
+      - name: Run utility-gate feature-family OOF ablation
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v python analysis/liverec_kbs_gate_feature_family_ablation.py \
+            --dev-oof frozen_p1_2/gate_freeze/p1_2_dev_oof_predictions.csv.gz \
+            --out-dir kbs_strengthening/results/gate_features \
+            --n-jobs 4 \
+            --n-boot 5000 \
+            2>&1 | tee kbs_strengthening/gate-feature.log
+
+      - name: Validate journal-strengthening integrity without conditioning on outcome
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('kbs_strengthening/results/memory_components/kbs_memory_component_horizon_ablation.json').read_text())
+          b=json.loads(Path('kbs_strengthening/results/gate_features/kbs_gate_feature_family_ablation.json').read_text())
+          assert a['test_ranking_inspected'] is False and b['test_ranking_inspected'] is False
+          assert a['n_dev']==b['n_dev']==46878
+          assert all(v==0 for v in a['reconstruction_guards'].values())
+          g=b['full_feature_replay_guard']
+          assert g['full_utility_pred_max_abs_diff'] <= 1e-10
+          assert g['full_difficulty_pred_max_abs_diff'] <= 1e-10
+          assert g['full_utility_mask_mismatches']==0
+          assert g['frozen_original_k']==6563
+          assert len(a['results'])==20
+          assert len(b['results'])==3
+          print('Integrity guards passed. No result-sign criterion was applied.')
+          PY
+          cd kbs_strengthening
+          find results -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+
+      - name: Upload immutable DEV-only strengthening evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-journal-strengthening-dev-only-${{ github.run_id }}
+          path: |
+            kbs_strengthening/results/
+            kbs_strengthening/SHA256SUMS
+            kbs_strengthening/memory-component.log
+            kbs_strengthening/gate-feature.log
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Remove downloaded public data
+        if: always()
+        shell: bash
+        run: rm -rf kbs_strengthening/data
