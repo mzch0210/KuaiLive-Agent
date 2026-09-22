@@ -145,13 +145,15 @@ jobs:
           cp frozen_p1_2/gate_freeze/p1_2_frozen_utility_gate.joblib liverec_p1_3/policy/
           cp frozen_p1_2/gate_freeze/p1_2_dev_gate_report.json liverec_p1_3/policy/
           cp frozen_p1_2/dev_export/p1_2_state_ecdf.json liverec_p1_3/policy/
+          cp frozen_p1_2/dev_export/p1_2_dev_export_summary.json liverec_p1_3/policy/
           cd liverec_p1_3/policy
           sha256sum \
             p1_3_policy_manifest.json \
             p1_2_frozen_utility_gate.joblib \
             p1_2_frozen_difficulty_gate.joblib \
             p1_2_dev_gate_report.json \
-            p1_2_state_ecdf.json > SHA256SUMS
+            p1_2_state_ecdf.json \
+            p1_2_dev_export_summary.json > SHA256SUMS
 
       - name: Validate pre-test policy freeze
         shell: bash
@@ -236,8 +238,8 @@ jobs:
         run: |
           set -euo pipefail
           cd "$GITHUB_WORKSPACE"
-          rm -rf third_party/liverec frozen_p1_base liverec_p1_3/policy liverec_p1_3/test_export
-          mkdir -p third_party/liverec frozen_p1_base liverec_p1_3/policy liverec_p1_3/test_export
+          rm -rf third_party/liverec frozen_p1_base liverec_p1_3/policy liverec_p1_3/dev_replay liverec_p1_3/test_export
+          mkdir -p third_party/liverec frozen_p1_base liverec_p1_3/policy liverec_p1_3/dev_replay liverec_p1_3/test_export
 
       - name: Restore verified public source and dataset caches
         shell: bash
@@ -322,6 +324,50 @@ jobs:
           assert len(r['utility_strata']['internal_cutpoints'])==9
           PY
 
+      - name: Replay full dev path before opening test
+        shell: bash
+        working-directory: third_party/liverec
+        run: |
+          set -euo pipefail
+          CHECKPOINT="$GITHUB_WORKSPACE/frozen_p1_base/$FROZEN_BASE_CHECKPOINT_REL"
+          AV_CACHE="$HOME/.cache/kuailive-public/liverec/preprocessed/availability-${TWITCH_100K_SHA256}-${LIVEREC_OFFICIAL_COMMIT}.npz"
+          "$HOME/venvs/kuailive-gpu/bin/python" p1_test_export.py \
+            --split dev \
+            --checkpoint "$CHECKPOINT" \
+            --state-ecdf "$GITHUB_WORKSPACE/liverec_p1_3/policy/p1_2_state_ecdf.json" \
+            --policy-manifest "$GITHUB_WORKSPACE/liverec_p1_3/policy/p1_3_policy_manifest.json" \
+            --out-dir "$GITHUB_WORKSPACE/liverec_p1_3/dev_replay" \
+            --availability-cache "$AV_CACHE" \
+            --model=LiveRec \
+            --dataset='dataset/' \
+            --fr_ctx --fr_rep \
+            --model_to='liverec_p1_gpu' \
+            --device='cuda' \
+            --seed=42 \
+            --lr=0.0005 --l2=0.1 \
+            --batch_size=100 --seq_len=16 --dim=64 \
+            --num_att=2 --num_att_ctx=2 \
+            --num_heads=4 --num_heads_ctx=4 \
+            --topk_att=64 --early_stop=15 --num_epochs=150
+          cd "$GITHUB_WORKSPACE"
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          from pathlib import Path
+          got=json.loads(Path('liverec_p1_3/dev_replay/p1_3_dev_replay_summary.json').read_text())
+          ref=json.loads(Path('liverec_p1_3/policy/p1_2_dev_export_summary.json').read_text())
+          assert got['test_ranking_inspected'] is False and got['one_shot'] is False
+          assert got['n_dev']==ref['n_dev']==46878
+          for section, keys in [('base',['h1','ndcg10','h10']), ('memory',['ndcg10','h10'])]:
+              for key in keys:
+                  assert abs(got[section][key]-ref[section][key]) < 5e-12, (section,key,got[section][key],ref[section][key])
+          assert abs(got['memory_minus_base_ndcg10']-ref['memory_minus_base_ndcg10']) < 5e-12
+          assert abs(got['official_repeat_fraction']-ref['official_repeat_fraction']) < 5e-12
+          assert got['horizon_counts']==ref['horizon_counts']
+          assert got['base_rank_equivalence_guard']['exact_match'] is True
+          print('full dev replay matched frozen P1.2 exactly')
+          PY
+          rm -rf "$GITHUB_WORKSPACE/liverec_p1_3/dev_replay"
+
       - name: Arm one-shot local sentinel
         shell: bash
         run: |
@@ -348,6 +394,7 @@ jobs:
           CHECKPOINT="$GITHUB_WORKSPACE/frozen_p1_base/$FROZEN_BASE_CHECKPOINT_REL"
           AV_CACHE="$HOME/.cache/kuailive-public/liverec/preprocessed/availability-${TWITCH_100K_SHA256}-${LIVEREC_OFFICIAL_COMMIT}.npz"
           "$HOME/venvs/kuailive-gpu/bin/python" p1_test_export.py \
+            --split test \
             --checkpoint "$CHECKPOINT" \
             --state-ecdf "$GITHUB_WORKSPACE/liverec_p1_3/policy/p1_2_state_ecdf.json" \
             --policy-manifest "$GITHUB_WORKSPACE/liverec_p1_3/policy/p1_3_policy_manifest.json" \
@@ -397,7 +444,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf "$GITHUB_WORKSPACE/frozen_p1_base" "$GITHUB_WORKSPACE/third_party/liverec/dataset"
+          rm -rf "$GITHUB_WORKSPACE/frozen_p1_base" "$GITHUB_WORKSPACE/third_party/liverec/dataset" "$GITHUB_WORKSPACE/liverec_p1_3/dev_replay"
 
   evaluate-one-shot-test:
     needs: [freeze-policy-preflight, export-untouched-test]
