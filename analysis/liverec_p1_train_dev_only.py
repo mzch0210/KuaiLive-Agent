@@ -5,6 +5,7 @@ import math
 import os
 import random
 import time
+from itertools import islice
 from pathlib import Path
 
 import numpy as np
@@ -14,11 +15,11 @@ from torch.utils.data import DataLoader
 
 # This script is executed from a pinned checkout of the official JRappaz/liverec
 # repository, with this file copied into that checkout. It intentionally reuses
-# the official arguments/data/model/eval modules and changes only terminal
-# control flow plus execution-only data-transfer/synchronization optimizations.
+# the official arguments/data/model modules and preserves official ranking
+# semantics, with exact-equivalence-guarded execution optimizations only.
 from arguments import arg_parse, print_args
 from data import get_dataloaders, load_data
-from eval import compute_recall, print_scores
+from eval import compute_recall, metrics, print_scores
 from models import get_model_type
 
 
@@ -57,12 +58,7 @@ def _runtime_info(device: torch.device) -> dict:
 
 
 def _official_collate(batch, seq_len: int):
-    """Byte-for-byte equivalent layout to the pinned LiveRec custom_collate.
-
-    Keeping this top-level and storing only seq_len makes it safe for DataLoader
-    worker processes without serializing the full args object (which contains
-    CUDA tensors after load_data()).
-    """
+    """Same tensor layout and assignments as pinned LiveRec custom_collate."""
     bs = len(batch)
     feat_len = len(batch[0])
     batch_seq = torch.zeros(bs, seq_len, feat_len, dtype=torch.long)
@@ -81,11 +77,7 @@ class _Collator:
 
 
 def _accelerate_loader(loader, args, workers: int):
-    """Rebuild a sequential official loader with execution-only GPU I/O tuning.
-
-    Dataset, batch size, ordering, collate semantics and drop_last are preserved.
-    Only worker prefetch and pinned host memory are added.
-    """
+    """Preserve dataset/order/batch/collate semantics; tune host-to-GPU feeding."""
     if args.device.type != "cuda":
         return loader
 
@@ -100,12 +92,7 @@ def _accelerate_loader(loader, args, workers: int):
         "drop_last": bool(loader.drop_last),
     }
     if workers > 0:
-        kwargs.update(
-            {
-                "persistent_workers": True,
-                "prefetch_factor": 2,
-            }
-        )
+        kwargs.update({"persistent_workers": True, "prefetch_factor": 2})
     return DataLoader(**kwargs)
 
 
@@ -114,12 +101,117 @@ def _cuda_sync(device: torch.device) -> None:
         torch.cuda.synchronize(device)
 
 
+def _compute_recall_low_sync(model, loader, args, maxit=100000):
+    """Exact official fr_ctx ranking with one rank transfer per batch.
+
+    The pinned official evaluator synchronizes CUDA multiple times per user via
+    Tensor.item() and Python tensor membership. Here repeat labels and timestamps
+    are read from the still-CPU batch, while each user's candidate score vector
+    and torch.argsort are kept identical to model.compute_rank. Ranks are copied
+    to CPU once per batch. For non-fr_ctx configurations we fall back to the
+    official evaluator.
+    """
+    if not args.fr_ctx:
+        return compute_recall(model, loader, args, maxit=maxit)
+
+    store = {"rrep": [], "rnew": [], "rall": [], "ratio": []}
+    model.eval()
+
+    with torch.no_grad():
+        for i, data_cpu in enumerate(loader):
+            # Repeat/new labels and target timestamps do not require CUDA.
+            pos_cpu = data_cpu[:, :, 5]
+            steps_cpu = data_cpu[:, -1, 6].tolist()
+            repeat_flags = []
+            for b in range(pos_cpu.shape[0]):
+                avt = pos_cpu[b, :-1]
+                avt = avt[avt != 0]
+                is_rep = bool((avt == pos_cpu[b, -1]).any().item())
+                repeat_flags.append(is_rep)
+
+            data = data_cpu.to(args.device, non_blocking=bool(getattr(loader, "pin_memory", False)))
+            inputs = data[:, :, 3]
+            pos = data[:, :, 5]
+
+            feats = model(inputs)
+            ctx, batch_inds = model.get_ctx_att(data, feats)
+
+            rank_tensors = []
+            for b in range(inputs.shape[0]):
+                step = int(steps_cpu[b])
+                av_len = len(args.ts[step])
+
+                # args.av_tens was built directly from args.ts in pinned data.py;
+                # slicing its row avoids a per-user CPU->GPU tensor construction.
+                av = args.av_tens[step, :av_len]
+
+                # This is the exact fr_ctx scoring branch from LiveRec.compute_rank.
+                ctx_expand = torch.zeros(
+                    args.av_tens.shape[1], args.K, device=args.device
+                )
+                ctx_expand[batch_inds[b, -1, :], :] = ctx[b, -1, :, :]
+                scores = (feats[b, -1, :] * ctx_expand).sum(-1)
+                scores = scores[:av_len]
+
+                iseq = pos[b, -1] == av
+                idx = torch.where(iseq)[0]
+                rank_t = torch.where(torch.argsort(scores, descending=True) == idx)[0]
+                if rank_t.numel() != 1:
+                    raise RuntimeError(
+                        f"Expected exactly one target rank, got {rank_t.numel()} at batch {i}, row {b}"
+                    )
+                rank_tensors.append(rank_t[0])
+
+            # One device->host synchronization for the whole batch, rather than
+            # one .item() per user as in the pinned official evaluator.
+            ranks = torch.stack(rank_tensors).detach().cpu().tolist()
+            for rank, is_rep in zip(ranks, repeat_flags):
+                store["ratio"].append(float(is_rep))
+                if is_rep:
+                    store["rrep"].append(int(rank))
+                else:
+                    store["rnew"].append(int(rank))
+                store["rall"].append(int(rank))
+
+            # Preserve the official evaluator's break placement/semantics.
+            if i > maxit:
+                break
+
+    return {
+        "rep": metrics(store["rrep"]),
+        "new": metrics(store["rnew"]),
+        "all": metrics(store["rall"]),
+        "ratio": np.mean(store["ratio"]),
+    }
+
+
+def _assert_eval_equivalence(model, val_loader, args, probe_batches: int = 2) -> dict:
+    """Fail closed unless optimized ranking exactly matches official ranking."""
+    batches = list(islice(iter(val_loader), probe_batches))
+    if not batches:
+        raise RuntimeError("Validation loader is empty; cannot verify evaluator equivalence")
+
+    official = _py(compute_recall(model, batches, args, maxit=100000))
+    optimized = _py(_compute_recall_low_sync(model, batches, args, maxit=100000))
+
+    # Exact equality is intentional: both paths execute the same score expression
+    # and per-user torch.argsort. No tolerance-based semantic drift is accepted.
+    if official != optimized:
+        raise RuntimeError(
+            "Optimized evaluator failed exact equivalence guard:\n"
+            + json.dumps({"official": official, "optimized": optimized}, indent=2)
+        )
+    return {
+        "probe_batches": len(batches),
+        "probe_examples": int(sum(batch.shape[0] for batch in batches)),
+        "exact_match": True,
+    }
+
+
 def main() -> None:
     args = arg_parse()
     print_args(args)
 
-    # Reproducibility controls missing from the original main.py but consistent
-    # with its exposed --seed argument. They do not change task/model semantics.
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -129,8 +221,8 @@ def main() -> None:
         if not torch.cuda.is_available():
             raise RuntimeError("CUDA execution requested but torch.cuda.is_available() is False")
         torch.cuda.manual_seed_all(args.seed)
-        # Keep deterministic settings frozen. We deliberately do NOT enable AMP,
-        # TF32, cudnn benchmark, torch.compile, or change batch size.
+        # Deliberately preserve deterministic numerical settings. No AMP, TF32,
+        # cudnn autotuning, torch.compile, batch-size or optimizer changes.
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
@@ -149,19 +241,14 @@ def main() -> None:
     model = model_cls(args).to(args.device)
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.l2)
 
-    best_val_h1 = -math.inf
-    best_epoch = -1
-    best_scores = None
-    remaining = args.early_stop
-    epoch_timings = []
-
     execution = {
         "num_workers": int(getattr(train_loader, "num_workers", 0)),
         "pin_memory": bool(getattr(train_loader, "pin_memory", False)),
         "persistent_workers": bool(getattr(train_loader, "persistent_workers", False)),
         "prefetch_factor": getattr(train_loader, "prefetch_factor", None),
         "non_blocking_h2d": non_blocking,
-        "per_batch_gpu_cpu_sync_removed": True,
+        "per_batch_train_gpu_cpu_sync_removed": True,
+        "batched_validation_rank_transfer": bool(args.fr_ctx),
         "amp": False,
         "tf32_override": False,
         "torch_compile": False,
@@ -171,32 +258,39 @@ def main() -> None:
     print("training (dev-only freeze; test ranking intentionally disabled)...")
     print(json.dumps({"runtime": _runtime_info(args.device), "execution": execution}, indent=2))
 
+    # Verify optimized evaluator before it is allowed to influence checkpoint
+    # selection. This uses the untrained model in eval mode and does not consume
+    # randomness because dropout is disabled.
+    eval_guard = _assert_eval_equivalence(model, val_loader, args, probe_batches=2)
+    print(json.dumps({"evaluation_equivalence_guard": eval_guard}, indent=2))
+
+    best_val_h1 = -math.inf
+    best_epoch = -1
+    best_scores = None
+    remaining = args.early_stop
+    epoch_timings = []
+
     for epoch in range(args.num_epochs):
         if args.device.type == "cuda":
             torch.cuda.reset_peak_memory_stats(args.device)
         _cuda_sync(args.device)
         train_t0 = time.perf_counter()
 
-        # Keep reporting accumulators on device to avoid synchronizing CUDA on
-        # every batch. They are read once at epoch end and do not affect grads.
+        # Device-side reporting accumulators eliminate successful-run host syncs
+        # inside the batch loop. They never participate in gradient computation.
         loss_sum = torch.zeros((), device=args.device, dtype=torch.float64)
         nan_seen = torch.zeros((), device=args.device, dtype=torch.bool)
         loss_cnt = 0
         model.train()
 
         for data in train_loader:
-            # Count valid targets while the batch is still on CPU. The previous
-            # implementation counted after H2D and forced a GPU sync each batch.
+            # Same target count as before, performed while tensor remains on CPU.
             loss_cnt += int((data[:, :, 5] != 0).sum().item())
             data = data.to(args.device, non_blocking=non_blocking)
 
             optimizer.zero_grad()
             loss = model.train_step(data)
-
-            # Preserve the original NaN guard semantically, but defer the host
-            # read until epoch end so successful training does not sync per batch.
             nan_seen = nan_seen | torch.isnan(loss.detach())
-
             loss.backward()
             optimizer.step()
             loss_sum = loss_sum + loss.detach().to(torch.float64)
@@ -208,7 +302,7 @@ def main() -> None:
             raise RuntimeError(f"NaN loss observed during epoch {epoch}")
 
         val_t0 = time.perf_counter()
-        scores = compute_recall(model, val_loader, args, maxit=500)
+        scores = _compute_recall_low_sync(model, val_loader, args, maxit=500)
         _cuda_sync(args.device)
         val_seconds = time.perf_counter() - val_t0
 
@@ -257,6 +351,7 @@ def main() -> None:
         "checkpoint": str(model_path),
         "runtime": _runtime_info(args.device),
         "execution": execution,
+        "evaluation_equivalence_guard": eval_guard,
         "epoch_timings": epoch_timings,
         "config": {
             "seed": args.seed,
@@ -286,7 +381,7 @@ def main() -> None:
             "pivot_2": int(args.pivot_2),
             "max_available": int(args.max_avail),
         },
-        "guardrail": "Official architecture, loss, data split, batch size, optimizer and dev-H@1 checkpoint selection are unchanged. Execution-only changes remove per-batch host synchronization and add pinned-memory/prefetched data loading. Test ranking remains deliberately disabled.",
+        "guardrail": "Official architecture, loss, data split, candidate order, per-user torch.argsort ranking, batch size, optimizer and dev-H@1 checkpoint selection are unchanged. The optimized evaluator must exactly match the official evaluator on a pre-training probe before use. Test ranking remains deliberately disabled.",
     }
 
     out = Path(os.environ.get("LIVEREC_REPORT", "p1_base_dev_freeze.json"))
