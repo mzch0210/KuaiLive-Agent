@@ -4,9 +4,7 @@ import argparse
 import json
 import math
 import os
-import pickle
 import time
-from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -71,15 +69,21 @@ def circular_regularity_steps(steps: np.ndarray) -> float:
 
 
 class _Collator:
-    def __init__(self, args):
-        self.args = args
+    def __init__(self, seq_len: int):
+        self.seq_len = int(seq_len)
 
     def __call__(self, batch):
-        return custom_collate(batch, self.args)
+        bs = len(batch)
+        feat_len = len(batch[0])
+        batch_seq = torch.zeros(bs, self.seq_len, feat_len, dtype=torch.long)
+        for ib, b in enumerate(batch):
+            for ifeat, feat in enumerate(b):
+                batch_seq[ib, b[0], ifeat] = feat
+        return batch_seq
 
 
 def load_data_with_availability_cache(args, cache_path: Path) -> pd.DataFrame:
-    """Official load_data semantics with an exact serialized availability cache."""
+    """Official load_data semantics with a non-executable exact availability cache."""
     infile = Path(args.dataset) / "100k.csv"
     cols = ["user", "stream", "streamer", "start", "stop"]
     data_fu = pd.read_csv(infile, header=None, names=cols)
@@ -95,38 +99,37 @@ def load_data_with_availability_cache(args, cache_path: Path) -> pd.DataFrame:
     args.pivot_2 = max_step - 250
 
     if cache_path.is_file():
-        with cache_path.open("rb") as f:
-            cached = pickle.load(f)
-        if (
-            cached.get("max_step") != args.max_step
-            or cached.get("pivot_1") != args.pivot_1
-            or cached.get("pivot_2") != args.pivot_2
-        ):
+        cached = np.load(cache_path, allow_pickle=False)
+        meta = cached["meta"].astype(np.int64)
+        if meta.tolist()[:3] != [args.max_step, args.pivot_1, args.pivot_2]:
             raise RuntimeError("Availability cache metadata mismatch")
-        ts = cached["ts"]
-        max_avail = int(cached["max_avail"])
+        max_avail = int(meta[3])
+        offsets = cached["offsets"].astype(np.int64, copy=False)
+        flat = cached["flat"].astype(np.int64, copy=False)
+        if len(offsets) != args.max_step + 2 or int(offsets[-1]) != len(flat):
+            raise RuntimeError("Availability cache shape mismatch")
+        ts = {s: flat[offsets[s]:offsets[s + 1]].tolist() for s in range(args.max_step + 1)}
         cache_hit = True
     else:
         ts = {}
         max_avail = 0
+        offsets = np.zeros(max_step + 2, dtype=np.int64)
+        chunks = []
         for s in range(max_step + 1):
-            all_av = data_fu[(data_fu.start <= s) & (data_fu.stop > s)].streamer.unique().tolist()
-            ts[s] = all_av
+            all_av = data_fu[(data_fu.start <= s) & (data_fu.stop > s)].streamer.unique().astype(np.int64)
+            ts[s] = all_av.tolist()
+            chunks.append(all_av)
+            offsets[s + 1] = offsets[s] + len(all_av)
             max_avail = max(max_avail, len(all_av))
+        flat = np.concatenate(chunks) if chunks else np.empty(0, dtype=np.int64)
         cache_path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = cache_path.with_suffix(cache_path.suffix + ".tmp")
-        with tmp.open("wb") as f:
-            pickle.dump(
-                {
-                    "max_step": args.max_step,
-                    "pivot_1": args.pivot_1,
-                    "pivot_2": args.pivot_2,
-                    "max_avail": max_avail,
-                    "ts": ts,
-                },
-                f,
-                protocol=pickle.HIGHEST_PROTOCOL,
-            )
+        tmp = cache_path.with_name(cache_path.name + ".tmp.npz")
+        np.savez_compressed(
+            tmp,
+            meta=np.asarray([args.max_step, args.pivot_1, args.pivot_2, max_avail], dtype=np.int64),
+            offsets=offsets,
+            flat=flat,
+        )
         os.replace(tmp, cache_path)
         cache_hit = False
 
@@ -342,7 +345,7 @@ def main() -> None:
         dev_ds,
         batch_size=args.batch_size,
         shuffle=False,
-        collate_fn=_Collator(args),
+        collate_fn=_Collator(args.seq_len),
         num_workers=4,
         pin_memory=True,
         persistent_workers=True,
