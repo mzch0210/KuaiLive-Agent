@@ -1,0 +1,232 @@
+name: KBS KuaiLive training-seed robustness hosted
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-training-seed-robustness-hosted.yml'
+      - 'analysis/kbs_aggregate_training_seed_robustness.py'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kbs-training-seed-robustness-hosted-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONPATH: ${{ github.workspace }}/analysis:${{ github.workspace }}/src
+  N_NEG: '574'
+  ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+  STREAMER_DATASET: 'KuaiLiveShopStreamerParallel'
+  DATA_RUN: '35554842873'
+  DATA_ARTIFACT: 'room-collision-data-35554842873'
+  RECHORUS_COMMIT: 'c164ec4303cc20ddcfbd1b57de366a481811d1e5'
+
+jobs:
+  seed:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        seed: [20260917, 20260918, 20260919]
+    env:
+      TRAIN_SEED: ${{ matrix.seed }}
+      GH_TOKEN: ${{ github.token }}
+      OMP_NUM_THREADS: '2'
+      MKL_NUM_THREADS: '2'
+      OPENBLAS_NUM_THREADS: '2'
+      NUMEXPR_NUM_THREADS: '2'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install frozen CPU training runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check 'numpy<2' 'pandas<3' 'scipy<2' 'scikit-learn<2' tqdm pyyaml joblib
+          python -m py_compile analysis/dual_id_room_baseline.py analysis/conditional_utility_closure_dual_id.py analysis/kbs_aggregate_training_seed_robustness.py
+
+      - name: Download exact frozen legal-candidate data
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: ${{ env.DATA_ARTIFACT }}
+          path: shared
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.DATA_RUN }}
+
+      - name: Verify fixed protocol inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "shared/rechorus_dual/$ROOM_DATASET/train.csv"
+          test -s "shared/rechorus_dual/$ROOM_DATASET/dev.csv"
+          test -s "shared/rechorus_dual/$ROOM_DATASET/test.csv"
+          test -s "shared/rechorus_dual/$STREAMER_DATASET/train.csv"
+          test -s "shared/rechorus_dual/$STREAMER_DATASET/dev.csv"
+          test -s "shared/rechorus_dual/$STREAMER_DATASET/test.csv"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('shared/rechorus_dual/KuaiLiveShopRoomDualID/export_meta.json')
+          m=json.loads(p.read_text())
+          assert m['candidate_count']==575
+          assert m['n_neg']==574
+          print(json.dumps(m, indent=2))
+          PY
+
+      - name: Pin official ReChorus and enable full candidate exports
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          cd third_party/ReChorus
+          git checkout "$RECHORUS_COMMIT"
+          cd "$GITHUB_WORKSPACE"
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('third_party/ReChorus/src/main.py')
+          s=p.read_text()
+          a="save_rec_results(data_dict['dev'], runner, 100)"
+          b="save_rec_results(data_dict['test'], runner, 100)"
+          assert a in s and b in s
+          p.write_text(s.replace(a,"save_rec_results(data_dict['dev'], runner, 575)").replace(b,"save_rec_results(data_dict['test'], runner, 575)"))
+          PY
+
+      - name: Train room-ID SASRec for this deep-training seed
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p logs models seed_timing
+          cd third_party/ReChorus/src
+          /usr/bin/time -v -o "$GITHUB_WORKSPACE/seed_timing/room_time.txt" python main.py \
+            --model_name SASRec --dataset "$ROOM_DATASET" --path "$GITHUB_WORKSPACE/shared/rechorus_dual/" \
+            --gpu '' --random_seed "$TRAIN_SEED" --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+            --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 --epoch 30 --early_stop 5 \
+            --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 2 --save_final_results 1 --regenerate 1 \
+            --log_file "$GITHUB_WORKSPACE/logs/room.log" --model_path "$GITHUB_WORKSPACE/models/room.pt"
+          cd "$GITHUB_WORKSPACE"
+          test -s logs/room/rec-SASRec-dev.csv
+          test -s logs/room/rec-SASRec-test.csv
+
+      - name: Train streamer-ID SASRec for this deep-training seed
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd third_party/ReChorus/src
+          /usr/bin/time -v -o "$GITHUB_WORKSPACE/seed_timing/streamer_time.txt" python main.py \
+            --model_name SASRec --dataset "$STREAMER_DATASET" --path "$GITHUB_WORKSPACE/shared/rechorus_dual/" \
+            --gpu '' --random_seed "$TRAIN_SEED" --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+            --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 --epoch 30 --early_stop 5 \
+            --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 2 --save_final_results 1 --regenerate 1 \
+            --log_file "$GITHUB_WORKSPACE/logs/streamer.log" --model_path "$GITHUB_WORKSPACE/models/streamer.pt"
+          cd "$GITHUB_WORKSPACE"
+          test -s logs/streamer/rec-SASRec-dev.csv
+          test -s logs/streamer/rec-SASRec-test.csv
+
+      - name: Refit Dual-ID and selective policy with Base training seed isolated
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/dual_id_room_baseline.py \
+            --room-data-dir "shared/rechorus_dual/$ROOM_DATASET" \
+            --streamer-data-dir "shared/rechorus_dual/$STREAMER_DATASET" \
+            --room-dev logs/room/rec-SASRec-dev.csv --room-test logs/room/rec-SASRec-test.csv \
+            --streamer-dev logs/streamer/rec-SASRec-dev.csv --streamer-test logs/streamer/rec-SASRec-test.csv \
+            --out-dir dual_id_results --n-neg "$N_NEG"
+          cat dual_id_results/report.json
+
+      - name: Recompute matched-budget Utility versus Difficulty for this Base seed
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/conditional_utility_closure_dual_id.py \
+            --room-data-dir "shared/rechorus_dual/$ROOM_DATASET" \
+            --streamer-data-dir "shared/rechorus_dual/$STREAMER_DATASET" \
+            --room-dev logs/room/rec-SASRec-dev.csv \
+            --streamer-dev logs/streamer/rec-SASRec-dev.csv \
+            --reference-report dual_id_results/report.json \
+            --reference-test dual_id_results/per_user_test.csv.gz \
+            --out-dir seed_closure --n-neg "$N_NEG"
+          cat seed_closure/report.json
+
+      - name: Record robustness semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > seed_protocol.json <<JSON
+          {
+            "training_seed": $TRAIN_SEED,
+            "varied_component": "room and streamer SASRec deep-base training randomness",
+            "held_fixed": ["candidate sets", "Memory definition", "Dual-ID dev alpha rule", "gate family and gate random seed", "matched-budget difficulty control"],
+            "candidate_count": 575,
+            "test_use": "KuaiLive frozen task only; Twitch P1.3 untouched test is not accessed"
+          }
+          JSON
+
+      - name: Upload one immutable seed result
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: seed-${{ matrix.seed }}
+          path: |
+            dual_id_results/**
+            seed_closure/**
+            seed_timing/**
+            seed_protocol.json
+            logs/*.log
+          if-no-files-found: warn
+          retention-days: 90
+
+  aggregate:
+    needs: seed
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check 'numpy<2' 'pandas<3'
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          pattern: seed-*
+          path: seed_results
+          merge-multiple: false
+      - name: Aggregate only if all three deep-training seeds completed
+        shell: bash
+        run: |
+          set -euo pipefail
+          for s in 20260917 20260918 20260919; do
+            test -s "seed_results/seed-$s/dual_id_results/report.json"
+            test -s "seed_results/seed-$s/seed_closure/report.json"
+          done
+          python analysis/kbs_aggregate_training_seed_robustness.py --root seed_results --out-dir seed_final
+          cat seed_final/training_seed_summary.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: kbs-training-seed-robustness-${{ github.run_id }}
+          path: seed_final/**
+          if-no-files-found: warn
+          retention-days: 90
