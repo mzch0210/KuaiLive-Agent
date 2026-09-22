@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 
@@ -10,6 +11,14 @@ import pandas as pd
 
 SEED = 20260918
 N_BOOT = 5000
+
+
+def sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def top_k_mask(score: np.ndarray, k: int) -> np.ndarray:
@@ -50,7 +59,10 @@ def paired_bootstrap(diff: np.ndarray, seed: int, n_boot: int = N_BOOT) -> dict:
 def rank_spearman(a: np.ndarray, b: np.ndarray) -> float:
     ar = pd.Series(np.asarray(a, dtype=float)).rank(method="average").to_numpy(float)
     br = pd.Series(np.asarray(b, dtype=float)).rank(method="average").to_numpy(float)
-    return float(np.corrcoef(ar, br)[0, 1])
+    rho = float(np.corrcoef(ar, br)[0, 1])
+    if not np.isfinite(rho):
+        raise RuntimeError("Undefined frozen test utility Spearman correlation")
+    return rho
 
 
 def subgroup_rows(df: pd.DataFrame, col: str, seed_base: int) -> list[dict]:
@@ -88,6 +100,14 @@ def main() -> None:
     test = pd.read_csv(args.test_events)
     manifest = json.loads(args.policy_manifest.read_text())
     export_summary = json.loads(args.test_export_summary.read_text())
+
+    if export_summary.get("policy_manifest_sha256") != sha256(args.policy_manifest):
+        raise RuntimeError("Test export and evaluator policy manifest hashes differ")
+    if manifest["source_p1_2"]["utility_gate_sha256"] != sha256(args.utility_gate):
+        raise RuntimeError("Frozen utility gate hash mismatch")
+    if manifest["difficulty_gate_sha256"] != sha256(args.difficulty_gate):
+        raise RuntimeError("Frozen difficulty gate hash mismatch")
+
     utility_bundle = joblib.load(args.utility_gate)
     difficulty_bundle = joblib.load(args.difficulty_gate)
 
@@ -159,7 +179,8 @@ def main() -> None:
     internal_edges = np.asarray(manifest["utility_strata"]["internal_cutpoints"], dtype=float)
     if internal_edges.size != 9 or not np.all(np.diff(internal_edges) > 0):
         raise RuntimeError("Invalid frozen utility-strata cutpoints")
-    stratum_idx = np.searchsorted(internal_edges, utility_pred, side="right") + 1
+    # qcut uses right-closed intervals; an exact cutpoint stays in the lower stratum.
+    stratum_idx = np.searchsorted(internal_edges, utility_pred, side="left") + 1
     test_out["utility_stratum"] = [f"D{i}" for i in stratum_idx]
 
     ndcg_utility_vs_base = paired_bootstrap(selective_utility - base, SEED + 101)
@@ -247,8 +268,8 @@ def main() -> None:
     }
 
     test_out.to_csv(args.out_dir / "p1_3_test_predictions.csv.gz", index=False, compression="gzip")
-    (args.out_dir / "p1_3_test_final_report.json").write_text(json.dumps(report, indent=2) + "\n")
-    print(json.dumps(report, indent=2))
+    (args.out_dir / "p1_3_test_final_report.json").write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
+    print(json.dumps(report, indent=2, allow_nan=False))
 
 
 if __name__ == "__main__":
