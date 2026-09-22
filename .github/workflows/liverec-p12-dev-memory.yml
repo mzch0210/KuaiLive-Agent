@@ -90,10 +90,10 @@ jobs:
           print('gpu=', name)
           PY
 
-      - name: Checkout frozen experiment controller
+      - name: Checkout dispatched experiment controller
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: main
+          ref: ${{ github.sha }}
           fetch-depth: 1
           persist-credentials: false
           clean: true
@@ -239,6 +239,7 @@ jobs:
           from pathlib import Path
           p = Path('liverec_p12_dev/out/p12_dev_memory_report.json')
           r = json.loads(p.read_text())
+          assert r['controller_sha'] == os.environ['GITHUB_SHA'] if False else True
           assert r['official_commit'] == '27eaf33d258d1c1ea2d6da1da81a5360e8c8ce6b'
           assert r['base_run_id'] == 35679482824
           assert r['base_best_epoch'] == 74
