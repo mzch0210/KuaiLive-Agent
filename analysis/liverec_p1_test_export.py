@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import time
 from pathlib import Path
 
@@ -66,16 +67,25 @@ def main() -> None:
     sys.argv = [sys.argv[0]] + remaining
     args = arg_parse()
     args.device = torch.device(args.device)
-    if args.device.type != "cuda" or not torch.cuda.is_available():
-        raise RuntimeError("P1.3 export requires CUDA")
-    torch.manual_seed(args.seed)
-    torch.cuda.manual_seed_all(args.seed)
-    np.random.seed(args.seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-
     split = known.split
     is_test = split == "test"
+
+    # Untouched test remains locked to the frozen CUDA path. CPU is permitted only
+    # for the dev-only compatibility preflight, which never constructs test ranking.
+    if is_test and (args.device.type != "cuda" or not torch.cuda.is_available()):
+        raise RuntimeError("P1.3 one-shot test export requires CUDA")
+    if args.device.type == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA device requested but unavailable")
+    if args.device.type not in {"cuda", "cpu"}:
+        raise RuntimeError(f"Unsupported P1.3 export device: {args.device}")
+
+    torch.manual_seed(args.seed)
+    if args.device.type == "cuda":
+        torch.cuda.manual_seed_all(args.seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+    np.random.seed(args.seed)
+
     state_ecdf_path = Path(known.state_ecdf)
     policy_manifest_path = Path(known.policy_manifest)
     manifest = json.loads(policy_manifest_path.read_text())
@@ -104,16 +114,21 @@ def main() -> None:
     if len(split_ds) != expected_n:
         raise RuntimeError(f"Unexpected {split} target count: {len(split_ds)} != {expected_n}")
 
-    split_loader = DataLoader(
-        split_ds,
+    default_workers = 4 if args.device.type == "cuda" else 2
+    num_workers = int(os.environ.get("LIVEREC_NUM_WORKERS", str(default_workers)))
+    if num_workers < 0:
+        raise RuntimeError("LIVEREC_NUM_WORKERS must be non-negative")
+    loader_kwargs = dict(
+        dataset=split_ds,
         batch_size=args.batch_size,
         shuffle=False,
         collate_fn=_Collator(args.seq_len),
-        num_workers=4,
-        pin_memory=True,
-        persistent_workers=True,
-        prefetch_factor=2,
+        num_workers=num_workers,
+        pin_memory=(args.device.type == "cuda"),
     )
+    if num_workers > 0:
+        loader_kwargs.update(persistent_workers=True, prefetch_factor=2)
+    split_loader = DataLoader(**loader_kwargs)
 
     _, model_cls = get_model_type(args)
     model = model_cls(args).to(args.device)
@@ -252,6 +267,8 @@ def main() -> None:
         "test_ranking_inspected": bool(is_test),
         "one_shot": bool(is_test),
         "n": int(len(frame)),
+        "execution_device": str(args.device),
+        "num_workers": int(num_workers),
         "base": {
             "h1": float((frame.base_rank0 == 0).mean()),
             "ndcg10": float(frame.base_ndcg10.mean()),
