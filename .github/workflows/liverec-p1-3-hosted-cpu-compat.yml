@@ -1,0 +1,268 @@
+name: LiveRec Twitch P1.3 hosted CPU dev compatibility
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_dev_only_cpu_compat:
+        description: 'Run DEV-ONLY hosted CPU compatibility preflight; untouched test must remain unopened'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: liverec-p1-3-hosted-cpu-compat
+  cancel-in-progress: false
+
+env:
+  EXPECTED_REPOSITORY: 'mzch0210/KuaiLive-Agent'
+  EXPECTED_ACTOR: 'mzch0210'
+  LIVEREC_OFFICIAL_COMMIT: '27eaf33d258d1c1ea2d6da1da81a5360e8c8ce6b'
+  LIVEREC_SOURCE_SHA256: '243ac4f01c408b71e4b87b06e58300b41286c5988b7a71c01a4fa04899072d48'
+  TWITCH_100K_URL: 'https://mcauleylab.ucsd.edu/public_datasets/gdrive/twitch/100k_a.csv'
+  TWITCH_100K_SHA256: '11d3bdb49683f651eb6b0ba806bf317db68646efc0c7de2d02d750201fd8ef69'
+
+  FROZEN_BASE_ARTIFACT_ID: '10678092592'
+  FROZEN_BASE_RUN_ID: '35679482824'
+  FROZEN_BASE_REPORT_SHA256: '6f7b8ed63553b94c0b49bb1416213f7b1b5d0ac694d662aaef3176bbf3e5a021'
+  FROZEN_BASE_CHECKPOINT_SHA256: '282b07277cf8a213f58094c7170f9d43fb988926ad554d8cd315aabfe736b6da'
+  FROZEN_BASE_CHECKPOINT_REL: 'models/liverec_p1_gpu_64_0.1_64_2_16_rep_ctx.pt'
+
+  FROZEN_P1_2_ARTIFACT_ID: '10680854557'
+  FROZEN_P1_2_RUN_ID: '35698158121'
+  P1_2_GATE_REPORT_SHA256: 'b095b46eb6d9ce673d20edd3e86ef49759b2eb923d62f3b19520581727b21492'
+  P1_2_OOF_SHA256: '9757064252c097934fa31f10a68e11bb43853ca1132aaa49da2b9794f60d3816'
+  P1_2_UTILITY_GATE_SHA256: '33ed1511c2f9447695ed34fd89037da903df8b9a86d763261d6240e623562fc0'
+  P1_2_STATE_ECDF_SHA256: 'b5921df7f821240c687958ba1d2d5d3a77d2ac8b5d6594b8f9fd4b09900ce70e'
+  P1_2_DEV_SUMMARY_SHA256: '8880e58fede742fe6b5b2d8bc46b1d37128f33932a03da621510b9943c734850'
+
+  PYTHONHASHSEED: '42'
+  OMP_NUM_THREADS: '3'
+  MKL_NUM_THREADS: '3'
+  OPENBLAS_NUM_THREADS: '1'
+  LIVEREC_NUM_WORKERS: '1'
+
+jobs:
+  cpu-dev-compatibility:
+    if: ${{ github.actor == 'mzch0210' && github.ref == 'refs/heads/main' && inputs.confirm_dev_only_cpu_compat }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Checkout compatibility controller
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Enforce DEV-only hosted-runner guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_EVENT_NAME" = 'workflow_dispatch'
+          test "$GITHUB_ACTOR" = "$EXPECTED_ACTOR"
+          test "$GITHUB_REPOSITORY" = "$EXPECTED_REPOSITORY"
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "${{ inputs.confirm_dev_only_cpu_compat }}" = 'true'
+          echo 'This workflow is DEV-only and must not construct or inspect P1.3 test ranking.'
+
+      - name: Download frozen P1.1 base
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.FROZEN_BASE_ARTIFACT_ID }}
+          path: frozen_p1_base
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.FROZEN_BASE_RUN_ID }}
+
+      - name: Verify frozen P1.1 base
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="frozen_p1_base/p1_base_dev_freeze.json"
+          CHECKPOINT="frozen_p1_base/$FROZEN_BASE_CHECKPOINT_REL"
+          test -s "$REPORT"; test -s "$CHECKPOINT"
+          echo "$FROZEN_BASE_REPORT_SHA256  $REPORT" | sha256sum -c -
+          echo "$FROZEN_BASE_CHECKPOINT_SHA256  $CHECKPOINT" | sha256sum -c -
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          r=json.loads(Path('frozen_p1_base/p1_base_dev_freeze.json').read_text())
+          assert r['official_commit']==os.environ['LIVEREC_OFFICIAL_COMMIT']
+          assert r['test_ranking_inspected'] is False
+          assert r['best_epoch']==74
+          assert r['evaluation_equivalence_guard']['exact_match'] is True
+          PY
+
+      - name: Download frozen P1.2 dev evidence
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.FROZEN_P1_2_ARTIFACT_ID }}
+          path: frozen_p1_2
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.FROZEN_P1_2_RUN_ID }}
+
+      - name: Verify frozen P1.2 dev evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$P1_2_GATE_REPORT_SHA256  frozen_p1_2/gate_freeze/p1_2_dev_gate_report.json" | sha256sum -c -
+          echo "$P1_2_OOF_SHA256  frozen_p1_2/gate_freeze/p1_2_dev_oof_predictions.csv.gz" | sha256sum -c -
+          echo "$P1_2_UTILITY_GATE_SHA256  frozen_p1_2/gate_freeze/p1_2_frozen_utility_gate.joblib" | sha256sum -c -
+          echo "$P1_2_STATE_ECDF_SHA256  frozen_p1_2/dev_export/p1_2_state_ecdf.json" | sha256sum -c -
+          echo "$P1_2_DEV_SUMMARY_SHA256  frozen_p1_2/dev_export/p1_2_dev_export_summary.json" | sha256sum -c -
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('frozen_p1_2/gate_freeze/p1_2_dev_gate_report.json').read_text())
+          s=json.loads(Path('frozen_p1_2/dev_export/p1_2_dev_export_summary.json').read_text())
+          assert r['test_ranking_inspected'] is False
+          assert s['test_ranking_inspected'] is False
+          assert r['utility_router']['k']==r['difficulty_router_exact_k']['k']==6563
+          assert abs(r['utility_router']['threshold']-0.004734357474290205)<1e-15
+          PY
+
+      - name: Install exact CPU compatibility runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --index-url https://download.pytorch.org/whl/cpu 'torch==2.4.1'
+          python -m pip install --disable-pip-version-check \
+            'numpy==1.26.4' 'pandas==2.3.3' 'scipy==1.17.1' \
+            'scikit-learn==1.5.2' 'joblib==1.4.2' 'threadpoolctl==3.7.0' 'tqdm==4.67.1'
+          python - <<'PY'
+          import os, torch
+          print('torch', torch.__version__)
+          print('cuda_available', torch.cuda.is_available())
+          print('cpu_count', os.cpu_count())
+          assert torch.__version__.startswith('2.4.1')
+          assert not torch.cuda.is_available()
+          PY
+          python -m py_compile \
+            analysis/liverec_p1_dev_memory_export.py \
+            analysis/liverec_p1_test_export.py \
+            analysis/liverec_p1_complete_policy_freeze.py \
+            analysis/liverec_p1_cpu_compat_compare.py
+
+      - name: Fetch and verify pinned official LiveRec source and Twitch data
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p third_party/liverec third_party/liverec/dataset hosted_cpu_compat
+          SRC_TGZ="$RUNNER_TEMP/liverec-${LIVEREC_OFFICIAL_COMMIT}.tar.gz"
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 5 --retry-all-errors --retry-delay 3 \
+            "https://codeload.github.com/JRappaz/liverec/tar.gz/${LIVEREC_OFFICIAL_COMMIT}" -o "$SRC_TGZ"
+          echo "$LIVEREC_SOURCE_SHA256  $SRC_TGZ" | sha256sum -c -
+          tar -xzf "$SRC_TGZ" --strip-components=1 -C third_party/liverec
+
+          DATA="$RUNNER_TEMP/twitch100k.csv"
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 5 --retry-all-errors --retry-delay 3 \
+            "$TWITCH_100K_URL" -o "$DATA"
+          echo "$TWITCH_100K_SHA256  $DATA" | sha256sum -c -
+          ln -s "$DATA" third_party/liverec/dataset/100k.csv
+
+          cp analysis/liverec_p1_dev_memory_export.py third_party/liverec/p1_dev_memory_export.py
+          cp analysis/liverec_p1_test_export.py third_party/liverec/p1_test_export.py
+          python -m py_compile \
+            third_party/liverec/p1_dev_memory_export.py \
+            third_party/liverec/p1_test_export.py \
+            third_party/liverec/arguments.py \
+            third_party/liverec/data.py \
+            third_party/liverec/eval.py \
+            third_party/liverec/models.py
+
+      - name: Complete frozen policy package from DEV only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p hosted_cpu_compat/policy
+          python analysis/liverec_p1_complete_policy_freeze.py \
+            --dev-oof frozen_p1_2/gate_freeze/p1_2_dev_oof_predictions.csv.gz \
+            --utility-gate frozen_p1_2/gate_freeze/p1_2_frozen_utility_gate.joblib \
+            --gate-report frozen_p1_2/gate_freeze/p1_2_dev_gate_report.json \
+            --state-ecdf frozen_p1_2/dev_export/p1_2_state_ecdf.json \
+            --out-dir hosted_cpu_compat/policy
+          cp frozen_p1_2/gate_freeze/p1_2_frozen_utility_gate.joblib hosted_cpu_compat/policy/
+          cp frozen_p1_2/dev_export/p1_2_state_ecdf.json hosted_cpu_compat/policy/
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('hosted_cpu_compat/policy/p1_3_policy_manifest.json').read_text())
+          assert r['test_ranking_inspected'] is False
+          assert abs(r['utility_rule']['threshold']-0.004734357474290205)<1e-15
+          PY
+
+      - name: Replay full DEV export on GitHub-hosted CPU
+        shell: bash
+        working-directory: third_party/liverec
+        run: |
+          set -euo pipefail
+          CHECKPOINT="$GITHUB_WORKSPACE/frozen_p1_base/$FROZEN_BASE_CHECKPOINT_REL"
+          AV_CACHE="$GITHUB_WORKSPACE/hosted_cpu_compat/availability-${TWITCH_100K_SHA256}-${LIVEREC_OFFICIAL_COMMIT}.npz"
+          /usr/bin/time -v python p1_test_export.py \
+            --split dev \
+            --checkpoint "$CHECKPOINT" \
+            --state-ecdf "$GITHUB_WORKSPACE/hosted_cpu_compat/policy/p1_2_state_ecdf.json" \
+            --policy-manifest "$GITHUB_WORKSPACE/hosted_cpu_compat/policy/p1_3_policy_manifest.json" \
+            --out-dir "$GITHUB_WORKSPACE/hosted_cpu_compat/dev" \
+            --availability-cache "$AV_CACHE" \
+            --model=LiveRec \
+            --dataset='dataset/' \
+            --fr_ctx --fr_rep \
+            --model_to='liverec_p1_gpu' \
+            --device='cpu' \
+            --seed=42 \
+            --lr=0.0005 --l2=0.1 \
+            --batch_size=100 --seq_len=16 --dim=64 \
+            --num_att=2 --num_att_ctx=2 \
+            --num_heads=4 --num_heads_ctx=4 \
+            --topk_att=64 --early_stop=15 --num_epochs=150 \
+            2>&1 | tee "$GITHUB_WORKSPACE/hosted_cpu_compat/cpu-dev-export.log"
+          test -s "$GITHUB_WORKSPACE/hosted_cpu_compat/dev/p1_3_dev_replay_events.csv.gz"
+          test -s "$GITHUB_WORKSPACE/hosted_cpu_compat/dev/p1_3_dev_replay_summary.json"
+
+      - name: Compare hosted CPU decisions against frozen GPU DEV evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/liverec_p1_cpu_compat_compare.py \
+            --cpu-dev-events hosted_cpu_compat/dev/p1_3_dev_replay_events.csv.gz \
+            --cpu-summary hosted_cpu_compat/dev/p1_3_dev_replay_summary.json \
+            --gpu-dev-oof frozen_p1_2/gate_freeze/p1_2_dev_oof_predictions.csv.gz \
+            --utility-gate frozen_p1_2/gate_freeze/p1_2_frozen_utility_gate.joblib \
+            --gate-report frozen_p1_2/gate_freeze/p1_2_dev_gate_report.json \
+            --out-dir hosted_cpu_compat/compare
+
+      - name: Validate DEV-only compatibility report
+        if: ${{ success() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('hosted_cpu_compat/compare/p1_3_cpu_compat_report.json').read_text())
+          assert r['test_ranking_inspected'] is False
+          assert r['policy_compatible'] is True
+          assert r['numerically_close'] is True
+          assert r['recommended_for_hosted_cpu_p1_3'] is True
+          print(json.dumps(r, indent=2))
+          PY
+
+      - name: Upload hosted CPU compatibility evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: liverec-p1-3-hosted-cpu-compat-${{ github.run_id }}
+          path: |
+            hosted_cpu_compat/dev/p1_3_dev_replay_summary.json
+            hosted_cpu_compat/dev/p1_3_dev_replay_events.csv.gz
+            hosted_cpu_compat/compare/
+            hosted_cpu_compat/cpu-dev-export.log
+            hosted_cpu_compat/policy/p1_3_policy_manifest.json
+          if-no-files-found: warn
+          retention-days: 30
