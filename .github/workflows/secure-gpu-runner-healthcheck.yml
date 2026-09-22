@@ -24,7 +24,6 @@ jobs:
     env:
       EXPECTED_REPOSITORY: mzch0210/KuaiLive-Agent
       EXPECTED_ACTOR: mzch0210
-      PYTHON_BIN: ${{ format('{0}/venvs/kuailive-gpu/bin/python', github.workspace) }}
     steps:
       - name: Enforce execution guardrails
         shell: bash
@@ -88,8 +87,10 @@ jobs:
           set -euo pipefail
           PY="$HOME/venvs/kuailive-gpu/bin/python"
           test -x "$PY"
+          export HEALTHCHECK_JSON="$RUNNER_TEMP/kuailive_gpu_healthcheck.json"
           "$PY" - <<'PY'
           import json
+          import os
           import platform
           import numpy as np
           import pandas as pd
@@ -112,7 +113,7 @@ jobs:
               'gpu_memory_gib': round(props.total_memory / 1024**3, 3),
           }
           print(json.dumps(report, indent=2))
-          with open('/tmp/kuailive_gpu_healthcheck.json', 'w') as f:
+          with open(os.environ['HEALTHCHECK_JSON'], 'w') as f:
               json.dump(report, f, indent=2)
           PY
 
@@ -137,6 +138,6 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: secure-gpu-runner-healthcheck-${{ github.run_id }}
-          path: /tmp/kuailive_gpu_healthcheck.json
+          path: ${{ runner.temp }}/kuailive_gpu_healthcheck.json
           if-no-files-found: error
           retention-days: 30
