@@ -1,0 +1,71 @@
+name: KBS finite-context stress DEV-only
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-context-window-stress-dev-only.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: kbs-context-window-stress-dev-only
+  cancel-in-progress: false
+env:
+  P1_ARTIFACT: '10680854557'
+  P1_RUN: '35698158121'
+  OOF_SHA: '9757064252c097934fa31f10a68e11bb43853ca1132aaa49da2b9794f60d3816'
+  TWITCH_URL: 'https://mcauleylab.ucsd.edu/public_datasets/gdrive/twitch/100k_a.csv'
+  TWITCH_SHA: '11d3bdb49683f651eb6b0ba806bf317db68646efc0c7de2d02d750201fd8ef69'
+jobs:
+  context-stress:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Verify script and install runtime
+        run: |
+          python -m py_compile analysis/liverec_kbs_context_window_stress.py
+          pip install --disable-pip-version-check 'numpy==1.26.4' 'pandas==2.3.3'
+      - name: Download frozen DEV evidence only
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.P1_ARTIFACT }}
+          path: frozen
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.P1_RUN }}
+      - name: Verify frozen OOF and fetch public Twitch data
+        run: |
+          echo "$OOF_SHA  frozen/gate_freeze/p1_2_dev_oof_predictions.csv.gz" | sha256sum -c -
+          mkdir -p work/data work/results
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 5 "$TWITCH_URL" -o work/data/twitch.csv
+          echo "$TWITCH_SHA  work/data/twitch.csv" | sha256sum -c -
+      - name: Run DEV-only finite-context stress test
+        run: |
+          /usr/bin/time -v python analysis/liverec_kbs_context_window_stress.py \
+            --dev-oof frozen/gate_freeze/p1_2_dev_oof_predictions.csv.gz \
+            --twitch-csv work/data/twitch.csv --out-dir work/results --n-boot 3000 \
+            2>&1 | tee work/runtime.log
+      - name: Integrity validation
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('work/results/context_window_stress_report.json'))
+          assert r['test_ranking_inspected'] is False and r['n_dev']==46878
+          assert r['history_mismatches']==0
+          assert r['seen_before_mismatches']==0
+          assert r['horizon_seen_unseen_mismatches']==0
+          assert sum(r['frozen_horizon_counts'].values())==46878
+          print(r)
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: kbs-context-window-stress-${{ github.run_id }}
+          path: |
+            work/results/**
+            work/runtime.log
+          retention-days: 90
