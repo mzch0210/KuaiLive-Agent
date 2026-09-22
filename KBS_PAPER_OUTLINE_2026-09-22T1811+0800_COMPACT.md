@@ -3,7 +3,7 @@
 **Snapshot date:** 2026-09-22  
 **Repository:** `mzch0210/KuaiLive-Agent`  
 **Target journal:** *Knowledge-Based Systems* (KBS)  
-**Status:** core experiment chain CLOSED; P1.3 untouched one-shot test CLOSED/FROZEN; KBS mechanism-strengthening evidence available; additional journal-oriented robustness checks in progress.  
+**Status:** core experiment chain CLOSED; P1.3 untouched one-shot test CLOSED/FROZEN; DEV-only Memory sensitivity and finite-context stress CLOSED. Strong-base competitiveness, formal complexity/efficiency, and training-seed robustness remain journal-strengthening work and must not be described as completed until closed.  
 **Authoritative KBS outline:** this file.  
 **General provenance skeleton:** `PAPER_SKELETON_2026-09-22_POST_P1_3.md`
 
@@ -37,12 +37,12 @@ Use **relationship memory** rather than generic **memory** to distinguish the ex
 
 # 3. Central thesis
 
-> **Explicit relationship memory is not globally superior to a strong sequential recommender. Its marginal predictive value changes across recommendation regimes, becomes strongly positive when persistent relationships fall outside the base model’s finite context, and can be exploited by learning specialist-minus-base utility rather than generic case difficulty.**
+> **Explicit relationship memory is not globally superior to a strong sequential recommender. Its marginal predictive value changes across recommendation regimes and is structured by relationship visibility relative to the base model’s finite context and by recency regime. The dominant complementary region occurs when a persistent relationship falls outside the visible sequential context, while a separate ultra-recent repeat pocket shows that the effect is not monotonic in distance. This conditional value can be exploited by learning specialist-minus-base utility rather than generic case difficulty.**
 
 Evidence is organized at three levels:
 
 1. **regime:** candidate and temporal changes alter aggregate Memory–Base ordering;
-2. **mechanism:** positive long-horizon utility is specifically carried by persistent long-term relationship information;
+2. **mechanism:** relationship visibility and recency explain where persistent long-term relationship information is complementary rather than redundant or absent;
 3. **decision:** user/history state and base-confidence information jointly help identify memory-solvable events.
 
 ---
@@ -65,9 +65,9 @@ The paper reframes the question from **“Is Memory globally better?”** to **�
 
 Estimate `\hat\eta(z)` from observable user/state and base-confidence information and invoke Memory selectively. Compare against Always Base, Always Memory, matched-budget Difficulty routing, and exact-budget Oracle headroom.
 
-## Contribution 3 — Relationship-horizon mechanism
+## Contribution 3 — Relationship visibility and recency mechanism
 
-Show that Memory utility changes sign across recent-visible, long-horizon-only, and unseen relationships. Component evidence attributes the positive long-horizon effect to persistent long-term relationship strength rather than popularity or short-term recurrence.
+Show that Memory utility changes sign according to whether the target relationship is visible inside the sequential context, known only from older history, or unseen. Use the DEV-only finite-context stress test to show a sharp positive shift outside the LiveRec context boundary while retaining a distinct ultra-recent positive pocket. Component evidence attributes the long-horizon effect to persistent long-term relationship strength rather than popularity or short-term recurrence.
 
 ## Contribution 4 — Multi-regime, cross-platform, frozen held-out validation
 
@@ -101,11 +101,11 @@ Treat the learned gate as a **plug-in estimator for this specialist decision pro
 
 **RQ1 — Regime.** How does the aggregate value of relationship memory change across candidate and temporal regimes?  
 **RQ2 — Decision.** Can specialist-minus-base utility be estimated well enough to improve a strong Base, and does it contain decision-relevant information beyond generic Difficulty?  
-**RQ3 — Mechanism.** Does relationship horizon explain Memory complementarity, and is the positive long-horizon effect carried by the long-term relationship component?  
-**RQ4 — Transfer.** Do selective effectiveness and the relationship-horizon mechanism reproduce on a second live-stream platform with a strong domain-specific base and untouched held-out evaluation?  
+**RQ3 — Mechanism.** Does relationship visibility relative to the Base context, together with recency regime, explain Memory complementarity, and is the positive outside-context effect carried by persistent long-term relationship information?  
+**RQ4 — Transfer.** Do selective effectiveness and the visibility/recency mechanism reproduce on a second live-stream platform with a strong domain-specific base and untouched held-out evaluation?  
 **RQ5 — Deployment.** What can be predicted from observable state/confidence, how much Oracle headroom remains, and what accuracy–invocation–latency trade-off follows from specialist use?
 
-Feature-family ablations belong under RQ2/RQ5; component ablations belong under RQ3 rather than being separate research questions.
+Feature-family ablations belong under RQ2/RQ5; component ablations and context-window diagnostics belong under RQ3 rather than being separate research questions.
 
 ---
 
@@ -118,6 +118,7 @@ Feature-family ablations belong under RQ2/RQ5; component ablations belong under 
 - Introduce the central paradox: **Always Memory can be worse while selective Memory is useful.**
 - Define specialist-minus-base utility and distinguish it from generic difficulty.
 - State the four contributions and mention the frozen cross-platform validation.
+- Keep the narrative order explicit: **paradox → regime reversal → incremental-utility framing → Utility vs Difficulty → finite-context/long-term mechanism → recency nuance → frozen Twitch transfer → Oracle-gap/deployment limitation.**
 
 ## 2. Related Work
 
@@ -135,7 +136,7 @@ Distinguish generic difficulty—“where is the Base weak?”—from specialist
 
 ## 3. Problem Formulation and Decision Rule
 
-Define legal candidates, Base `B`, Memory specialist `M`, `u_K`, `Delta_m`, `eta(z,r)`, Difficulty as a separate target, matched-budget controls, and the cost-aware routing rule. Relationship horizon is **analysis-only** and is never used as an online gate feature.
+Define legal candidates, Base `B`, Memory specialist `M`, `u_K`, `Delta_m`, `eta(z,r)`, Difficulty as a separate target, matched-budget controls, and the cost-aware routing rule. Relationship horizon/context-distance diagnostics are **analysis-only** and are never used as online gate features.
 
 ## 4. Conditional Relationship-Memory Specialist Framework
 
@@ -158,7 +159,7 @@ Difficulty uses the same observable information/model family but predicts base e
 ## 5. Experimental Design
 
 ### 5.1 Datasets and strong-base context
-KuaiLive and Twitch/LiveRec, with a compact competitiveness benchmark used to show that the chosen Base is not a weak reference point.
+KuaiLive and Twitch/LiveRec, with a compact competitiveness benchmark used to show that the chosen Base is not a weak reference point. Treat this table as context for the scientific comparison, not as a leaderboard contribution.
 
 ### 5.2 Candidate and temporal regimes
 Sampled-active, full-active, standard temporal split, and strict temporal variants.
@@ -172,12 +173,12 @@ Primary NDCG@10, secondary H@10, paired user-level bootstrap, exact matched budg
 ### 5.5 Robustness and mechanism checks
 Keep the main text focused on purpose rather than execution detail:
 
-- component × relationship-horizon ablation;
+- component × relationship-visibility/horizon ablation;
 - state/confidence feature-family ablation;
-- Memory-parameter sensitivity without retuning the frozen test policy;
-- context-window stress test of the finite-context mechanism;
-- training-seed robustness;
-- formal complexity and empirical efficiency analysis.
+- Memory-parameter sensitivity on DEV without retuning the frozen test policy — **closed**;
+- finite-context/recency stress test on DEV — **closed**;
+- training-seed robustness — **pending; do not report as completed until closed**;
+- formal complexity and empirical efficiency analysis — **pending; distinguish from the already available latency/compression evidence**.
 
 ---
 
@@ -197,52 +198,52 @@ Headline evidence:
 
 ## Finding 2 — Relative utility is more decision-relevant than generic difficulty
 
-Use matched-budget comparisons as the main evidence.
+Use matched-budget comparisons as the main evidence, leading with KuaiLive and reserving the untouched Twitch result as later external confirmation after the mechanism is established.
 
 - KuaiLive Utility−Difficulty: about `+0.00546` sampled-active and `+0.01443` full-active.
-- Untouched Twitch test at exact same budget `K=6,650`: Base `0.58211`, Difficulty `0.58340`, Selective Utility `0.58983`.
-- Selective−Base `+0.00772`, 95% CI `[+0.00641,+0.00903]`.
-- Utility−Difficulty `+0.00644`, 95% CI `[+0.00528,+0.00762]`.
+- Feature-family evidence belongs here as a mechanism check: State+Confidence is stronger than either family alone, and Confidence-only is clearly weaker, so relative utility is not reducible to base uncertainty.
 
 Central statement:
 
 > **Hard cases are not necessarily memory-solvable cases.**
 
-Feature-family evidence belongs here as a mechanism check: State+Confidence is stronger than either family alone, and Confidence-only is clearly weaker, so relative utility is not reducible to base uncertainty.
+## Finding 3 — Relationship visibility and recency explain complementarity
 
-## Finding 3 — Relationship horizon explains complementarity
+Establish the mechanism first on frozen DEV evidence, then show untouched TEST replication.
 
-DEV → untouched TEST replication:
+Relationship-horizon sign structure:
 
-| Relationship horizon | DEV Memory−Base | TEST Memory−Base |
+| Relationship regime | DEV Memory−Base | TEST Memory−Base |
 |---|---:|---:|
 | recent-visible | −0.01995 | −0.01935 |
 | **long-horizon-only** | **+0.23097** | **+0.22045** |
 | unseen | −0.19562 | −0.18215 |
 
+Component evidence sharpens the explanation: on long-horizon-only DEV events, Long-only yields `ΔNDCG@10 = +0.33688`, while Short-only and Popularity-only are negative; Long-only remains negative outside its matching information regime.
+
+The finite-context stress test makes the mechanism more precise. On LiveRec DEV, a 16-interaction visibility boundary almost exactly recovers the frozen horizon split: last seen within 16 interactions is negative (`−0.01980`), while last seen beyond 16 is strongly positive (`+0.23057`). However, the relationship is **not monotonic**: there is a separate positive ultra-recent repeat pocket at distance 1–4 (`+0.04606`), whereas distances 5–16 are negative.
+
 Mechanism statement:
 
-> **The largest complementary value of explicit relationship memory arises when a persistent relationship is known from older history but is absent from the sequential model’s finite visible context.**
+> **Persistent relationship Memory is most complementary when relevant relationship knowledge is outside the strong sequential Base’s visible context, but recency introduces a distinct ultra-recent repeat regime; the effect should therefore be described in terms of relationship visibility plus recency, not “farther is always better.”**
 
-Component evidence sharpens this explanation: on long-horizon-only DEV events, Long-only yields `ΔNDCG@10 = +0.33688`, while Short-only and Popularity-only are negative; Long-only remains negative outside its matching information regime.
+Memory-parameter sensitivity belongs here as robustness rather than model selection: reasonable perturbations preserve the recent-visible negative / long-horizon positive / unseen negative sign pattern.
 
-The context-window stress test should be used as a direct robustness test of this finite-context explanation, not as a new model-selection exercise.
+## Finding 4 — Frozen transfer confirms the principle, while deployment headroom remains
 
-## Finding 4 — Useful utility ranking is possible, but substantial deployment headroom remains
+After the mechanism exposition, present the untouched Twitch test as confirmatory transfer evidence rather than as another development result.
 
-Combine the feature-family ablation, utility strata, Oracle gap, seed robustness, and efficiency evidence.
-
-- State-only exact-budget gain vs Base: `+0.00372`;
-- Confidence-only: `+0.00160`;
-- State+Confidence: `+0.00838`.
+- Exact same budget `K=6,650`: Base `0.58211`, Difficulty `0.58340`, Selective Utility `0.58983`.
+- Selective−Base `+0.00772`, 95% CI `[+0.00641,+0.00903]`.
+- Utility−Difficulty `+0.00644`, 95% CI `[+0.00528,+0.00762]`.
 - Untouched-test event-level Spearman is modest (`~0.173`), but the frozen top utility stratum has strongly positive realized utility.
 - The current Twitch router captures only about `11.7%` of same-budget Oracle gain.
 
 Defensible statement:
 
-> **Useful specialist escalation requires sufficiently informative relative-utility ranking, not precise event-level calibration.**
+> **Useful specialist escalation requires sufficiently informative relative-utility ranking, not precise event-level calibration; the untouched transfer result supports the principle while the large Oracle gap leaves substantial room for better utility estimation.**
 
-Efficiency should be reported as a compact accuracy–latency–invocation/footprint frontier, with complexity and p50/p95/throughput details in the table or Appendix.
+Efficiency should be reported as a compact accuracy–latency–invocation/footprint frontier. Formal complexity, throughput, peak-memory, and model-size claims should enter the manuscript only after the dedicated efficiency analysis is closed.
 
 ---
 
@@ -252,19 +253,19 @@ Keep the main paper visually economical:
 
 - **Figure 1:** strong Base + explicit relationship-memory specialist + relative-utility router and cost-aware decision rule.
 - **Table 1:** strong-base context plus KuaiLive regime results.
-- **Table 2:** matched-budget Utility vs Difficulty results on KuaiLive and Twitch.
-- **Figure 2:** relationship-horizon sign reversal with DEV and untouched TEST estimates; optionally overlay the context-window stress-test trend.
-- **Table 3:** compact mechanism/robustness evidence: component ablation, feature-family ablation, parameter/seed stability headline results.
-- **Figure 3:** Utility vs Difficulty selection composition by relationship horizon.
-- **Figure/Table 4:** accuracy–latency–invocation/footprint frontier.
-- **Appendix:** complete component/sensitivity matrices, H@10, all CIs, baseline implementation details, seed-by-seed results, complexity derivations, freeze-chain hashes, CPU/GPU audit, and full P1 chronology.
+- **Table 2:** matched-budget Utility vs Difficulty results; organize the text so KuaiLive establishes the decision result before Twitch is used as frozen external confirmation.
+- **Figure 2:** **dual-panel mechanism figure** — Panel A: relationship-regime sign reversal with DEV and untouched TEST estimates; Panel B: DEV context-distance stress with the 16-step boundary and the separate 1–4 ultra-recent positive pocket.
+- **Table 3:** compact mechanism/robustness evidence: component ablation, feature-family ablation, and Memory-parameter stability. Add training-seed robustness only after it is actually completed.
+- **Figure 3:** Utility vs Difficulty selection composition by relationship regime.
+- **Figure/Table 4:** accuracy–latency–invocation/footprint frontier; add formal complexity/throughput/peak-memory/model-size fields only after the dedicated efficiency analysis closes.
+- **Appendix:** complete component/sensitivity matrices, H@10, all CIs, baseline implementation details, eventual seed-by-seed results, complexity derivations, freeze-chain hashes, CPU/GPU audit, and full P1 chronology.
 
 ---
 
 # 10. Discussion priorities
 
 1. **What counts as knowledge:** explicit persistent user–creator relationship information, separate from finite-context latent sequence representation.
-2. **Why Memory helps conditionally:** redundancy for recent-visible, complementarity for long-horizon-only, absence of recoverable signal for unseen.
+2. **Why Memory helps conditionally:** complementarity outside the visible context, redundancy/harm in much of the recent-visible region, a distinct ultra-recent repeat pocket, and absence of recoverable relationship signal for unseen cases.
 3. **Why Difficulty is insufficient:** Base weakness is not equivalent to availability of complementary specialist information.
 4. **What remains unsolved:** modest event-level utility correlation and large Oracle headroom motivate better utility estimation rather than a claim of near-optimal routing.
 5. **External validity boundary:** two live-stream platforms, offline predictive ranking utility, no causal business-lift claim.
@@ -276,6 +277,7 @@ Keep the main paper visually economical:
 Do not claim:
 
 - Memory is globally superior or inferior independent of regime;
+- Memory utility increases monotonically with relationship distance;
 - Long-only is a globally superior recommender;
 - generic routing/gating/deferral is novel;
 - feature-fusion gating and specialist invocation are the same problem;
@@ -283,10 +285,11 @@ Do not claim:
 - event-level utility is well calibrated or close to Oracle;
 - current Memory is an LLM/agentic recommender;
 - causal GMV/conversion/satisfaction lift;
-- relationship horizon is available as an online routing feature;
+- relationship horizon or context-distance diagnostics are available as online routing features;
 - P1.3 was tuned after test access;
+- unfinished seed/efficiency/competitiveness checks are completed evidence;
 - cross-platform generalization beyond the evaluated live-stream settings.
 
 Preferred overarching sentence:
 
-> **Relationship memory is a regime-dependent knowledge specialist: its aggregate value changes with the recommendation regime, while conditional specialist-minus-base utility identifies when persistent relationship information is complementary to a strong finite-context sequential recommender.**
+> **Relationship memory is a regime-dependent knowledge specialist: its aggregate value changes with the recommendation regime, while conditional specialist-minus-base utility identifies when persistent relationship information is complementary to a strong finite-context sequential recommender; this complementarity is structured by relationship visibility and recency rather than by a monotonic horizon effect.**
