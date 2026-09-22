@@ -103,14 +103,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          SRC_TGZ="$RUNNER_TEMP/liverec-${LIVEREC_OFFICIAL_COMMIT}.tar.gz"
+          SRC_URL="https://codeload.github.com/JRappaz/liverec/tar.gz/${LIVEREC_OFFICIAL_COMMIT}"
+
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 3 --retry-delay 3 \
+            "$SRC_URL" -o "$SRC_TGZ"
+          test -s "$SRC_TGZ"
+          sha256sum "$SRC_TGZ" | tee "$GITHUB_WORKSPACE/liverec_p1_gpu/liverec-source.sha256"
+
+          tar -xzf "$SRC_TGZ" --strip-components=1 -C "$GITHUB_WORKSPACE/third_party/liverec"
           cd "$GITHUB_WORKSPACE/third_party/liverec"
-          git init -q
-          git remote add origin https://github.com/JRappaz/liverec.git
-          git fetch --depth=1 origin "$LIVEREC_OFFICIAL_COMMIT"
-          git checkout --detach FETCH_HEAD
-          test "$(git rev-parse HEAD)" = "$LIVEREC_OFFICIAL_COMMIT"
+          for f in arguments.py data.py eval.py models.py main.py; do
+            test -s "$f" || { echo "ERROR: expected pinned LiveRec file missing: $f" >&2; exit 1; }
+          done
+
           cp "$GITHUB_WORKSPACE/analysis/liverec_p1_train_dev_only.py" p1_train_dev_only.py
-          "$HOME/venvs/kuailive-gpu/bin/python" -m py_compile p1_train_dev_only.py
+          "$HOME/venvs/kuailive-gpu/bin/python" -m py_compile \
+            p1_train_dev_only.py arguments.py data.py eval.py models.py
+          rm -f "$SRC_TGZ"
 
       - name: Download official Twitch 100k benchmark mirror
         shell: bash
@@ -220,6 +230,7 @@ jobs:
             liverec_p1_gpu/train.log
             liverec_p1_gpu/hardware.txt
             liverec_p1_gpu/pip-freeze.txt
+            liverec_p1_gpu/liverec-source.sha256
             liverec_p1_gpu/twitch100k.sha256
             liverec_p1_gpu/gpu-telemetry.csv
             liverec_p1_gpu/models/**
