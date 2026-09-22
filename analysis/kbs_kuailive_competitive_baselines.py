@@ -84,7 +84,7 @@ def parse_rechorus_log(path: Path, model: str, config: str) -> dict:
 
 
 def best_by_dev(rows: list[dict]) -> dict:
-    return max(rows, key=lambda r: (float(r["dev_ndcg10"]), -float(r.get("test_ndcg10") or 0.0)))
+    return max(rows, key=lambda r: float(r["dev_ndcg10"]))
 
 
 def main() -> None:
@@ -93,6 +93,7 @@ def main() -> None:
     ap.add_argument("--dual-report", type=Path, required=True)
     ap.add_argument("--gru-log", type=Path, action="append", default=[])
     ap.add_argument("--tisas-log", type=Path, action="append", default=[])
+    ap.add_argument("--contra-log", type=Path, action="append", default=[])
     ap.add_argument("--out-dir", type=Path, required=True)
     args = ap.parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -100,12 +101,15 @@ def main() -> None:
     report = json.loads(args.dual_report.read_text())
     rows: list[dict] = [popularity_metrics(args.data_dir)]
 
-    gru_rows = [parse_rechorus_log(p, "GRU4Rec", p.stem) for p in args.gru_log]
-    tisas_rows = [parse_rechorus_log(p, "TiSASRec", p.stem) for p in args.tisas_log]
-    if gru_rows:
-        rows.append(best_by_dev(gru_rows))
-    if tisas_rows:
-        rows.append(best_by_dev(tisas_rows))
+    families = [
+        ("GRU4Rec", args.gru_log),
+        ("TiSASRec", args.tisas_log),
+        ("ContraRec-BERT4Rec", args.contra_log),
+    ]
+    for model, paths in families:
+        parsed = [parse_rechorus_log(p, model, p.stem) for p in paths]
+        if parsed:
+            rows.append(best_by_dev(parsed))
 
     rows.extend([
         {
@@ -146,6 +150,7 @@ def main() -> None:
         "experiment": "kbs_strong_base_competitiveness_kuailive",
         "selection_rule": "For newly trained model families, choose configuration by DEV NDCG@10 only; TEST is reporting-only.",
         "candidate_protocol": "same frozen legal active-room 575-candidate protocol",
+        "new_model_families": [m for m, p in families if p],
         "dual_id_test_ndcg10": float(dual_row.test_ndcg10),
         "dual_id_rank": int(dual_row.test_rank),
         "n_compared_models": int(len(table)),
