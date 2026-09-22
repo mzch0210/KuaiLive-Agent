@@ -162,7 +162,7 @@ jobs:
           set -euo pipefail
           CHECKPOINT=$(find "$GITHUB_WORKSPACE/frozen_p1_base/models" -maxdepth 1 -type f -name '*.pt' -print -quit)
           test -n "$CHECKPOINT"
-          AV_CACHE="$HOME/.cache/kuailive-public/liverec/preprocessed/availability-${TWITCH_100K_SHA256}-${LIVEREC_OFFICIAL_COMMIT}.pkl"
+          AV_CACHE="$HOME/.cache/kuailive-public/liverec/preprocessed/availability-${TWITCH_100K_SHA256}-${LIVEREC_OFFICIAL_COMMIT}.npz"
 
           "$HOME/venvs/kuailive-gpu/bin/python" p1_dev_memory_export.py \
             --checkpoint "$CHECKPOINT" \
