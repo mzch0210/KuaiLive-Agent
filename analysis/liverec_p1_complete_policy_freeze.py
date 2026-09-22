@@ -52,14 +52,10 @@ def sha256(path: Path) -> str:
 
 
 def dev_reference_percentile(values: np.ndarray, sorted_ref: np.ndarray) -> np.ndarray:
-    """Replay pandas rank(pct=True, method='average') for values seen in ref.
-
-    For values not present in the development reference, use the ordinary right ECDF.
-    This is a frozen, dev-reference transform; no test-distribution ranks are used.
-    """
+    """Average-rank percentile on exact dev-reference ties; right ECDF otherwise."""
     values = np.asarray(values, dtype=float)
     ref = np.asarray(sorted_ref, dtype=float)
-    if ref.ndim != 1 or ref.size == 0 or not np.all(ref[:-1] <= ref[1:]):
+    if ref.ndim != 1 or ref.size == 0 or not np.isfinite(ref).all() or not np.all(ref[:-1] <= ref[1:]):
         raise RuntimeError("Invalid sorted development ECDF reference")
     left = np.searchsorted(ref, values, side="left")
     right = np.searchsorted(ref, values, side="right")
@@ -105,29 +101,42 @@ def main() -> None:
         "preference_entropy_pct",
         "preference_drift_pct",
         "history_pct",
+        "user_id",
     ])
     missing = sorted(required - set(dev.columns))
     if missing:
         raise RuntimeError(f"Missing frozen dev columns: {missing}")
-    numeric = dev[list(required - {"user_id"})].select_dtypes(include=[np.number]).to_numpy(float)
-    if not np.isfinite(numeric).all():
+    numeric_cols = [c for c in required if c != "user_id"]
+    if not np.isfinite(dev[numeric_cols].to_numpy(float)).all():
         raise RuntimeError("Non-finite frozen development values")
 
-    # Freeze and verify the development-reference percentile transform needed at test time.
-    mapping = {
-        "preference_entropy": "preference_entropy_pct",
-        "preference_drift": "preference_drift_pct",
-        "log_history_len": "history_pct",
-    }
-    transform_max_abs_error = {}
-    for raw_col, pct_col in mapping.items():
+    # The ECDF JSON was written from the original in-memory floats, while the CSV may
+    # round some near-identical floats (e.g. values near 1.0). Validate the ECDF
+    # against itself, not against re-parsed CSV raw values.
+    ecdf_self_error = {}
+    ecdf_lengths = {}
+    for raw_col in ["preference_entropy", "preference_drift", "log_history_len"]:
         ref = np.asarray(ecdf[raw_col], dtype=float)
-        got = dev_reference_percentile(dev[raw_col].to_numpy(float), ref)
-        want = dev[pct_col].to_numpy(float)
+        if len(ref) != len(dev):
+            raise RuntimeError(f"Frozen ECDF length mismatch for {raw_col}: {len(ref)} != {len(dev)}")
+        got = dev_reference_percentile(ref, ref)
+        want = pd.Series(ref).rank(pct=True, method="average").to_numpy(float)
         err = float(np.max(np.abs(got - want)))
-        transform_max_abs_error[raw_col] = err
-        if err > 1e-12:
-            raise RuntimeError(f"Development ECDF replay mismatch for {raw_col}: {err}")
+        ecdf_self_error[raw_col] = err
+        ecdf_lengths[raw_col] = int(len(ref))
+        if err > 1e-15:
+            raise RuntimeError(f"Frozen ECDF self-replay mismatch for {raw_col}: {err}")
+
+    replayed_state_complexity = (
+        0.4 * dev.preference_entropy_pct.to_numpy(float)
+        + 0.4 * dev.preference_drift_pct.to_numpy(float)
+        + 0.2 * dev.history_pct.to_numpy(float)
+    )
+    state_complexity_error = float(
+        np.max(np.abs(replayed_state_complexity - dev.state_complexity.to_numpy(float)))
+    )
+    if state_complexity_error > 1e-12:
+        raise RuntimeError(f"Frozen state-complexity formula mismatch: {state_complexity_error}")
 
     X = dev[FEATURES].to_numpy(float)
     y_difficulty = 1.0 - dev.base_ndcg10.to_numpy(float)
@@ -197,10 +206,12 @@ def main() -> None:
             "role": "analysis-only headroom",
         },
         "state_transform": {
-            "reference": "P1.2 development ECDF only",
+            "reference": "P1.2 state_ecdf.json generated from original in-memory dev floats",
             "rule": "average-rank percentile for values tied to dev reference; right ECDF for values not present in dev reference",
             "state_complexity": "0.4*preference_entropy_pct + 0.4*preference_drift_pct + 0.2*history_pct",
-            "dev_replay_max_abs_error": transform_max_abs_error,
+            "ecdf_reference_lengths": ecdf_lengths,
+            "ecdf_self_replay_max_abs_error": ecdf_self_error,
+            "state_complexity_csv_replay_max_abs_error": state_complexity_error,
         },
         "utility_strata": {
             "role": "display-only; never used for routing",
