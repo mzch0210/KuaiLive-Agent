@@ -1,0 +1,142 @@
+name: Secure GPU runner healthcheck
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_owner_run:
+        description: 'I understand this executes on the private self-hosted GPU server'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kuailive-gpu-3090
+  cancel-in-progress: false
+
+jobs:
+  healthcheck:
+    if: ${{ github.actor == 'mzch0210' && github.ref == 'refs/heads/main' && inputs.confirm_owner_run }}
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 15
+    env:
+      EXPECTED_REPOSITORY: mzch0210/KuaiLive-Agent
+      EXPECTED_ACTOR: mzch0210
+      PYTHON_BIN: ${{ format('{0}/venvs/kuailive-gpu/bin/python', github.workspace) }}
+    steps:
+      - name: Enforce execution guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+          test "$GITHUB_ACTOR" = "$EXPECTED_ACTOR"
+          test "$GITHUB_REPOSITORY" = "$EXPECTED_REPOSITORY"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(id -u)" -ne 0
+
+          if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+            echo 'ERROR: runner user has passwordless sudo; use a dedicated unprivileged account.' >&2
+            exit 1
+          fi
+
+          if id -nG | tr ' ' '\n' | grep -qx docker; then
+            echo 'ERROR: runner user is in the docker group, which is effectively root-equivalent.' >&2
+            exit 1
+          fi
+
+          if [ -n "${SSH_AUTH_SOCK:-}" ]; then
+            echo 'ERROR: SSH agent forwarding is visible to the runner.' >&2
+            exit 1
+          fi
+
+          for d in "$HOME/.aws" "$HOME/.azure" "$HOME/.config/gcloud"; do
+            if [ -e "$d" ]; then
+              echo "ERROR: sensitive credential directory exists in runner HOME: $d" >&2
+              exit 1
+            fi
+          done
+
+          if [ -d "$HOME/.ssh" ] && find "$HOME/.ssh" -maxdepth 1 -type f \( -name 'id_rsa' -o -name 'id_ed25519' -o -name 'id_ecdsa' -o -name 'id_dsa' \) | grep -q .; then
+            echo 'ERROR: a common SSH private key exists in runner HOME.' >&2
+            exit 1
+          fi
+
+          echo "runner_user=$(id -un)"
+          echo "runner_groups=$(id -nG)"
+          echo "repository=$GITHUB_REPOSITORY"
+          echo "actor=$GITHUB_ACTOR"
+
+      - name: Verify RTX 3090 and NVIDIA driver
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v nvidia-smi
+          nvidia-smi
+          GPU_NAME="$(nvidia-smi --query-gpu=name --format=csv,noheader | head -n1)"
+          echo "gpu_name=$GPU_NAME"
+          case "$GPU_NAME" in
+            *"RTX 3090"*) ;;
+            *) echo "ERROR: expected an RTX 3090-class runner, got: $GPU_NAME" >&2; exit 1 ;;
+          esac
+
+      - name: Verify frozen Python CUDA environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          test -x "$PY"
+          "$PY" - <<'PY'
+          import json
+          import platform
+          import numpy as np
+          import pandas as pd
+          import torch
+
+          assert torch.__version__.startswith('2.4.1'), torch.__version__
+          assert torch.cuda.is_available(), 'CUDA is not available to PyTorch'
+          name = torch.cuda.get_device_name(0)
+          assert 'RTX 3090' in name, name
+          props = torch.cuda.get_device_properties(0)
+          report = {
+              'python': platform.python_version(),
+              'torch': torch.__version__,
+              'torch_cuda_build': torch.version.cuda,
+              'cudnn': torch.backends.cudnn.version(),
+              'numpy': np.__version__,
+              'pandas': pd.__version__,
+              'gpu': name,
+              'gpu_capability': [props.major, props.minor],
+              'gpu_memory_gib': round(props.total_memory / 1024**3, 3),
+          }
+          print(json.dumps(report, indent=2))
+          with open('/tmp/kuailive_gpu_healthcheck.json', 'w') as f:
+              json.dump(report, f, indent=2)
+          PY
+
+      - name: Write healthcheck summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '## Secure GPU runner healthcheck: PASS'
+            echo
+            echo '- Trigger: workflow_dispatch only'
+            echo '- Authorized actor: mzch0210'
+            echo '- Branch: main'
+            echo '- Runner label: gpu-3090'
+            echo '- Runner account: non-root, no passwordless sudo, no docker group'
+            echo '- No common SSH/cloud credential directories detected in runner HOME'
+            echo '- PyTorch 2.4.1 CUDA environment verified'
+            echo '- RTX 3090 verified'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload healthcheck evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: secure-gpu-runner-healthcheck-${{ github.run_id }}
+          path: /tmp/kuailive_gpu_healthcheck.json
+          if-no-files-found: error
+          retention-days: 30
