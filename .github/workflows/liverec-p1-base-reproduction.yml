@@ -1,14 +1,7 @@
-name: LiveRec Twitch P1 official base dev freeze
+name: LiveRec Twitch P1 official base dev freeze (CPU fallback)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'analysis/liverec_p1_train_dev_only.py'
-      - 'LIVEREC_P1_PROTOCOL_2026-09-21.md'
-      - 'NEXT_EXPERIMENT_PLAN_2026-09-21T2012+0800.md'
-      - '.github/workflows/liverec-p1-base-reproduction.yml'
 
 permissions:
   contents: read
@@ -22,9 +15,11 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.10'
           cache: pip
@@ -98,7 +93,7 @@ jobs:
           PY
 
       - name: Upload frozen dev checkpoint and evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: liverec-p1-base-dev-freeze-${{ github.run_id }}
