@@ -1,0 +1,172 @@
+name: KBS formal complexity and efficiency hosted
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-formal-efficiency-hosted.yml'
+      - 'analysis/kbs_formal_efficiency.py'
+      - 'analysis/kbs_efficiency_stack_probe.py'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kbs-formal-efficiency-hosted-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GATE_RUN: '35571827672'
+  GATE_FINAL_ARTIFACT: 'gate-compression-final-35571827672'
+  GATE_ACCURACY_ARTIFACT: 'gate-compression-accuracy-35571827672'
+  LATENCY_RUN: '35559499838'
+  ROOM_CKPT_ARTIFACT: 'latency-room-checkpoint-35559499838'
+  STREAMER_CKPT_ARTIFACT: 'latency-streamer-checkpoint-35559499838'
+  DATA_RUN: '35554842873'
+  DATA_ARTIFACT: 'room-collision-data-35554842873'
+  ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+  PYTHONPATH: ${{ github.workspace }}/analysis:${{ github.workspace }}/src
+
+jobs:
+  formal-efficiency:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install frozen analysis runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'torch==2.4.1' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check 'numpy<2' 'pandas<3' 'scipy<2' 'scikit-learn<2' joblib
+          python -m py_compile analysis/kbs_formal_efficiency.py analysis/kbs_efficiency_stack_probe.py analysis/aggregate_inference_latency.py
+
+      - name: Download successful gate-compression evidence
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: ${{ env.GATE_FINAL_ARTIFACT }}
+          path: gate_final
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.GATE_RUN }}
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: ${{ env.GATE_ACCURACY_ARTIFACT }}
+          path: gate_accuracy
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.GATE_RUN }}
+
+      - name: Download legacy replicated latency samples and frozen checkpoints
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: latency-replica-1-35559499838
+          path: legacy_latency/replica1
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.LATENCY_RUN }}
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: latency-replica-2-35559499838
+          path: legacy_latency/replica2
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.LATENCY_RUN }}
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: latency-replica-3-35559499838
+          path: legacy_latency/replica3
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.LATENCY_RUN }}
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: ${{ env.ROOM_CKPT_ARTIFACT }}
+          path: room_ckpt
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.LATENCY_RUN }}
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: ${{ env.STREAMER_CKPT_ARTIFACT }}
+          path: streamer_ckpt
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.LATENCY_RUN }}
+
+      - name: Download frozen candidate/history data for Memory footprint probe
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: ${{ env.DATA_ARTIFACT }}
+          path: shared
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.DATA_RUN }}
+
+      - name: Re-aggregate immutable replicated inference latency samples
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/aggregate_inference_latency.py --root legacy_latency --out-dir inference_final
+          cat inference_final/pooled_summary.csv
+
+      - name: Measure loaded deployed-stack memory footprint
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOM=$(find room_ckpt -name room.pt -print -quit)
+          STREAMER=$(find streamer_ckpt -name streamer.pt -print -quit)
+          test -n "$ROOM" && test -n "$STREAMER"
+          /usr/bin/time -v -o efficiency_probe_time.txt python analysis/kbs_efficiency_stack_probe.py \
+            --data-dir "shared/rechorus_dual/$ROOM_DATASET" \
+            --room-ckpt "$ROOM" --streamer-ckpt "$STREAMER" \
+            --gate-dir gate_accuracy --out stack_probe.json
+          cat stack_probe.json
+          grep -E 'Maximum resident set size|Elapsed' efficiency_probe_time.txt || true
+
+      - name: Build KBS-ready formal complexity and efficiency tables
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/kbs_formal_efficiency.py \
+            --gate-final-dir gate_final \
+            --gate-accuracy-dir gate_accuracy \
+            --inference-final-dir inference_final \
+            --stack-probe stack_probe.json \
+            --out-dir efficiency_final
+          cat efficiency_final/formal_efficiency_summary.json
+          cat efficiency_final/formal_efficiency_table.csv
+
+      - name: Record provenance and integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p efficiency_final/provenance
+          cp stack_probe.json efficiency_final/provenance/
+          cp efficiency_probe_time.txt efficiency_final/provenance/
+          cp inference_final/pooled_summary.csv efficiency_final/provenance/legacy_pooled_summary.csv
+          find efficiency_final -type f -print0 | sort -z | xargs -0 sha256sum > efficiency_final/SHA256SUMS
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: kbs-formal-efficiency-${{ github.run_id }}
+          path: efficiency_final/**
+          if-no-files-found: warn
+          retention-days: 90
