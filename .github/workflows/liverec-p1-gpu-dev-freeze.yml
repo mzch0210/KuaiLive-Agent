@@ -24,6 +24,8 @@ env:
   PYTHONHASHSEED: '42'
   CUDA_VISIBLE_DEVICES: '0'
   CUBLAS_WORKSPACE_CONFIG: ':4096:8'
+  # Execution-only tuning. This does not alter model/batch/loss/optimizer semantics.
+  LIVEREC_NUM_WORKERS: '4'
 
 jobs:
   train-dev-freeze:
@@ -57,6 +59,10 @@ jobs:
           for d in "$HOME/.aws" "$HOME/.azure" "$HOME/.config/gcloud"; do
             test ! -e "$d" || { echo "ERROR: credential directory present: $d" >&2; exit 1; }
           done
+          if [ -d "$HOME/.ssh" ] && find "$HOME/.ssh" -maxdepth 1 -type f \( -name 'id_rsa' -o -name 'id_ed25519' -o -name 'id_ecdsa' -o -name 'id_dsa' \) | grep -q .; then
+            echo 'ERROR: SSH private key present in runner HOME.' >&2
+            exit 1
+          fi
 
       - name: Verify frozen GPU runtime
         shell: bash
@@ -111,7 +117,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/third_party/liverec/dataset"
-          curl -L --fail --retry 3 --retry-delay 3 \
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 3 --retry-delay 3 \
             "$TWITCH_100K_URL" \
             -o "$GITHUB_WORKSPACE/third_party/liverec/dataset/100k.csv"
           test -s "$GITHUB_WORKSPACE/third_party/liverec/dataset/100k.csv"
@@ -126,7 +132,12 @@ jobs:
             echo "repository_sha=$GITHUB_SHA"
             echo "official_liverec_commit=$LIVEREC_OFFICIAL_COMMIT"
             echo "runner_user=$(id -un)"
+            echo "num_workers=$LIVEREC_NUM_WORKERS"
             nvidia-smi --query-gpu=name,driver_version,memory.total,pci.bus_id --format=csv,noheader
+            echo '--- CPU ---'
+            lscpu | grep -E '^(Model name|CPU\(s\)|Thread\(s\) per core|Core\(s\) per socket|Socket\(s\)):' || true
+            echo '--- RAM ---'
+            free -h
           } | tee "$GITHUB_WORKSPACE/liverec_p1_gpu/hardware.txt"
           "$HOME/venvs/kuailive-gpu/bin/python" -m pip freeze | sort > "$GITHUB_WORKSPACE/liverec_p1_gpu/pip-freeze.txt"
 
@@ -137,6 +148,18 @@ jobs:
           LIVEREC_REPORT: '${{ github.workspace }}/liverec_p1_gpu/p1_base_dev_freeze.json'
         run: |
           set -euo pipefail
+
+          TELEMETRY="$GITHUB_WORKSPACE/liverec_p1_gpu/gpu-telemetry.csv"
+          nvidia-smi \
+            --query-gpu=timestamp,name,utilization.gpu,utilization.memory,memory.used,memory.total,power.draw,temperature.gpu \
+            --format=csv -l 15 > "$TELEMETRY" &
+          TELEMETRY_PID=$!
+          cleanup_telemetry() {
+            kill "$TELEMETRY_PID" 2>/dev/null || true
+            wait "$TELEMETRY_PID" 2>/dev/null || true
+          }
+          trap cleanup_telemetry EXIT
+
           "$HOME/venvs/kuailive-gpu/bin/python" p1_train_dev_only.py \
             --model=LiveRec \
             --dataset='dataset/' \
@@ -174,8 +197,13 @@ jobs:
           assert r['test_ranking_inspected'] is False
           assert r['config']['fr_ctx'] is True and r['config']['fr_rep'] is True
           assert r['config']['device'].startswith('cuda')
+          assert r['config']['batch_size'] == 100
           assert r['runtime']['cuda_available'] is True
           assert 'RTX 3090' in r['runtime']['gpu_name']
+          assert r['execution']['amp'] is False
+          assert r['execution']['torch_compile'] is False
+          assert r['execution']['batch_size_changed'] is False
+          assert r['evaluation_equivalence_guard']['exact_match'] is True
           assert r['data']['users'] == 100000
           assert r['data']['streamers'] == 162625
           assert r['data']['rows'] == 3051733
@@ -193,6 +221,7 @@ jobs:
             liverec_p1_gpu/hardware.txt
             liverec_p1_gpu/pip-freeze.txt
             liverec_p1_gpu/twitch100k.sha256
+            liverec_p1_gpu/gpu-telemetry.csv
             liverec_p1_gpu/models/**
           if-no-files-found: warn
           retention-days: 60
