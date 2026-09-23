@@ -56,7 +56,9 @@ def popularity_metrics(data_dir: Path) -> dict:
 
 
 def metric(text: str, name: str) -> float | None:
-    m = re.search(rf"{re.escape(name)}@10=([0-9.]+)", text or "")
+    # ReChorus releases/logging paths use both `NDCG@10:0.x` and
+    # `NDCG@10=0.x`; accept either delimiter without changing metrics.
+    m = re.search(rf"{re.escape(name)}@10\s*[:=]\s*([0-9.]+)", text or "")
     return float(m.group(1)) if m else None
 
 
