@@ -1,9 +1,9 @@
 # KBS-targeted paper outline — compact manuscript guidance
 
-**Snapshot date:** 2026-09-22  
+**Snapshot date:** 2026-09-23  
 **Repository:** `mzch0210/KuaiLive-Agent`  
 **Target journal:** *Knowledge-Based Systems* (KBS)  
-**Status:** core experiment chain CLOSED; P1.3 untouched one-shot test CLOSED/FROZEN; DEV-only Memory sensitivity and finite-context stress CLOSED. Strong-base competitiveness, formal complexity/efficiency, and training-seed robustness remain journal-strengthening work and must not be described as completed until closed.  
+**Status:** core experiment chain CLOSED; P1.3 untouched one-shot test CLOSED/FROZEN; DEV-only Memory sensitivity and finite-context stress CLOSED; formal complexity/efficiency CLOSED; deep Base training-seed robustness CLOSED. Strong-base competitiveness remains the only journal-strengthening experiment still pending and must not be described as completed until closed.  
 **Authoritative KBS outline:** this file.  
 **General provenance skeleton:** `PAPER_SKELETON_2026-09-22_POST_P1_3.md`
 
@@ -43,7 +43,7 @@ Evidence is organized at three levels:
 
 1. **regime:** candidate and temporal changes alter aggregate Memory–Base ordering;
 2. **mechanism:** relationship visibility and recency explain where persistent long-term relationship information is complementary rather than redundant or absent;
-3. **decision:** user/history state and base-confidence information jointly help identify memory-solvable events.
+3. **decision:** user/history state and base-confidence information jointly help identify memory-solvable events, and the selective advantage persists across independent deep-model training seeds.
 
 ---
 
@@ -71,7 +71,7 @@ Show that Memory utility changes sign according to whether the target relationsh
 
 ## Contribution 4 — Multi-regime, cross-platform, frozen held-out validation
 
-Validate the conditional-specialist principle across KuaiLive candidate/temporal regimes and a strong official LiveRec/Twitch base, culminating in an untouched one-shot external test with no post-test rescue tuning.
+Validate the conditional-specialist principle across KuaiLive candidate/temporal regimes and a strong official LiveRec/Twitch base, culminating in an untouched one-shot external test with no post-test rescue tuning. Use independent deep Base training seeds as robustness evidence rather than as a separate contribution.
 
 ---
 
@@ -105,7 +105,7 @@ Treat the learned gate as a **plug-in estimator for this specialist decision pro
 **RQ4 — Transfer.** Do selective effectiveness and the visibility/recency mechanism reproduce on a second live-stream platform with a strong domain-specific base and untouched held-out evaluation?  
 **RQ5 — Deployment.** What can be predicted from observable state/confidence, how much Oracle headroom remains, and what accuracy–invocation–latency trade-off follows from specialist use?
 
-Feature-family ablations belong under RQ2/RQ5; component ablations and context-window diagnostics belong under RQ3 rather than being separate research questions.
+Feature-family ablations belong under RQ2/RQ5; component ablations and context-window diagnostics belong under RQ3 rather than being separate research questions. Training-seed robustness supports RQ2 by testing whether the decision advantage survives independent realizations of the deep Base.
 
 ---
 
@@ -118,7 +118,7 @@ Feature-family ablations belong under RQ2/RQ5; component ablations and context-w
 - Introduce the central paradox: **Always Memory can be worse while selective Memory is useful.**
 - Define specialist-minus-base utility and distinguish it from generic difficulty.
 - State the four contributions and mention the frozen cross-platform validation.
-- Keep the narrative order explicit: **paradox → regime reversal → incremental-utility framing → Utility vs Difficulty → finite-context/long-term mechanism → recency nuance → frozen Twitch transfer → Oracle-gap/deployment limitation.**
+- Keep the narrative order explicit: **paradox → regime reversal → incremental-utility framing → Utility vs Difficulty → finite-context/long-term mechanism → recency nuance → frozen Twitch transfer → robustness/deployment limitation.**
 
 ## 2. Related Work
 
@@ -168,7 +168,7 @@ Sampled-active, full-active, standard temporal split, and strict temporal varian
 Summarize the dev-freeze → untouched-test principle in the main text; detailed P1.1/P1.2/P1.3 audit chronology belongs in the Appendix/reproducibility section.
 
 ### 5.4 Metrics and inference
-Primary NDCG@10, secondary H@10, paired user-level bootstrap, exact matched budgets.
+Primary NDCG@10, secondary H@10, paired user-level bootstrap, exact matched budgets. For training-seed robustness, summarize across seeds with mean ± SD and sign consistency; do not reinterpret within-seed bootstrap intervals as across-seed confidence intervals.
 
 ### 5.5 Robustness and mechanism checks
 Keep the main text focused on purpose rather than execution detail:
@@ -177,8 +177,9 @@ Keep the main text focused on purpose rather than execution detail:
 - state/confidence feature-family ablation;
 - Memory-parameter sensitivity on DEV without retuning the frozen test policy — **closed**;
 - finite-context/recency stress test on DEV — **closed**;
-- training-seed robustness — **pending; do not report as completed until closed**;
-- formal complexity and empirical efficiency analysis — **pending; distinguish from the already available latency/compression evidence**.
+- deep Base training-seed robustness — **closed; three independent seeds preserve both Selective>Base and Utility>Difficulty**;
+- formal complexity and empirical efficiency analysis — **closed; use as deployment evidence rather than a new algorithmic contribution**;
+- strong-base competitiveness — **pending; contextual validation only, not a leaderboard claim**.
 
 ---
 
@@ -200,12 +201,19 @@ Headline evidence:
 
 Use matched-budget comparisons as the main evidence, leading with KuaiLive and reserving the untouched Twitch result as later external confirmation after the mechanism is established.
 
-- KuaiLive Utility−Difficulty: about `+0.00546` sampled-active and `+0.01443` full-active.
+- KuaiLive Utility−Difficulty is positive in both sampled-active and full-active settings.
 - Feature-family evidence belongs here as a mechanism check: State+Confidence is stronger than either family alone, and Confidence-only is clearly weaker, so relative utility is not reducible to base uncertainty.
+- Deep Base training-seed robustness now strengthens this finding: across three independently trained Base realizations, **Selective remains above Base and Utility remains above matched-budget Difficulty in all three seeds**, despite noticeable variation in the selected invocation rate.
+
+Recommended seed-robustness interpretation:
+
+> **The routing advantage is not tied to a single deep-model initialization or a fixed invocation fraction; the learned policy adapts to the realized Base while preserving the direction of the decision advantage across the tested seeds.**
 
 Central statement:
 
 > **Hard cases are not necessarily memory-solvable cases.**
+
+Do not elevate three-seed consistency into a claim of seed invariance; use it as targeted robustness evidence.
 
 ## Finding 3 — Relationship visibility and recency explain complementarity
 
@@ -243,7 +251,7 @@ Defensible statement:
 
 > **Useful specialist escalation requires sufficiently informative relative-utility ranking, not precise event-level calibration; the untouched transfer result supports the principle while the large Oracle gap leaves substantial room for better utility estimation.**
 
-Efficiency should be reported as a compact accuracy–latency–invocation/footprint frontier. Formal complexity, throughput, peak-memory, and model-size claims should enter the manuscript only after the dedicated efficiency analysis is closed.
+Efficiency is now closed and should be reported compactly as an accuracy–latency–invocation/footprint frontier, supported by theoretical complexity, throughput, peak-memory/model-size, and selector-efficiency measurements. Keep these results subordinate to the scientific routing result: they establish practical deployability and trade-offs, not a separate methodological contribution.
 
 ---
 
@@ -255,10 +263,10 @@ Keep the main paper visually economical:
 - **Table 1:** strong-base context plus KuaiLive regime results.
 - **Table 2:** matched-budget Utility vs Difficulty results; organize the text so KuaiLive establishes the decision result before Twitch is used as frozen external confirmation.
 - **Figure 2:** **dual-panel mechanism figure** — Panel A: relationship-regime sign reversal with DEV and untouched TEST estimates; Panel B: DEV context-distance stress with the 16-step boundary and the separate 1–4 ultra-recent positive pocket.
-- **Table 3:** compact mechanism/robustness evidence: component ablation, feature-family ablation, and Memory-parameter stability. Add training-seed robustness only after it is actually completed.
+- **Table 3:** compact mechanism/robustness evidence: component ablation, feature-family ablation, Memory-parameter stability, and **training-seed sign consistency / mean±SD across seeds**. Keep detailed per-seed metrics in the Appendix.
 - **Figure 3:** Utility vs Difficulty selection composition by relationship regime.
-- **Figure/Table 4:** accuracy–latency–invocation/footprint frontier; add formal complexity/throughput/peak-memory/model-size fields only after the dedicated efficiency analysis closes.
-- **Appendix:** complete component/sensitivity matrices, H@10, all CIs, baseline implementation details, eventual seed-by-seed results, complexity derivations, freeze-chain hashes, CPU/GPU audit, and full P1 chronology.
+- **Figure/Table 4:** accuracy–latency–invocation/footprint frontier, now including formal complexity, throughput, peak-memory, and model-size evidence from the closed efficiency study.
+- **Appendix:** complete component/sensitivity matrices, H@10, all CIs, baseline implementation details, seed-by-seed results, complexity derivations, freeze-chain hashes, CPU/GPU audit, and full P1 chronology.
 
 ---
 
@@ -266,9 +274,10 @@ Keep the main paper visually economical:
 
 1. **What counts as knowledge:** explicit persistent user–creator relationship information, separate from finite-context latent sequence representation.
 2. **Why Memory helps conditionally:** complementarity outside the visible context, redundancy/harm in much of the recent-visible region, a distinct ultra-recent repeat pocket, and absence of recoverable relationship signal for unseen cases.
-3. **Why Difficulty is insufficient:** Base weakness is not equivalent to availability of complementary specialist information.
-4. **What remains unsolved:** modest event-level utility correlation and large Oracle headroom motivate better utility estimation rather than a claim of near-optimal routing.
-5. **External validity boundary:** two live-stream platforms, offline predictive ranking utility, no causal business-lift claim.
+3. **Why Difficulty is insufficient:** Base weakness is not equivalent to availability of complementary specialist information; this advantage also persists across the tested deep Base training seeds.
+4. **What seed robustness does and does not establish:** the conditional decision advantage survives independent Base realizations and varying invocation rates, but three seeds support robustness rather than invariance.
+5. **What remains unsolved:** modest event-level utility correlation and large Oracle headroom motivate better utility estimation rather than a claim of near-optimal routing.
+6. **External validity boundary:** two live-stream platforms, offline predictive ranking utility, no causal business-lift claim.
 
 ---
 
@@ -287,7 +296,8 @@ Do not claim:
 - causal GMV/conversion/satisfaction lift;
 - relationship horizon or context-distance diagnostics are available as online routing features;
 - P1.3 was tuned after test access;
-- unfinished seed/efficiency/competitiveness checks are completed evidence;
+- three training seeds prove seed invariance or eliminate training randomness;
+- the still-pending strong-base competitiveness check is completed evidence;
 - cross-platform generalization beyond the evaluated live-stream settings.
 
 Preferred overarching sentence:
