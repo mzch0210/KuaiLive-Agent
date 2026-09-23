@@ -77,80 +77,99 @@ jobs:
           git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git rechorus_src
           cd rechorus_src
           git checkout "$RECHORUS_COMMIT"
-          rm -rf .git
           cd "$GITHUB_WORKSPACE"
           mkdir -p twitch_data
           python - <<'PY'
           import os, time, urllib.request
           url=os.environ['TWITCH_100K_URL']
           out='twitch_data/100k.csv'
-          last=None
           for i in range(5):
               try:
                   urllib.request.urlretrieve(url, out)
                   break
-              except Exception as e:
-                  last=e
+              except Exception:
                   if i==4: raise
                   time.sleep(5*(i+1))
           print('downloaded', out)
           PY
           echo "$TWITCH_100K_SHA256  twitch_data/100k.csv" | sha256sum -c -
 
-      - name: Build compact immutable GPU input bundle
+      - name: Build slim immutable KuaiLive and Twitch bundles
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf bundle
-          mkdir -p "bundle/rechorus_dual/$ROOM_DATASET" bundle/frozen_dual bundle/frozen_p12 bundle/third_party bundle/twitch_data
-          cp "shared/rechorus_dual/$ROOM_DATASET/train.csv" "bundle/rechorus_dual/$ROOM_DATASET/train.csv"
-          cp "shared/rechorus_dual/$ROOM_DATASET/dev.csv" "bundle/rechorus_dual/$ROOM_DATASET/dev.csv"
-          cp "shared/rechorus_dual/$ROOM_DATASET/test.csv" "bundle/rechorus_dual/$ROOM_DATASET/test.csv"
-          cp "shared/rechorus_dual/$ROOM_DATASET/export_meta.json" "bundle/rechorus_dual/$ROOM_DATASET/export_meta.json"
-          cp "shared/rechorus_dual/$ROOM_DATASET/room_item_map.tsv" "bundle/rechorus_dual/$ROOM_DATASET/room_item_map.tsv"
-          cp seed18/dual_id_results/report.json bundle/frozen_dual/report.json
-          cp p12/gate_freeze/p1_2_dev_oof_predictions.csv.gz bundle/frozen_p12/p1_2_dev_oof_predictions.csv.gz
-          cp -a rechorus_src bundle/third_party/ReChorus
-          cp twitch_data/100k.csv bundle/twitch_data/100k.csv
-          echo "$P12_OOF_SHA256  bundle/frozen_p12/p1_2_dev_oof_predictions.csv.gz" | sha256sum -c -
-          echo "$TWITCH_100K_SHA256  bundle/twitch_data/100k.csv" | sha256sum -c -
+          rm -rf kuailive_bundle twitch_bundle
+          mkdir -p "kuailive_bundle/rechorus_dual/$ROOM_DATASET" kuailive_bundle/frozen_dual kuailive_bundle/third_party/ReChorus
+          mkdir -p twitch_bundle/frozen_p12 twitch_bundle/twitch_data
+
+          cp "shared/rechorus_dual/$ROOM_DATASET/train.csv" "kuailive_bundle/rechorus_dual/$ROOM_DATASET/train.csv"
+          cp "shared/rechorus_dual/$ROOM_DATASET/dev.csv" "kuailive_bundle/rechorus_dual/$ROOM_DATASET/dev.csv"
+          cp "shared/rechorus_dual/$ROOM_DATASET/test.csv" "kuailive_bundle/rechorus_dual/$ROOM_DATASET/test.csv"
+          cp "shared/rechorus_dual/$ROOM_DATASET/export_meta.json" "kuailive_bundle/rechorus_dual/$ROOM_DATASET/export_meta.json"
+          cp seed18/dual_id_results/report.json kuailive_bundle/frozen_dual/report.json
+          cp -a rechorus_src/src kuailive_bundle/third_party/ReChorus/src
+
+          cp p12/gate_freeze/p1_2_dev_oof_predictions.csv.gz twitch_bundle/frozen_p12/p1_2_dev_oof_predictions.csv.gz
+          cp twitch_data/100k.csv twitch_bundle/twitch_data/100k.csv
+          echo "$P12_OOF_SHA256  twitch_bundle/frozen_p12/p1_2_dev_oof_predictions.csv.gz" | sha256sum -c -
+          echo "$TWITCH_100K_SHA256  twitch_bundle/twitch_data/100k.csv" | sha256sum -c -
+
           python - <<'PY'
           import json
-          m=json.load(open('bundle/rechorus_dual/KuaiLiveShopRoomDualID/export_meta.json'))
-          r=json.load(open('bundle/frozen_dual/report.json'))
+          m=json.load(open('kuailive_bundle/rechorus_dual/KuaiLiveShopRoomDualID/export_meta.json'))
+          r=json.load(open('kuailive_bundle/frozen_dual/report.json'))
           assert m['seed']==20260918 and m['n_neg']==574 and m['candidate_count']==575
           assert r['task']=='next_live_room' and r['users']==10222 and r['candidate_count']==575
           assert abs(r['dual_id_test_ndcg10']-0.6171415058148384) < 1e-12
           assert abs(r['dual_id_dev_ndcg10']-0.6213436703569637) < 1e-12
-          assert m['candidate_count']==r['candidate_count']
           print('frozen room protocol and Dual-ID report verified')
           PY
+
           (
-            cd bundle
-            find rechorus_dual frozen_dual frozen_p12 third_party twitch_data -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+            cd kuailive_bundle
+            find rechorus_dual frozen_dual third_party -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
             cat > BUNDLE_INFO.json <<JSON
           {
-            "purpose": "self-hosted RTX3090 strong-base competitiveness inputs",
+            "purpose": "self-hosted RTX3090 KuaiLive strong-base competitiveness inputs",
             "room_data_run": $DATA_RUN,
             "room_data_artifact": "$DATA_ARTIFACT",
             "seed_run": $SEED_RUN,
             "seed_artifact": "$SEED_ARTIFACT",
-            "p12_run": $P12_RUN,
-            "p12_artifact": "$P12_ARTIFACT",
             "rechorus_commit": "$RECHORUS_COMMIT",
             "candidate_count": 575,
-            "n_neg": 574,
+            "n_neg": 574
+          }
+          JSON
+          )
+
+          (
+            cd twitch_bundle
+            find frozen_p12 twitch_data -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+            cat > BUNDLE_INFO.json <<JSON
+          {
+            "purpose": "self-hosted RTX3090 Twitch DEV-only competitiveness inputs",
+            "p12_run": $P12_RUN,
+            "p12_artifact": "$P12_ARTIFACT",
             "twitch_test_policy": "DEV-only competitiveness; P1.3 untouched test is not included"
           }
           JSON
           )
-          du -sh bundle
+          du -sh kuailive_bundle twitch_bundle
 
-      - name: Upload compact GPU input bundle
+      - name: Upload KuaiLive GPU input bundle
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: kbs-strong-base-gpu-input-bundle-${{ github.run_id }}
-          path: bundle/**
+          name: kbs-strong-base-kuailive-input-${{ github.run_id }}
+          path: kuailive_bundle/**
+          if-no-files-found: error
+          compression-level: 9
+          retention-days: 90
+
+      - name: Upload Twitch GPU input bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-strong-base-twitch-input-${{ github.run_id }}
+          path: twitch_bundle/**
           if-no-files-found: error
           compression-level: 9
           retention-days: 90
