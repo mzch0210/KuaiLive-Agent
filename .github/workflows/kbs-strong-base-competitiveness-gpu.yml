@@ -90,11 +90,13 @@ jobs:
           rm -rf "$DEPS" && mkdir -p "$DEPS"
           "$PY" -m pip install --disable-pip-version-check --target "$DEPS" --no-deps \
             'scipy==1.14.1' 'scikit-learn==1.5.2' 'joblib==1.4.2' 'threadpoolctl==3.5.0' 'pyyaml==6.0.2'
+          PYTHONPATH_VALUE="$DEPS:$GITHUB_WORKSPACE/src:$GITHUB_WORKSPACE/analysis"
+          export PYTHONPATH="$PYTHONPATH_VALUE"
           echo "PY=$PY" >> "$GITHUB_ENV"
-          echo "PYTHONPATH=$DEPS:$GITHUB_WORKSPACE/src:$GITHUB_WORKSPACE/analysis" >> "$GITHUB_ENV"
+          echo "PYTHONPATH=$PYTHONPATH_VALUE" >> "$GITHUB_ENV"
           "$PY" - <<'PY'
           import numpy, pandas, torch, tqdm, scipy, sklearn
-          print('runtime imports ok:', numpy.__version__, pandas.__version__, torch.__version__)
+          print('runtime imports ok:', numpy.__version__, pandas.__version__, torch.__version__, scipy.__version__, sklearn.__version__)
           PY
           "$PY" -m py_compile analysis/kbs_kuailive_competitive_baselines.py analysis/kbs_twitch_competitive_baselines.py
 
