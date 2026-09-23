@@ -1,0 +1,139 @@
+name: KBS context-length aggregate repair hosted
+
+on:
+  push:
+    paths:
+      - '.github/workflows/kbs-context-length-aggregate-repair-hosted.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  GPU_RUN_ID: '35830028173'
+  GPU_ARTIFACT_ID: '10752233546'
+  GPU_ARTIFACT_DIGEST: 'sha256:63b2c7397f32fccfb297b0291d7d4e09f0645d348efe548c9d9d33e55f0a1fb6'
+  P12_RUN_ID: '35698158121'
+  P12_ARTIFACT_ID: '10680854557'
+  P12_OOF_SHA256: '9757064252c097934fa31f10a68e11bb43853ca1132aaa49da2b9794f60d3816'
+  PYTHONHASHSEED: '42'
+
+jobs:
+  repair-aggregate:
+    name: Repair aggregate from immutable L8/L32 and frozen L16 artifacts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout provenance-safe repair code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned lightweight runtime and run static checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'numpy==1.26.4' 'pandas==2.3.3'
+          python -m py_compile analysis/kbs_context_length_aggregate_repaired.py
+          python analysis/kbs_context_length_aggregate_repaired.py --self-test
+
+      - name: Download immutable L8/L32 GPU intervention artifact
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.GPU_ARTIFACT_ID }}
+          path: gpu_out
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.GPU_RUN_ID }}
+
+      - name: Verify GPU intervention artifact contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s gpu_out/L8/eval/dev_events.csv.gz
+          test -s gpu_out/L32/eval/dev_events.csv.gz
+          test -s gpu_out/L8/eval/report.json
+          test -s gpu_out/L32/eval/report.json
+          test -s gpu_out/SHA256SUMS
+          (cd gpu_out && sha256sum -c SHA256SUMS)
+          python - <<'PY'
+          import json
+          for L in (8, 32):
+              r=json.load(open(f'gpu_out/L{L}/eval/report.json'))
+              assert r['test_ranking_inspected'] is False
+              assert r['seq_len']==L
+              assert r['guards']['dev_targets']==46878
+              assert r['guards']['frozen_base_exact_metric_match']['exact_metric_match'] is True
+              assert r['guards']['sparse_scoring_exact_match']['exact_match'] is True
+          print('GPU intervention artifact protocol guards: PASS')
+          PY
+
+      - name: Download immutable frozen P1.2 L16 artifact
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.P12_ARTIFACT_ID }}
+          path: frozen_l16
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.P12_RUN_ID }}
+
+      - name: Verify frozen canonical L16 event artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          L16='frozen_l16/gate_freeze/p1_2_dev_oof_predictions.csv.gz'
+          test -s "$L16"
+          echo "$P12_OOF_SHA256  $L16" | sha256sum -c -
+
+      - name: Run repaired canonical-Memory aggregation
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p aggregate_repaired
+          /usr/bin/time -v python analysis/kbs_context_length_aggregate_repaired.py \
+            --l8-events gpu_out/L8/eval/dev_events.csv.gz \
+            --l16-events frozen_l16/gate_freeze/p1_2_dev_oof_predictions.csv.gz \
+            --l32-events gpu_out/L32/eval/dev_events.csv.gz \
+            --out-dir aggregate_repaired --n-boot 3000 \
+            2>&1 | tee aggregate_repair_runtime.log
+
+      - name: Validate repaired provenance and scientific invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          r=json.load(open('aggregate_repaired/report.json'))
+          assert r['experiment']=='kbs_context_length_intervention_aggregate_repaired'
+          assert r['test_ranking_inspected'] is False
+          assert r['n_users']==46878
+          assert r['canonical_memory_source']=='immutable frozen P1.2 L16 event-level artifact'
+          assert r['only_intervention_variable_for_scientific_comparison']=='Base seq_len'
+          assert all(r['guards'].values())
+          d={x['seq_len']: x for x in r['memory_implementation_drift_diagnostic']}
+          assert set(d)=={8,32}
+          assert d[8]['history_len_mismatch_users']==50 and d[32]['history_len_mismatch_users']==50
+          assert d[8]['memory_rank_mismatch_users']==15 and d[32]['memory_rank_mismatch_users']==15
+          assert abs(d[8]['memory_ndcg_mean_difference_raw_minus_frozen']-d[32]['memory_ndcg_mean_difference_raw_minus_frozen']) < 1e-15
+          print('Repaired aggregate invariants and diagnosed drift: PASS')
+          PY
+          (cd aggregate_repaired && find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+
+      - name: Upload repaired compact analysis
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-context-length-aggregate-repaired-${{ github.run_id }}
+          path: |
+            aggregate_repaired/**
+            aggregate_repair_runtime.log
+          if-no-files-found: warn
+          retention-days: 90
