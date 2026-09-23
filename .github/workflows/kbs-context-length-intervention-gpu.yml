@@ -1,0 +1,266 @@
+name: KBS DEV-only context-length intervention
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-context-length-intervention-gpu.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kuailive-gpu-3090
+  cancel-in-progress: false
+
+env:
+  EXPECTED_REPOSITORY: 'mzch0210/KuaiLive-Agent'
+  EXPECTED_ACTOR: 'mzch0210'
+  LIVEREC_OFFICIAL_COMMIT: '27eaf33d258d1c1ea2d6da1da81a5360e8c8ce6b'
+  TWITCH_100K_URL: 'https://mcauleylab.ucsd.edu/public_datasets/gdrive/twitch/100k_a.csv'
+  TWITCH_100K_SHA256: '11d3bdb49683f651eb6b0ba806bf317db68646efc0c7de2d02d750201fd8ef69'
+  P12_RUN: '35698158121'
+  P12_ARTIFACT_ID: '10680854557'
+  P12_OOF_SHA256: '9757064252c097934fa31f10a68e11bb43853ca1132aaa49da2b9794f60d3816'
+  PYTHONHASHSEED: '42'
+  CUDA_VISIBLE_DEVICES: '0'
+  CUBLAS_WORKSPACE_CONFIG: ':4096:8'
+  LIVEREC_NUM_WORKERS: '4'
+
+jobs:
+  context-gpu:
+    name: Train/evaluate L8 and L32 on RTX 3090
+    if: ${{ github.actor == 'mzch0210' && github.ref == 'refs/heads/main' }}
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 2880
+    steps:
+      - name: Enforce private-runner guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REPOSITORY" = "$EXPECTED_REPOSITORY"
+          test "$GITHUB_ACTOR" = "$EXPECTED_ACTOR"
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$(id -u)" -ne 0
+          if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then exit 1; fi
+          if id -nG | tr ' ' '\n' | grep -qx docker; then exit 1; fi
+          test -z "${SSH_AUTH_SOCK:-}"
+          for d in "$HOME/.aws" "$HOME/.azure" "$HOME/.config/gcloud"; do test ! -e "$d"; done
+          if [ -d "$HOME/.ssh" ]; then
+            ! find "$HOME/.ssh" -maxdepth 1 -type f \( -name 'id_rsa' -o -name 'id_ed25519' -o -name 'id_ecdsa' -o -name 'id_dsa' \) | grep -q .
+          fi
+
+      - name: Verify frozen RTX 3090 runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          test -x "$PY"
+          command -v nvidia-smi
+          "$PY" - <<'PY'
+          import torch
+          assert torch.__version__.startswith('2.4.1'), torch.__version__
+          assert torch.cuda.is_available()
+          name=torch.cuda.get_device_name(0)
+          assert 'RTX 3090' in name, name
+          print(torch.__version__, torch.version.cuda, name)
+          PY
+
+      - name: Checkout intervention controller
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          clean: true
+
+      - name: Prepare pinned LiveRec source and reviewed scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf third_party/liverec context_intervention
+          mkdir -p third_party/liverec context_intervention
+          SRC_TGZ="$RUNNER_TEMP/liverec-${LIVEREC_OFFICIAL_COMMIT}.tar.gz"
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 5 --retry-all-errors --retry-delay 3 \
+            "https://codeload.github.com/JRappaz/liverec/tar.gz/${LIVEREC_OFFICIAL_COMMIT}" -o "$SRC_TGZ"
+          tar -xzf "$SRC_TGZ" --strip-components=1 -C third_party/liverec
+          rm -f "$SRC_TGZ"
+          for f in arguments.py data.py eval.py models.py main.py; do test -s "third_party/liverec/$f"; done
+          cp analysis/liverec_p1_train_dev_only.py third_party/liverec/p1_train_dev_only.py
+          cp analysis/liverec_p12_dev_memory.py third_party/liverec/liverec_p12_dev_memory.py
+          cp analysis/liverec_kbs_context_length_eval.py third_party/liverec/context_length_eval.py
+          "$HOME/venvs/kuailive-gpu/bin/python" -m py_compile \
+            third_party/liverec/p1_train_dev_only.py \
+            third_party/liverec/liverec_p12_dev_memory.py \
+            third_party/liverec/context_length_eval.py \
+            third_party/liverec/arguments.py third_party/liverec/data.py \
+            third_party/liverec/eval.py third_party/liverec/models.py
+
+      - name: Download and verify Twitch benchmark once
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p third_party/liverec/dataset
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 5 --retry-all-errors --retry-delay 3 \
+            "$TWITCH_100K_URL" -o third_party/liverec/dataset/100k.csv
+          echo "$TWITCH_100K_SHA256  third_party/liverec/dataset/100k.csv" | sha256sum -c -
+          {
+            echo "run_id=$GITHUB_RUN_ID"
+            echo "repository_sha=$GITHUB_SHA"
+            echo "official_liverec_commit=$LIVEREC_OFFICIAL_COMMIT"
+            nvidia-smi --query-gpu=name,driver_version,memory.total,pci.bus_id --format=csv,noheader
+          } > context_intervention/hardware.txt
+          "$HOME/venvs/kuailive-gpu/bin/python" -m pip freeze | sort > context_intervention/pip-freeze.txt
+
+      - name: Train and DEV-evaluate L8 then L32 with only seq_len varied
+        shell: bash
+        working-directory: third_party/liverec
+        run: |
+          set -euo pipefail
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          for L in 8 32; do
+            OUT="$GITHUB_WORKSPACE/context_intervention/L$L"
+            mkdir -p "$OUT/models" "$OUT/cache" "$OUT/eval"
+            export LIVEREC_REPORT="$OUT/base_report.json"
+            echo "=== TRAIN L=$L ===" | tee "$OUT/train.log"
+            /usr/bin/time -v "$PY" p1_train_dev_only.py \
+              --model=LiveRec --dataset='dataset/' --fr_ctx --fr_rep \
+              --model_to="kbs_ctx_L$L" --device='cuda' --caching \
+              --model_path="$OUT/models" --cache_dir="$OUT/cache" \
+              --seed=42 --lr=0.0005 --l2=0.1 --batch_size=100 \
+              --seq_len="$L" --dim=64 --num_att=2 --num_att_ctx=2 \
+              --num_heads=4 --num_heads_ctx=4 --topk_att=64 \
+              --early_stop=15 --num_epochs=150 \
+              2>&1 | tee -a "$OUT/train.log"
+
+            CHECKPOINT="$($PY - "$OUT/base_report.json" <<'PY'
+          import json, sys
+          from pathlib import Path
+          p=Path(json.load(open(sys.argv[1]))['checkpoint'])
+          if not p.is_absolute():
+              p=(Path.cwd()/p).resolve()
+          print(p)
+          PY
+          )"
+            test -s "$CHECKPOINT"
+            export LIVEREC_BASE_REPORT="$OUT/base_report.json"
+            export LIVEREC_BASE_CHECKPOINT="$CHECKPOINT"
+            export LIVEREC_CONTEXT_OUT="$OUT/eval"
+            echo "=== EVAL L=$L ===" | tee "$OUT/eval.log"
+            /usr/bin/time -v "$PY" context_length_eval.py \
+              --model=LiveRec --dataset='dataset/' --fr_ctx --fr_rep \
+              --model_to="kbs_ctx_L$L" --device='cuda' --caching \
+              --model_path="$OUT/models" --cache_dir="$OUT/cache" \
+              --seed=42 --lr=0.0005 --l2=0.1 --batch_size=100 \
+              --seq_len="$L" --dim=64 --num_att=2 --num_att_ctx=2 \
+              --num_heads=4 --num_heads_ctx=4 --topk_att=64 \
+              --early_stop=15 --num_epochs=150 \
+              2>&1 | tee -a "$OUT/eval.log"
+
+            "$PY" - "$OUT/base_report.json" "$OUT/eval/report.json" "$L" <<'PY'
+          import json, sys
+          b=json.load(open(sys.argv[1])); e=json.load(open(sys.argv[2])); L=int(sys.argv[3])
+          assert b['test_ranking_inspected'] is False and e['test_ranking_inspected'] is False
+          assert b['config']['seq_len']==L and e['seq_len']==L
+          assert e['guards']['dev_targets']==46878
+          assert e['guards']['frozen_base_exact_metric_match']['exact_metric_match'] is True
+          assert e['guards']['sparse_scoring_exact_match']['exact_match'] is True
+          print(f'L={L} protocol guards: PASS')
+          PY
+            rm -rf "$OUT/cache"
+          done
+          (cd "$GITHUB_WORKSPACE/context_intervention" && find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+
+      - name: Upload immutable GPU intervention outputs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-context-length-gpu-${{ github.run_id }}
+          path: |
+            context_intervention/**
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Remove raw benchmark and transient source/cache data
+        if: always()
+        shell: bash
+        run: |
+          rm -rf third_party/liverec/dataset third_party/liverec
+
+  aggregate-hosted:
+    name: Aggregate L8/L16/L32 intervention on hosted CPU
+    needs: context-gpu
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout reviewed aggregation code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned lightweight runtime and run self-checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'numpy==1.26.4' 'pandas==2.3.3'
+          python -m py_compile analysis/kbs_context_length_aggregate.py
+          python analysis/kbs_context_length_aggregate.py --self-test
+
+      - name: Download current GPU intervention artifact
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: kbs-context-length-gpu-${{ github.run_id }}
+          path: gpu_out
+
+      - name: Download and verify frozen L16 P1.2 DEV artifact
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.P12_ARTIFACT_ID }}
+          path: frozen_l16
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.P12_RUN }}
+
+      - name: Aggregate intervention with exact cross-length guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          L16='frozen_l16/gate_freeze/p1_2_dev_oof_predictions.csv.gz'
+          echo "$P12_OOF_SHA256  $L16" | sha256sum -c -
+          test -s gpu_out/L8/eval/dev_events.csv.gz
+          test -s gpu_out/L32/eval/dev_events.csv.gz
+          mkdir -p aggregate_results
+          /usr/bin/time -v python analysis/kbs_context_length_aggregate.py \
+            --l8-events gpu_out/L8/eval/dev_events.csv.gz \
+            --l16-events "$L16" \
+            --l32-events gpu_out/L32/eval/dev_events.csv.gz \
+            --out-dir aggregate_results --n-boot 3000 \
+            2>&1 | tee aggregate_runtime.log
+          python - <<'PY'
+          import json
+          r=json.load(open('aggregate_results/report.json'))
+          assert r['test_ranking_inspected'] is False and r['n_users']==46878
+          assert all(r['guards'].values())
+          print('Context-length aggregate invariants: PASS')
+          PY
+          (cd aggregate_results && find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+
+      - name: Upload compact intervention analysis
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-context-length-aggregate-${{ github.run_id }}
+          path: |
+            aggregate_results/**
+            aggregate_runtime.log
+          if-no-files-found: warn
+          retention-days: 90
