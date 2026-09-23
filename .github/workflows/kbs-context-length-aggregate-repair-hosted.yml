@@ -63,7 +63,9 @@ jobs:
           test -s gpu_out/L8/eval/report.json
           test -s gpu_out/L32/eval/report.json
           test -s gpu_out/SHA256SUMS
-          (cd gpu_out && sha256sum -c SHA256SUMS)
+          # The original GPU workflow accidentally included SHA256SUMS itself in the manifest.
+          # Verify every immutable payload entry while explicitly excluding only that self-reference.
+          (cd gpu_out && grep -v '  ./SHA256SUMS$' SHA256SUMS | sha256sum -c -)
           python - <<'PY'
           import json
           for L in (8, 32):
@@ -125,7 +127,7 @@ jobs:
           assert abs(d[8]['memory_ndcg_mean_difference_raw_minus_frozen']-d[32]['memory_ndcg_mean_difference_raw_minus_frozen']) < 1e-15
           print('Repaired aggregate invariants and diagnosed drift: PASS')
           PY
-          (cd aggregate_repaired && find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+          (cd aggregate_repaired && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
 
       - name: Upload repaired compact analysis
         if: always()
