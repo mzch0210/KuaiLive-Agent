@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm_owner_run:
-        description: 'Run KuaiLive + Twitch strong-base benchmark on the dedicated RTX 3090 runner'
+        description: 'Run missing KuaiLive + Twitch strong-base comparators on the dedicated RTX 3090 runner'
         required: true
         type: boolean
         default: false
@@ -21,8 +21,8 @@ env:
   EXPECTED_REPOSITORY: 'mzch0210/KuaiLive-Agent'
   EXPECTED_ACTOR: 'mzch0210'
   RECHORUS_COMMIT: 'c164ec4303cc20ddcfbd1b57de366a481811d1e5'
-  ROOM_ARTIFACT_ID: '10589702424'
-  ROOM_RUN_ID: '35455075346'
+  FROZEN_SEED_ARTIFACT_ID: '10704434479'
+  FROZEN_SEED_RUN_ID: '35729896175'
   P12_ARTIFACT_ID: '10680854557'
   P12_RUN_ID: '35698158121'
   P12_OOF_SHA256: '9757064252c097934fa31f10a68e11bb43853ca1132aaa49da2b9794f60d3816'
@@ -31,7 +31,6 @@ env:
   N_NEG: '574'
   SEED: '20260918'
   ROOM_DATASET: 'KuaiLiveShopRoomDualID'
-  STREAMER_DATASET: 'KuaiLiveShopStreamerParallel'
   CUDA_VISIBLE_DEVICES: '0'
 
 jobs:
@@ -94,19 +93,19 @@ jobs:
           echo "PY=$PY" >> "$GITHUB_ENV"
           echo "PYTHONPATH=$DEPS:$GITHUB_WORKSPACE/src:$GITHUB_WORKSPACE/analysis" >> "$GITHUB_ENV"
           "$PY" - <<'PY'
-          import numpy, pandas, torch, tqdm
+          import numpy, pandas, torch, tqdm, scipy, sklearn
           print('runtime imports ok:', numpy.__version__, pandas.__version__, torch.__version__)
           PY
-          "$PY" -m py_compile analysis/kbs_kuailive_competitive_baselines.py analysis/kbs_twitch_competitive_baselines.py analysis/dual_id_room_baseline.py
+          "$PY" -m py_compile analysis/kbs_kuailive_competitive_baselines.py analysis/kbs_twitch_competitive_baselines.py
 
-      - name: Download frozen room-SASRec evidence
+      - name: Download compact frozen Dual-ID report
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
         with:
-          artifact-ids: ${{ env.ROOM_ARTIFACT_ID }}
-          path: frozen_room
+          artifact-ids: ${{ env.FROZEN_SEED_ARTIFACT_ID }}
+          path: frozen_seed18
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
-          run-id: ${{ env.ROOM_RUN_ID }}
+          run-id: ${{ env.FROZEN_SEED_RUN_ID }}
 
       - name: Download frozen LiveRec DEV evidence
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
@@ -117,22 +116,24 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ env.P12_RUN_ID }}
 
-      - name: Verify frozen inputs
+      - name: Verify compact frozen inputs
         shell: bash
         run: |
           set -euo pipefail
-          test -s frozen_room/predictions/rec-SASRec-dev.csv
-          test -s frozen_room/predictions/rec-SASRec-test.csv
-          test -s frozen_room/rechorus_room/KuaiLiveShopRoom/export_meta.json
+          test -s frozen_seed18/dual_id_results/report.json
           echo "$P12_OOF_SHA256  frozen_p12/gate_freeze/p1_2_dev_oof_predictions.csv.gz" | sha256sum -c -
           "$PY" - <<'PY'
           import json
-          m=json.load(open('frozen_room/rechorus_room/KuaiLiveShopRoom/export_meta.json'))
-          assert m['seed']==20260918 and m['n_neg']==574 and m['candidate_count']==575
-          print('Frozen room protocol verified.')
+          r=json.load(open('frozen_seed18/dual_id_results/report.json'))
+          assert r['task']=='next_live_room'
+          assert r['users']==10222
+          assert r['candidate_count']==575
+          assert abs(r['dual_id_test_ndcg10']-0.6171415058148384) < 1e-12
+          assert abs(r['dual_id_dev_ndcg10']-0.6213436703569637) < 1e-12
+          print('Frozen Dual-ID report verified.')
           PY
 
-      - name: Download and prepare KuaiLive once
+      - name: Download and regenerate KuaiLive room protocol once
         shell: bash
         run: |
           set -euo pipefail
@@ -140,19 +141,19 @@ jobs:
           "$PY" -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
           "$PY" -m kuailive_agent.export_rechorus_room \
             --prepared-dir data/prepared/shop --out-root rechorus_dual --dataset "$ROOM_DATASET" --n-neg "$N_NEG" --seed "$SEED"
-          "$PY" -m kuailive_agent.export_rechorus_streamer_parallel \
-            --room-data-dir "rechorus_dual/$ROOM_DATASET" --out-root rechorus_dual --dataset "$STREAMER_DATASET"
           "$PY" - <<'PY'
-          import json
-          a=json.load(open('frozen_room/rechorus_room/KuaiLiveShopRoom/export_meta.json'))
-          b=json.load(open('rechorus_dual/KuaiLiveShopRoomDualID/export_meta.json'))
-          keys=['task','seed','n_neg','candidate_count','train_rows','dev_rows','test_rows','users','room_universe','positive_rooms','duplicates_dropped','dev_target_active_rate','test_target_active_rate','dev_neg_min','dev_neg_max','test_neg_min','test_neg_max']
-          bad={k:(a.get(k),b.get(k)) for k in keys if a.get(k)!=b.get(k)}
-          assert not bad, bad
-          print('Regenerated room protocol is exactly identical to frozen room protocol.')
+          import json, pandas as pd
+          m=json.load(open('rechorus_dual/KuaiLiveShopRoomDualID/export_meta.json'))
+          r=json.load(open('frozen_seed18/dual_id_results/report.json'))
+          assert m['seed']==20260918 and m['n_neg']==574 and m['candidate_count']==575
+          assert r['candidate_count']==m['candidate_count']
+          dev=pd.read_csv('rechorus_dual/KuaiLiveShopRoomDualID/dev.csv', sep='\t')
+          test=pd.read_csv('rechorus_dual/KuaiLiveShopRoomDualID/test.csv', sep='\t')
+          assert len(dev)==r['users'] and len(test)==r['users'], (len(dev), len(test), r['users'])
+          print('Deterministic room protocol regenerated and matched to frozen Dual-ID report.')
           PY
 
-      - name: Pin ReChorus without system Git and enable complete prediction export
+      - name: Pin ReChorus without system Git
         shell: bash
         run: |
           set -euo pipefail
@@ -164,7 +165,6 @@ jobs:
           commit=os.environ['RECHORUS_COMMIT']
           tmp=Path(os.environ['RUNNER_TEMP'])
           archive=tmp/f'ReChorus-{commit}.zip'
-          unpack=tmp/f'ReChorus-{commit}'
           url=f'https://codeload.github.com/THUwangcy/ReChorus/zip/{commit}'
           urllib.request.urlretrieve(url, archive)
           with zipfile.ZipFile(archive) as z:
@@ -176,50 +176,18 @@ jobs:
                   assert not p.is_absolute() and '..' not in p.parts, info.filename
               z.extractall(tmp)
           extracted=tmp/root
-          assert extracted.is_dir(), extracted
           target=Path('third_party/ReChorus')
           shutil.move(str(extracted), target)
           assert (target/'src/main.py').is_file()
           archive.unlink(missing_ok=True)
           print('Pinned ReChorus source downloaded:', commit)
           PY
-          "$PY" - <<'PY'
-          from pathlib import Path
-          p=Path('third_party/ReChorus/src/main.py'); s=p.read_text()
-          a="save_rec_results(data_dict['dev'], runner, 100)"; b="save_rec_results(data_dict['test'], runner, 100)"
-          assert a in s and b in s
-          p.write_text(s.replace(a,"save_rec_results(data_dict['dev'], runner, 575)").replace(b,"save_rec_results(data_dict['test'], runner, 575)"))
-          PY
 
-      - name: Train streamer SASRec once for frozen Dual-ID reconstruction
+      - name: Train missing KuaiLive strong baselines on frozen room candidates
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p benchmark_logs models predictions/room predictions/streamer benchmark_results/kuailive
-          cp frozen_room/predictions/rec-SASRec-dev.csv predictions/room/dev.csv
-          cp frozen_room/predictions/rec-SASRec-test.csv predictions/room/test.csv
-          cd third_party/ReChorus/src
-          "$PY" main.py --model_name SASRec --dataset "$STREAMER_DATASET" --path "$GITHUB_WORKSPACE/rechorus_dual/" \
-            --gpu 0 --random_seed "$SEED" --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
-            --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 256 --epoch 30 --early_stop 5 \
-            --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 4 --save_final_results 1 --regenerate 1 \
-            --log_file "$GITHUB_WORKSPACE/benchmark_logs/streamer_sasrec.log" --model_path "$GITHUB_WORKSPACE/models/streamer_sasrec.pt"
-          cd "$GITHUB_WORKSPACE"
-          DEV=$(find "$GITHUB_WORKSPACE" -type f -path '*SASRec*' -name 'rec-SASRec-dev.csv' | grep -v '/frozen_room/' | head -n 1)
-          TEST=$(find "$GITHUB_WORKSPACE" -type f -path '*SASRec*' -name 'rec-SASRec-test.csv' | grep -v '/frozen_room/' | head -n 1)
-          test -n "$DEV" && test -n "$TEST"
-          cp "$DEV" predictions/streamer/dev.csv
-          cp "$TEST" predictions/streamer/test.csv
-          "$PY" analysis/dual_id_room_baseline.py \
-            --room-data-dir "rechorus_dual/$ROOM_DATASET" --streamer-data-dir "rechorus_dual/$STREAMER_DATASET" \
-            --room-dev predictions/room/dev.csv --room-test predictions/room/test.csv \
-            --streamer-dev predictions/streamer/dev.csv --streamer-test predictions/streamer/test.csv \
-            --out-dir dual_id_results --n-neg "$N_NEG"
-
-      - name: Train missing KuaiLive strong baselines on the same room candidates
-        shell: bash
-        run: |
-          set -euo pipefail
+          mkdir -p benchmark_logs models benchmark_results/kuailive
           cd third_party/ReChorus/src
           for LR in 0.001 0.0005; do
             "$PY" main.py --model_name GRU4Rec --dataset "$ROOM_DATASET" --path "$GITHUB_WORKSPACE/rechorus_dual/" \
@@ -237,7 +205,7 @@ jobs:
           done
           cd "$GITHUB_WORKSPACE"
           "$PY" analysis/kbs_kuailive_competitive_baselines.py \
-            --data-dir "rechorus_dual/$ROOM_DATASET" --dual-report dual_id_results/report.json \
+            --data-dir "rechorus_dual/$ROOM_DATASET" --dual-report frozen_seed18/dual_id_results/report.json \
             --gru-log benchmark_logs/GRU4Rec_lr0.001.log --gru-log benchmark_logs/GRU4Rec_lr0.0005.log \
             --contra-log benchmark_logs/ContraRec_lr0.0001.log --contra-log benchmark_logs/ContraRec_lr0.0005.log \
             --out-dir benchmark_results/kuailive
@@ -249,8 +217,7 @@ jobs:
           mkdir -p twitch_data benchmark_results/twitch
           "$PY" - <<'PY'
           import os, urllib.request
-          url=os.environ['TWITCH_100K_URL']
-          urllib.request.urlretrieve(url, 'twitch_data/100k.csv')
+          urllib.request.urlretrieve(os.environ['TWITCH_100K_URL'], 'twitch_data/100k.csv')
           PY
           echo "$TWITCH_100K_SHA256  twitch_data/100k.csv" | sha256sum -c -
           "$PY" analysis/kbs_twitch_competitive_baselines.py \
@@ -266,36 +233,28 @@ jobs:
           import json, pandas as pd
           k=pd.read_csv('benchmark_results/kuailive/kuailive_strong_base_benchmark.csv')
           t=pd.read_csv('benchmark_results/twitch/twitch_dev_strong_base_benchmark.csv')
-          assert {'Popularity','GRU4Rec','ContraRec-BERT4Rec','Dual-ID Base'}.issubset(set(k.model))
-          assert 'Room-SASRec' in set(k.model)
-          assert {'Popularity','GRU4Rec-small','SASRec-small','Official LiveRec Base'}.issubset(set(t.model))
-          s=json.load(open('benchmark_results/twitch/twitch_dev_strong_base_benchmark.json'))
-          assert s['test_ranking_inspected'] is False and s['event_reconstruction_exact_match'] is True
+          assert {'Popularity','GRU4Rec','ContraRec-BERT4Rec','Room-SASRec','Streamer-SASRec','Dual-ID Base'} <= set(k.model)
+          assert {'Popularity','GRU4Rec-small','SASRec-small','Official LiveRec Base'} <= set(t.model)
+          tj=json.load(open('benchmark_results/twitch/twitch_dev_strong_base_benchmark.json'))
+          assert tj['test_ranking_inspected'] is False
+          assert tj['event_reconstruction_exact_match'] is True
           print(k.to_string(index=False))
           print(t.to_string(index=False))
           PY
-          {
-            echo "run_id=$GITHUB_RUN_ID"
-            echo "repository_sha=$GITHUB_SHA"
-            nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
-          } > benchmark_results/hardware.txt
-          find benchmark_results -type f -print0 | sort -z | xargs -0 sha256sum > benchmark_results/SHA256SUMS
 
-      - name: Upload strong-base benchmark evidence
-        if: always()
+      - name: Upload immutable benchmark results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: kbs-strong-base-competitiveness-${{ github.run_id }}
+          name: kbs-strong-base-gpu-${{ github.run_id }}
           path: |
-            benchmark_results/**
-            dual_id_results/report.json
-            benchmark_logs/*.log
-          if-no-files-found: warn
+            benchmark_results/
+            benchmark_logs/
+          if-no-files-found: error
           retention-days: 90
 
-      - name: Clean persistent runner workspace
+      - name: Cleanup self-hosted workspace
         if: always()
         shell: bash
         run: |
-          rm -rf data third_party rechorus_dual frozen_room frozen_p12 twitch_data models predictions
+          rm -rf data third_party rechorus_dual frozen_seed18 frozen_p12 twitch_data models
           rm -rf "$RUNNER_TEMP/kbs-benchmark-deps-$GITHUB_RUN_ID" "$RUNNER_TEMP/ReChorus-$RECHORUS_COMMIT" "$RUNNER_TEMP/ReChorus-$RECHORUS_COMMIT.zip"
