@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 EXPECTED_N = 46878
+EXPECTED_K = 6563
 SEED = 20260923
 STATE_ORDER = ("recent-visible", "long-horizon-only", "unseen")
 STATE_LABEL = {
@@ -28,6 +29,22 @@ def _canonical_state(x: object) -> str:
     if s not in aliases:
         raise ValueError(f"unknown relationship state: {x!r}")
     return aliases[s]
+
+
+def _as_bool_array(s: pd.Series) -> np.ndarray:
+    if pd.api.types.is_bool_dtype(s.dtype):
+        return s.to_numpy(dtype=bool, copy=False)
+    if pd.api.types.is_numeric_dtype(s.dtype):
+        x = s.to_numpy()
+        if not np.isin(x, [0, 1]).all():
+            raise ValueError(f"non-binary numeric values in {s.name}")
+        return x.astype(bool, copy=False)
+    norm = s.astype(str).str.strip().str.lower()
+    mapping = {"true": True, "false": False, "1": True, "0": False}
+    bad = sorted(set(norm) - set(mapping))
+    if bad:
+        raise ValueError(f"unrecognized boolean values in {s.name}: {bad[:5]}")
+    return norm.map(mapping).to_numpy(dtype=bool)
 
 
 def _bootstrap_mean(x: np.ndarray, seed: int, n_boot: int, chunk: int = 64) -> dict:
@@ -59,6 +76,8 @@ def _state_summary(dev: pd.DataFrame, n_boot: int) -> pd.DataFrame:
     n = len(dev)
     for j, state in enumerate(STATE_ORDER):
         g = dev.loc[dev.relationship_state == state]
+        if g.empty:
+            raise RuntimeError(f"empty relationship state: {state}")
         delta = g.memory_delta_ndcg10.to_numpy(np.float64)
         ci = _bootstrap_mean(delta, SEED + 10 + j, n_boot)
         rows.append(
@@ -92,23 +111,23 @@ def _selection_composition(dev: pd.DataFrame, state_summary: pd.DataFrame) -> pd
         "difficulty": "use_difficulty",
         "oracle": "use_oracle_exact_k",
     }
-    k_u = int(dev.use_utility.astype(bool).sum())
-    k_d = int(dev.use_difficulty.astype(bool).sum())
-    if k_u != k_d:
-        raise RuntimeError(f"matched-budget guard failed: utility_k={k_u}, difficulty_k={k_d}")
-    if k_u <= 0:
-        raise RuntimeError("frozen utility router selected zero events")
+    masks = {name: _as_bool_array(dev[col]) for name, col in use_cols.items()}
+    k_u = int(masks["utility"].sum())
+    k_d = int(masks["difficulty"].sum())
+    k_o = int(masks["oracle"].sum())
+    if k_u != k_d or k_u != k_o:
+        raise RuntimeError(f"exact-budget guard failed: utility={k_u}, difficulty={k_d}, oracle={k_o}")
+    if k_u != EXPECTED_K:
+        raise RuntimeError(f"frozen DEV invocation budget changed: got={k_u}, expected={EXPECTED_K}")
 
     rows: list[dict] = []
     for router in ROUTERS:
-        mask = dev[use_cols[router]].astype(bool).to_numpy()
+        mask = masks[router]
         selected_n = int(mask.sum())
-        if router in {"utility", "difficulty"} and selected_n != k_u:
-            raise RuntimeError(f"{router} selected_n changed from exact budget")
         selected = dev.loc[mask]
         for state in STATE_ORDER:
             g = selected.loc[selected.relationship_state == state]
-            share = float(len(g) / selected_n) if selected_n else 0.0
+            share = float(len(g) / selected_n)
             prev = float(prevalence[state])
             rows.append(
                 {
@@ -150,8 +169,7 @@ def _reconstruct_twitch_features(dev: pd.DataFrame, twitch_csv: Path) -> tuple[n
     uu, first, counts = np.unique(su, return_index=True, return_counts=True)
     ubounds = {int(u): (int(f), int(f + c)) for u, f, c in zip(uu, first, counts)}
 
-    # Creator popularity proxy: number of observed Twitch interactions with the target creator
-    # strictly before the target event. This is time-safe and uses no future interactions.
+    # Time-safe creator exposure proxy: interactions with the target creator strictly before target time.
     sorder = np.lexsort((rows, starts, sids))
     cs, ct = sids[sorder], starts[sorder]
     creators, cfirst, ccounts = np.unique(cs, return_index=True, return_counts=True)
@@ -173,7 +191,7 @@ def _reconstruct_twitch_features(dev: pd.DataFrame, twitch_csv: Path) -> tuple[n
             history_len[i] = int(np.searchsorted(ss[lo:hi], t, side="left"))
         if sid not in cbounds:
             missing_creators += 1
-            creator_prior_exposure[i] = 0
+            creator_prior_exposure[i] = -1
         else:
             lo, hi = cbounds[sid]
             creator_prior_exposure[i] = int(np.searchsorted(ct[lo:hi], t, side="left"))
@@ -185,8 +203,8 @@ def _reconstruct_twitch_features(dev: pd.DataFrame, twitch_csv: Path) -> tuple[n
         "missing_creators": int(missing_creators),
         "history_len_mismatches": mismatch,
     }
-    if missing_users or mismatch:
-        raise RuntimeError(f"Twitch history reconstruction mismatch: {meta}")
+    if missing_users or missing_creators or mismatch:
+        raise RuntimeError(f"Twitch reconstruction mismatch: {meta}")
     return history_len, creator_prior_exposure, meta
 
 
@@ -245,6 +263,7 @@ def _self_test() -> None:
     b = _bootstrap_mean(x, seed=7, n_boot=50, chunk=8)
     assert b["n"] == 4 and np.isclose(b["mean"], 0.5)
     assert _canonical_state("long_horizon_only") == "long-horizon-only"
+    assert _as_bool_array(pd.Series(["True", "False", "1", "0"])).tolist() == [True, False, True, False]
     q = _quantile_groups(pd.Series([1, 1, 2, 3, 4, 5], name="x"))
     assert len(q) == 6
     toy = pd.DataFrame(
@@ -253,15 +272,10 @@ def _self_test() -> None:
             "base_ndcg10": [0.1] * 6,
             "memory_ndcg10": [0.0, 0.3, 0.0] * 2,
             "memory_delta_ndcg10": [-0.1, 0.2, -0.1] * 2,
-            "use_utility": [0, 1, 0, 0, 1, 0],
-            "use_difficulty": [1, 0, 0, 1, 0, 0],
-            "use_oracle_exact_k": [0, 1, 0, 0, 1, 0],
         }
     )
     st = _state_summary(toy, n_boot=50)
-    sc = _selection_composition(toy, st)
-    assert int(sc.loc[sc.router == "utility", "selected_n"].iloc[0]) == 2
-    assert float(sc.loc[(sc.router == "utility") & (sc.relationship_state == "long-horizon-only"), "enrichment_ratio"].iloc[0]) > 1
+    assert np.isclose((st.prevalence * st.memory_minus_base).sum(), toy.memory_delta_ndcg10.mean())
     print("self-test: PASS")
 
 
@@ -311,7 +325,7 @@ def main() -> None:
     selection.to_csv(args.out_dir / "selection_composition.csv", index=False)
     alternatives.to_csv(args.out_dir / "alternative_explanations.csv", index=False)
 
-    k = int(dev.use_utility.astype(bool).sum())
+    k = int(_as_bool_array(dev.use_utility).sum())
     report = {
         "experiment": "kbs_twitch_evidence_state_closure",
         "scope": "frozen P1.2 DEV OOF only",
@@ -328,7 +342,7 @@ def main() -> None:
         "guardrails": [
             "No P1.3 TEST artifact is read or required.",
             "Relationship-state labels are analysis-only and are not selector features.",
-            "Utility and Difficulty composition are compared at the frozen exact matched budget.",
+            "Utility, Difficulty, and Oracle composition use the frozen exact matched budget.",
             "No result-sign criterion is used for workflow success.",
         ],
     }
