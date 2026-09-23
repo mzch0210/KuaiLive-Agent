@@ -93,6 +93,10 @@ jobs:
             'scipy==1.14.1' 'scikit-learn==1.5.2' 'joblib==1.4.2' 'threadpoolctl==3.5.0' 'pyyaml==6.0.2'
           echo "PY=$PY" >> "$GITHUB_ENV"
           echo "PYTHONPATH=$DEPS:$GITHUB_WORKSPACE/src:$GITHUB_WORKSPACE/analysis" >> "$GITHUB_ENV"
+          "$PY" - <<'PY'
+          import numpy, pandas, torch, tqdm
+          print('runtime imports ok:', numpy.__version__, pandas.__version__, torch.__version__)
+          PY
           "$PY" -m py_compile analysis/kbs_kuailive_competitive_baselines.py analysis/kbs_twitch_competitive_baselines.py analysis/dual_id_room_baseline.py
 
       - name: Download frozen room-SASRec evidence
@@ -121,7 +125,7 @@ jobs:
           test -s frozen_room/predictions/rec-SASRec-test.csv
           test -s frozen_room/rechorus_room/KuaiLiveShopRoom/export_meta.json
           echo "$P12_OOF_SHA256  frozen_p12/gate_freeze/p1_2_dev_oof_predictions.csv.gz" | sha256sum -c -
-          python - <<'PY'
+          "$PY" - <<'PY'
           import json
           m=json.load(open('frozen_room/rechorus_room/KuaiLiveShopRoom/export_meta.json'))
           assert m['seed']==20260918 and m['n_neg']==574 and m['candidate_count']==575
@@ -148,14 +152,37 @@ jobs:
           print('Regenerated room protocol is exactly identical to frozen room protocol.')
           PY
 
-      - name: Pin ReChorus and enable complete prediction export
+      - name: Pin ReChorus without system Git and enable complete prediction export
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf third_party/ReChorus
-          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
-          cd third_party/ReChorus && git checkout "$RECHORUS_COMMIT"
-          cd "$GITHUB_WORKSPACE"
+          rm -rf third_party/ReChorus "$RUNNER_TEMP/ReChorus-$RECHORUS_COMMIT" "$RUNNER_TEMP/ReChorus-$RECHORUS_COMMIT.zip"
+          mkdir -p third_party
+          "$PY" - <<'PY'
+          import os, shutil, urllib.request, zipfile
+          from pathlib import Path
+          commit=os.environ['RECHORUS_COMMIT']
+          tmp=Path(os.environ['RUNNER_TEMP'])
+          archive=tmp/f'ReChorus-{commit}.zip'
+          unpack=tmp/f'ReChorus-{commit}'
+          url=f'https://codeload.github.com/THUwangcy/ReChorus/zip/{commit}'
+          urllib.request.urlretrieve(url, archive)
+          with zipfile.ZipFile(archive) as z:
+              roots={Path(n).parts[0] for n in z.namelist() if n and not n.startswith('/')}
+              assert len(roots)==1, roots
+              root=next(iter(roots))
+              for info in z.infolist():
+                  p=Path(info.filename)
+                  assert not p.is_absolute() and '..' not in p.parts, info.filename
+              z.extractall(tmp)
+          extracted=tmp/root
+          assert extracted.is_dir(), extracted
+          target=Path('third_party/ReChorus')
+          shutil.move(str(extracted), target)
+          assert (target/'src/main.py').is_file()
+          archive.unlink(missing_ok=True)
+          print('Pinned ReChorus source downloaded:', commit)
+          PY
           "$PY" - <<'PY'
           from pathlib import Path
           p=Path('third_party/ReChorus/src/main.py'); s=p.read_text()
@@ -178,10 +205,11 @@ jobs:
             --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 4 --save_final_results 1 --regenerate 1 \
             --log_file "$GITHUB_WORKSPACE/benchmark_logs/streamer_sasrec.log" --model_path "$GITHUB_WORKSPACE/models/streamer_sasrec.pt"
           cd "$GITHUB_WORKSPACE"
-          DEV=$(find "$GITHUB_WORKSPACE" -type f -path '*SASRec*' -name 'rec-SASRec-dev.csv' | grep -v frozen_room | head -n 1)
-          TEST=$(find "$GITHUB_WORKSPACE" -type f -path '*SASRec*' -name 'rec-SASRec-test.csv' | grep -v frozen_room | head -n 1)
+          DEV=$(find "$GITHUB_WORKSPACE" -type f -path '*SASRec*' -name 'rec-SASRec-dev.csv' | grep -v '/frozen_room/' | head -n 1)
+          TEST=$(find "$GITHUB_WORKSPACE" -type f -path '*SASRec*' -name 'rec-SASRec-test.csv' | grep -v '/frozen_room/' | head -n 1)
           test -n "$DEV" && test -n "$TEST"
-          cp "$DEV" predictions/streamer/dev.csv; cp "$TEST" predictions/streamer/test.csv
+          cp "$DEV" predictions/streamer/dev.csv
+          cp "$TEST" predictions/streamer/test.csv
           "$PY" analysis/dual_id_room_baseline.py \
             --room-data-dir "rechorus_dual/$ROOM_DATASET" --streamer-data-dir "rechorus_dual/$STREAMER_DATASET" \
             --room-dev predictions/room/dev.csv --room-test predictions/room/test.csv \
@@ -214,12 +242,16 @@ jobs:
             --contra-log benchmark_logs/ContraRec_lr0.0001.log --contra-log benchmark_logs/ContraRec_lr0.0005.log \
             --out-dir benchmark_results/kuailive
 
-      - name: Run Twitch DEV-only competitiveness benchmark in parallel resource phase
+      - name: Run Twitch DEV-only competitiveness benchmark
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p twitch_data benchmark_results/twitch
-          curl --proto '=https' --tlsv1.2 -L --fail --retry 5 --retry-all-errors --retry-delay 3 "$TWITCH_100K_URL" -o twitch_data/100k.csv
+          "$PY" - <<'PY'
+          import os, urllib.request
+          url=os.environ['TWITCH_100K_URL']
+          urllib.request.urlretrieve(url, 'twitch_data/100k.csv')
+          PY
           echo "$TWITCH_100K_SHA256  twitch_data/100k.csv" | sha256sum -c -
           "$PY" analysis/kbs_twitch_competitive_baselines.py \
             --twitch-csv twitch_data/100k.csv \
@@ -239,7 +271,8 @@ jobs:
           assert {'Popularity','GRU4Rec-small','SASRec-small','Official LiveRec Base'}.issubset(set(t.model))
           s=json.load(open('benchmark_results/twitch/twitch_dev_strong_base_benchmark.json'))
           assert s['test_ranking_inspected'] is False and s['event_reconstruction_exact_match'] is True
-          print(k.to_string(index=False)); print(t.to_string(index=False))
+          print(k.to_string(index=False))
+          print(t.to_string(index=False))
           PY
           {
             echo "run_id=$GITHUB_RUN_ID"
@@ -265,4 +298,4 @@ jobs:
         shell: bash
         run: |
           rm -rf data third_party rechorus_dual frozen_room frozen_p12 twitch_data models predictions
-          rm -rf "$RUNNER_TEMP/kbs-benchmark-deps-$GITHUB_RUN_ID"
+          rm -rf "$RUNNER_TEMP/kbs-benchmark-deps-$GITHUB_RUN_ID" "$RUNNER_TEMP/ReChorus-$RECHORUS_COMMIT" "$RUNNER_TEMP/ReChorus-$RECHORUS_COMMIT.zip"
