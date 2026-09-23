@@ -1,0 +1,233 @@
+name: KBS evidence-state closure hosted
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-evidence-state-closure-hosted.yml'
+      - 'analysis/kbs_twitch_evidence_state_closure.py'
+      - 'analysis/kbs_kuailive_regime_decomposition.py'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kbs-evidence-state-closure-hosted-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  P12_RUN: '35698158121'
+  P12_ARTIFACT_ID: '10680854557'
+  P12_OOF_SHA256: '9757064252c097934fa31f10a68e11bb43853ca1132aaa49da2b9794f60d3816'
+  TWITCH_100K_URL: 'https://mcauleylab.ucsd.edu/public_datasets/gdrive/twitch/100k_a.csv'
+  TWITCH_100K_SHA256: '11d3bdb49683f651eb6b0ba806bf317db68646efc0c7de2d02d750201fd8ef69'
+  KUAILIVE_DATA_RUN: '35554842873'
+  KUAILIVE_DATA_ARTIFACT: 'room-collision-data-35554842873'
+  KUAILIVE_SEED_RUN: '35729896175'
+  KUAILIVE_SEED_ARTIFACT: 'seed-20260918'
+  FULL_ACTIVE_RUN: '35580324870'
+  FULL_ACTIVE_ARTIFACT: 'full-active-dual-id-35580324870'
+  ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+  PYTHONHASHSEED: '42'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  NUMEXPR_NUM_THREADS: '1'
+
+jobs:
+  twitch-evidence-state:
+    name: Twitch DEV evidence-state closure
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout reviewed analysis code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install pinned lightweight runtime and run static/self checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'numpy==1.26.4' 'pandas==2.3.3'
+          python -m py_compile analysis/kbs_twitch_evidence_state_closure.py
+          python analysis/kbs_twitch_evidence_state_closure.py --self-test
+
+      - name: Download exact frozen P1.2 DEV OOF artifact
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.P12_ARTIFACT_ID }}
+          path: frozen_p12
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.P12_RUN }}
+
+      - name: Verify frozen DEV evidence and acquire public Twitch source once
+        shell: bash
+        run: |
+          set -euo pipefail
+          OOF='frozen_p12/gate_freeze/p1_2_dev_oof_predictions.csv.gz'
+          test -s "$OOF"
+          echo "$P12_OOF_SHA256  $OOF" | sha256sum -c -
+          mkdir -p twitch_work/data twitch_work/results
+          curl --proto '=https' --tlsv1.2 -L --fail --retry 5 --retry-all-errors --retry-delay 3 \
+            "$TWITCH_100K_URL" -o twitch_work/data/twitch100k.csv
+          echo "$TWITCH_100K_SHA256  twitch_work/data/twitch100k.csv" | sha256sum -c -
+
+      - name: Run P0-B selection composition and P1 alternative-explanation closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v python analysis/kbs_twitch_evidence_state_closure.py \
+            --dev-oof frozen_p12/gate_freeze/p1_2_dev_oof_predictions.csv.gz \
+            --twitch-csv twitch_work/data/twitch100k.csv \
+            --out-dir twitch_work/results \
+            --n-boot 3000 \
+            2>&1 | tee twitch_work/runtime.log
+
+      - name: Validate protocol invariants without conditioning on result signs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('twitch_work/results/report.json').read_text())
+          assert r['test_ranking_inspected'] is False
+          assert r['n_dev']==46878
+          assert r['exact_matched_budget_k']==6563
+          h=r['history_reconstruction']
+          assert h['missing_users']==0 and h['missing_creators']==0 and h['history_len_mismatches']==0
+          assert abs(r['overall_memory_minus_base']-r['state_weighted_reconstruction']) <= 1e-12
+          print('Twitch evidence-state closure invariants: PASS')
+          PY
+          (cd twitch_work/results && find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+
+      - name: Upload immutable Twitch closure evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-twitch-evidence-state-closure-${{ github.run_id }}
+          path: |
+            twitch_work/results/**
+            twitch_work/runtime.log
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Remove downloaded public raw data
+        if: always()
+        run: rm -rf twitch_work/data
+
+  kuailive-regime-decomposition:
+    name: KuaiLive candidate-regime decomposition
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout reviewed analysis code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install pinned lightweight runtime and run static/self checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'numpy==1.26.4' 'pandas==2.3.3'
+          python -m py_compile analysis/kbs_kuailive_regime_decomposition.py
+          python analysis/kbs_kuailive_regime_decomposition.py --self-test
+
+      - name: Download frozen KuaiLive candidate data
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: ${{ env.KUAILIVE_DATA_ARTIFACT }}
+          path: kuailive_shared
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.KUAILIVE_DATA_RUN }}
+
+      - name: Download frozen sampled-active Dual-ID result
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: ${{ env.KUAILIVE_SEED_ARTIFACT }}
+          path: seed18
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.KUAILIVE_SEED_RUN }}
+
+      - name: Download frozen full-active result
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: ${{ env.FULL_ACTIVE_ARTIFACT }}
+          path: full_active
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.FULL_ACTIVE_RUN }}
+
+      - name: Verify required frozen files
+        shell: bash
+        run: |
+          set -euo pipefail
+          DATA="kuailive_shared/rechorus_dual/$ROOM_DATASET"
+          test -s "$DATA/train.csv"
+          test -s "$DATA/dev.csv"
+          test -s "$DATA/test.csv"
+          test -s "$DATA/room_item_map.tsv"
+          test -s seed18/dual_id_results/per_user_test.csv.gz
+          test -s full_active/per_user_test_full_active.csv.gz
+          mkdir -p kuailive_work/results
+
+      - name: Run P0-A Base-relative evidence-state decomposition
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/bin/time -v python analysis/kbs_kuailive_regime_decomposition.py \
+            --room-data-dir "kuailive_shared/rechorus_dual/$ROOM_DATASET" \
+            --sampled-per-user seed18/dual_id_results/per_user_test.csv.gz \
+            --full-active-per-user full_active/per_user_test_full_active.csv.gz \
+            --out-dir kuailive_work/results \
+            --history-max 50 \
+            --n-boot 3000 \
+            2>&1 | tee kuailive_work/runtime.log
+
+      - name: Validate decomposition identities without conditioning on result signs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('kuailive_work/results/report.json').read_text())
+          assert r['users']==10222 and r['history_max']==50
+          assert r['candidate_regime_state_prevalence_max_abs_diff'] <= 1e-15
+          for x in r['regime_reports']:
+              assert x['reconstruction_abs_error'] <= 1e-12
+          print('KuaiLive regime decomposition invariants: PASS')
+          PY
+          (cd kuailive_work/results && find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+
+      - name: Upload immutable KuaiLive decomposition evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-kuailive-regime-decomposition-${{ github.run_id }}
+          path: |
+            kuailive_work/results/**
+            kuailive_work/runtime.log
+          if-no-files-found: warn
+          retention-days: 90
