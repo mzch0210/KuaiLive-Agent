@@ -3,7 +3,7 @@
 **Snapshot date:** 2026-09-23  
 **Repository:** `mzch0210/KuaiLive-Agent`  
 **Target journal:** *Knowledge-Based Systems* (KBS)  
-**Status:** core experiment chain CLOSED; P1.3 untouched one-shot test CLOSED/FROZEN; DEV-only Memory sensitivity and finite-context stress CLOSED; formal complexity/efficiency CLOSED; deep Base training-seed robustness CLOSED. Strong-base competitiveness remains the only journal-strengthening experiment still pending and must not be described as completed until closed.  
+**Status:** core experiment chain CLOSED; P1.3 untouched one-shot test CLOSED/FROZEN; DEV-only Memory sensitivity and finite-context stress CLOSED; formal complexity/efficiency CLOSED; deep Base training-seed robustness CLOSED; strong-base competitiveness CLOSED on both KuaiLive and Twitch/LiveRec. The KuaiLive GPU training itself completed successfully; the original controller failure occurred only in post-training metric aggregation and was recovered from immutable completed logs after a parser-only fix.  
 **Authoritative KBS outline:** this file.  
 **General provenance skeleton:** `PAPER_SKELETON_2026-09-22_POST_P1_3.md`
 
@@ -159,7 +159,7 @@ Difficulty uses the same observable information/model family but predicts base e
 ## 5. Experimental Design
 
 ### 5.1 Datasets and strong-base context
-KuaiLive and Twitch/LiveRec, with a compact competitiveness benchmark used to show that the chosen Base is not a weak reference point. Treat this table as context for the scientific comparison, not as a leaderboard contribution.
+KuaiLive and Twitch/LiveRec, with a compact competitiveness benchmark showing that the chosen Base is not a weak reference point. On KuaiLive, the frozen Dual-ID Base ranks first among the same-protocol comparator set; on exact-aligned Twitch DEV, the frozen official LiveRec Base ranks first against the auxiliary same-event baselines. Treat these results strictly as contextual validation of the scientific Base, not as a leaderboard or state-of-the-art claim.
 
 ### 5.2 Candidate and temporal regimes
 Sampled-active, full-active, standard temporal split, and strict temporal variants.
@@ -179,7 +179,7 @@ Keep the main text focused on purpose rather than execution detail:
 - finite-context/recency stress test on DEV — **closed**;
 - deep Base training-seed robustness — **closed; three independent seeds preserve both Selective>Base and Utility>Difficulty**;
 - formal complexity and empirical efficiency analysis — **closed; use as deployment evidence rather than a new algorithmic contribution**;
-- strong-base competitiveness — **pending; contextual validation only, not a leaderboard claim**.
+- strong-base competitiveness — **closed on both KuaiLive and Twitch/LiveRec; contextual validation only, not a leaderboard claim**.
 
 ---
 
@@ -239,6 +239,8 @@ Memory-parameter sensitivity belongs here as robustness rather than model select
 
 ## Finding 4 — Frozen transfer confirms the principle, while deployment headroom remains
 
+Before interpreting the selective transfer gain, use the compact competitiveness checks only to establish that the scientific bases are credible references: KuaiLive Dual-ID is the strongest model in the six-model same-protocol comparison, while the frozen official LiveRec Base is the strongest model in the exact-aligned Twitch DEV context. These checks support the validity of the Base choice; they are not SOTA claims.
+
 After the mechanism exposition, present the untouched Twitch test as confirmatory transfer evidence rather than as another development result.
 
 - Exact same budget `K=6,650`: Base `0.58211`, Difficulty `0.58340`, Selective Utility `0.58983`.
@@ -260,13 +262,13 @@ Efficiency is now closed and should be reported compactly as an accuracy–laten
 Keep the main paper visually economical:
 
 - **Figure 1:** strong Base + explicit relationship-memory specialist + relative-utility router and cost-aware decision rule.
-- **Table 1:** strong-base context plus KuaiLive regime results.
+- **Table 1:** strong-base context plus KuaiLive regime results; show only the compact comparator ordering needed to establish that Dual-ID is a credible Base, with full baseline implementation details in the Appendix.
 - **Table 2:** matched-budget Utility vs Difficulty results; organize the text so KuaiLive establishes the decision result before Twitch is used as frozen external confirmation.
 - **Figure 2:** **dual-panel mechanism figure** — Panel A: relationship-regime sign reversal with DEV and untouched TEST estimates; Panel B: DEV context-distance stress with the 16-step boundary and the separate 1–4 ultra-recent positive pocket.
 - **Table 3:** compact mechanism/robustness evidence: component ablation, feature-family ablation, Memory-parameter stability, and **training-seed sign consistency / mean±SD across seeds**. Keep detailed per-seed metrics in the Appendix.
 - **Figure 3:** Utility vs Difficulty selection composition by relationship regime.
 - **Figure/Table 4:** accuracy–latency–invocation/footprint frontier, now including formal complexity, throughput, peak-memory, and model-size evidence from the closed efficiency study.
-- **Appendix:** complete component/sensitivity matrices, H@10, all CIs, baseline implementation details, seed-by-seed results, complexity derivations, freeze-chain hashes, CPU/GPU audit, and full P1 chronology.
+- **Appendix:** complete component/sensitivity matrices, H@10, all CIs, baseline implementation details, seed-by-seed results, complexity derivations, freeze-chain hashes, CPU/GPU audit, strong-base benchmark provenance, and full P1 chronology.
 
 ---
 
@@ -276,8 +278,9 @@ Keep the main paper visually economical:
 2. **Why Memory helps conditionally:** complementarity outside the visible context, redundancy/harm in much of the recent-visible region, a distinct ultra-recent repeat pocket, and absence of recoverable relationship signal for unseen cases.
 3. **Why Difficulty is insufficient:** Base weakness is not equivalent to availability of complementary specialist information; this advantage also persists across the tested deep Base training seeds.
 4. **What seed robustness does and does not establish:** the conditional decision advantage survives independent Base realizations and varying invocation rates, but three seeds support robustness rather than invariance.
-5. **What remains unsolved:** modest event-level utility correlation and large Oracle headroom motivate better utility estimation rather than a claim of near-optimal routing.
-6. **External validity boundary:** two live-stream platforms, offline predictive ranking utility, no causal business-lift claim.
+5. **Why the Base comparison is contextual rather than a leaderboard result:** compact same-protocol checks support that the scientific Base is not weak, but the auxiliary comparators are not exhaustive state-of-the-art reproductions.
+6. **What remains unsolved:** modest event-level utility correlation and large Oracle headroom motivate better utility estimation rather than a claim of near-optimal routing.
+7. **External validity boundary:** two live-stream platforms, offline predictive ranking utility, no causal business-lift claim.
 
 ---
 
@@ -297,7 +300,7 @@ Do not claim:
 - relationship horizon or context-distance diagnostics are available as online routing features;
 - P1.3 was tuned after test access;
 - three training seeds prove seed invariance or eliminate training randomness;
-- the still-pending strong-base competitiveness check is completed evidence;
+- strong-base competitiveness establishes state-of-the-art superiority or a leaderboard result;
 - cross-platform generalization beyond the evaluated live-stream settings.
 
 Preferred overarching sentence:
