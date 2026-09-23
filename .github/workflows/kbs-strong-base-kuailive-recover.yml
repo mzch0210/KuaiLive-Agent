@@ -1,0 +1,140 @@
+name: KBS recover KuaiLive strong-base benchmark
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-strong-base-kuailive-recover.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  INPUT_RUN_ID: '35813831725'
+  INPUT_ARTIFACT_ID: '10730951727'
+  FAILED_RUN_ID: '35814173574'
+  LOG_ARTIFACT_ID: '10732048684'
+  ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+
+jobs:
+  recover:
+    name: Aggregate completed GPU logs without retraining
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout parser fix
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Download frozen KuaiLive input bundle
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.INPUT_ARTIFACT_ID }}
+          path: frozen_input
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.INPUT_RUN_ID }}
+
+      - name: Download completed training logs from failed controller run
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.LOG_ARTIFACT_ID }}
+          path: recovered_gpu
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.FAILED_RUN_ID }}
+
+      - name: Verify immutable recovery inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s frozen_input/frozen_dual/report.json
+          test -s frozen_input/rechorus_dual/$ROOM_DATASET/train.csv
+          test -s frozen_input/rechorus_dual/$ROOM_DATASET/dev.csv
+          test -s frozen_input/rechorus_dual/$ROOM_DATASET/test.csv
+          for f in \
+            GRU4Rec_lr0.001.log \
+            GRU4Rec_lr0.0005.log \
+            ContraRec_lr0.0001.log \
+            ContraRec_lr0.0005.log; do
+            test -s "recovered_gpu/benchmark_logs/$f"
+            grep -q 'Dev  After Training:' "recovered_gpu/benchmark_logs/$f"
+            grep -q 'Test After Training:' "recovered_gpu/benchmark_logs/$f"
+          done
+          python3 - <<'PY'
+          import json
+          r=json.load(open('frozen_input/frozen_dual/report.json'))
+          assert r['users'] == 10222
+          assert r['candidate_count'] == 575
+          assert abs(r['dual_id_dev_ndcg10'] - 0.6213436703569637) < 1e-12
+          assert abs(r['dual_id_test_ndcg10'] - 0.6171415058148384) < 1e-12
+          print('Frozen report identity verified.')
+          PY
+          sha256sum recovered_gpu/benchmark_logs/*.log | sort
+
+      - name: Install aggregation dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check 'numpy==2.1.3' 'pandas==2.2.3'
+
+      - name: Aggregate already-completed GPU training results
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p benchmark_results/kuailive
+          python3 analysis/kbs_kuailive_competitive_baselines.py \
+            --data-dir "frozen_input/rechorus_dual/$ROOM_DATASET" \
+            --dual-report frozen_input/frozen_dual/report.json \
+            --gru-log recovered_gpu/benchmark_logs/GRU4Rec_lr0.001.log \
+            --gru-log recovered_gpu/benchmark_logs/GRU4Rec_lr0.0005.log \
+            --contra-log recovered_gpu/benchmark_logs/ContraRec_lr0.0001.log \
+            --contra-log recovered_gpu/benchmark_logs/ContraRec_lr0.0005.log \
+            --out-dir benchmark_results/kuailive
+
+      - name: Validate recovered benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pandas as pd
+          p='benchmark_results/kuailive/kuailive_strong_base_benchmark.csv'
+          t=pd.read_csv(p)
+          required={'Popularity','GRU4Rec','ContraRec-BERT4Rec','Room-SASRec','Streamer-SASRec','Dual-ID Base'}
+          assert required <= set(t.model), t
+          by=t.set_index('model')
+          assert abs(by.loc['GRU4Rec','dev_ndcg10'] - 0.2788) < 1e-12
+          assert abs(by.loc['GRU4Rec','test_ndcg10'] - 0.2716) < 1e-12
+          assert abs(by.loc['ContraRec-BERT4Rec','dev_ndcg10'] - 0.4054) < 1e-12
+          assert abs(by.loc['ContraRec-BERT4Rec','test_ndcg10'] - 0.3703) < 1e-12
+          assert abs(by.loc['Dual-ID Base','test_ndcg10'] - 0.6171415058148384) < 1e-12
+          s=json.load(open('benchmark_results/kuailive/kuailive_strong_base_benchmark.json'))
+          assert s['dual_id_rank'] == 1
+          print(t.to_string(index=False))
+          PY
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          logs=sorted(pathlib.Path('recovered_gpu/benchmark_logs').glob('*.log'))
+          prov={
+            'recovery_only': True,
+            'retraining_performed': False,
+            'frozen_input_run_id': 35813831725,
+            'frozen_input_artifact_id': 10730951727,
+            'gpu_training_run_id': 35814173574,
+            'gpu_log_artifact_id': 10732048684,
+            'reason_for_original_controller_failure': 'Metric parser expected = while ReChorus logs used : after @10.',
+            'log_sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in logs},
+          }
+          pathlib.Path('benchmark_results/kuailive/RECOVERY_PROVENANCE.json').write_text(json.dumps(prov,indent=2)+'\n')
+          PY
+
+      - name: Upload immutable recovered benchmark
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-strong-base-kuailive-recovered-${{ github.run_id }}
+          path: benchmark_results/kuailive/
+          if-no-files-found: error
+          retention-days: 90
