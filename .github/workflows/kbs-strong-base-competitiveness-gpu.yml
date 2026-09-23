@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm_owner_run:
-        description: 'Run missing KuaiLive + Twitch strong-base comparators on the dedicated RTX 3090 runner'
+        description: 'Run independent KuaiLive and Twitch strong-base comparators on the dedicated RTX 3090 runner'
         required: true
         type: boolean
         default: false
@@ -20,20 +20,18 @@ concurrency:
 env:
   EXPECTED_REPOSITORY: 'mzch0210/KuaiLive-Agent'
   EXPECTED_ACTOR: 'mzch0210'
-  BUNDLE_ARTIFACT_ID: '10729670452'
-  BUNDLE_RUN_ID: '35809551266'
-  BUNDLE_ARTIFACT_NAME: 'kbs-strong-base-gpu-input-bundle-35809551266'
-  BUNDLE_SHA256: '743e45caf9f31dfec5a68f162a8acb6938d5a04b0a3bd1d17d9a7e7cf4c4d354'
-  RECHORUS_COMMIT: 'c164ec4303cc20ddcfbd1b57de366a481811d1e5'
+  INPUT_RUN_ID: '35813831725'
+  KUAILIVE_ARTIFACT_ID: '10730951727'
+  TWITCH_ARTIFACT_ID: '10730647170'
   P12_OOF_SHA256: '9757064252c097934fa31f10a68e11bb43853ca1132aaa49da2b9794f60d3816'
   TWITCH_100K_SHA256: '11d3bdb49683f651eb6b0ba806bf317db68646efc0c7de2d02d750201fd8ef69'
-  N_NEG: '574'
   SEED: '20260918'
   ROOM_DATASET: 'KuaiLiveShopRoomDualID'
   CUDA_VISIBLE_DEVICES: '0'
 
 jobs:
-  benchmark:
+  kuailive:
+    name: KuaiLive strong-base comparators
     if: ${{ github.actor == 'mzch0210' && github.ref == 'refs/heads/main' && inputs.confirm_owner_run }}
     runs-on: [self-hosted, linux, x64, gpu-3090]
     timeout-minutes: 900
@@ -85,7 +83,7 @@ jobs:
         run: |
           set -euo pipefail
           PY="$HOME/venvs/kuailive-gpu/bin/python"
-          DEPS="$RUNNER_TEMP/kbs-benchmark-deps-$GITHUB_RUN_ID"
+          DEPS="$RUNNER_TEMP/kbs-kuailive-deps-$GITHUB_RUN_ID"
           rm -rf "$DEPS" && mkdir -p "$DEPS"
           "$PY" -m pip install --disable-pip-version-check --target "$DEPS" --no-deps \
             'scipy==1.14.1' 'scikit-learn==1.5.2' 'joblib==1.4.2' 'threadpoolctl==3.5.0' 'pyyaml==6.0.2'
@@ -93,67 +91,84 @@ jobs:
           export PYTHONPATH="$PYTHONPATH_VALUE"
           echo "PY=$PY" >> "$GITHUB_ENV"
           echo "PYTHONPATH=$PYTHONPATH_VALUE" >> "$GITHUB_ENV"
-          "$PY" - <<'PY'
-          import numpy, pandas, torch, tqdm, scipy, sklearn, yaml
-          print('runtime imports ok:', numpy.__version__, pandas.__version__, torch.__version__, scipy.__version__, sklearn.__version__)
-          PY
-          "$PY" -m py_compile analysis/kbs_kuailive_competitive_baselines.py analysis/kbs_twitch_competitive_baselines.py
+          "$PY" -m py_compile analysis/kbs_kuailive_competitive_baselines.py
 
-      - name: Download immutable hosted GPU input bundle
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
-        with:
-          artifact-ids: ${{ env.BUNDLE_ARTIFACT_ID }}
-          path: gpu_bundle
-          github-token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          run-id: ${{ env.BUNDLE_RUN_ID }}
-
-      - name: Verify immutable bundled inputs
+      - name: Check persistent KuaiLive input cache
+        id: cache
         shell: bash
         run: |
           set -euo pipefail
-          test -s gpu_bundle/BUNDLE_INFO.json
-          test -s "gpu_bundle/rechorus_dual/$ROOM_DATASET/train.csv"
-          test -s "gpu_bundle/rechorus_dual/$ROOM_DATASET/dev.csv"
-          test -s "gpu_bundle/rechorus_dual/$ROOM_DATASET/test.csv"
-          test -s gpu_bundle/frozen_dual/report.json
-          test -s gpu_bundle/frozen_p12/p1_2_dev_oof_predictions.csv.gz
-          test -s gpu_bundle/third_party/ReChorus/src/main.py
-          test -s gpu_bundle/twitch_data/100k.csv
-          (cd gpu_bundle && sha256sum -c SHA256SUMS)
-          echo "$P12_OOF_SHA256  gpu_bundle/frozen_p12/p1_2_dev_oof_predictions.csv.gz" | sha256sum -c -
-          echo "$TWITCH_100K_SHA256  gpu_bundle/twitch_data/100k.csv" | sha256sum -c -
-          "$PY" - <<'PY'
+          CACHE="$HOME/.cache/kuailive-agent-kbs/kuailive-$KUAILIVE_ARTIFACT_ID"
+          mkdir -p "$(dirname "$CACHE")"
+          echo "path=$CACHE" >> "$GITHUB_OUTPUT"
+          if [ -f "$CACHE/.verified" ]; then
+            echo "hit=true" >> "$GITHUB_OUTPUT"
+          else
+            rm -rf "$CACHE"
+            mkdir -p "$CACHE"
+            echo "hit=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download slim KuaiLive input bundle
+        if: ${{ steps.cache.outputs.hit != 'true' }}
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.KUAILIVE_ARTIFACT_ID }}
+          path: kuailive_download
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.INPUT_RUN_ID }}
+
+      - name: Verify and persist KuaiLive inputs
+        shell: bash
+        env:
+          CACHE_PATH: ${{ steps.cache.outputs.path }}
+          CACHE_HIT: ${{ steps.cache.outputs.hit }}
+        run: |
+          set -euo pipefail
+          if [ "$CACHE_HIT" != 'true' ]; then
+            cp -a kuailive_download/. "$CACHE_PATH/"
+          fi
+          test -s "$CACHE_PATH/BUNDLE_INFO.json"
+          test -s "$CACHE_PATH/rechorus_dual/$ROOM_DATASET/train.csv"
+          test -s "$CACHE_PATH/rechorus_dual/$ROOM_DATASET/dev.csv"
+          test -s "$CACHE_PATH/rechorus_dual/$ROOM_DATASET/test.csv"
+          test -s "$CACHE_PATH/frozen_dual/report.json"
+          test -s "$CACHE_PATH/third_party/ReChorus/src/main.py"
+          (cd "$CACHE_PATH" && sha256sum -c SHA256SUMS)
+          "$PY" - <<PY
           import json, pandas as pd
-          m=json.load(open('gpu_bundle/rechorus_dual/KuaiLiveShopRoomDualID/export_meta.json'))
-          r=json.load(open('gpu_bundle/frozen_dual/report.json'))
-          b=json.load(open('gpu_bundle/BUNDLE_INFO.json'))
+          root=${CACHE_PATH@Q}
+          m=json.load(open(root+'/rechorus_dual/KuaiLiveShopRoomDualID/export_meta.json'))
+          r=json.load(open(root+'/frozen_dual/report.json'))
           assert m['seed']==20260918 and m['n_neg']==574 and m['candidate_count']==575
           assert r['task']=='next_live_room' and r['users']==10222 and r['candidate_count']==575
           assert abs(r['dual_id_test_ndcg10']-0.6171415058148384) < 1e-12
           assert abs(r['dual_id_dev_ndcg10']-0.6213436703569637) < 1e-12
-          assert b['rechorus_commit']=='c164ec4303cc20ddcfbd1b57de366a481811d1e5'
-          dev=pd.read_csv('gpu_bundle/rechorus_dual/KuaiLiveShopRoomDualID/dev.csv', sep='\t')
-          test=pd.read_csv('gpu_bundle/rechorus_dual/KuaiLiveShopRoomDualID/test.csv', sep='\t')
-          assert len(dev)==r['users'] and len(test)==r['users'], (len(dev),len(test),r['users'])
-          print('Immutable GPU input bundle verified; no external dataset/source downloads are required.')
+          dev=pd.read_csv(root+'/rechorus_dual/KuaiLiveShopRoomDualID/dev.csv', sep='\t')
+          test=pd.read_csv(root+'/rechorus_dual/KuaiLiveShopRoomDualID/test.csv', sep='\t')
+          assert len(dev)==r['users'] and len(test)==r['users']
+          print('KuaiLive slim bundle verified.')
           PY
+          touch "$CACHE_PATH/.verified"
+          echo "KUAILIVE_INPUT=$CACHE_PATH" >> "$GITHUB_ENV"
+          rm -rf kuailive_download
 
       - name: Train missing KuaiLive strong baselines on frozen room candidates
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p benchmark_logs models benchmark_results/kuailive
-          cd gpu_bundle/third_party/ReChorus/src
+          cd "$KUAILIVE_INPUT/third_party/ReChorus/src"
           for LR in 0.001 0.0005; do
-            "$PY" main.py --model_name GRU4Rec --dataset "$ROOM_DATASET" --path "$GITHUB_WORKSPACE/gpu_bundle/rechorus_dual/" \
+            "$PY" main.py --model_name GRU4Rec --dataset "$ROOM_DATASET" --path "$KUAILIVE_INPUT/rechorus_dual/" \
               --gpu 0 --random_seed "$SEED" --emb_size 64 --hidden_size 100 --history_max 50 \
               --lr "$LR" --l2 1e-4 --batch_size 1024 --eval_batch_size 256 --epoch 30 --early_stop 5 \
               --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 4 --save_final_results 0 --regenerate 1 \
               --log_file "$GITHUB_WORKSPACE/benchmark_logs/GRU4Rec_lr${LR}.log" --model_path "$GITHUB_WORKSPACE/models/GRU4Rec_lr${LR}.pt"
           done
           for LR in 0.0001 0.0005; do
-            "$PY" main.py --model_name ContraRec --dataset "$ROOM_DATASET" --path "$GITHUB_WORKSPACE/gpu_bundle/rechorus_dual/" \
+            "$PY" main.py --model_name ContraRec --dataset "$ROOM_DATASET" --path "$KUAILIVE_INPUT/rechorus_dual/" \
               --gpu 0 --random_seed "$SEED" --emb_size 64 --history_max 50 --encoder BERT4Rec --gamma 1 --temp 0.2 \
               --lr "$LR" --l2 1e-6 --batch_size 2048 --eval_batch_size 256 --epoch 30 --early_stop 5 \
               --main_metric NDCG@10 --topk 10 --metric NDCG,HR --num_workers 4 --save_final_results 0 --regenerate 1 \
@@ -161,51 +176,185 @@ jobs:
           done
           cd "$GITHUB_WORKSPACE"
           "$PY" analysis/kbs_kuailive_competitive_baselines.py \
-            --data-dir "gpu_bundle/rechorus_dual/$ROOM_DATASET" --dual-report gpu_bundle/frozen_dual/report.json \
+            --data-dir "$KUAILIVE_INPUT/rechorus_dual/$ROOM_DATASET" --dual-report "$KUAILIVE_INPUT/frozen_dual/report.json" \
             --gru-log benchmark_logs/GRU4Rec_lr0.001.log --gru-log benchmark_logs/GRU4Rec_lr0.0005.log \
             --contra-log benchmark_logs/ContraRec_lr0.0001.log --contra-log benchmark_logs/ContraRec_lr0.0005.log \
             --out-dir benchmark_results/kuailive
 
-      - name: Run Twitch DEV-only competitiveness benchmark from bundle
+      - name: Validate KuaiLive output
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PY" - <<'PY'
+          import pandas as pd
+          k=pd.read_csv('benchmark_results/kuailive/kuailive_strong_base_benchmark.csv')
+          assert {'Popularity','GRU4Rec','ContraRec-BERT4Rec','Room-SASRec','Streamer-SASRec','Dual-ID Base'} <= set(k.model)
+          print(k.to_string(index=False))
+          PY
+
+      - name: Upload immutable KuaiLive benchmark result
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-strong-base-kuailive-${{ github.run_id }}
+          path: |
+            benchmark_results/kuailive/
+            benchmark_logs/
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Cleanup KuaiLive transient workspace
+        if: always()
+        shell: bash
+        run: |
+          rm -rf models benchmark_results benchmark_logs kuailive_download
+          rm -rf "$RUNNER_TEMP/kbs-kuailive-deps-$GITHUB_RUN_ID"
+
+  twitch:
+    name: Twitch DEV-only strong-base comparators
+    if: ${{ github.actor == 'mzch0210' && github.ref == 'refs/heads/main' && inputs.confirm_owner_run }}
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 900
+    steps:
+      - name: Enforce self-hosted runner guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_EVENT_NAME" = 'workflow_dispatch'
+          test "$GITHUB_ACTOR" = "$EXPECTED_ACTOR"
+          test "$GITHUB_REPOSITORY" = "$EXPECTED_REPOSITORY"
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$(id -u)" -ne 0
+          if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then exit 1; fi
+          if id -nG | tr ' ' '\n' | grep -qx docker; then exit 1; fi
+          test -z "${SSH_AUTH_SOCK:-}"
+          for d in "$HOME/.aws" "$HOME/.azure" "$HOME/.config/gcloud"; do test ! -e "$d"; done
+          if [ -d "$HOME/.ssh" ]; then
+            ! find "$HOME/.ssh" -maxdepth 1 -type f \( -name 'id_rsa' -o -name 'id_ed25519' -o -name 'id_ecdsa' -o -name 'id_dsa' \) | grep -q .
+          fi
+
+      - name: Verify RTX 3090 runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          test -x "$PY"
+          command -v nvidia-smi
+          "$PY" - <<'PY'
+          import torch
+          assert torch.__version__.startswith('2.4.1'), torch.__version__
+          assert torch.cuda.is_available()
+          name=torch.cuda.get_device_name(0)
+          assert 'RTX 3090' in name, name
+          print(torch.__version__, torch.version.cuda, name)
+          PY
+
+      - name: Checkout benchmark controller
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+          clean: true
+
+      - name: Prepare isolated analysis dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          DEPS="$RUNNER_TEMP/kbs-twitch-deps-$GITHUB_RUN_ID"
+          rm -rf "$DEPS" && mkdir -p "$DEPS"
+          "$PY" -m pip install --disable-pip-version-check --target "$DEPS" --no-deps \
+            'scipy==1.14.1' 'scikit-learn==1.5.2' 'joblib==1.4.2' 'threadpoolctl==3.5.0' 'pyyaml==6.0.2'
+          PYTHONPATH_VALUE="$DEPS:$GITHUB_WORKSPACE/src:$GITHUB_WORKSPACE/analysis"
+          export PYTHONPATH="$PYTHONPATH_VALUE"
+          echo "PY=$PY" >> "$GITHUB_ENV"
+          echo "PYTHONPATH=$PYTHONPATH_VALUE" >> "$GITHUB_ENV"
+          "$PY" -m py_compile analysis/kbs_twitch_competitive_baselines.py
+
+      - name: Check persistent Twitch input cache
+        id: cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          CACHE="$HOME/.cache/kuailive-agent-kbs/twitch-$TWITCH_ARTIFACT_ID"
+          mkdir -p "$(dirname "$CACHE")"
+          echo "path=$CACHE" >> "$GITHUB_OUTPUT"
+          if [ -f "$CACHE/.verified" ]; then
+            echo "hit=true" >> "$GITHUB_OUTPUT"
+          else
+            rm -rf "$CACHE"
+            mkdir -p "$CACHE"
+            echo "hit=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download slim Twitch input bundle
+        if: ${{ steps.cache.outputs.hit != 'true' }}
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ env.TWITCH_ARTIFACT_ID }}
+          path: twitch_download
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.INPUT_RUN_ID }}
+
+      - name: Verify and persist Twitch inputs
+        shell: bash
+        env:
+          CACHE_PATH: ${{ steps.cache.outputs.path }}
+          CACHE_HIT: ${{ steps.cache.outputs.hit }}
+        run: |
+          set -euo pipefail
+          if [ "$CACHE_HIT" != 'true' ]; then
+            cp -a twitch_download/. "$CACHE_PATH/"
+          fi
+          test -s "$CACHE_PATH/BUNDLE_INFO.json"
+          test -s "$CACHE_PATH/frozen_p12/p1_2_dev_oof_predictions.csv.gz"
+          test -s "$CACHE_PATH/twitch_data/100k.csv"
+          (cd "$CACHE_PATH" && sha256sum -c SHA256SUMS)
+          echo "$P12_OOF_SHA256  $CACHE_PATH/frozen_p12/p1_2_dev_oof_predictions.csv.gz" | sha256sum -c -
+          echo "$TWITCH_100K_SHA256  $CACHE_PATH/twitch_data/100k.csv" | sha256sum -c -
+          touch "$CACHE_PATH/.verified"
+          echo "TWITCH_INPUT=$CACHE_PATH" >> "$GITHUB_ENV"
+          rm -rf twitch_download
+
+      - name: Run Twitch DEV-only competitiveness benchmark
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p benchmark_results/twitch
           "$PY" analysis/kbs_twitch_competitive_baselines.py \
-            --twitch-csv gpu_bundle/twitch_data/100k.csv \
-            --official-oof gpu_bundle/frozen_p12/p1_2_dev_oof_predictions.csv.gz \
+            --twitch-csv "$TWITCH_INPUT/twitch_data/100k.csv" \
+            --official-oof "$TWITCH_INPUT/frozen_p12/p1_2_dev_oof_predictions.csv.gz" \
             --out-dir benchmark_results/twitch --seed 42 --seq-len 16 --epochs 5
 
-      - name: Validate benchmark outputs without outcome-based pass criteria
+      - name: Validate Twitch output and untouched-test guardrail
         shell: bash
         run: |
           set -euo pipefail
           "$PY" - <<'PY'
           import json, pandas as pd
-          k=pd.read_csv('benchmark_results/kuailive/kuailive_strong_base_benchmark.csv')
           t=pd.read_csv('benchmark_results/twitch/twitch_dev_strong_base_benchmark.csv')
-          assert {'Popularity','GRU4Rec','ContraRec-BERT4Rec','Room-SASRec','Streamer-SASRec','Dual-ID Base'} <= set(k.model)
           assert {'Popularity','GRU4Rec-small','SASRec-small','Official LiveRec Base'} <= set(t.model)
           tj=json.load(open('benchmark_results/twitch/twitch_dev_strong_base_benchmark.json'))
           assert tj['test_ranking_inspected'] is False
           assert tj['event_reconstruction_exact_match'] is True
-          print(k.to_string(index=False))
           print(t.to_string(index=False))
           PY
 
-      - name: Upload immutable benchmark results
+      - name: Upload immutable Twitch benchmark result
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: kbs-strong-base-gpu-${{ github.run_id }}
-          path: |
-            benchmark_results/
-            benchmark_logs/
-          if-no-files-found: error
+          name: kbs-strong-base-twitch-${{ github.run_id }}
+          path: benchmark_results/twitch/
+          if-no-files-found: warn
           retention-days: 90
 
-      - name: Cleanup self-hosted workspace
+      - name: Cleanup Twitch transient workspace
         if: always()
         shell: bash
         run: |
-          rm -rf gpu_bundle models benchmark_results benchmark_logs
-          rm -rf "$RUNNER_TEMP/kbs-benchmark-deps-$GITHUB_RUN_ID"
+          rm -rf benchmark_results twitch_download
+          rm -rf "$RUNNER_TEMP/kbs-twitch-deps-$GITHUB_RUN_ID"
