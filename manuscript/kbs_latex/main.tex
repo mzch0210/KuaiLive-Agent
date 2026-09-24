@@ -160,13 +160,12 @@ Our controlled comparisons use an exact invocation budget so that competing sele
 \begin{equation}
     \begin{aligned}
         \max_{a_1,\ldots,a_n\in\{0,1\}}
-        &\quad \sum_{i=1}^{n}a_i\hat{\eta}_r(z_i)\\
-        \text{s.t.}
-        &\quad \sum_{i=1}^{n}a_i=m,
+        &\quad \sum_{i=1}^{n}a_i\hat{\eta}_r(z_i)
+        \quad \text{s.t.} \quad \sum_{i=1}^{n}a_i=m,\\
+        \mathcal{I}_m
+        &=\operatorname{TopIdx}_{m}\!\left(\hat{\eta}_r(z_1),\ldots,\hat{\eta}_r(z_n)\right),\\
+        a_i&=\mathbf{1}[i\in\mathcal{I}_m].
     \end{aligned}
-    \qquad
-    a_i=\mathbf{1}[i\in\mathcal{I}_m],\quad
-    \mathcal{I}_m=\operatorname{TopIdx}_{m}\!\left(\hat{\eta}_r(z_1),\ldots,\hat{\eta}_r(z_n)\right),
     \label{eq:budget-decision}
 \end{equation}
 with ties resolved by a fixed deterministic rule. Holding $m$ constant across competing selectors fixes the invocation rate, so matched-budget comparisons isolate differences in event selection rather than differences in specialist usage. Replacing $\hat{\eta}_r(z_i)$ with the realized offline $\Delta_m(x_i)$ yields the exact-budget Oracle used only as an analysis upper bound; it is unavailable to the serving policy.
