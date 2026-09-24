@@ -150,7 +150,7 @@ Let $R$ denote the operating recommendation regime and $Z$ the information avail
     =\mathbb{E}\!\left[\Delta_m(X)\mid Z=z,R=r\right].
     \label{eq:eta}
 \end{equation}
-When training and evaluating within a fixed regime, we suppress the subscript $r$ for notational simplicity. A learned estimator $\hat{\eta}_r(z)=g_{\theta,r}(z)$ scores events by expected specialist-minus-base utility; Section~4 specifies its implementation.
+When training and evaluating within a fixed regime, we suppress the subscript $r$ for notational simplicity. A learned estimator $\hat{\eta}_r(z)$ scores events by expected specialist-minus-base utility; Section~4 specifies its implementation.
 
 Let $a(Z)\in\{0,1\}$ denote any serving-time policy, where $a(Z)=0$ uses the base ranking and $a(Z)=1$ uses the specialist ranking. For an evaluated event $X$, the selective utility satisfies
 \begin{equation}
@@ -169,20 +169,20 @@ Equation~\eqref{eq:expected-selective-gain} provides the decision rationale for 
 
 The information boundary is strict. The observed target $y$, realized ranks, realized $\Delta_m(x)$, and the Base-relative evidence states used later for mechanism analysis are offline quantities and are excluded from $Z$. In particular, the represented, recoverable-but-unrepresented, and unavailable states are diagnostic variables rather than selector inputs.
 
-This formulation also distinguishes specialist utility from generic base difficulty. A difficulty score concerns the performance or uncertainty of $B$ alone, whereas $\eta_r(z)$ depends on the relative ranking utility of both $M$ and $B$. An event can be difficult for the base without being solvable by the specialist; base weakness therefore does not imply positive specialist-minus-base utility.
+This formulation also distinguishes specialist utility from generic base difficulty. A difficulty score concerns the performance or uncertainty of $B$ alone, whereas $\eta_r(z)$ depends on the relative ranking utility of both $M$ and $B$. An event can be difficult for the base without yielding positive specialist utility; base weakness therefore does not imply positive specialist-minus-base utility.
 
 \subsection{Selective Specialist Use under Cost and Budget Constraints}
 \label{sec:decision-rule}
 
-To account for deployment overhead, let $C_m\ge0$ denote the incremental cost of invoking the specialist and define
+To account for deployment overhead, let $C_{\mathrm{inv}}\ge0$ denote the incremental cost of invoking the specialist and define
 \begin{equation}
-    \kappa_r(z)=\mathbb{E}\!\left[C_m\mid Z=z,R=r\right].
+    \kappa_r(z)=\mathbb{E}\!\left[C_{\mathrm{inv}}\mid Z=z,R=r\right].
     \label{eq:conditional-cost}
 \end{equation}
 For a trade-off parameter $\lambda\ge0$, maximizing expected ranking gain net of invocation cost is equivalent, up to the action-independent base utility, to maximizing
 \begin{equation}
     \mathcal{J}_r(a)
-    =\mathbb{E}\!\left[a(Z)\left(\Delta_m(X)-\lambda C_m\right)\mid R=r\right].
+    =\mathbb{E}\!\left[a(Z)\left(\Delta_m(X)-\lambda C_{\mathrm{inv}}\right)\mid R=r\right].
     \label{eq:cost-objective}
 \end{equation}
 The corresponding pointwise expected-utility rule is
