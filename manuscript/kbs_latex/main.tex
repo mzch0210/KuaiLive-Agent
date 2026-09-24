@@ -101,17 +101,12 @@ Live-stream recommendation & Model dynamic availability, interactions, and repea
 \section{Problem Formulation}
 \label{sec:problem}
 
-We formalize Base-relative evidence valuation as an event-level ranking-utility problem. The formulation separates the realized ranking utility of a fixed base recommender, the incremental utility of a fixed relationship-memory specialist, and the serving-time decision of whether to invoke that specialist. The key information boundary is temporal: realized specialist value can be computed only after the relevant target is observed, whereas invocation must be decided from pre-outcome information.
+We formalize Base-relative evidence valuation as an event-level ranking-utility problem. The formulation distinguishes the offline evaluation of a fixed relationship-memory specialist from the pre-outcome decision of whether to invoke it. This distinction is central to the paper: the realized marginal benefit of the specialist can be measured only after the relevant target is observed, whereas a serving policy must act using information available beforehand.
 
 \subsection{Recommendation Setting and Event-Level Ranking Utility}
 \label{sec:event-utility}
 
-For user $u$ at recommendation time $t$, define the pre-outcome decision context as
-\begin{equation}
-    \xi=(u,t,\mathcal{C}_{u,t},\mathcal{H}_{u,t}),
-    \label{eq:context}
-\end{equation}
-where $\mathcal{C}_{u,t}$ is the candidate set available for that event and $\mathcal{H}_{u,t}$ is the interaction history available strictly before time $t$. An evaluated recommendation event is $x=(\xi,y)$, where $y\in\mathcal{C}_{u,t}$ is the observed relevant target. Ranking models receive $\xi$ but not $y$; the target is used only to evaluate the resulting ranking. This separation makes the serving-time information boundary explicit.
+For user $u$ at recommendation time $t$, let the pre-outcome decision context be $\xi=(u,t,\mathcal{C}_{u,t},\mathcal{H}_{u,t})$, where $\mathcal{C}_{u,t}$ is the event-specific candidate set and $\mathcal{H}_{u,t}$ is the interaction history available strictly before $t$. An evaluated recommendation event is $x=(\xi,y)$, where $y\in\mathcal{C}_{u,t}$ is the observed relevant target. Ranking models receive $\xi$ but not $y$; the target is used only for offline evaluation. Thus, $x$ is the unit of evaluation, whereas $\xi$ is the context on which the serving decision is conditioned.
 
 Let $A$ be a ranking model and let $r_A(y\mid\xi)$ denote the 1-indexed rank assigned to $y$ among $\mathcal{C}_{u,t}$. For cutoff $K$, define the event-level ranking utility
 \begin{equation}
@@ -122,12 +117,7 @@ Let $A$ be a ranking model and let $r_A(y\mid\xi)$ denote the 1-indexed rank ass
     \end{cases}
     \label{eq:event-ndcg}
 \end{equation}
-With one relevant target per event, Eq.~\eqref{eq:event-ndcg} is the event-level contribution to NDCG@$K$. The aggregate ranking utility of $A$ is
-\begin{equation}
-    U_K(A)=\mathbb{E}\!\left[u_K(A,X)\right].
-    \label{eq:aggregate-utility}
-\end{equation}
-The empirical counterpart is the sample mean over evaluation events. The subsequent decision formulation requires only a scalar event-level utility; NDCG@$K$ is used here because it is the primary ranking metric in our evaluation.
+With one relevant target per event, Eq.~\eqref{eq:event-ndcg} is the event-level contribution to NDCG@$K$; aggregate NDCG@$K$ is its empirical mean over evaluation events. Because rank utility is defined relative to the event-specific candidate set, changing candidate construction can change Base-relative specialist value even when the underlying user--target history is unchanged. The formulation below requires only a scalar event-level utility; NDCG@$K$ is used because it is the primary ranking metric in our evaluation.
 
 \subsection{Base-Relative Specialist Utility}
 \label{sec:relative-utility}
@@ -137,101 +127,71 @@ Let $B$ denote a fixed base recommender and $M$ a fixed relationship-memory spec
     \Delta_m(x)=u_K(M,x)-u_K(B,x).
     \label{eq:delta-memory}
 \end{equation}
-A positive value indicates that the specialist improves event-level ranking utility relative to the base, zero indicates no marginal ranking gain, and a negative value indicates that replacing the base ranking with the specialist ranking is harmful for that event. Thus, the object of interest is the specialist's marginal value relative to the available base decision rather than its standalone ranking quality.
+A positive value indicates an event-level ranking gain from using the specialist instead of the base, zero indicates no marginal gain, and a negative value indicates that replacing the base ranking with the specialist ranking is harmful for that event. Importantly, $\Delta_m(x)$ is an \emph{operational} marginal value of persistent relationship evidence as instantiated by the fixed specialist $M$ relative to the fixed base $B$. It should not be interpreted as an intrinsic or model-independent information value of the underlying history. Its magnitude can depend on the base, the specialist implementation, cutoff $K$, candidate environment, and operating regime.
 
-The realized $\Delta_m(x)$ is an offline supervisory quantity: computing it requires the observed target $y$ and the rankings produced by both $B$ and $M$. It is therefore unavailable when the invocation decision is made. Selective specialist use must instead rely on the conditional expectation of $\Delta_m$ given information observable before $y$ is known.
+The realized $\Delta_m(x)$ is an offline supervisory quantity because computing it requires the observed target $y$ and the rankings produced by both $B$ and $M$. Selective specialist use must therefore estimate its conditional expectation from information available before $y$ is known.
 
-\subsection{Conditional Utility Estimation and Observable Information}
+\subsection{Conditional Relative Utility}
 \label{sec:conditional-utility}
 
-Let $R$ denote the operating recommendation regime and $Z$ the information available at invocation time. The variable $Z$ is constructed only from pre-outcome information, such as user and history summaries, candidate-set descriptors, and confidence signals produced by the base recommender. For regime $r$, define conditional specialist utility as
+Let $R$ index the operating recommendation condition under which candidate construction, temporal availability, or related protocol elements are fixed, and let $Z$ denote the information available at invocation time. We condition on $R=r$ to describe a regime-specific event distribution; $R$ need not be an explicit feature of $Z$. The variable $Z$ is constructed only from pre-outcome information, such as user and history summaries, candidate-set descriptors, and confidence signals produced by the base recommender. Define the conditional specialist-minus-base utility as
 \begin{equation}
     \eta_r(z)
     =\mathbb{E}\!\left[\Delta_m(X)\mid Z=z,R=r\right].
     \label{eq:eta}
 \end{equation}
-When training and evaluating within a fixed regime, we suppress the subscript $r$ for notational simplicity. A learned estimator $\hat{\eta}_r(z)$ scores events by expected specialist-minus-base utility; Section~4 specifies its implementation.
+When training and evaluating within a fixed regime, we suppress $r$ for notational simplicity. A learned estimator $\hat{\eta}_r(z)$ scores events by expected specialist-minus-base value; Section~4 specifies its implementation.
 
-Let $a(Z)\in\{0,1\}$ denote any serving-time policy, where $a(Z)=0$ uses the base ranking and $a(Z)=1$ uses the specialist ranking. For an evaluated event $X$, the selective utility satisfies
-\begin{equation}
-    u_K^{\mathrm{sel}}(X;a)
-    =u_K(B,X)+a(Z)\Delta_m(X).
-    \label{eq:selective-identity}
-\end{equation}
-Conditioning on regime $r$ and applying iterated expectation gives
+Let $a(Z)\in\{0,1\}$ denote a serving-time policy, where $a(Z)=0$ uses the base ranking and $a(Z)=1$ uses the specialist ranking. The expected improvement over always using the base satisfies
 \begin{align}
     &\mathbb{E}\!\left[u_K^{\mathrm{sel}}(X;a)-u_K(B,X)\mid R=r\right] \\
-    &\qquad=\mathbb{E}\!\left[a(Z)\Delta_m(X)\mid R=r\right] \\
-    &\qquad=\mathbb{E}\!\left[a(Z)\eta_r(Z)\mid R=r\right].
+    &\qquad=\mathbb{E}\!\left[a(Z)\Delta_m(X)\mid R=r\right]
+    =\mathbb{E}\!\left[a(Z)\eta_r(Z)\mid R=r\right].
     \label{eq:expected-selective-gain}
 \end{align}
-Equation~\eqref{eq:expected-selective-gain} provides the decision rationale for estimating $\eta_r$: under a fixed regime, expected gain over the base depends only on which events are selected and their conditional specialist-minus-base utility.
+Equation~\eqref{eq:expected-selective-gain} gives the decision rationale for estimating $\eta_r$: under a fixed regime, expected gain over the base is determined by which events are selected and their conditional relative utility.
 
-The information boundary is strict. The observed target $y$, realized ranks, realized $\Delta_m(x)$, and the Base-relative evidence states used later for mechanism analysis are offline quantities and are excluded from $Z$. In particular, the represented, recoverable-but-unrepresented, and unavailable states are diagnostic variables rather than selector inputs.
+The information boundary is strict. The observed target $y$, realized ranks, realized $\Delta_m(x)$, and the Base-relative evidence states used later for mechanism analysis are offline quantities and are excluded from $Z$. In particular, the represented, recoverable-but-unrepresented, and unavailable states are diagnostic variables rather than selector inputs. This formulation also distinguishes conditional relative utility from generic base difficulty: a difficulty score concerns the performance or uncertainty of $B$ alone, whereas $\eta_r(z)$ depends on the relative ranking utility of both $M$ and $B$. Base weakness therefore does not imply positive specialist-minus-base utility.
 
-This formulation also distinguishes specialist utility from generic base difficulty. A difficulty score concerns the performance or uncertainty of $B$ alone, whereas $\eta_r(z)$ depends on the relative ranking utility of both $M$ and $B$. An event can be difficult for the base without yielding positive specialist utility; base weakness therefore does not imply positive specialist-minus-base utility.
-
-\subsection{Selective Specialist Use under Cost and Budget Constraints}
+\subsection{Budget-Constrained Selective Specialist Use}
 \label{sec:decision-rule}
 
-To account for deployment overhead, let $C_{\mathrm{inv}}\ge0$ denote the incremental cost of invoking the specialist and define
+Our controlled comparisons use an exact invocation budget so that competing selectors invoke the specialist equally often. Consider $n$ evaluation events from the same regime and a cardinality budget $m\le n$. Given predicted conditional relative utilities $\hat{\eta}_r(z_i)$, the budget-constrained decision is
 \begin{equation}
-    \kappa_r(z)=\mathbb{E}\!\left[C_{\mathrm{inv}}\mid Z=z,R=r\right].
-    \label{eq:conditional-cost}
+    \begin{aligned}
+        \max_{a_1,\ldots,a_n\in\{0,1\}}
+        &\quad \sum_{i=1}^{n}a_i\hat{\eta}_r(z_i)\\
+        \text{s.t.}
+        &\quad \sum_{i=1}^{n}a_i=m,
+    \end{aligned}
+    \qquad
+    a_i=\mathbf{1}[i\in\mathcal{I}_m],\quad
+    \mathcal{I}_m=\operatorname{TopIdx}_{m}\!\left(\hat{\eta}_r(z_1),\ldots,\hat{\eta}_r(z_n)\right),
+    \label{eq:budget-decision}
 \end{equation}
-For a trade-off parameter $\lambda\ge0$, maximizing expected ranking gain net of invocation cost is equivalent, up to the action-independent base utility, to maximizing
+with ties resolved by a fixed deterministic rule. Holding $m$ constant across competing selectors fixes the invocation rate, so matched-budget comparisons isolate differences in event selection rather than differences in specialist usage. Replacing $\hat{\eta}_r(z_i)$ with the realized offline $\Delta_m(x_i)$ yields the exact-budget Oracle used only as an analysis upper bound; it is unavailable to the serving policy.
+
+A deployment system may additionally price the incremental cost of invoking the specialist. If $C_{\mathrm{inv}}\ge0$ denotes that cost and $\kappa_r(z)=\mathbb{E}[C_{\mathrm{inv}}\mid Z=z,R=r]$, a generic cost-sensitive interpretation invokes the specialist when
 \begin{equation}
-    \mathcal{J}_r(a)
-    =\mathbb{E}\!\left[a(Z)\left(\Delta_m(X)-\lambda C_{\mathrm{inv}}\right)\mid R=r\right].
-    \label{eq:cost-objective}
-\end{equation}
-The corresponding pointwise expected-utility rule is
-\begin{equation}
-    a_r^{*}(z)
-    =\mathbf{1}\!\left[\eta_r(z)>\lambda\kappa_r(z)\right].
+    a_r^{*}(z)=\mathbf{1}\!\left[\eta_r(z)>\lambda\kappa_r(z)\right],
+    \qquad \lambda\ge0.
     \label{eq:cost-rule}
 \end{equation}
-When incremental specialist cost is constant, Eq.~\eqref{eq:cost-rule} reduces to thresholding conditional specialist utility at a fixed cost-adjusted level. This decision form is used only to interpret selective specialist use; general deferral and routing rules are established in the literature discussed in Section~2.
-
-For controlled comparison of decision quality, we also use an exact invocation budget. Consider $n$ evaluation events from the same regime and a cardinality budget $m\le n$. Given predicted utilities $\hat{\eta}_r(z_i)$, the budget-constrained problem is
-\begin{equation}
-    \max_{a_1,\ldots,a_n\in\{0,1\}}
-    \sum_{i=1}^{n}a_i\hat{\eta}_r(z_i)
-    \quad
-    \text{s.t.}\quad
-    \sum_{i=1}^{n}a_i=m.
-    \label{eq:budget-objective}
-\end{equation}
-Under this equal-cost cardinality constraint, the optimal predicted-utility policy selects the indices of the $m$ largest scores,
-\begin{equation}
-    \mathcal{I}_m
-    =\operatorname{TopIdx}_{m}\!\left(\hat{\eta}_r(z_1),\ldots,\hat{\eta}_r(z_n)\right),
-    \qquad
-    a_i=\mathbf{1}[i\in\mathcal{I}_m],
-    \label{eq:top-budget}
-\end{equation}
-with ties resolved by a fixed deterministic rule. Using the same $m$ for competing selectors holds invocation rate constant, so matched-budget comparisons isolate differences in event selection rather than differences in specialist usage.
+We use Eq.~\eqref{eq:cost-rule} only as a deployment interpretation of selective specialist use; the controlled experiments avoid choosing $\lambda$ and instead compare policies at the same exact invocation budget. General deferral and routing rules are established in the literature discussed in Section~2.
 
 \subsection{Regime-Level Utility Decomposition}
 \label{sec:regime-decomposition}
 
-The final component formalizes how aggregate specialist value can differ across recommendation regimes. Define regime-specific aggregate specialist value as
-\begin{equation}
-    \bar{\Delta}_r
-    =\mathbb{E}\!\left[\Delta_m(X)\mid R=r\right]
-    =U_{K,r}(M)-U_{K,r}(B),
-    \label{eq:regime-value}
-\end{equation}
-where $U_{K,r}(A)=\mathbb{E}[u_K(A,X)\mid R=r]$. Let $S$ denote a Base-relative relationship-evidence state, instantiated operationally in Section~4 and used only for analysis. By the law of total expectation,
+To analyze why aggregate specialist value changes across operating conditions, let $S$ denote a mutually exclusive and exhaustive partition of Base-relative relationship-evidence states, instantiated operationally in Section~4 and used only for analysis. Writing $\bar{\Delta}_r=\mathbb{E}[\Delta_m(X)\mid R=r]$, the law of total expectation gives
 \begin{equation}
     \bar{\Delta}_r
     =\sum_s P(S=s\mid R=r)
     \,\mathbb{E}\!\left[\Delta_m(X)\mid S=s,R=r\right].
     \label{eq:regime-decomposition}
 \end{equation}
-Equation~\eqref{eq:regime-decomposition} separates two possible sources of aggregate regime dependence: changes in evidence-state prevalence, $P(S=s\mid R=r)$, and changes in state-specific specialist utility, $\mathbb{E}[\Delta_m\mid S=s,R=r]$. Both can vary across regimes. We use this identity as an analytical decomposition, not as a causal model or a new theoretical result. When experiments are conducted within a fixed regime, $R$ characterizes the event distribution and need not be supplied as an additional selector feature.
+Equation~\eqref{eq:regime-decomposition} separates changes in evidence-state prevalence from changes in state-specific specialist utility. Both can vary across regimes. We use this identity as an analytical decomposition rather than as a causal model or a new theoretical result; $R$ characterizes the event distribution and need not be supplied as a selector feature.
 
-Together, Eqs.~\eqref{eq:delta-memory}--\eqref{eq:regime-decomposition} define the quantities required by the remainder of the paper: realized Base-relative specialist utility, its serving-time conditional expectation, cost- or budget-constrained selective invocation, and regime-level decomposition. Section~4 instantiates the fixed base recommenders, the transparent relationship-memory specialist, the observable selector features, and the diagnostic evidence states used in the mechanism analysis.
+Sections~4--6 instantiate these quantities, describe their leakage-safe estimation and analysis, and evaluate the resulting selective decisions across recommendation regimes.
 
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
