@@ -1,0 +1,148 @@
+name: KBS fixed-new-Base diagnostic GPU training
+
+on:
+  push:
+    branches: [kbs-fixed-checkpoint-diagnostic-20261008]
+    paths: ['.github/workflows/kbs-posthoc-newbase-train-3090.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kuailive-gpu-3090
+  cancel-in-progress: false
+
+env:
+  DATA_RUN: '35554842873'
+  DATA_ARTIFACT: 'room-collision-data-35554842873'
+  ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+  STREAMER_DATASET: 'KuaiLiveShopStreamerParallel'
+  RECHORUS_COMMIT: 'c164ec4303cc20ddcfbd1b57de366a481811d1e5'
+  TRAIN_SEED: '20260918'
+  OMP_NUM_THREADS: '2'
+  MKL_NUM_THREADS: '2'
+  OPENBLAS_NUM_THREADS: '2'
+  NUMEXPR_NUM_THREADS: '2'
+
+jobs:
+  train:
+    name: New diagnostic Dual-ID room and streamer checkpoints
+    if: github.repository == 'mzch0210/KuaiLive-Agent' && github.actor == 'mzch0210' && github.ref == 'refs/heads/kbs-fixed-checkpoint-diagnostic-20261008' && github.event_name == 'push'
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 300
+    steps:
+      - name: Security and GPU preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_EVENT_NAME" = push
+          test "$GITHUB_ACTOR" = mzch0210
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test "$(id -u)" -ne 0
+          if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then exit 1; fi
+          if id -nG | tr ' ' '\n' | grep -qx docker; then exit 1; fi
+          test -z "${SSH_AUTH_SOCK:-}"
+          for d in "$HOME/.aws" "$HOME/.azure" "$HOME/.config/gcloud"; do test ! -e "$d"; done
+          if test -d "$HOME/.ssh"; then
+            ! find "$HOME/.ssh" -maxdepth 1 -type f \( -name id_rsa -o -name id_ed25519 -o -name id_ecdsa -o -name id_dsa \) | grep -q .
+          fi
+          nvidia-smi --query-gpu=name,memory.total,memory.used --format=csv,noheader
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import torch, sklearn, pandas, numpy
+          assert torch.__version__.startswith("2.4.1"), torch.__version__
+          assert torch.cuda.is_available()
+          assert "RTX 3090" in torch.cuda.get_device_name(0)
+          print("Preflight PASS:", torch.__version__, sklearn.__version__)
+          PY
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Reuse frozen eligible-candidate dataset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p shared
+          gh run download "$DATA_RUN" --repo "$GITHUB_REPOSITORY" --name "$DATA_ARTIFACT" --dir shared
+          for ds in "$ROOM_DATASET" "$STREAMER_DATASET"; do
+            for split in train dev test; do
+              test -s "shared/rechorus_dual/$ds/$split.csv"
+            done
+          done
+          sha256sum shared/rechorus_dual/"$ROOM_DATASET"/{train,dev,test}.csv > frozen_inputs_sha256.txt
+          sha256sum shared/rechorus_dual/"$STREAMER_DATASET"/{train,dev,test}.csv >> frozen_inputs_sha256.txt
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path("shared/rechorus_dual/KuaiLiveShopRoomDualID/export_meta.json").read_text())
+          assert m["candidate_count"] == 575 and m["n_neg"] == 574
+          print("Candidate metadata verified")
+          PY
+
+      - name: Fetch and pin existing ReChorus implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          git -C third_party/ReChorus checkout --detach "$RECHORUS_COMMIT"
+          test "$(git -C third_party/ReChorus rev-parse HEAD)" = "$RECHORUS_COMMIT"
+
+      - name: Train room and streamer sequentially with a single GPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p models logs training_metadata
+          for tag in room streamer; do
+            if test "$tag" = room; then ds="$ROOM_DATASET"; else ds="$STREAMER_DATASET"; fi
+            echo "TRAINING_DIAGNOSTIC_$tag $TRAIN_SEED"
+            (
+              cd third_party/ReChorus/src
+              "$HOME/venvs/kuailive-gpu/bin/python" main.py \
+                --model_name SASRec --dataset "$ds" --path "$GITHUB_WORKSPACE/shared/rechorus_dual/" \
+                --gpu 0 --random_seed "$TRAIN_SEED" --emb_size 64 --num_layers 1 --num_heads 4 \
+                --history_max 50 --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 128 \
+                --epoch 30 --early_stop 5 --main_metric NDCG@10 --topk 10 --metric NDCG,HR \
+                --num_workers 2 --save_final_results 0 --regenerate 1 \
+                --log_file "$GITHUB_WORKSPACE/logs/$tag.log" \
+                --model_path "$GITHUB_WORKSPACE/models/$tag.pt"
+            )
+            test -s "models/$tag.pt"
+            sha256sum "models/$tag.pt" | tee -a training_metadata/weight_sha256.txt
+          done
+
+      - name: Persist new diagnostic checkpoint and provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$HOME/kbs_diagnostic_model_cache"
+          DEST="$HOME/kbs_diagnostic_model_cache/$GITHUB_RUN_ID"
+          test ! -e "$DEST"
+          mkdir -m 700 "$DEST"
+          cp models/room.pt models/streamer.pt "$DEST/"
+          cp training_metadata/weight_sha256.txt frozen_inputs_sha256.txt "$DEST/"
+          sha256sum -c training_metadata/weight_sha256.txt
+          printf '{"kind":"NEW_POSTHOC_DIAGNOSTIC_BASE","seed":20260918,"model":"SASRec room+streamer","rechorus_commit":"%s","source_run":%s,"not_original_frozen_base":true,"no_test_tuning":true}\n' "$RECHORUS_COMMIT" "$GITHUB_RUN_ID" > training_metadata/provenance.json
+          cp training_metadata/provenance.json "$DEST/"
+          echo "New diagnostic Base stored in dedicated runner cache under run id $GITHUB_RUN_ID"
+
+      - name: Upload new paired weights and immutable manifests
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-new-posthoc-dual-id-weights-${{ github.run_id }}
+          path: |
+            models/room.pt
+            models/streamer.pt
+            training_metadata/**
+            frozen_inputs_sha256.txt
+            logs/*.log
+          if-no-files-found: warn
+          retention-days: 90
