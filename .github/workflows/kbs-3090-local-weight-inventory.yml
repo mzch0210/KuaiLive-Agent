@@ -1,0 +1,109 @@
+name: KBS RTX3090 read-only local weights
+
+on:
+  push:
+    branches: [kbs-fixed-checkpoint-diagnostic-20261008]
+    paths: ['.github/workflows/kbs-3090-local-weight-inventory.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kuailive-gpu-3090
+  cancel-in-progress: false
+
+jobs:
+  inventory:
+    name: Inspect original room/streamer checkpoints
+    if: github.repository == 'mzch0210/KuaiLive-Agent' && github.actor == 'mzch0210' && github.ref == 'refs/heads/kbs-fixed-checkpoint-diagnostic-20261008' && github.event_name == 'push'
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 12
+    steps:
+      - name: Private runner security and GPU identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_EVENT_NAME" = push
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test "$GITHUB_ACTOR" = mzch0210
+          test "$GITHUB_REF" = refs/heads/kbs-fixed-checkpoint-diagnostic-20261008
+          test "$(id -u)" -ne 0
+          if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then exit 1; fi
+          if id -nG | tr ' ' '\n' | grep -qx docker; then exit 1; fi
+          test -z "$(printenv SSH_AUTH_SOCK || true)"
+          for d in "$HOME/.aws" "$HOME/.azure" "$HOME/.config/gcloud"; do test ! -e "$d"; done
+          if [ -d "$HOME/.ssh" ]; then
+            ! find "$HOME/.ssh" -maxdepth 1 -type f \( -name id_rsa -o -name id_ed25519 -o -name id_ecdsa -o -name id_dsa \) | grep -q .
+          fi
+          command -v python3
+          nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+          echo 'No checkout, install, training, model load or large artifact download.'
+      - name: Inventory bounded local caches, hash weights only
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          home=Path.home()
+          workspace=Path(os.environ.get("RUNNER_WORKSPACE", os.environ["GITHUB_WORKSPACE"])).resolve()
+          roots=[("home",home)]
+          try: workspace.relative_to(home)
+          except ValueError:
+              if workspace.exists(): roots.append(("workspace",workspace))
+          excluded={".ssh",".aws",".azure",".gnupg",".config",".git","node_modules",
+                    "site-packages","venvs",".venv",".npm",".cargo",".rustup","miniconda3",
+                    "anaconda3","__pycache__","pip",".local",".tox","wandb"}
+          keywords=("kuailive","rechorus","dual","sasrec","latency","kbs",
+                    "checkpoint","model","streamer","room")
+          exact={"room.pt","streamer.pt","room.pth","streamer.pth","model.pt","best_model.pt"}
+          found=[]; seen=set(); folders=0; errors=[]; limit=120
+          for label,root in roots:
+              for base,dirs,names in os.walk(root,topdown=True,followlinks=False):
+                  folders+=1
+                  path=Path(base)
+                  depth=len(path.relative_to(root).parts)
+                  dirs[:]=[] if depth>=9 else sorted(d for d in dirs if d not in excluded and not d.startswith(".secret"))
+                  for name in sorted(names):
+                      low=name.lower()
+                      if low not in exact and not (low.endswith((".pt",".pth",".ckpt")) and
+                                                   any(k in str(path).lower() for k in keywords)):
+                          continue
+                      p=path/name
+                      try:
+                          if p.is_symlink() or not p.is_file() or str(p.resolve()) in seen: continue
+                          seen.add(str(p.resolve()))
+                          size=p.stat().st_size
+                          if not 0<size<=2_000_000_000: continue
+                          digest=hashlib.sha256()
+                          with p.open("rb") as f:
+                              for buf in iter(lambda:f.read(4*1024*1024),b""): digest.update(buf)
+                          found.append({"root":label,"relative_path":str(p.relative_to(root)),
+                                        "name":name,"bytes":size,"sha256":digest.hexdigest()})
+                      except OSError as err:
+                          errors.append({"root":label,"name":name,"error_type":type(err).__name__})
+                      if len(found)>=limit: break
+                  if len(found)>=limit: break
+          nr=sum(x["name"].lower() in ("room.pt","room.pth") for x in found)
+          ns=sum(x["name"].lower() in ("streamer.pt","streamer.pth") for x in found)
+          result={"kind":"read_only_3090_checkpoint_inventory",
+                  "roots":[name for name,_ in roots],"folders":folders,
+                  "files":found,"room_named":nr,"streamer_named":ns,
+                  "candidate_pair_found":bool(nr and ns),"errors":errors[:20],
+                  "next_step":("Verify checkpoint lineage, architecture and dataset hashes; do not run TEST automatically"
+                               if nr and ns else
+                               "No named pair in scanned roots; check additional local caches, no automatic retraining")}
+          with open("checkpoint_inventory.json","w",encoding="utf8") as f:
+              json.dump(result,f,indent=2,ensure_ascii=False)
+          print(json.dumps(result,indent=2,ensure_ascii=False))
+          PY
+      - name: Upload metadata only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kbs-3090-local-weight-inventory
+          path: checkpoint_inventory.json
+          if-no-files-found: warn
+          retention-days: 30
