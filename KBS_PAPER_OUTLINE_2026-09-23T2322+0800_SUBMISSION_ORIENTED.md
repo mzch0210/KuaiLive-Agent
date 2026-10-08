@@ -246,54 +246,55 @@ This separates evidence-state composition from state-specific specialist utility
 
 # 4. Base-Relative Evidence Valuation Framework
 
-Section 4 must instantiate Section 3 rather than redefine it. Reuse `B`, `M`, `Z`, `S`, `\hat\eta_r`, and the development-frozen Utility threshold consistently; reserve offline top-`m` selection for Difficulty and Oracle controls.
+Section 4 is an implementation and design-rationale chapter, not a second problem formulation or an experiment log. Reuse the Section 3 definitions of \(B,M,Z,S,\Delta_m,\hat\eta_r\) without rederiving them. The methodological distinction is **operational valuation of a separately specified, inspectable relationship specialist relative to a credible fixed base**, not a new Memory architecture, HGB, or deferral algorithm.
+
+Explain three linked design choices: (1) a strong fixed Base is a meaningful ranking reference; (2) separately scored relationship history permits analysis of short-term, long-term, and popularity evidence; and (3) development-supervised relative-utility prediction tests whether this specialist's conditional contribution informs pre-outcome decisions. Do not claim model-independent intrinsic evidence value or causal identification.
 
 ## 4.1 Strong sequential base recommenders
 
-Describe the two reference bases:
-
-- KuaiLive identity-aware Dual-ID sequential base;
-- official LiveRec availability-aware and repeat-aware base for Twitch.
-
-Use same-protocol comparator results only to establish credible strong references. Avoid SOTA or leaderboard claims.
+Describe KuaiLive Dual-ID with room and streamer branches, candidate-wise standardization, and room-level prediction target. For Twitch, describe official LiveRec with context and repeat components enabled, the 16-interaction main input, and temporal streamer availability. Preserve separate base training for different context lengths and do not treat changing input length as an isolated visibility intervention. Leave SOTA/comparator results to Sections 5–6.
 
 ## 4.2 Transparent relationship-memory specialist
 
-Use the frozen transferred specialist score:
+Use the fixed score
 
 \[
-0.45\,Short+0.45\,Long+0.10\,Popularity.
+s_M=0.45\,Short+0.45\,Long+0.10\,Popularity.
 \]
 
-Explain each component and deterministic tie-breaking. State explicitly that this formula is an interpretable specialist instantiation, not the novelty claim and not an intrinsic measure of relationship evidence quality.
+Define Short as the maximum exponentially decayed strength over at most ten most recent visits (decay scale three); Long as creator count normalized by the user's highest creator count; Popularity as log1p train-eligible counts scaled over observed creators. Explain deterministic ties and room-to-streamer mapping. An unavailable target-specific relationship may still yield a nonzero popularity score.
+
+**History timing must follow the relevant protocol.** Primary Twitch P1.2/P1.3 event exports reconstruct pre-target history using interaction start strictly before target start; popularity is trained on rows whose stop occurs before the training boundary. Auxiliary strict-split analysis additionally filters its history pool by stop before split end, then start before target. These two rules must not be silently conflated. Neither rule by itself establishes that every previously started interaction was completed at target time; state the historical observability assumption carefully and distinguish it from a fully audited real-time deployment.
+
+Present the weighted specialist as a transparent evidence carrier, not a new memory network or an intrinsic information-value function.
 
 ## 4.3 Base-relative relationship-evidence states
 
-For base context length `L`, define:
+Operationalize target-relative visibility \(V_L(x)\) in the base input and relationship presence \(H(x)\) in protocol-eligible history. The mutually exclusive and exhaustive states are represented (shorthand for input-visible, not proven learned internally), recoverable-but-unrepresented, and unavailable. Do not assume universal utility signs.
 
-- `V_L(x)=1` if the target creator appears in the base-visible input sequence;
-- `H(x)=1` if the target creator exists in canonical pre-target history outside that visible sequence.
+State and target-relative interaction distance are retrospective analysis variables, never selector inputs. The exact history-eligibility rule should match the platform and analysis protocol.
 
-| Empirical state | `V_L(x)` | `H(x)` | Interpretation |
-|---|---:|---:|---|
-| recent-visible | 1 | any | represented evidence |
-| long-horizon-only | 0 | 1 | recoverable but unrepresented evidence |
-| unseen | 0 | 0 | unavailable target-specific evidence |
+## 4.4 Observable features and conditional relative-utility estimation
 
-These states form a mutually exclusive and exhaustive analysis partition and are never selector features. Do not assign universal utility signs to them.
+Specify six history descriptors and eight Base-score descriptors for the 14-feature Twitch estimator. Score descriptors are statistics, not calibrated uncertainty probabilities. Temporal regularity uses a 144-step phase. The top-10/top-11 margin requires at least 11 eligible candidates; the export checks this.
 
-## 4.4 Observable features and conditional relative-utility estimator
+State complexity uses percentile transforms derived from the full **outcome-free DEV feature distribution** and shared across OOF regression folds, not fold-specific empirical distribution estimates. Frozen DEV references are applied to TEST. Describe HGB configuration (200 iterations, learning rate 0.05, depth 3, minimum leaf size 50, L2 regularization 1). Five-fold OOF DEV predictions support **supervised threshold selection**, not an unbiased evaluation of the learned threshold. Train the final estimator on DEV; freeze estimator, features, transforms and threshold before untouched TEST.
 
-Estimate `\hat\eta_r(z)` using only serving-observable user/history summaries, candidate descriptors where permitted, and base-confidence features. Do not include target labels, realized utility, relationship-state labels, or analysis-only context-distance variables.
+Distinguish the two kinds of transfer:
+- **KuaiLive candidate-regime strict transfer:** sampled-active estimator and threshold retained under full-active candidate construction, versus separately developed native full-active policy.
+- **Twitch cross-platform validation:** Memory structure and weights reused, but the utility estimator and threshold fitted on Twitch DEV. This reproduces the principle across platforms; it is not zero-shot transfer of gate parameters.
 
-The HGB implementation is operational rather than the source of novelty. Emphasize ranking quality under exact budget; absolute calibration matters only for explicit threshold/cost deployment.
+The primary Utility selector uses a development-frozen pointwise threshold. Its held-out quality depends on decision utility and score-scale stability, unlike offline equal-budget ranking controls that depend only on score ordering.
 
-## 4.5 Difficulty control, Oracle, and serving interpretation
+## 4.5 Specialist selection and matched-budget controls
 
-- **Primary Utility:** development-selected and frozen threshold, with realized held-out invocation count and rate reported.
-- **Difficulty:** use the same observable information and matched model family where feasible; select offline top-`m` cases where `m` is the realized Utility invocation count.
-- **Oracle:** use offline top-`m` realized `Δ_m` values as a hindsight upper bound under the same budget.
-- **Serving interpretation:** report base cost + estimator overhead + invoked-specialist cost, latency/throughput, and memory/cache footprint. Do not imply that the paper directly optimizes a calibrated event-dependent cost model unless such an experiment is explicitly performed.
+Describe serving and offline evaluation without rederiving Section 3. Serving-like execution calculates the Base and observable features before conditionally invoking the specialist; offline analysis scores both rankings.
+
+- **Utility:** DEV-frozen threshold, with realized held-out invocation count.
+- **Difficulty:** HGB trained on Base loss using the same observable feature family; select offline top-m predicted difficulty cases matching Utility's realized count.
+- **Oracle:** offline top-m realized specialist-minus-base utility, never deployable.
+
+Move extensive freeze chronology, base comparisons, statistical inference, and hardware metrics to Sections 5–6 or Supplementary. Avoid claiming calibrated event-cost optimization or a deployed real-time system.
 
 ---
 
@@ -616,18 +617,7 @@ Avoid introducing new limitations, literature, or claims in the Conclusion.
 
 ## Figure 1 — Base-relative evidence valuation framework
 
-Show:
-
-- strong finite-context base;
-- transparent relationship-memory specialist;
-- analysis-only evidence states;
-- serving-observable `Z` feeding `\hat\eta_r(z)`;
-- specialist-minus-base utility supervision offline;
-- development-frozen Utility threshold as the primary scientific policy and realized held-out invocation count;
-- offline exact-matched-budget Difficulty/Oracle controls on a separate evaluation branch;
-- cost-sensitive threshold only as a secondary deployment interpretation.
-
-Visually separate offline supervision/analysis variables from online selector inputs to reinforce leakage safety.
+Show (i) eligible context and fixed Base ranking, (ii) persistent user–creator relationship history feeding the transparent Short / Long / Popularity specialist when invoked, and (iii) a separate offline supervision/diagnostic path: target plus two rankings supply \(\Delta_m\), while target-relative history supplies \(S_L\). The online selector uses observable \(Z\) and a DEV-frozen utility threshold only. Never draw target-relative diagnostic states as online gate features or infer a deployed online budget from offline matched controls.
 
 ## Table 1 — Regime performance and fixed-composition decomposition
 
