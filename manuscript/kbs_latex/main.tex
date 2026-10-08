@@ -21,6 +21,10 @@
 
 \author{Anonymous Authors}
 
+\begin{abstract}
+Persistent user--creator relationships offer information beyond the bounded histories of sequential recommenders, but their presence does not ensure additional ranking utility. We examine when a fixed, transparent relationship-memory specialist improves upon an established recommendation base, and whether its conditional contribution can guide selective invocation. We define event-level Base-relative utility as the specialist-minus-base ranking difference and study its variation across target-relative history states and candidate environments. In a frozen Twitch/LiveRec evaluation of 44,221 events, the specialist alone underperforms the base (NDCG@10: 0.53980 versus 0.58211), whereas a development-trained relative-utility selector reaches 0.58983, improving on the base by 0.00772 (95\% paired confidence interval [0.00641, 0.00903]) and an equal-invocation-count base-difficulty selector by 0.00644. Retrospective evidence-state analysis identifies substantial heterogeneity in specialist benefit. In complementary KuaiLive diagnostics on 10,222 matched events, the relative-utility difference changes sign between sampled-active and full-active candidate ranking; the paired shift averages 0.08508 across three independently trained checkpoint pairs. A two-factor score-protocol decomposition attributes most of this shift to ranked-candidate membership rather than the score-normalization reference. Together, the results support evaluating relationship evidence relative to the incumbent model and operating context before deploying it selectively. The candidate-regime diagnostics are post-hoc and do not establish causal effects or independent policy validation.
+\end{abstract}
+
 \begin{keyword}
 live-streaming recommendation \sep sequential recommendation \sep relationship memory \sep evidence valuation \sep selective prediction
 \end{keyword}
@@ -35,7 +39,7 @@ Recent approaches combine collaborative, semantic, structural, and temporal info
 
 Live-streaming recommendation is a natural test bed because candidate availability varies over time and user--creator relationships often persist across sessions \cite{rappaz2021liverec}. KuaiLive provides room-session and streamer identities, while Twitch/LiveRec provides availability-aware streamer recommendations \cite{qu2026kuailive,rappaz2021liverec}. We construct a transparent relationship-memory specialist from past user--creator interactions and study its contribution relative to strong sequential bases. Target-specific relationships may already be visible in the base input, appear only in longer history, or have no eligible prior occurrence. These retrospective states permit analysis of heterogeneity; actual invocation is decided from pre-outcome features.
 
-Two empirical observations motivate the evaluation. In a post-hoc KuaiLive comparison using one fixed checkpoint pair and fusion coefficient, the specialist's aggregate advantage changes sign between sampled-active and full-active candidate protocols, even though test events and evidence-state membership are paired. On a separately frozen Twitch/LiveRec held-out evaluation, a development-trained relative-utility selector improves ranking over the base and a matched-count base-difficulty control. The former examines sensitivity to the candidate environment; the latter tests whether predicting an expert's \emph{relative benefit} is more useful than identifying difficult base cases. A separate factorial score analysis shows that the ranked candidate universe accounts for most of this paired regime shift under a two-order algebraic allocation; the reversal also persists across three trained checkpoint pairs.
+The evidence follows a complementary sequence. On Twitch/LiveRec, retrospective history-state analysis reveals substantial variation in the specialist's utility, while an independently frozen held-out evaluation tests whether pre-outcome utility predictions translate this variation into better selection than base-difficulty estimates. On KuaiLive, paired candidate-regime comparisons show that even with fixed relationship evidence, the measured specialist advantage depends strongly on the ranking environment. A four-cell score-protocol analysis and three independent base-training seeds further delimit this dependence. The first evaluation establishes decision value; the second examines its operating-context sensitivity, rather than providing a second untouched policy trial.
 
 The contributions are:
 \begin{itemize}
@@ -334,16 +338,72 @@ The KuaiLive Dual-ID branches use ReChorus SASRec encoders with 64-dimensional e
 \section{Experimental Results}
 \label{sec:results}
 
-\subsection{Candidate-Regime Sensitivity of Base-Relative Memory Utility}
-\label{sec:results-regimes}
+We organize the evidence around three questions: whether relationship memory has systematic but heterogeneous relative utility, whether that utility can inform a pre-outcome selection decision, and how its measured value depends on the candidate regime. The untouched Twitch policy evaluation is reported separately from subsequent KuaiLive protocol diagnostics.
 
-The KuaiLive sampled-active and full-active evaluations yield different rankings of the fixed relationship-memory specialist relative to the Dual-ID base. To separate candidate-protocol variation from differences between historically trained base configurations, we first evaluate identical user--time--target events with a single fixed Room-SASRec/Streamer-SASRec checkpoint pair and one development-selected fusion coefficient ($\alpha_{\mathrm{room}}=0.125$). For the 10,222 paired test events, Memory--Base NDCG@10 is $-0.04120$ under sampled-active ranking (Base $0.60709$, Memory $0.56589$) and $+0.04631$ under full-active ranking (Base $0.38571$, Memory $0.43202$). The mean full-minus-sampled contrast is $+0.08751$ (95\% user-paired bootstrap interval $[+0.08210,+0.09326]$ in the factorial replay). Both absolute scores decrease when more candidates are ranked, but the base decreases more; the observed sign reversal is therefore a change in \emph{relative}, not absolute, specialist utility.
+\subsection{Heterogeneous Utility of Relationship Memory}
+\label{sec:results-heterogeneity}
 
-Table~\ref{tab:results-factorial} crosses the ranked candidate set with the reference population used for the two branch-wise score standardizations, while holding raw model scores, fusion weight, user history, target and Memory rule fixed. The original sampled/sampled and full/full cells reproduce the preceding paired contrast. The mixed cells preserve ranking candidates while changing normalization moments, or preserve normalization moments while changing candidates. Their two-order allocation (Eq.~\eqref{eq:factorial-allocations}) assigns $+0.08827$ of the mean shift to the candidate-membership factor (95\% CI $[+0.08287,+0.09397]$) and $-0.00076$ to the normalization-reference factor (95\% CI $[-0.00117,-0.00036]$). The allocations sum exactly to $+0.08751$. Thus, in this specified evaluation, the change in the \emph{ranked candidate universe} dominates the standardized-score reference change. These are descriptive, path-averaged algebraic allocations rather than independently identified causal effects.
+Always applying the fixed relationship-memory specialist is not beneficial on the Twitch held-out test: its NDCG@10 is $0.53980$, compared with $0.58211$ for LiveRec. The aggregate loss, however, conceals pronounced differences between target-relative evidence states. The states were defined for development analysis before the one-shot test evaluation and use the observed target only for retrospective classification.
+
+Table~\ref{tab:results-evidence-states} compares state-conditional Memory-minus-Base utility on development and test data. For targets whose creator occurs only in eligible history beyond the Base input (\emph{recoverable}), the held-out difference is $+0.22045$; for targets with no eligible relationship (\emph{unavailable}), it is $-0.18215$. The \emph{represented} group shows a smaller negative difference of $-0.01935$. The directions match the development patterns. These results demonstrate conditional heterogeneity, not a universal ranking hierarchy among states: the states depend on the particular Base, eligible history and target, and their labels are unavailable to the serving selector.
 
 \begin{table}[t]
 \centering
-\caption{Memory--Base NDCG@10 under a $2\times2$ candidate-membership and score-normalization-reference comparison (10,222 paired KuaiLive test events; checkpoint seed 20260918). Rows specify ranked items; columns specify the z-score reference population.}
+\caption{Twitch relationship-evidence states: Memory-minus-Base NDCG@10. The test population contains 44,221 events; intervals use paired user-level resampling. State labels are retrospective.}
+\label{tab:results-evidence-states}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}Xrrr@{}}
+\toprule
+Evidence state & Test events & DEV difference & TEST difference [95\% CI] \\
+\midrule
+Represented & 24,285 & $-0.01995$ & $-0.01935$ [$-0.02234,-0.01633$] \\
+Recoverable & 5,539 & $+0.23097$ & $+0.22045$ [$+0.21140,+0.23001$] \\
+Unavailable & 14,397 & $-0.19562$ & $-0.18215$ [$-0.18681,-0.17715$] \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+This separation motivates a decision problem rather than a rule that invokes Memory whenever any past relationship exists. The more relevant question is whether features available \emph{before} a target is observed can forecast the specialist's incremental utility.
+
+\subsection{Decision Value of Predicting Relative Utility}
+\label{sec:results-decision}
+
+The Utility selector and its threshold are fitted on Twitch development data, then evaluated once on 44,221 untouched test events. The frozen pointwise policy invokes Memory on 6,650 events (15.04\%). Table~\ref{tab:results-twitch-policy} reports the test outcomes. Utility reaches $0.58983$ NDCG@10, exceeding the base by $0.00772$ (95\% paired interval $[+0.00641,+0.00903]$). At the same \emph{realized} invocation count, selecting events by predicted Base Difficulty yields $0.58340$, so Utility gains $+0.00644$ (95\% paired interval $[+0.00528,+0.00762]$). The hit-rate differences are also positive: Utility minus Base is $+0.00945$ and Utility minus Difficulty is $+0.01196$ at cutoff 10.
+
+\begin{table}[t]
+\centering
+\caption{Frozen Twitch/LiveRec one-shot test comparison ($n=44{,}221$). Difficulty and Oracle select the same 6,650 events as the frozen Utility policy for retrospective exact-count comparison; only Oracle uses test outcomes to select events.}
+\label{tab:results-twitch-policy}
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Method & NDCG@10 & HR@10 & Memory invocations \\
+\midrule
+Always-Base & 0.58211 & 0.75503 & 0 \\
+Always-Memory & 0.53980 & 0.68402 & 44,221 \\
+Utility (DEV-frozen) & \textbf{0.58983} & \textbf{0.76448} & 6,650 \\
+Difficulty (exact count) & 0.58340 & 0.75252 & 6,650 \\
+Oracle (hindsight) & 0.64806 & 0.80455 & 6,650 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The distinction between utility and difficulty is visible in event composition. In development, Utility enriches recoverable relationships by approximately $2.72$ times their prevalence, compared with $1.67$ times for Difficulty; Difficulty disproportionately selects unavailable events ($1.91$ times, versus approximately $1.03$ times for Utility). These state labels explain selected events \emph{after} the fact; they are not selector inputs. The comparison supports using anticipated specialist benefit rather than generic base loss as the routing target.
+
+The improvement is nevertheless modest relative to a hindsight ceiling. The Oracle reaches $0.64806$ NDCG@10 using test labels, whereas the correlation between predicted and realized specialist utility is only approximately $0.173$ (Spearman). The frozen Utility gain captures about 11.7\% of Oracle's gain over Base. The results establish a positive offline decision effect, not accurate recovery of per-event utility or optimal real-time routing.
+
+\subsection{Candidate-Regime Dependence of Relative Utility}
+\label{sec:results-regimes}
+
+To assess whether the same specialist has a stable value across ranking environments, we compare 10,222 matched KuaiLive user--time--target events under sampled-active and full-active candidates. With one fixed Dual-ID checkpoint pair and a sampled-development-selected fusion coefficient ($\alpha_{\mathrm{room}}=0.125$), Memory-minus-Base NDCG@10 changes from $-0.04120$ (sampled) to $+0.04631$ (full), a paired shift of $+0.08751$ (95\% user-bootstrap interval $[+0.08210,+0.09326]$ in the factorial replay). Both methods' absolute NDCG values are lower under full-active ranking, but the Base decreases more; the reversal concerns relative utility, not an absolute improvement in Memory.
+
+We decompose this change using the four candidate-membership/score-reference configurations defined in Section~\ref{sec:exp-regimes}. Table~\ref{tab:results-factorial} shows that changing the ranked candidate set while retaining either normalization reference has a much larger effect than changing the normalization reference within a fixed candidate set. Under the two-order additive allocation of Eq.~\eqref{eq:factorial-allocations}, the candidate-membership term is $+0.08827$ (95\% CI $[+0.08287,+0.09397]$), whereas the normalization-reference term is $-0.00076$ (95\% CI $[-0.00117,-0.00036]$). The terms sum to the $+0.08751$ overall shift. These are score-protocol-specific descriptive allocations, not experimentally identified causal effects of candidate membership.
+
+\begin{table}[t]
+\centering
+\caption{KuaiLive Memory-minus-Base NDCG@10 in a four-cell candidate-protocol analysis (seed 20260918; $n=10{,}222$). Rows denote ranked candidates; columns denote the z-score reference. Original protocols are on the diagonal.}
 \label{tab:results-factorial}
 \footnotesize
 \setlength{\tabcolsep}{6pt}
@@ -357,28 +417,68 @@ Full-active & $+0.04761$ & $+0.04631$ \\
 \end{tabular}
 \end{table}
 
-The direction of the candidate-regime contrast is robust across the three independently trained checkpoint pairs (Table~\ref{tab:results-seeds}). Sampled-active Memory--Base is negative and full-active Memory--Base is positive for all three seeds. The mean paired shift across seeds is $+0.08508$, with a between-seed sample standard deviation of $0.00212$ (range $+0.08363$ to $+0.08751$). The mean candidate-membership allocation is $+0.08563$, compared with $-0.00056$ for normalization-reference changes. The three training realizations support directional stability within this model configuration but are insufficient to characterize a wider seed distribution; each seed's user-bootstrap interval and the across-seed standard deviation describe different sources of variability.
+The reversal also persists for three independently trained Dual-ID checkpoint pairs with unchanged Memory, data and fusion coefficient. Across seeds 20260918, 20260919 and 20260920, the paired shifts are $+0.08751$, $+0.08363$ and $+0.08408$, respectively (mean $+0.08508$, between-seed sample standard deviation $0.00212$). All three show negative sampled and positive full-active specialist-minus-base utility. This is limited initialization robustness, not an independent data replication.
+
+The target-relative evidence-state partition stays fixed across paired candidate protocols (represented 4,589; recoverable 206; unavailable 5,427). Across seeds, represented and unavailable groups contribute $+0.03869$ and $+0.04860$ to the mean shift, while recoverable cases contribute $-0.00222$. Thus the aggregate reversal is not explained by more recoverable histories or greater recoverable-state benefit. Candidate number and composition are still intertwined within the membership term. Full seed-by-state estimates and checkpoint identities are retained in the supplementary reproducibility record.
+
+\subsection{Robustness and Alternative Explanations}
+\label{sec:results-robustness}
+
+A development-only feature-family ablation distinguishes the information contributed by user history from that contributed by Base-score confidence statistics. With 6,563 selected development events held constant, history descriptors alone yield a Utility-over-Base gain of $+0.00372$, Base-score descriptors alone $+0.00160$, and all 14 features $+0.00838$ NDCG@10 (Table~\ref{tab:results-ablation}). The combined model also has the highest out-of-fold Spearman correlation with realized relative utility ($0.18990$). This supports complementary predictive information in the two feature families without claiming that the group effects are additive or that the ablation results constitute another held-out test.
 
 \begin{table}[t]
 \centering
-\caption{Candidate-regime shifts across independently trained Dual-ID checkpoint pairs. All use identical input data, Memory definitions, sampled/full evaluation targets and room fusion coefficient $0.125$. Differences are NDCG@10 units.}
-\label{tab:results-seeds}
+\caption{Twitch development-only five-fold OOF feature-family comparison at a common selection count of 6,563 events ($n=46{,}878$). Gains are relative to the same development Base, not test-set outcomes.}
+\label{tab:results-ablation}
 \footnotesize
 \setlength{\tabcolsep}{6pt}
 \begin{tabular}{@{}lrrr@{}}
 \toprule
-Training seed & Sampled Memory--Base & Full Memory--Base & Full$-$Sampled \\
+Feature family & Features & Utility--Base & OOF Spearman \\
 \midrule
-20260918 & $-0.04120$ & $+0.04631$ & $+0.08751$ \\
-20260919 & $-0.05157$ & $+0.03206$ & $+0.08363$ \\
-20260920 & $-0.04904$ & $+0.03505$ & $+0.08408$ \\
+History only & 6 & $+0.00372$ & 0.14791 \\
+Base scores only & 8 & $+0.00160$ & 0.09109 \\
+Combined & 14 & \textbf{$+0.00838$} & 0.18990 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Evidence-state prevalence is unchanged by the paired candidate swap: represented, recoverable-but-unrepresented and unavailable states account for 4,589, 206 and 5,427 users, respectively. Across the three seeds, their average full-minus-sampled Memory--Base shifts are $+0.08618$, $-0.10997$ and $+0.09155$. Their prevalence-weighted contributions to the average overall shift are $+0.03869$, $-0.00222$ and $+0.04860$, summing to $+0.08508$. Consequently, the aggregate reversal does not arise from increased prevalence of recoverable histories, nor from an increased conditional benefit in that small group. It is associated chiefly with increased represented-state relative utility and reduced, though generally still negative, unavailable-state penalties. The recoverable group comprises only 206 events, warranting particular caution in its interpretation.
+A separate Twitch development analysis varies Base input length ($L=8,16,32$) while retaining the canonical Memory rule. The corresponding Base NDCG@10 values are $0.52619$, $0.57185$ and $0.59663$, while Memory remains $0.52170$. Among matched recoverable-to-represented transitions, the Memory-minus-Base differences decline by approximately $0.42$--$0.45$. Since each Base is trained separately, context length and Base ranking quality change together; this comparison is consistent with greater Base absorption of recent relationship information but cannot identify a visibility-only effect.
 
-These comparisons isolate trained-checkpoint and fusion-parameter identities, but neither candidate-set contrasts nor their factor allocations identify a causal effect on user behavior or intrinsic history value. The factorial and seed analyses reuse an already examined test population and are therefore reported as post-hoc supporting evidence; they are not independent held-out validation of the selective policy. Details of model identity, per-user paired outcomes and robustness calculations are retained in the accompanying reproducibility records.
+Competitiveness comparisons use KuaiLive's common-candidate strong-base controls and Twitch's established LiveRec reference (Section~\ref{sec:exp-comparators}); the complete comparator and sensitivity tables remain in supplementary materials. The seed results in Section~\ref{sec:results-regimes} address one additional source of variation, while alternative negative-sampling sizes and draws remain an unexecuted sensitivity analysis rather than evidence supporting the current findings.
+
+\subsection{Computational Considerations}
+\label{sec:results-efficiency}
+
+Selective use does not necessarily reduce total inference time, since estimating relative utility and generating Base features incur overhead. In a separate CPU single-query benchmark with 575 KuaiLive candidates, three host-runner replicas yielded mean latencies of approximately $0.76$\,ms for the Dual-ID reference and $2.34$\,ms for an HGB-based selective pipeline at a nominal 14.25\% Memory invocation budget. These timing results characterize that measured implementation, not the Twitch held-out policy or a deployed service. The frozen Twitch invocation rate of 15.04\% establishes how often the specialist is selected, not its online cost advantage. No claim is made regarding causal effects on engagement, viewing duration, transactions or revenue.
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Operational Value Rather Than Intrinsic Evidence Value}
+
+The measured difference between a relationship-memory specialist and a base recommender depends on their concrete scoring rules, candidate context and observation history. A relationship record may be genuine and predictive in isolation yet provide little incremental utility when the base already captures similar information. Conversely, an overall weak specialist can offer useful rankings on a subset of events. The value evaluated here is consequently \emph{Base-relative and operational}: it describes the benefit of choosing between two specified rankings, not the information-theoretic value of a user--creator relationship.
+
+\subsection{Interpreting History Visibility and Candidate Dependence}
+
+The positive recoverable-state contrast in the frozen Twitch test is consistent with complementary older history that falls outside the base's bounded input. That interpretation is limited by the fact that state labels are retrospective and context-length comparisons retrain the base. In KuaiLive, the paired candidate-regime reversal occurs with unchanged state prevalence and is driven mainly by represented and unavailable cases, while recoverable cases contribute in the opposite direction. It therefore cannot be attributed to recovering a greater quantity of long-horizon relationships. In the factorial diagnostic the normalization-reference allocation is small, but ranked-candidate count, composition and difficulty remain bundled within the candidate-membership factor. Neither decomposition supplies an isolated causal mechanism.
+
+\subsection{Relative Utility as a Decision Target}
+
+The frozen Twitch comparison shows that estimating Memory's expected gain over Base can improve selection more than estimating generic Base difficulty at the same invocation count. The distinction matters because errors made by Base are not necessarily errors that the specialist can correct. Development-only feature ablations indicate that past behavior and Base ranking descriptors both contribute to relative-utility prediction. This is an application-specific decision principle, not a new general learning-to-defer theorem or a claim that HGB is intrinsically optimal. The gap to the hindsight Oracle and low rank correlation motivate better-calibrated utility estimates without inviting test-driven policy revision.
+
+\subsection{Validity Boundaries}
+
+The Twitch policy was chosen on development data and evaluated once on its frozen test population. Subsequent analyses of its target-relative subgroups are explanatory, even when their development-defined patterns recur on held-out observations. The KuaiLive factorial and independent-seed comparisons reuse a previously examined test population and thus serve as supporting post-hoc diagnostics, not new confirmatory trials. Three seeds cannot establish robustness to arbitrary training configurations or datasets. Candidate-set interventions are not randomized, and one-positive logged evaluation treats unobserved candidates as negatives without establishing their preference labels. Twitch records reflect ten-minute crawl observations rather than exact presence intervals; KuaiLive derives candidate availability from room metadata. Finally, the gate is separately trained per platform, so the evidence concerns portability of the \emph{valuation procedure}, not zero-shot policy transfer. No online experiments establish user or commercial impact.
+
+\subsection{Implications for Knowledge-Based Recommendation}
+
+The practical implication is to assess the \emph{incremental decision value} of a specified evidence-based specialist relative to a credible incumbent, rather than assuming more history is inherently useful. Candidate-regime definition and base quality must be treated as part of that assessment. Future work can separate candidate hardness from candidate count, test independent data and new specialist families, and evaluate calibrated routing objectives under measured serving costs. These directions remain outside the current experimental claims.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+Relationship memory does not have a uniform ranking advantage over a strong sequential base. Its conditional utility varies with eligible historical evidence and the candidate environment. A development-trained estimate of specialist-minus-base utility improves frozen Twitch recommendation outcomes despite the specialist's inferior aggregate performance, while paired KuaiLive diagnostics show reproducible regime sensitivity under fixed expert and training protocols. These results motivate conditional assessment and selective use of relationship evidence. Their scope is operational and offline: retrospective evidence states, post-hoc candidate analyses and limited seed tests do not establish causal mechanisms or zero-shot policy generalization.
 
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
