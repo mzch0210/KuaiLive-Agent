@@ -302,74 +302,33 @@ Move extensive freeze chronology, base comparisons, statistical inference, and h
 
 # 5. Experimental Setup
 
-**Purpose.** Make the empirical comparison auditable, distinguish development choices from frozen tests, and state which evidence supports which claim. This is the formal experiment-methods section: omit run diaries, retrospective research decisions, workflow repairs, and numerical conclusions.
+**Publication function.** Present an intelligible and reproducible research design, not a chronology of experiment development. Maintain a clear distinction between the originally frozen policy evaluation and subsequent post-hoc diagnostic evidence, without importing run logs or reviewer-defense language into the main text. The canonical English LaTeX Section 5 has been structurally rewritten and compiled; this outline must follow that five-subsection design.
 
-## 5.1 Datasets, prediction tasks and temporal splits
+## 5.1 Datasets and Prediction Tasks
 
-### 5.1.1 KuaiLive
+Describe KuaiLive (next-room targets, streamer-level memory identity, per-user leave-last-two-out, 10,222 DEV/TEST matched events, sampled-active 575-room versus full-active candidates) and Twitch/LiveRec (next-streamer targets, ten-minute crawl observations, chronological availability, 46,878 DEV and 44,221 TEST targets, 16-step base context). Explain the training-only popularity prior, target-eligible past history and distinct observation semantics, avoiding unwarranted negative-preference or precise viewer-session claims.
 
-- Source, release identifier, shop-domain restriction, filtering, event and user counts, and precise recommendation unit (next live **room** with streamer-based relationship evidence).
-- Room/streamer identity maps; leave-one-out chronology; training, development, and test eligibility.
-- Describe timestamp precision, activity windows and the definition of a legal live-room candidate.
-- Report the sampled-active and full-active protocols on identical underlying user–time–target events but different candidate sets, without equating their ranking tasks.
+**Table 1 — Primary datasets and evaluation settings.** One row per platform; columns identify ranking unit, target-based split and candidate construction, and DEV/TEST event counts. Supplementary protocol records complete TRAIN/DEV/TEST scale and date/candidate distributions once independently audited.
 
-### 5.1.2 Twitch / official LiveRec
+## 5.2 Baselines and Compared Methods
 
-- Public data lineage, ten-minute crawl-step start/stop semantics, candidate availability, chronological splits, official base configuration, and 16-step main input.
-- Explicitly distinguish primary pre-target history eligibility from auxiliary strict-split eligibility; do not call crawl start/stop exact viewer arrival/departure.
-- Separate DEV-only exploratory/diagnostic analyses from the one-shot, frozen-policy held-out TEST.
+Identify the strong platform-specific references: KuaiLive Dual-ID SASRec (with room and streamer branches) and Twitch LiveRec, supported by KuaiLive popularity, single-branch SASRec, GRU4Rec and ContraRec--BERT4Rec controls. Cite Section 4 for Memory's fixed Short/Long/Popularity definition instead of rederiving it. Compare Always-Base, Always-Memory, selective Utility, equal-count Difficulty and hindsight Oracle. State the Oracle's hindsight status once and explain that learned gates are independently fit on each platform's DEV set.
 
-**Table 1 — Datasets and evaluation protocols.** Rows for KuaiLive sampled-active, full-active, strict temporal, and Twitch/LiveRec; columns for user/event counts, target identity, chronological split, candidate generation, Base context, and role of the experiment. Insert only source-audited quantities.
+**Table 2 — Compared methods and experimental roles.** Organize rows by scientific purpose, not by the execution status of workflows.
 
-## 5.2 Models, fixed specialist and controlled comparisons
+## 5.3 Experimental Protocols
 
-### 5.2.1 Strong Base reference
+Briefly describe data-split model fitting, DEV-selected fusion and Utility thresholds, main one-event-per-user OOF KFold versus global-time user GroupKFold, test-time parameter freezing, and dataset-specific history-feature reference transformations. Organize regime experiments as native sampled/full, strict transfer, and a paired same-checkpoint candidate-swap with matched users, fixed weights/alpha/history, full-set raw scores and sampled subsetting. Define the paired delta by Equation eq:paired-regime-shift. **One necessary inference boundary:** the paired swap changes candidate membership and candidate-wise normalization together, and was a retrospective supporting diagnostic rather than a new untouched test. Keep hashes, alphas, running times and artifacts in the Supplementary Material.
 
-- KuaiLive: SASRec room branch, SASRec streamer branch, candidate-wise z-standardization and DEV-selected fusion. State checkpoint provenance and distinguish a fixed-alpha candidate-swap diagnostic from a separately fitted full-active-native baseline.
-- Twitch: official LiveRec Base, including context and repeat components. Additional comparators establish baseline credibility, not SOTA.
-- Explain that Base-relative deltas must be indexed by the exact \\(B, M, r, D, \\mathcal{C}\\) tuple (model, specialist, regime, data split and candidate protocol).
+## 5.4 Evaluation Metrics and Statistical Analysis
 
-### 5.2.2 Relationship-memory specialist and decision policies
+Specify NDCG@10 (one target per event), HR@10, invocation frequency, per-user paired contrasts, 95% percentile bootstrap and user-cluster resampling for multi-event data. The original candidate-swap uses 3,000 user-resampling replicates. Distinguish between-user bootstrap uncertainty and independent checkpoint-seed variation; exploratory subgroups do not warrant unadjusted multiple-confirmation claims.
 
-- Cite Section 4 rather than rederive Short/Long/Popularity, evidence states, features, or mathematical objective.
-- Always-Base and Always-Memory; DEV-frozen Utility; DEV-fitted Difficulty; offline exact-count Difficulty and Oracle. Keep online policy and batch offline controls conceptually separate.
-- Include strong Base comparators and a simple always-on baseline in the common-protocol comparison.
+## 5.5 Implementation Details
 
-**Table 2 — Comparison methods and permissions.** Fixed/learned, training source, observable inputs, threshold/budget selection, whether TEST outcomes are accessed, and whether deployable.
+Report only necessary core settings: ReChorus SASRec base (64-dimensional embeddings, one attention layer, four heads, length 50), Twitch LiveRec context/repeat configuration (length 16), and HGB estimator configuration (200 iterations, 0.05 rate, depth 3, leaf minimum 50, regularization 1). Full implementation commits, data preprocessing logs, run IDs, checkpoint manifests and extended robustness matrices belong in the Supplementary Material. Do not suggest that offline invocation rate establishes deployment latency.
 
-## 5.3 Development training, pre-specification and freeze
-
-1. Train each Base from training data; choose fusion/estimator hyperparameters using DEV only.
-2. Derive history/score features that exist at decision time; derive historical percentiles using outcome-free full DEV inputs only.
-3. Produce five-fold OOF DEV estimates for threshold selection; fit final model on DEV; freeze parameters and threshold before held-out TEST.
-4. On TEST, apply the frozen pointwise threshold. Its realized invocation count \\(m\\) determines only the *offline* matched-count controls; it is not an online guaranteed quota.
-5. Report the canonical one-shot test separately from subsequent diagnostics; no diagnostic may be used to re-tune the frozen TEST policy.
-
-Pre-specified development-to-test replication and one-shot test are **confirmatory in the stated frozen protocol**; post-hoc candidate-swap, context-capacity comparison and fine-grained stratification are **supporting diagnostics**, not independent confirmatory trials.
-
-## 5.4 Identification and fairness of candidate-regime comparisons
-
-Two distinct estimands must be described and never pooled:
-
-- **Historically evaluated regime comparison:** previously frozen sampled-active and native full-active results. The native full-active setting may have its own DEV-selected fusion coefficient; this comparison characterizes operational regime dependence but does not fully isolate candidate-set change from configuration differences.
-- **Same-checkpoint paired candidate-swap diagnostic (COMPLETED; supporting post-hoc):** train one fixed room+streamer checkpoint pair on the frozen split; select a single fusion coefficient from sampled DEV; for each same TEST user–time–target event score all active rooms once; obtain sampled scores by subsetting those exact raw room/streamer scores and re-standardizing *within* each candidate set; evaluate the same fixed relationship specialist in both regimes. Require sampled \\(\subseteq\\) full-active, identical test identities, model hashes, target/room mapping, history and population. Use paired user bootstrap on \\(\Delta_{\\mathrm{full}}-\Delta_{\\mathrm{sampled}}\\), overall and by evidence state.
-
-The paired diagnostic **completed successfully** on [GitHub Actions #37746520476](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37746520476), with artifact `11536890439`, `n=10,222`, `alpha_room=0.125` selected on sampled DEV, a new frozen room/streamer checkpoint pair, and 3,000 user-paired bootstrap replicates. All reported identity, candidate-set-inclusion, model consistency and sign-neutral validation guards passed. Candidate membership **and within-candidate score normalization** change together. This is an **observational, protocol-controlled candidate replacement diagnostic**, not randomized causal identification. Accept a positive, negative or null result; never gate workflow success on a favorable sign. Retain original frozen TEST policies and records unchanged.
-
-**Important numerical provenance gate.** Historical files report *different* KuaiLive sampled Base NDCG@10 anchors (e.g. \\(0.60784\\) in the manuscript planning sheet and \\(0.61714\\) in the frozen state-decomposition evidence). Do not label these as the same experiment. Resolve by sample identity, checkpoint hashes, fusion alpha, candidate construction, and source artifact before finalizing Section 6.1. Historically reported full-active *native* and strict-transfer Base values must also be labeled separately. The new same-checkpoint result is a new diagnostic row, not an in-place replacement for frozen policy results.
-
-## 5.5 Outcomes and statistical analysis
-
-- Primary event utility: NDCG@10 with one positive candidate, reported for Base, Memory, Selective and matched-count controls; H@10 as secondary.
-- Bootstrap at the user level; report 95% intervals for *paired differences*, not independent confidence intervals subtracted after the fact.
-- Training-seed robustness: independent train seeds, mean ± SD and directional consistency; do not confuse with within-seed bootstrap precision.
-- State prevalence and state-conditional effects: exact weighted decomposition and matched identity assertions; include positive-utility fractions where informative.
-- Avoid treating repeated comparisons or DEV threshold selection as unbiased significance claims; label exploratory subgroup inference accordingly.
-- Invocations, latency, throughput and memory footprint: specify environment, evaluation batch, warmup and measurement protocol.
-
-## 5.6 Implementation and reproducibility
-
-Specify training hyperparameters, frozen upstream implementation/commit references, seed lists, hardware and evaluation scripts; provide a traceable public artifact inventory in supplementary material. Report unavailable/expired source artifacts and rebuilt replacements as separate provenance entities; never silently substitute a checkpoint with another hash.
+**Related audit:** [Sections 1–4 retrospective academic assessment](manuscript/kbs_latex/SECTIONS1-4_RETROSPECTIVE_ACADEMIC_AUDIT_2026-10-08.md). Its P0 symbol and fusion-weight consistency items remain open until checked against the entire manuscript and applied consistently.
 
 ---
 
