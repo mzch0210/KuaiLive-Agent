@@ -1,0 +1,56 @@
+\section{Base-Relative Evidence Valuation Framework}
+\label{sec:framework}
+
+We instantiate the decision formulation of Section~\ref{sec:problem} with two fixed ranking functions and a learned conditional relative-utility estimator. The base recommender supplies the default ranking and its confidence descriptors; a separately maintained relationship-memory specialist supplies an alternative ranking based on pre-outcome interaction history; and the policy determines when the specialist ranking replaces the base ranking. Diagnostic relationship states are used only for retrospective analysis.
+
+\subsection{Strong Sequential Base Recommenders}
+\label{sec:base-models}
+
+The base recommender $B$ is a trained sequential ranking model scoring the candidates legal under the specified regime. On KuaiLive, we use an identity-aware dual-branch sequential model, denoted Dual-ID, with separate room-identity and streamer-identity encoders. Its development-selected scoring mixture assigns weights $0.1$ and $0.9$ to the room and streamer branches, respectively. Live rooms are temporally bounded whereas creator identity persists across sessions. Candidate-wise outputs are evaluated under either sampled-active or full-active candidate construction. Comparisons with recurrent and self-attentive alternatives establish the credibility of the reference base under the corresponding protocol; they do not support a state-of-the-art claim.
+
+On Twitch/LiveRec, $B$ follows the official availability-aware and repeat-aware reference architecture of Rappaz et al.~\cite{rappaz2021liverec}. Both contextual and repetition components are enabled and the main sequential input contains up to 16 past interactions. At each recommendation step, only currently available streamers are eligible. The base is trained and selected under the prescribed development protocol and is then fixed for relative-utility estimation.
+
+\subsection{Transparent Relationship-Memory Specialist}
+\label{sec:memory-specialist}
+
+The specialist $M$ re-ranks the same legal candidates using pre-target interactions with persistent creators. For a candidate creator $i$, its short-term component $\mathrm{Short}(u,i,t)$ captures exponentially decayed recent visits, its long-term component $\mathrm{Long}(u,i,t)$ captures normalized historical visit frequency, and $\mathrm{Pop}(i)$ captures training-derived global popularity. The transferred specialist score is
+\begin{equation}
+s_M(u,i,t)=0.45\,\mathrm{Short}(u,i,t)
+           +0.45\,\mathrm{Long}(u,i,t)
+           +0.10\,\mathrm{Pop}(i).
+\label{eq:memory-score}
+\end{equation}
+On Twitch the short-term component uses the ten most recent visits and decay scale three; long-term visit counts are normalized within the user's history. Popularity is calculated from eligible training interactions, logarithmically transformed, and normalized. Historical computations exclude the current target and future events, and exact score ties are broken by factorized creator identifier. The specialist weights remain unchanged in the external held-out test.
+
+This transparent construction allows the underlying relationship evidence to be inspected and its components compared. We do not claim architectural novelty for Eq.~\eqref{eq:memory-score}. Accordingly, the measured $\Delta_m$ is the operational marginal value of this fixed implementation, not an intrinsic information measure of history.
+
+\subsection{Diagnostic Relationship-Evidence States}
+\label{sec:evidence-states}
+
+For the target creator $i_y$ in an evaluated event and base context length $L$, let $V_L(x)$ indicate its presence in the base-visible pre-target sequence and let $H(x)$ indicate its presence anywhere in canonical pre-target relationship history. We define
+\begin{equation}
+S_L(x)=
+\begin{cases}
+\mathrm{represented},&V_L(x)=1,\\
+\mathrm{recoverable},&V_L(x)=0,\ H(x)=1,\\
+\mathrm{unavailable},&V_L(x)=0,\ H(x)=0.
+\end{cases}
+\label{eq:relationship-states}
+\end{equation}
+Here recoverable abbreviates recoverable but unrepresented, also called long-horizon-only in the experiment exports. The partition is mutually exclusive and exhaustive. It does not imply that visible evidence is represented perfectly by the trained base or that an evidence state has a universally fixed utility sign.
+
+These target-relative states are computed retrospectively. The online selector never receives the true target, state label, target-specific recency distance, realized ranking utility, or realized specialist advantage.
+
+\subsection{Observable Relative-Utility Estimation}
+\label{sec:estimator}
+
+The regressor maps pre-outcome descriptors $z$ to $\hat{\eta}_r(z)$. In Twitch/LiveRec, fourteen features are used: six user/history descriptors (log history length, repeat rate, preference entropy, preference drift, temporal regularity, and a composite state-complexity statistic) and eight base-score descriptors (score standard deviation, range, three top-score margins, top-score standardized value, score entropy, and top-ten score mass). Confidence descriptors use only the legal candidate set. Transformations estimated on development data are applied unchanged at test time.
+
+The main predictor is a histogram-based gradient-boosted regressor with 200 boosting iterations, learning rate $0.05$, maximum depth three, minimum leaf size 50, and $\ell_2$ regularization of $1$. Its training target is development-event $\Delta_m$. Shuffled five-fold out-of-fold development predictions determine the utility threshold, after which the final model is fitted on all development events. The model family, feature definitions, transforms, and threshold are fixed before the untouched held-out test. The method seeks decision-useful utility ordering, especially in the positive tail, rather than precise event-level calibration. The KuaiLive variants likewise combine behavioral-state and base-confidence information under their regime-specific development protocols.
+
+\subsection{Selection Controls and Serving Implications}
+\label{sec:controls}
+
+The utility selector invokes $M$ when $\hat{\eta}_r(z)$ exceeds the development-frozen threshold. The difficulty control uses the same feature family and regression-model family to predict base loss $1-u_K(B,x)$. For test comparison, offline difficulty scores select exactly as many instances as the fixed utility policy invokes. An analysis-only Oracle uses realized $\Delta_m$ to choose the best hindsight subset of the same size. Thus the comparisons distinguish specialist-relative utility prediction from the identification of generic hard events without suggesting that either control is the deployed policy.
+
+Serving cost includes base computation, selector overhead, and specialist computation for invoked instances. Cached relationship statistics permit candidate scoring without retraining the base. The frozen-threshold policy does not guarantee an exact test-set budget, and offline matched-budget controls require batch-level information unavailable to immediate online serving. Accuracy and serving-efficiency evidence are therefore analyzed separately.
