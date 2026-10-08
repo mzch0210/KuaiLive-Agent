@@ -75,3 +75,43 @@ Do not change Section 1–4 or the sole main outline until the diagnostic and pr
 ## External methodological motivation
 
 Pereira, Said, and Santos, *On the Reliability of Sampling Strategies in Offline Recommender Evaluation*, RecSys 2025, DOI: 10.1145/3705328.3748086. Candidate sampling can change model ordering; pairing and provenance are necessary, but not sufficient, for causal claims.
+
+
+## Authorized extension — one new fixed diagnostic Base (2026-10-08)
+
+The original KuaiLive Room/Streamer checkpoint pair was not recoverable from
+the reviewed GitHub and 3090 caches. The user authorized one newly trained
+post-hoc diagnostic Base, explicitly separate from the original checkpoint.
+
+The original candidate-data artifact from Actions run 35554842873 also expired.
+Data reconstruction is now a prerequisite rather than an optional optimization.
+
+Scientific and execution boundaries:
+
+1. Rebuild input data on GitHub-hosted CPU using official KuaiLive Zenodo
+   record 16565801, the original project exporters and seed 20260918.
+   Require 10,222 users and 575 sampled candidates, capture MD5/SHA-256,
+   and DO NOT claim bytewise equivalence to an expired input.
+2. Train exactly one new fixed Room/Streamer Base checkpoint pair with pinned
+   ReChorus revision and original model training hyperparameters. Preserve
+   both trained checkpoints, data/model SHA-256 and provenance in artifacts.
+3. Hold room-mixture weight 0.10 fixed for both candidate regimes, do not
+   search over mixtures or retune any gate on TEST.
+4. Evaluate each user under sampled and full active sets with identical
+   learned Base weights and Memory definition. Encode user sequence once
+   per model and phase; retain independent candidate-wise score normalization.
+5. Run DEV structural checks first. Label any TEST diagnostic explicitly
+   post-hoc, distinct from the earlier untouched held-out policy evaluation.
+6. Aggregate paired user-level statistics and evidence-state decomposition
+   under prespecified tests, preserving outcomes irrespective of direction.
+7. Keep the author's original Sections 1–4, main writing outline, and all
+   original experiment artifacts untouched until scientific review.
+
+Preflight failures (no training performed): 37741207359 lacked sklearn;
+37741380787 lacked gh CLI; 37741589624 discovered expired frozen-data artifact.
+Corrections: temporary isolated dependencies and the official artifact API,
+followed by deterministic hosted regeneration of unavailable inputs.
+
+Data rebuild Actions: 37741843252.
+Synthetic code-integrity Actions: 37742133747 (passed).
+Branch: kbs-fixed-checkpoint-diagnostic-20261008.
