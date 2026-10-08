@@ -80,6 +80,10 @@ Each change was made directly to `main.tex`. Identifiers are editorial checks, n
 | R28 | 5.6 | Reproducibility source/checkpoint ambiguity | Pin ReChorus source commit and separate new vs historic checkpoint identities |
 | R29 | 5.6 | Non-durable GitHub artifacts could be called archived | Require independently retained outputs for submission |
 
+## LaTeX-source integrity addendum
+
+A reviewer-style content audit must inspect the typeset source, not merely a successful CI exit code. During the post-edit check, 26 literal `emph{...}` tokens (missing their command backslash) and one unescaped percentage sign were detected and corrected in `main.tex`. The Twitch methods paragraph was also shortened to avoid a new overfull line. All 25 remaining intentionally emphasized spans now have valid `\\emph{...}` commands; the Section 5 text contains no unescaped `%` tokens. All manuscript citation keys, labels and cross-references have a corresponding definition in the sources. This addendum concerns only LaTeX presentation, not scientific protocol changes.
+
 ## Explicit remaining verification work (NOT silently resolved)
 
 1. **Source dataset scale and DOI/release number:** the main text deliberately does not invent raw user/interaction totals. Fill Table 1 with further audited figures if complete, immutable source metadata can be cited.
