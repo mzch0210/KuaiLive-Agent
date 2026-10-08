@@ -10,8 +10,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-def read_unique(path: Path, required: list[str]) -> pd.DataFrame:
-    frame = pd.read_csv(path)
+def read_unique(path: Path | pd.DataFrame, required: list[str]) -> pd.DataFrame:
+    frame = path.copy() if isinstance(path, pd.DataFrame) else pd.read_csv(path)
     absent = sorted(set(required) - set(frame.columns))
     if absent:
         raise ValueError(f"{path}: missing required columns {absent}")
