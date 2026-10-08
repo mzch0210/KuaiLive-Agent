@@ -11,13 +11,13 @@ This document preserves the **original findings before repair**. Its recommendat
 | I1 P1: Introduction overloads findings | **FIXED** | Two empirical observations and three compact contributions replace the detailed result inventory |
 | I3 P1: unclear experimental provenance of introduction claims | **PARTIALLY CLOSED** | KuaiLive same-checkpoint and three-seed evidence now appears in Section 6.1; the separately frozen Twitch claim awaits formal Section 6.4 drafting |
 | RW1/RW2 P1: citation catalog and repetitive negative positioning | **FIXED IN PROSE** | Conceptual synthesis by research family, one Research Gap closing; redundant positioning table removed |
-| RW4 P1: recent citation title/DOI/publication verification | **OPEN** | Existing BibTeX keys and successful LaTeX compilation do not establish bibliographic correctness; verify each recent citation against its primary publisher/index record |
+| RW4 P1: recent citation title/DOI/publication verification | **CLOSED (2026-10-08)** | All 24 Related Work citations and 2 additional BibTeX entries checked against finalized journal/proceedings metadata; official URLs and date correction committed. See [publication audit](RELATED_WORK_PUBLICATION_AUDIT_2026-10-08.md). |
 | PF2/PF3 P1: protocol implementation and speculative cost optimization mixed into formulation | **FIXED** | Section 3 retains formal pointwise rule and matched-count definition; unevaluated cost equation removed |
 | F1/F3/F4 P1: repeated motivation, Twitch eligibility and training/OOF settings in framework | **FIXED** | Section 4 now emphasizes model/memory/states/observable features; concrete temporal eligibility and selection procedures are in Section 5 |
 
 **Build evidence:** [GitHub Actions run 37757306655](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37757306655) completed successfully after the source revisions and Section 6.1 insertion. This verifies LaTeX compilation, not external bibliographic authenticity, readiness of incomplete results sections, or journal acceptance.
 
-**Remaining P1 closure actions:** verify all recent Related Work references at source; complete the Twitch held-out result subsection with its original frozen provenance, then cross-check the Introduction's Twitch statement. No P0 mathematical notation or fusion-coefficient defects remain in the inspected current source.
+**Remaining P1 closure actions:** the Related Work publication-version check is complete; complete the Twitch held-out result subsection with its original frozen provenance, then cross-check the Introduction's Twitch statement. Confirm publication metadata updates or corrections again at submission. No P0 mathematical notation or fusion-coefficient defects remain in the inspected current source.
 
 ---
 
