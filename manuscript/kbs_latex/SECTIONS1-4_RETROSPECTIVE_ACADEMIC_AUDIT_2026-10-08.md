@@ -85,6 +85,8 @@ Section 5 was rewritten in place in the same LaTeX file as a scientific evaluati
 
 ## Editorial guidance
 
-- Elsevier, “Your Paper Your Way”: https://www.elsevier.com/en-gb/subject/next/guide-for-authors
+- Elsevier, “Your Paper Your Way” (general editorial reference specific to Next journals, **not** the KBS journal-specific Guide for Authors): https://www.elsevier.com/en-gb/subject/next/guide-for-authors
 - Elsevier, “How to conduct a review”: https://www.elsevier.com/reviewer/how-to-review
 - Elsevier, “The condensed read: How to structure a science paper”: https://www.prod.webpresence.elsevier.com/connect/the-condensed-read-how-to-structure-a-science-paper
+
+**Journal-specific guidance:** The KBS publisher's official [journal scope](https://shop.elsevier.com/journals/knowledge-based-systems/0950-7051) confirms its interest in recommender systems and balanced theory/practical AI. The [KBS Guide for Authors](https://www.sciencedirect.com/journal/knowledge-based-systems/publish/guide-for-authors) should be checked separately at submission; its full live text could not be retrieved from the browser in this audit. None of this report's suggested word counts, subsection counts, or editorial preferences are asserted as KBS-enforced requirements.
