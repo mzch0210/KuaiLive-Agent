@@ -3,7 +3,9 @@
 > **INDEPENDENT / NON-AUTHORITATIVE MANUSCRIPT OUTLINE**  
 > This document is a paper-facing writing outline. It does not replace frozen experimental protocols, immutable test results, or prior authoritative experimental snapshots unless explicitly promoted by the authors.
 
-**Updated:** 2026-10-08  
+**Updated:** 2026-10-08
+
+> **Writing control:** Only modify the manuscript sections explicitly assigned to the current writing stage. Do not fill Abstract, all of Section 6, Discussion and Conclusion in a single editing pass.  
 **Target journal:** *Knowledge-Based Systems*  
 **Project:** `mzch0210/KuaiLive-Agent`
 
@@ -25,13 +27,15 @@ The title should foreground the scientific question and the Base-relative valuat
 
 # Abstract
 
-**Status: drafted in the canonical manuscript; target length and exact keywords subject to the current KBS Guide for Authors.** Lead with conditional value and the frozen decision result, then use the KuaiLive candidate-regime diagnostic to qualify operating-context dependence. Do not market a new HGB, routing theorem, or intrinsic information-value theory.
+**Status: outline only; not yet drafted in the canonical LaTeX manuscript.** Write it after the evidence-bearing Results and interpretive Discussion have been reviewed, rather than before.
 
-## Current paper-facing abstract
+- **Research gap:** relationship evidence can be redundant or beneficial relative to a trained Base, and its operational value depends on the user event and candidate regime.
+- **Method:** one fixed transparent relationship-memory expert; event-level Memory-minus-Base NDCG@10; pre-outcome conditional-utility prediction and selective invocation.
+- **Primary frozen evidence:** Twitch one-shot TEST, 44,221 events, positive Utility–Base and Utility–Difficulty paired differences, equal invocation-count control.
+- **Complementary diagnosis:** KuaiLive 10,222 paired events, the P0 candidate-membership/standardization allocation and P1 three independent checkpoint seeds, clearly marked **post-hoc**.
+- **Boundaries:** conditional, model-relative, offline evidence; no isolated causal membership effect or zero-shot gate transfer.
 
-> Persistent user--creator relationships offer information beyond the bounded histories of sequential recommenders, but their presence does not ensure additional ranking utility. We examine when a fixed, transparent relationship-memory specialist improves upon an established recommendation base, and whether its conditional contribution can guide selective invocation. We define event-level Base-relative utility as the specialist-minus-base ranking difference and study its variation across target-relative history states and candidate environments. In a frozen Twitch/LiveRec evaluation of 44,221 events, the specialist alone underperforms the base (NDCG@10: 0.53980 versus 0.58211), whereas a development-trained relative-utility selector reaches 0.58983, improving on the base by 0.00772 (95% paired confidence interval [0.00641, 0.00903]) and an equal-invocation-count base-difficulty selector by 0.00644. Retrospective evidence-state analysis identifies substantial heterogeneity in specialist benefit. In complementary KuaiLive diagnostics on 10,222 matched events, the relative-utility difference changes sign between sampled-active and full-active candidate ranking; the paired shift averages 0.08508 across three independently trained checkpoint pairs. A two-factor score-protocol decomposition attributes most of this shift to ranked-candidate membership rather than the score-normalization reference. Together, the results support evaluating relationship evidence relative to the incumbent model and operating context before deploying it selectively. The candidate-regime diagnostics are post-hoc and do not establish causal effects or independent policy validation.
-
-**Empirical hierarchy.** The frozen Twitch one-shot policy result is the primary decision validation: 44,221 events, Utility–Base +0.00772 (95% CI [+0.00641,+0.00903]), Utility–Difficulty +0.00644. The KuaiLive 10,222-event paired candidate-regime shift (+0.08508 mean, SD 0.00212 across 3 checkpoint pairs) is post-hoc supporting evidence; the four-cell original-seed allocation favors candidate membership (+0.08827) over normalization-reference variation (−0.00076). Do not equate relative NDCG gain with absolute Memory improvement or claim zero-shot selector transfer.
+Avoid advertising a new general routing theorem, intrinsic information-value theory, or a causal online impact claim. Validate the final abstract against KBS-specific current submission instructions at the abstract-writing stage.
 
 ---
 
@@ -304,7 +308,7 @@ Report only necessary core settings: ReChorus SASRec base (64-dimensional embedd
 
 # 6. Experimental Results
 
-**Core narrative: observed conditional value → predictive decision value → candidate-context boundary.** Report the untouched Twitch policy TEST distinctly from subsequent KuaiLive post-hoc analyses, even when numerical results are displayed side by side in the abstract. The canonical paper now contains drafts of all five subsections. Organize by scientific claim, not chronological workflow execution.
+**Planned narrative: observed conditional value → predictive decision value → candidate-context boundary.** This is a *writing plan*, not a statement that the manuscript already contains all five subsections. As of this correction, the canonical LaTeX retains the previous completed KuaiLive candidate-regime Section 6.1 only. Reorganize the Results progressively, one evidence-backed subsection per writing/review stage; preserve the previous section until its contents are migrated without loss. Keep the frozen Twitch policy TEST distinct from post-hoc KuaiLive diagnostics.
 
 ## 6.1 Heterogeneous Utility of Relationship Memory
 
@@ -421,4 +425,4 @@ The paper-facing LaTeX currently has four Section 6 tables plus two Section 5 ta
 5. **No target leakage into selector features.** Evidence states, realized \\(\Delta_M\\) and target ranks are analysis/supervision outputs, not serving features.
 6. **No journal policy fabrication.** Check KBS-specific declarations, file requirements and formatting against the actual journal guide at submission time.
 
-*Editorial status, 2026-10-08: The canonical LaTeX manuscript now contains an abstract, Sections 1–5, a fully rearranged Section 6, Discussion and Conclusion following the conditional-value-first logic. Its strongest independent policy evidence is Twitch's frozen one-shot TEST; KuaiLive P0/P1 remain post-hoc supporting diagnostics. Complete the figure, dataset-statistics, reference/provenance and supplementary-source audits before claiming submission readiness. P2 negative-sampling sensitivity remains unexecuted.*
+*Editorial status, 2026-10-08 (staged-writing correction): The canonical LaTeX manuscript currently contains Sections 1–5 plus the previously validated KuaiLive P0/P1 Section 6.1. The five-part conditional-value-first Section 6 above is **an agreed outline, not finished prose**. Abstract, remaining Results, Discussion and Conclusion are deliberately unwritten in the main manuscript; they should be drafted and reviewed in separate stages, with Abstract near the end. The P0/P1 evidence is complete and archived; optional P2 negative-sampling sensitivity is still unexecuted.*
