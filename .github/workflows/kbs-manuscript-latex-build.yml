@@ -1,0 +1,41 @@
+name: KBS manuscript LaTeX compile check
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'manuscript/kbs_latex/main.tex'
+      - 'manuscript/kbs_latex/kbs_references.bib'
+      - '.github/workflows/kbs-manuscript-latex-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Compile current KBS manuscript
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: main.tex
+          working_directory: manuscript/kbs_latex
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
+      - name: Verify generated PDF
+        run: |
+          set -euo pipefail
+          test -s manuscript/kbs_latex/main.pdf
+          ls -lh manuscript/kbs_latex/main.pdf
+      - name: Retain compile preview and log
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-manuscript-build-${{ github.run_id }}
+          path: |
+            manuscript/kbs_latex/main.pdf
+            manuscript/kbs_latex/main.log
+            manuscript/kbs_latex/main.blg
+          if-no-files-found: warn
+          retention-days: 30
