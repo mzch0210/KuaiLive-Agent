@@ -27,9 +27,9 @@ The title should foreground the scientific question and the Base-relative valuat
 
 Structure the abstract around one scientific question, one mechanism result, one decision result, and one held-out validation result.
 
-1. **Problem.** Strong sequential recommenders represent a bounded or compressed interaction history, while auxiliary historical evidence is not automatically useful because its marginal value depends on what the base already represents and on the operating recommendation regime.
+1. **Problem.** Strong sequential recommenders process bounded or compressed histories. A fixed auxiliary specialist may have positive, zero, or negative operational ranking value relative to the base, depending on the candidate regime and event; this difference is not an intrinsic measure of evidence information.
 2. **Operationalization.** Instantiate persistent relationship evidence through a transparent relationship-memory specialist and measure its event-level marginal ranking utility relative to a strong base recommender. Avoid implying that the measured quantity is an intrinsic, model-independent information value of history.
-3. **Mechanism.** Characterize represented, recoverable-but-unrepresented, and unavailable relationship evidence; report pre-specified development analysis, untouched held-out test replication, and the context-capacity intervention showing that the same persistent evidence loses marginal value once a larger base context represents it.
+3. **Mechanism.** Characterize represented, recoverable-but-unrepresented, and unavailable relationship evidence; report development analysis, untouched held-out test replication, and context-capacity comparisons across independently retrained bases. Visibility transitions are associated with changes in relative utility but do not isolate visibility as their sole cause.
 4. **Decision.** Estimate conditional specialist-minus-base utility rather than generic base difficulty; show that Utility more strongly enriches recoverable events whereas Difficulty disproportionately selects unavailable events under the same invocation budget.
 5. **Validation.** Report the KuaiLive regime reversal and the untouched Twitch/LiveRec held-out test result.
 6. **Qualification.** State that evidence state structures but does not uniquely determine utility, the measured evidence value is operationalized through the fixed specialist, and substantial Oracle headroom remains.
@@ -59,7 +59,7 @@ Establish the following sequence:
 
 Use the central sentence:
 
-> **The central problem is not whether more historical evidence improves recommendation, but whether that evidence is incremental relative to the information already represented by the base.**
+> **The central problem is whether a fixed specialist instantiated from historical relationship evidence improves ranking relative to the trained base on a given event and candidate regime.**
 
 ## 1.2 Empirical motivation
 
@@ -67,7 +67,7 @@ Preview only three facts:
 
 - aggregate specialist ordering reverses across KuaiLive candidate regimes;
 - conditional evidence-state structure identified in pre-specified Twitch/LiveRec development analysis reproduces on untouched held-out test data;
-- in a development-only context-capacity comparison, matched instances changing from recoverable to visible show approximately `0.42–0.45` NDCG@10 lower specialist-minus-base utility; canonical Memory is fixed, but the Base is retrained at each length, so visibility is not isolated as the sole cause.
+- in a development-only context-capacity comparison, matched instances moving from recoverable to base-input-visible exhibit approximately `0.42–0.45` lower specialist-minus-base NDCG@10; Memory is fixed but each Base is separately trained, so the decline reflects Base improvement and is consistent with, not an isolated test of, a visibility interpretation.
 
 Do not reproduce the full result matrix in the Introduction.
 
@@ -75,17 +75,17 @@ Do not reproduce the full result matrix in the Introduction.
 
 Use exactly three headline contributions.
 
-### C1 — Base-relative evidence valuation
+### C1 — Operational Base-relative valuation
 
-> Operationalize the Base-relative value of persistent relationship evidence through the event-level marginal ranking utility of a transparent relationship-memory specialist relative to a strong base recommender, rather than standalone specialist performance or generic base difficulty.
+> Quantify the event-level marginal ranking utility of a fixed, transparent relationship-memory specialist relative to a strong base, without treating this difference as model-independent information content of history.
 
-### C2 — Relationship-evidence mechanism
+### C2 — Conditional relationship-evidence structure
 
-> Characterize represented, recoverable-but-unrepresented, and unavailable evidence states; combine pre-specified development analysis with untouched held-out replication and a controlled base-context intervention; and show that evidence state structures, but does not deterministically fix, specialist utility across regimes.
+> Characterize retrospective target-history visibility and recency; examine their association with specialist-relative utility across regimes, and corroborate the structure through untouched held-out replication and context-capacity comparisons of separately trained bases, without claiming isolated visibility causality.
 
 ### C3 — Conditional decision and validation
 
-> Connect conditional specialist-minus-base utility to selective invocation and validate the decision principle across KuaiLive regimes, strong-base controls, independent training seeds, and an untouched second-platform held-out test.
+> Estimate specialist-minus-base utility for pre-outcome selection and test its value relative to predicted base-difficulty controls across KuaiLive regimes, independent training seeds, and an untouched Twitch/LiveRec held-out test.
 
 End the Introduction with a scope sentence: the formulation can describe fixed auxiliary specialists more generally, but the empirical claims remain limited to the evaluated live-stream platforms, candidate protocols, and ranking outcomes.
 
@@ -103,7 +103,7 @@ Cover strong sequential encoders and later work that broadens or enriches histor
 
 Positioning boundary:
 
-> The contribution is not broader history encoding; it is the operational marginal value of a separately maintained relationship-evidence specialist relative to an already strong base representation.
+> The contribution is not broader history encoding; it is an empirical and decision-focused analysis of the ranking-utility advantage of a separately scored relationship-evidence specialist over a trained base.
 
 ## 2.2 Auxiliary evidence integration, selection, reliability, and harmful information
 
@@ -246,7 +246,7 @@ This separates evidence-state composition from state-specific specialist utility
 
 # 4. Base-Relative Evidence Valuation Framework
 
-Section 4 is an implementation and design-rationale chapter, not a second problem formulation or an experiment log. Reuse the Section 3 definitions of \(B,M,Z,S,\Delta_m,\hat\eta_r\) without rederiving them. The methodological distinction is **operational valuation of a separately specified, inspectable relationship specialist relative to a credible fixed base**, not a new Memory architecture, HGB, or deferral algorithm.
+Section 4 is an implementation and design-rationale chapter, not a second problem formulation or an experiment log. Reuse the Section 3 definitions of \(B,M,Z,S,\Delta_m,\hat\eta_r\) without rederiving them. The methodological distinction is an **operational comparison of ranking utility between a separately specified relationship specialist and a credible fixed base**. Such a comparison does not by itself identify intrinsic evidence information, model-independent complementarity, or a new memory, HGB, or deferral algorithm.
 
 Explain three linked design choices: (1) a strong fixed Base is a meaningful ranking reference; (2) separately scored relationship history permits analysis of short-term, long-term, and popularity evidence; and (3) development-supervised relative-utility prediction tests whether this specialist's conditional contribution informs pre-outcome decisions. Do not claim model-independent intrinsic evidence value or causal identification.
 
@@ -264,7 +264,7 @@ s_M=0.45\,Short+0.45\,Long+0.10\,Popularity.
 
 Define Short as the maximum exponentially decayed strength over at most ten most recent visits (decay scale three); Long as creator count normalized by the user's highest creator count; Popularity as log1p train-eligible counts scaled over observed creators. Explain deterministic ties and room-to-streamer mapping. An unavailable target-specific relationship may still yield a nonzero popularity score.
 
-**History timing must follow the relevant protocol.** Primary Twitch P1.2/P1.3 event exports reconstruct pre-target history using interaction start strictly before target start; popularity is trained on rows whose stop occurs before the training boundary. Auxiliary strict-split analysis additionally filters its history pool by stop before split end, then start before target. These two rules must not be silently conflated. Neither rule by itself establishes that every previously started interaction was completed at target time; state the historical observability assumption carefully and distinguish it from a fully audited real-time deployment.
+**History timing must follow the relevant protocol.** According to official LiveRec documentation, start and stop are the first and last ten-minute crawl steps at which a user was observed in a streamer's chat, rather than verified session-entry or completion instants. Primary Twitch P1.2/P1.3 exports include records observed before the target step (start earlier than target), whereas popularity is based on records last observed before the training boundary. Auxiliary strict-split analysis additionally restricts its pool by last-observed step before the split endpoint, then by first-observed step before target. Do not mix these retrospective eligibility rules or claim sub-interval real-time observability; retain a temporal-resolution limitation.
 
 Present the weighted specialist as a transparent evidence carrier, not a new memory network or an intrinsic information-value function.
 
@@ -443,7 +443,7 @@ Conclusion:
 
 > **The operational marginal value of the fixed relationship specialist is strongly Base-relative: when a larger base context comes to represent the same persistent relationship evidence, specialist advantage contracts sharply.**
 
-Use **controlled context-capacity comparison with associated visibility changes**, not an isolated visibility intervention or causal proof. Explicitly report Base retraining, Base-utility differences, and the identity `Δ(L')−Δ(L)=u_K(B_L)−u_K(B_L')` when `M` is unchanged.
+Use **context-capacity comparison across separately trained bases with associated input-visibility changes**, not an isolated visibility intervention or causal proof. Explicitly report Base retraining, Base-utility differences, and the identity `Δ(L')−Δ(L)=u_K(B_L)−u_K(B_L')` when `M` is unchanged.
 
 ### Component attribution and recency refinement
 
