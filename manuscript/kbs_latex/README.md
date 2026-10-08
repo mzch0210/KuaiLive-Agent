@@ -9,9 +9,9 @@ This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems
 
 ## Current review baseline
 
-As of 2026-10-08, Sections 1-3 are frozen after targeted P0/P1 consistency edits. Drafting is paused before Section 4. New chapter drafts have not been included. Reopen a frozen section only to correct a substantiated issue or meet a journal requirement.
+As of 2026-10-08, Sections 1-3 remain frozen after targeted P0/P1 consistency edits. Section 4 (Base-Relative Evidence Valuation Framework) has now been drafted directly in the canonical `main.tex`; Sections 5 and 6 have not been added. Reopen a frozen section only to correct a substantiated issue or meet a journal requirement.
 
-The frozen scientific boundaries include candidate-regime-specific event contexts, development-frozen utility thresholds with offline matched-budget controls, and non-causal interpretation of the separately trained context-length base comparisons.
+The frozen scientific boundaries include candidate-regime-specific event contexts, development-frozen utility thresholds with offline matched-budget controls, and non-causal interpretation of the separately trained context-length base comparisons. Section 4 instantiates these definitions without redefining the learning or evaluation protocol.
 
 ## Maintenance rule
 
