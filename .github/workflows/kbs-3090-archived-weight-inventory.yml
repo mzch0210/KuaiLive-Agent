@@ -1,0 +1,129 @@
+name: KBS RTX3090 archived checkpoint audit (read-only)
+
+on:
+  push:
+    branches: [kbs-fixed-checkpoint-diagnostic-20261008]
+    paths: ['.github/workflows/kbs-3090-archived-weight-inventory.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kuailive-gpu-3090
+  cancel-in-progress: false
+
+jobs:
+  archive-audit:
+    name: Search archived checkpoints in private GPU caches
+    if: github.repository == 'mzch0210/KuaiLive-Agent' && github.actor == 'mzch0210' && github.ref == 'refs/heads/kbs-fixed-checkpoint-diagnostic-20261008' && github.event_name == 'push'
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 10
+    steps:
+      - name: Enforce security boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_ACTOR" = mzch0210
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test "$GITHUB_REF" = refs/heads/kbs-fixed-checkpoint-diagnostic-20261008
+          test "$(id -u)" -ne 0
+          if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then exit 1; fi
+          if id -nG | tr ' ' '\n' | grep -qx docker; then exit 1; fi
+          test -z "$(printenv SSH_AUTH_SOCK || true)"
+          for d in "$HOME/.aws" "$HOME/.azure" "$HOME/.config/gcloud"; do test ! -e "$d"; done
+          command -v python3
+      - name: Bounded archive metadata and project storage scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import json, os, tarfile, zipfile
+          from pathlib import Path
+          home=Path.home()
+          roots=[("home",home)]
+          for p in ("/mnt/KuaiLive-Agent","/mnt/kuailive-agent","/mnt/data/KuaiLive-Agent",
+                    "/data/KuaiLive-Agent","/data/kuailive-agent",
+                    "/workspace/KuaiLive-Agent","/srv/KuaiLive-Agent",
+                    "/opt/KuaiLive-Agent"):
+              q=Path(p)
+              if q.is_dir() and not q.is_symlink(): roots.append(("project_mount",q))
+          ignore={".ssh",".aws",".azure",".gnupg",".config",".git","venvs",
+                  ".venv","site-packages","node_modules",".npm",".cargo",
+                  "miniconda3","anaconda3",".rustup",".local","pip","__pycache__"}
+          hints=("kuailive","rechorus","latency","kbs","sasrec","dual","checkpoint","model")
+          weights=(".pt",".pth",".ckpt")
+          archives=[]; other_models=[]; visited=0
+          for key,root in roots:
+              for base,dirs,names in os.walk(root,topdown=True,followlinks=False):
+                  visited+=1
+                  p=Path(base)
+                  depth=len(p.relative_to(root).parts)
+                  dirs[:]=[] if depth>=10 else sorted(d for d in dirs if d not in ignore)
+                  for name in sorted(names):
+                      f=p/name
+                      if f.is_symlink(): continue
+                      low=name.lower()
+                      if not any(h in str(f).lower() for h in hints): continue
+                      if low.endswith((".zip",".tar",".tar.gz",".tgz",".tar.xz")):
+                          if len(archives)>=90:continue
+                          try:
+                              size=f.stat().st_size
+                              if 0<size<=300_000_000:
+                                  archives.append((key,root,f,size))
+                          except OSError:pass
+                      elif low.endswith((".bin",".safetensors",".npz")) and len(other_models)<60:
+                          try:
+                              if 0<f.stat().st_size<=2_000_000_000:
+                                  other_models.append({"root":key,"relative_path":str(f.relative_to(root)),
+                                                       "bytes":f.stat().st_size})
+                          except OSError:pass
+          entries=[]; failures=[]
+          for key,root,f,size in archives:
+              matches=[]; count=0
+              try:
+                  if zipfile.is_zipfile(f):
+                      with zipfile.ZipFile(f) as z:
+                          count=len(z.infolist())
+                          matches=[x.filename for x in z.infolist()
+                                   if x.filename.lower().endswith(weights)
+                                   and any(k in x.filename.lower() for k in ("room","streamer","dual","sasrec"))][:30]
+                  elif tarfile.is_tarfile(f):
+                      with tarfile.open(f,mode="r:*") as tf:
+                          for member in tf:
+                              count+=1
+                              if count>15000:break
+                              if member.name.lower().endswith(weights) and any(
+                                 k in member.name.lower() for k in ("room","streamer","dual","sasrec")):
+                                  matches.append(member.name)
+                              if len(matches)>=30:break
+              except (OSError,tarfile.TarError,zipfile.BadZipFile) as exc:
+                  failures.append({"file":f.name,"error":type(exc).__name__})
+              if matches or count:
+                  entries.append({"root":key,"relative_path":str(f.relative_to(root)),
+                                  "size_bytes":size,"member_count_examined":count,
+                                  "matching_checkpoint_members":matches})
+          found=[e for e in entries if e["matching_checkpoint_members"]]
+          result={"kind":"KBS_3090_archived_weights_readonly",
+                  "searched_roots":[{"label":k,"path_category":"user_home" if k=="home" else "project_mount"}
+                                    for k,_ in roots],
+                  "visited_dirs":visited,"eligible_archives":len(archives),
+                  "archives_with_matching_checkpoints":found,
+                  "archive_inventory":entries[:70],
+                  "alternate_weight_containers":other_models,
+                  "scan_errors":failures[:20],
+                  "conclusion":("archive_contains_candidate_checkpoint_members"
+                                if found else "no_matching_archived_room_streamer_weights_found"),
+                  "next_step":"Never treat archives or L8/L32 Twitch models as a KuaiLive Dual-ID checkpoint without checking original model lineage"}
+          with open("archive_inventory.json","w",encoding="utf8") as out:json.dump(result,out,indent=2)
+          print(json.dumps(result,indent=2))
+          PY
+      - name: Save metadata (no weights)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kbs-3090-archived-weight-inventory
+          path: archive_inventory.json
+          if-no-files-found: warn
+          retention-days: 30
