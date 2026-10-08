@@ -79,14 +79,19 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
 
-      - name: Reuse frozen eligible-candidate dataset
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Reuse frozen eligible-candidate data artifact
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: room-collision-data-35554842873
+          path: shared
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 35554842873
+
+      - name: Validate immutable frozen data
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p shared
-          gh run download "$DATA_RUN" --repo "$GITHUB_REPOSITORY" --name "$DATA_ARTIFACT" --dir shared
           for ds in "$ROOM_DATASET" "$STREAMER_DATASET"; do
             for split in train dev test; do
               test -s "shared/rechorus_dual/$ds/$split.csv"
