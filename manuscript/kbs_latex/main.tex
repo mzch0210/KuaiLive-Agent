@@ -208,9 +208,9 @@ We instantiate the operational comparison of Section~\ref{sec:problem} using a t
 ]
 \node[box,text width=11.7cm] (context) {Pre-outcome context: user history and eligible candidates};
 \node[box,text width=11.7cm,below=5mm of context] (base) {Fixed base $B$: default ranking and candidate-score descriptors};
-\node[box,text width=11.7cm,below=5mm of base] (gate) {Observable $Z$ $\rightarrow$ estimated relative utility $\hat{\eta}_r(Z)$ $\rightarrow$ development-frozen threshold $\tau_r$};
-\node[box,text width=4.7cm,below=10mm of gate,xshift=-3.15cm] (keep) {No invocation: return base ranking};
-\node[box,text width=4.7cm,below=10mm of gate,xshift=3.15cm] (invoke) {Invoke $M$: return relationship-memory ranking};
+\node[box,text width=11.7cm,below=5mm of base] (gate) {Features $Z$ predict $\hat{\eta}_r(Z)$; invoke if $\hat{\eta}_r(Z)>\tau_r$};
+\node[box,text width=4.7cm,below=10mm of gate,xshift=-3.15cm] (keep) {Return base ranking};
+\node[box,text width=4.7cm,below=10mm of gate,xshift=3.15cm] (invoke) {Invoke $M$: return its ranking};
 \draw[arr] (context) -- (base);
 \draw[arr] (base) -- (gate);
 \draw[arr] (gate.south) -- (keep.north);
@@ -218,7 +218,7 @@ We instantiate the operational comparison of Section~\ref{sec:problem} using a t
 \node[note,below=2mm of keep] {Policy output $a_{\tau_r}=0$};
 \node[note,below=2mm of invoke] {Policy output $a_{\tau_r}=1$};
 \node[box,dashed,text width=11.7cm,below=15mm of keep,xshift=3.15cm] (offline)
-{Offline supervision and diagnostics only: observed target and both rankings yield $\Delta_m$; target-relative states $S_L$ are not selector inputs};
+{Offline analysis only: observed target yields $\Delta_m$ and diagnostic $S_L$; neither is an online input};
 \end{tikzpicture}
 \caption{Separation of pre-outcome specialist invocation from offline utility supervision and retrospective relationship-state analysis. The learned utility threshold is fixed using development data; matched-budget Difficulty and Oracle controls operate only in offline evaluation.}
 \label{fig:framework}
