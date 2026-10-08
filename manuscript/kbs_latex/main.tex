@@ -210,7 +210,7 @@ We instantiate the operational comparison of Section~\ref{sec:problem} using a t
 \node[box,text width=11.7cm,below=5mm of context] (base) {Fixed base $B$: default ranking and candidate-score descriptors};
 \node[box,text width=11.7cm,below=5mm of base] (gate) {Features $Z$ predict $\hat{\eta}_r(Z)$; invoke if $\hat{\eta}_r(Z)>\tau_r$};
 \node[box,text width=4.7cm,below=10mm of gate,xshift=-3.15cm] (keep) {Return base ranking};
-\node[box,text width=4.7cm,below=10mm of gate,xshift=3.15cm] (invoke) {Invoke $M$:\\ persistent relationships $\rightarrow$\\ Short / Long / Popularity $\rightarrow$ ranking};
+\node[box,text width=4.7cm,below=10mm of gate,xshift=3.15cm] (invoke) {Invoke $M$:\\ persistent relationships:\\ Short / Long / Popularity\\ return specialist ranking};
 \draw[arr] (context) -- (base);
 \draw[arr] (base) -- (gate);
 \draw[arr] (gate.south) -- (keep.north);
