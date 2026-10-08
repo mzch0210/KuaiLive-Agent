@@ -75,7 +75,7 @@ jobs:
         github.ref == 'refs/heads/main' &&
         (
           (github.event_name == 'workflow_dispatch' && inputs.confirm_owner_run) ||
-          (github.event_name == 'push' && github.event.head_commit.message == 'KBS authorized one-shot GPU repair retry 2026-10-08 v3')
+          (github.event_name == 'push' && github.event.head_commit.message == 'KBS authorized one-shot GPU repair retry 2026-10-08 v4')
         )
       }}
     needs: preflight
@@ -92,7 +92,7 @@ jobs:
             "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
           import json, os
           e=json.load(open(os.environ["GITHUB_EVENT_PATH"]))
-          assert e["head_commit"]["message"] == "KBS authorized one-shot GPU repair retry 2026-10-08 v3", "non-authorized push"
+          assert e["head_commit"]["message"] == "KBS authorized one-shot GPU repair retry 2026-10-08 v4", "non-authorized push"
           changed=set().union(*(set(e["head_commit"].get(k, [])) for k in ("modified","added","removed")))
           if changed:
               assert changed=={".github/workflows/kbs-kuailive-same-checkpoint.yml"}, changed
@@ -258,7 +258,7 @@ jobs:
           root = Path("third_party/ReChorus")
           for name, git_blob_sha in expected.items():
               data = (root / name).read_bytes()
-              blob = hashlib.sha1(("blob " + str(len(data)) + "\\0").encode("ascii") + data).hexdigest()
+              blob = hashlib.sha1(("blob " + str(len(data)) + chr(0)).encode("ascii") + data).hexdigest()
               assert blob == git_blob_sha, f"pinned source blob mismatch: {name}: {blob}"
               print(f"Verified pinned Git blob {name}: {blob}")
           PY
