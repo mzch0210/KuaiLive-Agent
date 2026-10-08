@@ -1,5 +1,26 @@
 # KBS manuscript: retrospective academic audit of Sections 1–4
 
+## Follow-up status verification (2026-10-08)
+
+This document preserves the **original findings before repair**. Its recommendations are historical, not a description of remaining defects in the current [canonical LaTeX manuscript](main.tex).
+
+| Original issue | Current status | Evidence in manuscript |
+|---|---|---|
+| PF1 P0: `\\Delta_m` symbol overlaps budget `m` | **FIXED** | Specialist utility uniformly `\\Delta_M`; invocation count remains `m` |
+| F2 P0: fusion coefficients read as globally fixed at 0.1/0.9 | **FIXED** | Section 4.1 explicitly limits the coefficients to the primary sampled-active evaluation |
+| I1 P1: Introduction overloads findings | **FIXED** | Two empirical observations and three compact contributions replace the detailed result inventory |
+| I3 P1: unclear experimental provenance of introduction claims | **PARTIALLY CLOSED** | KuaiLive same-checkpoint and three-seed evidence now appears in Section 6.1; the separately frozen Twitch claim awaits formal Section 6.4 drafting |
+| RW1/RW2 P1: citation catalog and repetitive negative positioning | **FIXED IN PROSE** | Conceptual synthesis by research family, one Research Gap closing; redundant positioning table removed |
+| RW4 P1: recent citation title/DOI/publication verification | **OPEN** | Existing BibTeX keys and successful LaTeX compilation do not establish bibliographic correctness; verify each recent citation against its primary publisher/index record |
+| PF2/PF3 P1: protocol implementation and speculative cost optimization mixed into formulation | **FIXED** | Section 3 retains formal pointwise rule and matched-count definition; unevaluated cost equation removed |
+| F1/F3/F4 P1: repeated motivation, Twitch eligibility and training/OOF settings in framework | **FIXED** | Section 4 now emphasizes model/memory/states/observable features; concrete temporal eligibility and selection procedures are in Section 5 |
+
+**Build evidence:** [GitHub Actions run 37757306655](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37757306655) completed successfully after the source revisions and Section 6.1 insertion. This verifies LaTeX compilation, not external bibliographic authenticity, readiness of incomplete results sections, or journal acceptance.
+
+**Remaining P1 closure actions:** verify all recent Related Work references at source; complete the Twitch held-out result subsection with its original frozen provenance, then cross-check the Introduction's Twitch statement. No P0 mathematical notation or fusion-coefficient defects remain in the inspected current source.
+
+---
+
 **Date:** 2026-10-08  
 **Scope:** Actual Sections 1–4 of [the LaTeX manuscript](main.tex), evaluated against the newly restructured Section 5 and the frozen experimental protocols.  
 **Change control:** The audit does **not** modify Sections 1–4. Critical terminology/notation changes require a focused, cross-section review before applying them.  
