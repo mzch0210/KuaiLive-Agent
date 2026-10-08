@@ -162,7 +162,7 @@ The purpose is precise differentiation, not a claim that adjacent work is absent
 
 # 3. Problem Formulation
 
-The current LaTeX manuscript is canonical for Section 3. Keep the section concise and avoid theorem inflation.
+The revised LaTeX manuscript is canonical for Section 3. Reserve (m) for the invoked-event count and use (\Delta_M) for Memory-minus-Base utility throughout; retain only general selection mathematics here, while DEV/OOF details belong to Section 5.
 
 ## 3.1 Recommendation setting and event-level ranking utility
 
@@ -191,22 +191,22 @@ Because rank utility is candidate-set relative, candidate construction can alter
 Define
 
 \[
-\Delta_m(x)=u_K(M,x)-u_K(B,x).
+\Delta_M(x)=u_K(M,x)-u_K(B,x).
 \]
 
 Interpretation boundary:
 
-> `Δ_m` is the **operational marginal value** of persistent relationship evidence as instantiated by fixed specialist `M` relative to fixed base `B`; it is not intrinsic or model-independent information value.
+> `Δ_M` is the **operational marginal value** of persistent relationship evidence as instantiated by fixed specialist `M` relative to fixed base `B`; it is not intrinsic or model-independent information value.
 
 ## 3.3 Conditional relative utility
 
 For regime `r` and deployment-observable information `z`:
 
 \[
-\eta_r(z)=\mathbb E[\Delta_m(X)\mid Z=z,R=r].
+\eta_r(z)=\mathbb E[\Delta_M(X)\mid Z=z,R=r].
 \]
 
-`R` indexes the event-generating/evaluation condition and need not be a selector feature. Analysis-only evidence-state labels, target `y`, realized ranks, and realized `Δ_m` are excluded from `Z`.
+`R` indexes the event-generating/evaluation condition and need not be a selector feature. Analysis-only evidence-state labels, target `y`, realized ranks, and realized `Δ_M` are excluded from `Z`.
 
 For a serving action `a`, define selective utility in prose or inline and retain the expected-gain identity:
 
@@ -218,7 +218,7 @@ For a serving action `a`, define selective utility in prose or inline and retain
 
 This is the decision rationale for predicting conditional relative utility rather than generic base difficulty.
 
-## 3.4 Development-frozen selective invocation and matched-budget evaluation
+## 3.4 Selective invocation and equal-count comparison
 
 Define the primary learned policy as a **development-frozen pointwise threshold** on estimated conditional relative utility:
 
@@ -228,18 +228,18 @@ a_{\tau_r}(z)=\mathbf 1[\hat\eta_r(z)>\tau_r].
 
 Select \(\tau_r\) using out-of-fold development utility; fit the final regressor on development data and freeze both model and threshold before held-out test access. The realized held-out invocation count is an **outcome of the fixed policy**, not a predetermined exact budget.
 
-For matched comparison, let \(m=\sum_i a_{\tau_r}(z_i)\) be the frozen utility policy's realized evaluation-set invocation count. The Difficulty control uses **top-\(m\)** predicted base-difficulty scores, and the analysis-only Oracle uses **top-\(m\)** realized \(\Delta_m\) values. Both are **offline, batch-level matched-budget controls**; neither is the serving rule of the primary Utility selector. Use deterministic tie-breaking.
+For matched comparison, let \(m=\sum_i a_{\tau_r}(z_i)\) be the frozen utility policy's realized evaluation-set invocation count. The Difficulty control uses **top-\(m\)** predicted base-difficulty scores, and the analysis-only Oracle uses **top-\(m\)** realized \(\Delta_M\) values. Both are **offline, batch-level matched-budget controls**; neither is the serving rule of the primary Utility selector. Use deterministic tie-breaking.
 
-The frozen Utility threshold is sensitive to the score distribution; it is not calibration-free. Offline top-\(m\) controls require only an ordering, but assume the evaluation batch is available. A theoretical cost rule \(a_r^*(z)=\mathbf 1[\eta_r(z)>\lambda\kappa_r(z)]\) is an optional deployment interpretation, not an evaluated calibrated cost policy. Avoid claiming online hard-budget guarantees or a new routing theorem.
+The frozen Utility threshold is sensitive to the score distribution; it is not calibration-free. Offline top-\(m\) controls require only an ordering, but assume the evaluation batch is available. An unevaluated cost-optimization equation was removed from the main Problem Formulation; serving-cost extensions belong in the later Discussion as prospective work rather than an asserted empirical contribution. Avoid claiming online hard-budget guarantees or a new routing theorem.
 
 ## 3.5 Regime-level decomposition
 
 Let `S` be a mutually exclusive and exhaustive partition of Base-relative evidence states. Then
 
 \[
-\mathbb E[\Delta_m\mid R=r]
+\mathbb E[\Delta_M\mid R=r]
 =
-\sum_sP(S=s\mid R=r)\,\mathbb E[\Delta_m\mid S=s,R=r].
+\sum_sP(S=s\mid R=r)\,\mathbb E[\Delta_M\mid S=s,R=r].
 \]
 
 This separates evidence-state composition from state-specific specialist utility. Treat it as analytical decomposition, not causal theory.
@@ -248,7 +248,7 @@ This separates evidence-state composition from state-specific specialist utility
 
 # 4. Base-Relative Evidence Valuation Framework
 
-Section 4 is an implementation and design-rationale chapter, not a second problem formulation or an experiment log. Reuse the Section 3 definitions of \(B,M,Z,S,\Delta_m,\hat\eta_r\) without rederiving them. The methodological distinction is an **operational comparison of ranking utility between a separately specified relationship specialist and a credible fixed base**. Such a comparison does not by itself identify intrinsic evidence information, model-independent complementarity, or a new memory, HGB, or deferral algorithm.
+Section 4 is an implementation and design-rationale chapter, not a second problem formulation or an experiment log. Reuse the Section 3 definitions of \(B,M,Z,S,\Delta_M,\hat\eta_r\) without rederiving them. The methodological distinction is an **operational comparison of ranking utility between a separately specified relationship specialist and a credible fixed base**. Such a comparison does not by itself identify intrinsic evidence information, model-independent complementarity, or a new memory, HGB, or deferral algorithm.
 
 Explain three linked design choices: (1) a strong fixed Base is a meaningful ranking reference; (2) separately scored relationship history permits analysis of short-term, long-term, and popularity evidence; and (3) development-supervised relative-utility prediction tests whether this specialist's conditional contribution informs pre-outcome decisions. Do not claim model-independent intrinsic evidence value or causal identification.
 
@@ -280,7 +280,7 @@ State and target-relative interaction distance are retrospective analysis variab
 
 Specify six history descriptors and eight Base-score descriptors for the 14-feature Twitch estimator. Score descriptors are statistics, not calibrated uncertainty probabilities. Temporal regularity uses a 144-step phase. The top-10/top-11 margin requires at least 11 eligible candidates; the export checks this.
 
-State complexity uses percentile transforms derived from the full **outcome-free DEV feature distribution** and shared across OOF regression folds, not fold-specific empirical distribution estimates. Frozen DEV references are applied to TEST. Describe HGB configuration (200 iterations, learning rate 0.05, depth 3, minimum leaf size 50, L2 regularization 1). Five-fold OOF DEV predictions support **supervised threshold selection**, not an unbiased evaluation of the learned threshold. Train the final estimator on DEV; freeze estimator, features, transforms and threshold before untouched TEST.
+The percentile reference is **platform-specific**: Twitch uses a full unlabeled DEV empirical distribution shared across OOF folds and applied to TEST, while KuaiLive derives history-feature ranks from split-eligible pre-target history pools. Neither uses TEST target labels to fit the selection rule. Describe HGB configuration (200 iterations, learning rate 0.05, depth 3, minimum leaf size 50, L2 regularization 1). Five-fold OOF DEV predictions support **supervised threshold selection**, not an unbiased evaluation of the learned threshold. Train the final estimator on DEV; freeze estimator, features, transforms and threshold before untouched TEST.
 
 Distinguish the two kinds of transfer:
 - **KuaiLive candidate-regime strict transfer:** sampled-active estimator and threshold retained under full-active candidate construction, versus separately developed native full-active policy.
@@ -476,7 +476,7 @@ One short section, no new results: (i) operational specialist contribution is re
 2. **No numeric consolidation by visual similarity.** The \\(0.60784\\) versus \\(0.61714\\) sampled Base values belong to potentially different experimental contexts; resolve provenance first.
 3. **No post-hoc test retuning.** Never use same-checkpoint paired diagnostics, context-length DEV evidence or per-state TEST outcomes to reselect the original frozen Utility threshold.
 4. **No isolated context-visibility causality.** L8/L16/L32 has separately trained bases.
-5. **No target leakage into selector features.** Evidence states, realized \\(\Delta_m\\) and target ranks are analysis/supervision outputs, not serving features.
+5. **No target leakage into selector features.** Evidence states, realized \\(\Delta_M\\) and target ranks are analysis/supervision outputs, not serving features.
 6. **No journal policy fabrication.** Check KBS-specific declarations, file requirements and formatting against the actual journal guide at submission time.
 
 *Editorial status, 2026-10-08: Sections 1–4 remain the reviewed LaTeX scientific baseline; Section 5 now exists in the canonical compiled manuscript. The same-checkpoint diagnostic completed successfully (run 37746520476) and is incorporated solely as **supporting post-hoc evidence**. Sections 6–8 are the remaining drafting targets; historical and frozen-policy results preserve their independent experimental identities.*
