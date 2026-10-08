@@ -1,0 +1,49 @@
+name: KBS fixed-checkpoint diagnostic — preflight
+
+on:
+  push:
+    branches: [kbs-fixed-checkpoint-diagnostic-20261008]
+    paths:
+      - '.github/workflows/kbs-fixed-checkpoint-preflight.yml'
+      - 'analysis/kbs_fixed_checkpoint_preflight.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kbs-fixed-checkpoint-preflight-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  metadata_preflight:
+    name: Read-only frozen artifact inventory
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Checkout diagnostic branch
+        uses: actions/checkout@v4
+      - name: Compile-check preflight script
+        run: python3 -m py_compile analysis/kbs_fixed_checkpoint_preflight.py
+      - name: Audit Actions run and artifact metadata
+        run: |
+          set -euo pipefail
+          python3 analysis/kbs_fixed_checkpoint_preflight.py --out-dir diagnostic_preflight
+      - name: Publish preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kbs-fixed-checkpoint-preflight-${{ github.run_id }}
+          path: diagnostic_preflight/
+          if-no-files-found: warn
+          retention-days: 60
+      - name: Display summary
+        if: always()
+        run: |
+          if test -f diagnostic_preflight/preflight.md; then
+            cat diagnostic_preflight/preflight.md >> "$GITHUB_STEP_SUMMARY"
+          fi
