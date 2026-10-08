@@ -128,27 +128,17 @@ Equation~\eqref{eq:expected-selective-gain} gives the decision rationale for est
 
 The information boundary is strict. The observed target $y$, realized ranks, realized $\Delta_M(x)$, and the Base-relative evidence states used later for mechanism analysis are offline quantities and are excluded from $Z$. In particular, the represented, recoverable-but-unrepresented, and unavailable states are diagnostic variables rather than selector inputs. This formulation also distinguishes conditional relative utility from generic base difficulty: a difficulty score concerns the performance or uncertainty of $B$ alone, whereas $\eta_r(z)$ depends on the relative ranking utility of both $M$ and $B$. Base weakness therefore does not imply positive specialist-minus-base utility.
 
-\subsection{Development-Frozen Selective Invocation and Matched-Budget Evaluation}
+\subsection{Selective Invocation and Equal-Count Comparison}
 \label{sec:decision-rule}
 
-The primary learned policy uses a score threshold determined without held-out test outcomes. Let $\hat{\eta}_r(z)$ be fitted on the development split, with out-of-fold predictions used to select a development-only threshold $\tau_r$. The policy is
+A pre-outcome selector can use an estimate $\hat{\eta}_r(z)$ of conditional specialist value to choose between the two rankings. With a development-selected threshold $\tau_r$, its pointwise rule is
 \begin{equation}
     a_{\tau_r}(z)=\mathbf{1}\!\left[\hat{\eta}_r(z)>\tau_r\right],
     \label{eq:utility-threshold}
 \end{equation}
-where the model, feature transformations, and threshold are fixed before the held-out test is evaluated. The threshold is selected by development ranking utility, with a deterministic tie rule favoring fewer invocations. This pointwise policy makes no claim of enforcing an exact test-set invocation budget.
+where a selected event uses $M$ and an unselected event uses $B$. This rule does not enforce an exact invocation count across future requests. The training and threshold-selection protocol is given in Section~\ref{sec:exp-freeze}.
 
-To compare selectors without confounding their invocation rates, a matched-budget analysis uses the number $m=\sum_{i=1}^{n}a_{\tau_r}(z_i)$ of invocations realized by the fixed utility policy on $n$ evaluation instances. The difficulty control then selects the $m$ largest predicted base-difficulty scores, with ties broken by stable instance index; the analysis-only Oracle selects the $m$ largest realized offline $\Delta_M(x_i)$ values. Both controls use the same $m$ as the learned utility policy. Thus, exact-budget Top-$m$ is an \emph{offline batch-comparison rule for controls}, not the serving rule of the primary utility policy or a method that assumes the future test batch is visible online. The realized Oracle upper bound is never available at decision time.
-
-The ordering of predicted utility is sufficient to determine Top-$m$ selection for an offline equal-budget comparison. In contrast, the development-frozen threshold policy is sensitive to the absolute score scale and its transfer between splits. This distinction is particularly important when per-event utility is only imperfectly estimated.
-
-A deployment system may additionally price the incremental cost of invoking the specialist. If $C_{\mathrm{inv}}\ge0$ denotes that cost and $\kappa_r(z)=\mathbb{E}[C_{\mathrm{inv}}\mid Z=z,R=r]$, the pointwise cost-sensitive benchmark is
-\begin{equation}
-    a_r^{*}(z)=\mathbf{1}\!\left[\eta_r(z)>\lambda\kappa_r(z)\right],
-    \qquad \lambda\ge0.
-    \label{eq:cost-rule}
-\end{equation}
-A deployable version replaces the unknown $\eta_r$ by $\hat{\eta}_r$ and would require a separately specified cost model and threshold. We do not claim to optimize such a calibrated cost model in the present experiments. The selection principles in this subsection follow established post-hoc expert-routing ideas rather than constituting a new deferral theorem.
+For a retrospective equal-count comparison on $n$ events, let $m=\sum_{i=1}^{n}a_{\tau_r}(z_i)$ be the number of specialist invocations produced by the fixed policy. A comparator selects $m$ events by its own score while preserving the same invocation count. Base Difficulty orders events by predicted base loss, whereas a hindsight Oracle uses realized $\Delta_M(x_i)$; the latter provides a nondeployable upper bound. This comparison distinguishes the utility of \emph{which events are selected} from differences in invocation frequency. It does not imply that a serving policy has advance access to a full evaluation batch.
 
 \subsection{Regime-Level Utility Decomposition}
 \label{sec:regime-decomposition}
@@ -160,9 +150,7 @@ To analyze why aggregate specialist value changes across operating conditions, l
     \,\mathbb{E}\!\left[\Delta_M(X)\mid S=s,R=r\right].
     \label{eq:regime-decomposition}
 \end{equation}
-Equation~\eqref{eq:regime-decomposition} separates changes in evidence-state prevalence from changes in state-specific specialist utility. Both can vary across regimes. This decomposition describes conditional ranking outcomes, not causal effects of evidence visibility; a fixed specialist's measured advantage can decrease solely because the separately trained base improves. The identity is not a new theoretical result, and $R$ need not be a selector feature.
-
-Sections~4--6 instantiate these quantities, describe their leakage-safe estimation and analysis, and evaluate the resulting selective decisions across recommendation regimes.
+Equation~\eqref{eq:regime-decomposition} separates variation in evidence-state prevalence from variation in state-conditional utility. It is a descriptive identity: the specialist's relative ranking value may change because the base or candidate protocol changes, even without a change in evidence-state composition. Section~\ref{sec:framework} operationalizes the states, and Section~\ref{sec:experimental-setup} specifies the comparisons.
 
 
 \section{Base-Relative Evidence Valuation Framework}
