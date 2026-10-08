@@ -1,0 +1,388 @@
+name: KBS KuaiLive factorial attribution and seed robustness
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/kbs_kuailive_factorial.py'
+      - '.github/workflows/kbs-kuailive-factorial-seeds.yml'
+  workflow_dispatch:
+    inputs:
+      confirm_owner_run:
+        description: 'I approve an experiment on the private RTX 3090 runner'
+        required: true
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: kuailive-gpu-3090
+  cancel-in-progress: false
+env:
+  SEED: '20260918'
+  N_NEG: '574'
+  ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+  STREAMER_DATASET: 'KuaiLiveShopStreamerParallel'
+  RECHORUS_COMMIT: 'c164ec4303cc20ddcfbd1b57de366a481811d1e5'
+  FROZEN_RUN: '35813831725'
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.10'
+      - name: Compile paired diagnostic and check design invariants
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_kuailive_factorial.py analysis/kbs_kuailive_same_checkpoint.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('analysis/kbs_kuailive_factorial.py').read_text()
+          for x in ('four_cell_ranks', 'norm_to_reference', 'membership',
+                    'normalization', 'EXPECTED_SEED0', 'paired_ci', 'same_raw_scores'):
+              assert x in s, x
+          print('preflight PASS')
+          PY
+      - name: Smoke-test pinned upstream ReChorus checkout
+        id: smoke_rechorus
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: THUwangcy/ReChorus
+          ref: c164ec4303cc20ddcfbd1b57de366a481811d1e5
+          path: third_party/ReChorus
+          persist-credentials: false
+          set-safe-directory: false
+          fetch-depth: 1
+      - name: Verify upstream commit and source modules
+        env:
+          PINNED_UPSTREAM: ${{ steps.smoke_rechorus.outputs.commit }}
+        run: |
+          set -euo pipefail
+          test "$PINNED_UPSTREAM" = 'c164ec4303cc20ddcfbd1b57de366a481811d1e5'
+          python -m py_compile third_party/ReChorus/src/main.py \
+            third_party/ReChorus/src/helpers/SeqReader.py \
+            third_party/ReChorus/src/models/sequential/SASRec.py
+  paired_gpu:
+    if: ${{ github.actor == 'mzch0210' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && inputs.confirm_owner_run) || (github.event_name == 'push' && github.event.head_commit.message == 'KBS authorized P0 P1 one-shot GPU 2026-10-08')) }}
+    needs: preflight
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 90
+    steps:
+      - name: Enforce dedicated GPU security guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_ACTOR" = 'mzch0210'
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json, os
+          e=json.load(open(os.environ["GITHUB_EVENT_PATH"]))
+          assert e.get("ref")=="refs/heads/main"
+          assert e["head_commit"]["message"]=="KBS authorized P0 P1 one-shot GPU 2026-10-08"
+          assert e["head_commit"]["id"]==os.environ["GITHUB_SHA"]
+          print("Owner-authorized one-shot follow-up confirmed")
+          PY
+          else
+            test "$GITHUB_EVENT_NAME" = 'workflow_dispatch'
+            "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json, os
+          assert str(json.load(open(os.environ["GITHUB_EVENT_PATH"])).get("inputs",{}).get("confirm_owner_run","")).lower()=="true"
+          PY
+          fi
+          test "$GITHUB_REPOSITORY" = 'mzch0210/KuaiLive-Agent'
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$(id -u)" -ne 0
+          if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then exit 1; fi
+          if id -nG | tr ' ' '\n' | grep -qx docker; then exit 1; fi
+          test -z "${SSH_AUTH_SOCK:-}"
+          for d in "$HOME/.aws" "$HOME/.azure" "$HOME/.config/gcloud"; do test ! -e "$d"; done
+          if [ -d "$HOME/.ssh" ]; then
+            ! find "$HOME/.ssh" -maxdepth 1 -type f \( -name 'id_rsa' -o -name 'id_ed25519' -o -name 'id_ecdsa' -o -name 'id_dsa' \) | grep -q .
+          fi
+      - name: Verify pinned CUDA environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          test -x "$PY"
+          "$PY" - <<'PY'
+          import torch
+          assert torch.__version__.startswith('2.4.1')
+          assert torch.cuda.is_available()
+          assert 'RTX 3090' in torch.cuda.get_device_name(0)
+          PY
+          echo "PY=$PY" >> "$GITHUB_ENV"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          clean: true
+      - name: Isolate analysis dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEP="$RUNNER_TEMP/kbs-paired-deps-$GITHUB_RUN_ID"
+          mkdir -p "$DEP"
+          "$PY" -m pip install --no-deps --disable-pip-version-check --target "$DEP" \
+            'scipy==1.14.1' 'scikit-learn==1.5.2' 'joblib==1.4.2' \
+            'threadpoolctl==3.5.0' 'pyyaml==6.0.2'
+          echo "PYTHONPATH=$DEP:$GITHUB_WORKSPACE/src:$GITHUB_WORKSPACE/analysis" >> "$GITHUB_ENV"
+          echo "DEP_PATH=$DEP" >> "$GITHUB_ENV"
+      - name: Verify existing one-time dataset cache
+        id: cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          CACHE="$HOME/.cache/kuailive-agent-kbs/dual-id-paired-20260918-574-v1"
+          echo "path=$CACHE" >> "$GITHUB_OUTPUT"
+          if [ -s "$CACHE/SHA256SUMS" ] &&
+             (cd "$CACHE" && sha256sum -c SHA256SUMS >/dev/null) &&
+             [ -s "$CACHE/data/prepared/shop/rooms.pkl" ] &&
+             [ -s "$CACHE/rechorus_dual/$STREAMER_DATASET/streamer_item_map.tsv" ]; then
+            echo "hit=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "hit=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Download already-validated regenerated dataset only on cache miss
+        if: ${{ steps.cache.outputs.hit != 'true' }}
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: 11534262601
+          path: regenerated
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 37741843252
+      - name: Verify frozen-input hashes and stage dataset cache
+        shell: bash
+        env:
+          CACHE_PATH: ${{ steps.cache.outputs.path }}
+          CACHE_HIT: ${{ steps.cache.outputs.hit }}
+        run: |
+          set -euo pipefail
+          if [ "$CACHE_HIT" != 'true' ]; then
+            TMP="$CACHE_PATH.pending.$GITHUB_RUN_ID"
+            rm -rf "$TMP"
+            mkdir -p "$TMP/data/prepared/shop"
+            "$PY" - "$TMP" <<'PY'
+          from pathlib import Path
+          import hashlib, json, shutil, sys
+          root=Path('regenerated')
+          target_dir=Path(sys.argv[1])
+          matches=[p for p in root.rglob('train.csv') if p.parent.name=='KuaiLiveShopRoomDualID']
+          rooms=list(root.rglob('rooms.pkl'))
+          if len(matches)!=1 or len(rooms)!=1:
+              raise RuntimeError(f'Invalid candidate artifact structure: {matches}, {rooms}')
+          rechorus=matches[0].parent.parent
+          assert rechorus.name=='rechorus_dual'
+          shutil.copytree(rechorus,target_dir/'rechorus_dual')
+          shutil.copy2(rooms[0],target_dir/'data/prepared/shop/rooms.pkl')
+          expected={
+              'train.csv':'ad91413537175b9f6e9013c525a552b6004cc00e029b41360f08519e0735b5b4',
+              'dev.csv':'46dd3081688468c89acf6366d36d87c122fa45850ddb69320c05da9de94a9f54',
+              'test.csv':'3491862df4de5cfb487fbd21c2f62c2d1d62acac110f852cc83c019dfcc6e956',
+              'export_meta.json':'821d06dd0d7335cc49bf892490f7b9098a53bb8467da6de438a30c975c6cb459',
+          }
+          p=target_dir/'rechorus_dual/KuaiLiveShopRoomDualID'
+          for name,sha in expected.items():
+              actual=hashlib.sha256((p/name).read_bytes()).hexdigest()
+              assert actual==sha, f'Frozen input mismatch for {name}: {actual}'
+          assert (target_dir/'rechorus_dual/KuaiLiveShopStreamerParallel/streamer_item_map.tsv').is_file()
+          m=json.loads((p/'export_meta.json').read_text())
+          assert m['users']==10222 and m['candidate_count']==575
+          (target_dir/'PROVENANCE.json').write_text(json.dumps({
+              'regenerated_artifact_id':11534262601,
+              'regenerated_run':37741843252,
+              'independent_frozen_input_provenance_audit_run':37744831516,
+              'frozen_strong_base_input_artifact_id':10730951727,
+              'frozen_room_hashes':expected,
+              'checkpoint_comparison':'newly trained pair; not a claim to reproduce old expired model weights'
+          },indent=2)+'\n')
+          print('Reused validated candidate dataset; no Zenodo re-download or dataset re-export.')
+          PY
+            (cd "$TMP" && find rechorus_dual data -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+            (cd "$TMP" && sha256sum -c SHA256SUMS >/dev/null)
+            rm -rf "$CACHE_PATH"
+            mv "$TMP" "$CACHE_PATH"
+            rm -rf regenerated
+          fi
+          (cd "$CACHE_PATH" && sha256sum -c SHA256SUMS >/dev/null)
+          echo "DATA_CACHE=$CACHE_PATH" >> "$GITHUB_ENV"
+      - name: Fetch pinned official ReChorus without shell git
+        id: rechorus_source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: THUwangcy/ReChorus
+          ref: c164ec4303cc20ddcfbd1b57de366a481811d1e5
+          path: third_party/ReChorus
+          persist-credentials: false
+          set-safe-directory: false
+          fetch-depth: 1
+      - name: Verify upstream ReChorus against pinned Git tree (Git not required)
+        shell: bash
+        env:
+          UPSTREAM_COMMIT: ${{ steps.rechorus_source.outputs.commit }}
+        run: |
+          set -euo pipefail
+          if [ -n "$UPSTREAM_COMMIT" ]; then
+            test "$UPSTREAM_COMMIT" = "$RECHORUS_COMMIT"
+          fi
+          "$PY" - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              "src/main.py": "e2a55e6063737e2d536723b084a453629f81aeb1",
+              "src/helpers/SeqReader.py": "069d78e1e14d774207a12620536ce72255c1a903",
+              "src/models/sequential/SASRec.py": "d274ada8542b490139d97401a1db1ea58e4bf16b",
+          }
+          root = Path("third_party/ReChorus")
+          for name, git_blob_sha in expected.items():
+              data = (root / name).read_bytes()
+              blob = hashlib.sha1(("blob " + str(len(data)) + chr(0)).encode("ascii") + data).hexdigest()
+              assert blob == git_blob_sha, f"pinned source blob mismatch: {name}: {blob}"
+              print(f"Verified pinned Git blob {name}: {blob}")
+          PY
+          "$PY" -m py_compile third_party/ReChorus/src/main.py \
+            third_party/ReChorus/src/helpers/SeqReader.py \
+            third_party/ReChorus/src/models/sequential/SASRec.py
+          echo "ReChorus pinned source verified by blob identity without shell git."
+      - name: Run synthetic paired diagnostic tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PY" analysis/kbs_kuailive_same_checkpoint.py --self-test
+      - name: Verify original seed checkpoint and perform P0 four-cell replay (no training)
+        shell: bash
+        run: |
+          set -euo pipefail
+          CACHE="$HOME/.cache/kuailive-agent-kbs/dual-id-paired-20260918-model-v1"
+          test -s "$CACHE/SHA256SUMS"
+          (cd "$CACHE" && sha256sum -c SHA256SUMS)
+          mkdir -p models/20260918 results/20260918 logs
+          cp "$CACHE/room.pt" "$CACHE/streamer.pt" models/20260918/
+          test "$(sha256sum models/20260918/room.pt | cut -d' ' -f1)" = "b8c9fbb06ad6a627e44477c6387a6fb2eadaad783caa998201b3de76fa0cf0e7"
+          test "$(sha256sum models/20260918/streamer.pt | cut -d' ' -f1)" = "82db309e03947187430c844aab35bbce4a8ed4702c32914d1b4e3e0be987d945"
+          "$PY" analysis/kbs_kuailive_factorial.py --self-test
+          /usr/bin/time -v -o results/20260918/time.txt "$PY" analysis/kbs_kuailive_factorial.py \
+            --rechorus-source third_party/ReChorus \
+            --data-root "$DATA_CACHE/rechorus_dual" --prepared-dir "$DATA_CACHE/data/prepared/shop" \
+            --room-model models/20260918/room.pt --streamer-model models/20260918/streamer.pt \
+            --out-dir results/20260918 --seed 20260918 --alpha 0.125 --n-boot 3000
+          "$PY" - <<'PY'
+          import json
+          r=json.load(open("results/20260918/factorial_report.json"))
+          assert r["original_run_replayed"] and r["n"]==10222
+          assert all(r["guards"].values())
+          print("P0 PASS: replayed both original cells, four-cell decomposition, and CI calculations")
+          PY
+      - name: P1 train only missing independent seeds and score each once
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p logs seed_models
+          for seed in 20260919 20260920; do
+            CACHE="$HOME/.cache/kuailive-agent-kbs/factorial-sasrec-seed-$seed-source-c164ec43-data-ad914135-v1"
+            mkdir -p "models/$seed" "results/$seed"
+            if [ -s "$CACHE/SHA256SUMS" ] && \
+               (cd "$CACHE" && sha256sum -c SHA256SUMS >/dev/null) && \
+               [ -s "$CACHE/room.pt" ] && [ -s "$CACHE/streamer.pt" ]; then
+              cp "$CACHE/room.pt" "$CACHE/streamer.pt" "models/$seed/"
+              echo "SEED $seed: reused valid model cache" | tee "logs/seed-$seed-source.txt"
+            else
+              echo "SEED $seed: train once" | tee "logs/seed-$seed-source.txt"
+              for identity in room streamer; do
+                if [ "$identity" = room ]; then DATASET="$ROOM_DATASET"; else DATASET="$STREAMER_DATASET"; fi
+                (cd third_party/ReChorus/src &&
+                  "$PY" main.py --model_name SASRec --dataset "$DATASET" \
+                    --path "$DATA_CACHE/rechorus_dual/" --gpu 0 --random_seed "$seed" \
+                    --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+                    --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 256 \
+                    --epoch 30 --early_stop 5 --main_metric NDCG@10 --topk 10 \
+                    --metric NDCG,HR --num_workers 4 --save_final_results 0 --regenerate 1 \
+                    --log_file "$GITHUB_WORKSPACE/logs/seed-$seed-$identity.log" \
+                    --model_path "$GITHUB_WORKSPACE/models/$seed/$identity.pt")
+                test -s "models/$seed/$identity.pt"
+              done
+              TMP="$CACHE.pending.$GITHUB_RUN_ID"
+              rm -rf "$TMP" && mkdir -p "$TMP"
+              cp "models/$seed/room.pt" "models/$seed/streamer.pt" "$TMP/"
+              (cd "$TMP" && sha256sum room.pt streamer.pt > SHA256SUMS && sha256sum -c SHA256SUMS)
+              rm -rf "$CACHE" && mv "$TMP" "$CACHE"
+              # New weights are archived once, not included in every compact outcome artifact.
+              mkdir -p "seed_models/$seed"
+              cp "models/$seed/room.pt" "models/$seed/streamer.pt" "seed_models/$seed/"
+            fi
+            sha256sum "models/$seed/"*.pt | tee "logs/seed-$seed-sha256.txt"
+            /usr/bin/time -v -o "results/$seed/time.txt" "$PY" analysis/kbs_kuailive_factorial.py \
+              --rechorus-source third_party/ReChorus \
+              --data-root "$DATA_CACHE/rechorus_dual" --prepared-dir "$DATA_CACHE/data/prepared/shop" \
+              --room-model "models/$seed/room.pt" --streamer-model "models/$seed/streamer.pt" \
+              --out-dir "results/$seed" --seed "$seed" --alpha 0.125 --n-boot 3000
+          done
+      - name: Aggregate every seed, verify all identities, and create concise scientific result
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PY" - <<'PY'
+          import json, hashlib, csv, statistics
+          from pathlib import Path
+          seeds=[20260918,20260919,20260920]
+          reports=[json.loads((Path("results")/str(s)/"factorial_report.json").read_text()) for s in seeds]
+          assert all(r["n"]==10222 and all(r["guards"].values()) for r in reports)
+          assert len({r["model_sha256"]["room"] for r in reports})==3
+          assert len({r["model_sha256"]["streamer"] for r in reports})==3
+          assert len({tuple(sorted(r["input_sha256"].items())) for r in reports})==1
+          rows=[]
+          for r in reports:
+              m=r["overall"]
+              rows.append({"seed":r["seed"],"alpha_room":r["alpha_room"],
+                           "sampled_memory_minus_base":m["delta_SS"]["mean"],
+                           "full_memory_minus_base":m["delta_FF"]["mean"],
+                           "paired_shift":m["shift"]["mean"],
+                           "paired_shift_ci95_lo":m["shift"]["ci95"][0],
+                           "paired_shift_ci95_hi":m["shift"]["ci95"][1],
+                           "membership":m["membership"]["mean"],
+                           "normalization":m["normalization"]["mean"],
+                           "room_sha256":r["model_sha256"]["room"],
+                           "streamer_sha256":r["model_sha256"]["streamer"]})
+          Path("results").mkdir(exist_ok=True)
+          with open("results/seed_summary.csv","w",newline="") as f:
+              w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
+          shifts=[x["paired_shift"] for x in rows]
+          summary={"seeds":seeds,"n_seeds":len(seeds),"mean_shift":statistics.mean(shifts),
+                   "sd_shift":statistics.stdev(shifts),"min_shift":min(shifts),"max_shift":max(shifts),
+                   "positive_shift_count":sum(x>0 for x in shifts),
+                   "rows":rows,
+                   "status":"posthoc seed robustness only; no sign-based exclusion"}
+          Path("results/seed_summary.json").write_text(json.dumps(summary,indent=2)+"\n")
+          print("Seed panel completed, all signs retained:",json.dumps(summary,indent=2))
+          PY
+      - name: Upload compact P0 P1 outcome records (no old model reupload)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-kuailive-factorial-results-${{ github.run_id }}
+          path: |
+            results/**
+            logs/**
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Preserve only newly trained model pairs once
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-kuailive-new-seed-models-${{ github.run_id }}
+          path: seed_models/**
+          if-no-files-found: ignore
+          retention-days: 90
+      - name: Remove transient data but preserve verified input cache
+        if: always()
+        shell: bash
+        run: |
+          rm -rf models logs seed_models third_party results
+          rm -rf "${DEP_PATH:-$RUNNER_TEMP/kbs-paired-deps-$GITHUB_RUN_ID}"
