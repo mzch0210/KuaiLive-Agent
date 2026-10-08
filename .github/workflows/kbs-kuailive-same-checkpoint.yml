@@ -69,15 +69,7 @@ jobs:
             third_party/ReChorus/src/helpers/SeqReader.py \
             third_party/ReChorus/src/models/sequential/SASRec.py
   paired_gpu:
-    if: >-
-      ${{
-        github.actor == 'mzch0210' &&
-        github.ref == 'refs/heads/main' &&
-        (
-          (github.event_name == 'workflow_dispatch' && inputs.confirm_owner_run) ||
-          (github.event_name == 'push' && github.event.head_commit.message == 'KBS authorized one-shot GPU repair retry 2026-10-08 v4')
-        )
-      }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'mzch0210' && github.ref == 'refs/heads/main' && inputs.confirm_owner_run }}
     needs: preflight
     runs-on: [self-hosted, linux, x64, gpu-3090]
     timeout-minutes: 900
@@ -87,29 +79,8 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
+          test "$GITHUB_EVENT_NAME" = 'workflow_dispatch'
           test "$GITHUB_ACTOR" = 'mzch0210'
-          if [ "$GITHUB_EVENT_NAME" = 'push' ]; then
-            "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
-          import json, os
-          e=json.load(open(os.environ["GITHUB_EVENT_PATH"]))
-          assert e["head_commit"]["message"] == "KBS authorized one-shot GPU repair retry 2026-10-08 v4", "non-authorized push"
-          changed=set().union(*(set(e["head_commit"].get(k, [])) for k in ("modified","added","removed")))
-          if changed:
-              assert changed=={".github/workflows/kbs-kuailive-same-checkpoint.yml"}, changed
-          else:
-              # Contents-API pushes may omit changed-file arrays entirely.
-              assert e["head_commit"]["id"] == os.environ["GITHUB_SHA"]
-          assert e.get("ref") == "refs/heads/main"
-          print("One-shot owner-authorized repair retry confirmed")
-          PY
-          else
-            test "$GITHUB_EVENT_NAME" = 'workflow_dispatch'
-            "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
-          import json, os
-          e=json.load(open(os.environ["GITHUB_EVENT_PATH"]))
-          assert str(e.get("inputs",{}).get("confirm_owner_run","")).lower()=="true"
-          PY
-          fi
           test "$GITHUB_REPOSITORY" = 'mzch0210/KuaiLive-Agent'
           test "$GITHUB_REF" = 'refs/heads/main'
           test "$(id -u)" -ne 0
