@@ -209,15 +209,15 @@ We instantiate the operational comparison of Section~\ref{sec:problem} with a fi
 \node[box,text width=11.7cm] (context) {Pre-outcome context: user history and legally available candidates};
 \node[box,text width=11.7cm,below=5mm of context] (base) {Fixed base $B$: default ranking and candidate-score descriptors};
 \node[box,text width=11.7cm,below=5mm of base] (gate) {Observable $Z$ $\rightarrow$ estimated relative utility $\hat{\eta}_r(Z)$ $\rightarrow$ development-frozen threshold $\tau_r$};
-\node[box,text width=4.7cm,below left=10mm and 3mm of gate] (keep) {No invocation: return base ranking};
-\node[box,text width=4.7cm,below right=10mm and 3mm of gate] (invoke) {Invoke $M$: return relationship-memory ranking};
+\node[box,text width=4.7cm,below=10mm of gate,xshift=-3.15cm] (keep) {No invocation: return base ranking};
+\node[box,text width=4.7cm,below=10mm of gate,xshift=3.15cm] (invoke) {Invoke $M$: return relationship-memory ranking};
 \draw[arr] (context) -- (base);
 \draw[arr] (base) -- (gate);
-\draw[arr] (gate.south) |- (keep.north);
-\draw[arr] (gate.south) |- (invoke.north);
+\draw[arr] (gate.south) -- (keep.north);
+\draw[arr] (gate.south) -- (invoke.north);
 \node[note,below=2mm of keep] {Policy output $a_{\tau_r}=0$};
 \node[note,below=2mm of invoke] {Policy output $a_{\tau_r}=1$};
-\node[box,dashed,text width=11.7cm,below=18mm of gate,yshift=-7mm] (offline)
+\node[box,dashed,text width=11.7cm,below=15mm of keep,xshift=3.15cm] (offline)
 {OFFLINE ONLY (development supervision / retrospective analysis): observed target and the two rankings yield $\Delta_m$; target-relative relationship states $S_L$ are diagnostic labels, never selector inputs};
 \end{tikzpicture}
 \caption{Separation of pre-outcome specialist invocation from offline utility supervision and retrospective relationship-state analysis. The learned utility threshold is fixed using development data; matched-budget Difficulty and Oracle controls operate only in offline evaluation.}
@@ -268,7 +268,7 @@ Both indicators are computed after the target has been observed. In particular, 
 \subsection{Observable Features and Conditional Relative-Utility Estimation}
 \label{sec:framework-estimation}
 
-The estimator $\hat\eta_r(z)$ is trained to predict the realized development-event target $\Delta_m(x)$ defined by Eq.~\eqref{eq:delta-memory}. Its inputs comprise only pre-outcome user/history summaries and base-ranking descriptors. In the Twitch implementation, the six behavioral descriptors are log history length, repeated-creator rate, normalized preference entropy, old-versus-recent preference drift, temporal regularity, and a composite history-complexity measure. The eight base-score descriptors are candidate-score standard deviation and range, top-1 versus top-2, top-5, and top-11 score margins, top-score standardized value, normalized score entropy, and top-ten softmax mass. All eight use the eligible candidate scores for the current recommendation context. Behavioral-state summaries should not be confused with the target-relative diagnostic state $S_L$.
+The estimator $\hat\eta_r(z)$ is trained to predict the realized development-event target $\Delta_m(x)$ defined by Eq.~\eqref{eq:delta-memory}. Its inputs comprise only pre-outcome user/history summaries and base-ranking descriptors. In the Twitch implementation, the six behavioral descriptors are log history length, repeated-creator rate, normalized preference entropy, old-versus-recent preference drift, temporal regularity, and a composite history-complexity measure. The eight base-score descriptors are candidate-score standard deviation and range, top-1 versus top-2, top-1 versus top-5, and top-10 versus top-11 score margins, top-score standardized value, normalized score entropy, and top-ten softmax mass. All eight use the eligible candidate scores for the current recommendation context. Behavioral-state summaries should not be confused with the target-relative diagnostic state $S_L$.
 
 The history-complexity descriptor combines development-reference percentile transforms of entropy, preference drift, and log history length with weights $0.4$, $0.4$, and $0.2$. In the frozen external protocol, empirical-distribution references derived on development data are reused for test transformations; target-relative labels or test outcomes are never used to recompute the reference. This ensures that $\hat\eta_r$ receives a fixed-feature interpretation across the development-to-test boundary.
 
