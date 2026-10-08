@@ -99,4 +99,10 @@ A reviewer-style content audit must inspect the typeset source, not merely a suc
 - [Krichene & Rendle (2020), *On Sampled Metrics for Item Recommendation*](https://research.google/pubs/on-sampled-metrics-for-item-recommendation/), KDD, DOI `10.1145/3394486.3403226`.
 - [Elsevier research data statement guidance](https://www.elsevier.com/researcher/author/tools-and-resources/research-data/data-statement) for transparent, availability-qualified data/code descriptions; consult the journal-specific author instructions at submission.
 
+## Final build verification
+
+- **Build:** [GitHub Actions 37753518887](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37753518887), successful for the finalized LaTeX source commit `775afc40bbf9f6b1635733e7222d35d8b27b3e91`.
+- **PDF and log artifact:** [11539111133](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37753518887/artifacts/11539111133), `kbs-manuscript-build-37753518887`.
+- **Checks:** compile, generated PDF existence, artifact upload, manuscript cross-reference/BibTeX key static audit, and TeX emphasis/percentage escape validation passed. No fatal LaTeX errors; final passes show only small pre-existing overfull paragraph warnings in Sections 1–4 (approx. 1–2 pt), not the new Twitch paragraph. Typeset visual approval remains a separate editorial task.
+
 **Editorial conclusion:** The edited Section 5 is significantly tighter on selection fairness, data temporal semantics, candidate protocol identity, target leakage, bootstrap units and claims scope. No extra experimental performance has been inferred from prose editing; scientific results remain located in Section 6 and its evidence sources.
