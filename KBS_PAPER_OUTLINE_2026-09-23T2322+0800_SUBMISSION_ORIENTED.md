@@ -31,13 +31,15 @@ Structure the abstract around one scientific question, one mechanism result, one
 2. **Operationalization.** Instantiate persistent relationship evidence through a transparent relationship-memory specialist and measure its event-level marginal ranking utility relative to a strong base recommender. Avoid implying that the measured quantity is an intrinsic, model-independent information value of history.
 3. **Mechanism.** Characterize represented, recoverable-but-unrepresented, and unavailable relationship evidence; report development analysis, untouched held-out test replication, and context-capacity comparisons across independently retrained bases. Visibility transitions are associated with changes in relative utility but do not isolate visibility as their sole cause.
 4. **Decision.** Estimate conditional specialist-minus-base utility rather than generic base difficulty; show that Utility more strongly enriches recoverable events whereas Difficulty disproportionately selects unavailable events under the same invocation budget.
-5. **Validation.** Report the KuaiLive regime reversal and the untouched Twitch/LiveRec held-out test result.
-6. **Qualification.** State that evidence state structures but does not uniquely determine utility, the measured evidence value is operationalized through the fixed specialist, and substantial Oracle headroom remains.
+5. **Validation.** Report the KuaiLive regime reversal reproduced by a completed same-checkpoint/same-alpha post-hoc diagnostic (paired full-minus-sampled Memory−Base `+0.08751`, 95% CI `[+0.08183,+0.09311]`), alongside the independently frozen Twitch/LiveRec held-out policy benefit.
+6. **Qualification.** A candidate-set swap also changes candidate-wise score standardization; this diagnostic is observational rather than isolated causal identification, uses one newly trained checkpoint pair, and does not upgrade the historical test to new confirmatory evidence. The recoverable-but-unrepresented group's relative advantage *shrinks* in full-active, so the aggregate reversal is not a simple long-history-recovery effect. Specialist value is operational and considerable Oracle headroom remains.
 
-Prioritize two quantitative anchors rather than a long result list:
+Prioritize two headline quantitative anchors in the abstract rather than a dense result list:
 
-- **Mechanism:** recoverable-to-represented transitions under context expansion reduce specialist-minus-base utility by approximately `0.42–0.45` NDCG@10 while canonical Memory is fixed.
-- **Held-out decision:** on untouched Twitch/LiveRec TEST, Selective Utility improves over Base by `+0.00772` NDCG@10 and over exact-budget Difficulty by `+0.00644`.
+- **Candidate-regime evidence (supporting post-hoc diagnostic):** under one fixed checkpoint pair and DEV-selected alpha, full-minus-sampled Memory−Base is `+0.08751` NDCG@10 (95% paired CI `[+0.08183,+0.09311]`).
+- **Frozen held-out decision:** on untouched Twitch/LiveRec TEST, Selective Utility improves on Base by `+0.00772` NDCG@10 and on exact-count Difficulty by `+0.00644`.
+
+Keep the `0.42–0.45` context-capacity association as a central Section 6.2 mechanism finding without overstating visibility causality.
 
 Avoid introducing the paper as a new gating architecture, new Memory network, generic Learning-to-Defer method, or universal theory of information value.
 
@@ -65,7 +67,7 @@ Use the central sentence:
 
 Preview only three facts:
 
-- aggregate specialist ordering reverses across KuaiLive candidate regimes;
+- aggregate specialist ordering reverses across KuaiLive candidate regimes, with a completed post-hoc same-checkpoint, same-alpha paired shift of `+0.08751` (95% CI `[+0.08183,+0.09311]`);
 - conditional evidence-state structure identified in pre-specified Twitch/LiveRec development analysis reproduces on untouched held-out test data;
 - in a development-only context-capacity comparison, matched instances moving from recoverable to base-input-visible exhibit approximately `0.42–0.45` lower specialist-minus-base NDCG@10; Memory is fixed but each Base is separately trained, so the decline reflects Base improvement and is consistent with, not an isolated test of, a visibility interpretation.
 
@@ -350,9 +352,9 @@ Pre-specified development-to-test replication and one-shot test are **confirmato
 Two distinct estimands must be described and never pooled:
 
 - **Historically evaluated regime comparison:** previously frozen sampled-active and native full-active results. The native full-active setting may have its own DEV-selected fusion coefficient; this comparison characterizes operational regime dependence but does not fully isolate candidate-set change from configuration differences.
-- **Same-checkpoint paired candidate-swap diagnostic (NEW; pending completed execution):** train one fixed room+streamer checkpoint pair on the frozen split; select a single fusion coefficient from sampled DEV; for each same TEST user–time–target event score all active rooms once; obtain sampled scores by subsetting those exact raw room/streamer scores and re-standardizing *within* each candidate set; evaluate the same fixed relationship specialist in both regimes. Require sampled \\(\subseteq\\) full-active, identical test identities, model hashes, target/room mapping, history and population. Use paired user bootstrap on \\(\Delta_{\\mathrm{full}}-\Delta_{\\mathrm{sampled}}\\), overall and by evidence state.
+- **Same-checkpoint paired candidate-swap diagnostic (COMPLETED; supporting post-hoc):** train one fixed room+streamer checkpoint pair on the frozen split; select a single fusion coefficient from sampled DEV; for each same TEST user–time–target event score all active rooms once; obtain sampled scores by subsetting those exact raw room/streamer scores and re-standardizing *within* each candidate set; evaluate the same fixed relationship specialist in both regimes. Require sampled \\(\subseteq\\) full-active, identical test identities, model hashes, target/room mapping, history and population. Use paired user bootstrap on \\(\Delta_{\\mathrm{full}}-\Delta_{\\mathrm{sampled}}\\), overall and by evidence state.
 
-This is an **observational, protocol-controlled candidate replacement diagnostic**, not randomized causal identification. Accept a positive, negative or null result; never gate workflow success on a favorable sign. Retain original frozen TEST policies and records unchanged.
+The paired diagnostic **completed successfully** on [GitHub Actions #37746520476](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37746520476), with artifact `11536890439`, `n=10,222`, `alpha_room=0.125` selected on sampled DEV, a new frozen room/streamer checkpoint pair, and 3,000 user-paired bootstrap replicates. All reported identity, candidate-set-inclusion, model consistency and sign-neutral validation guards passed. Candidate membership **and within-candidate score normalization** change together. This is an **observational, protocol-controlled candidate replacement diagnostic**, not randomized causal identification. Accept a positive, negative or null result; never gate workflow success on a favorable sign. Retain original frozen TEST policies and records unchanged.
 
 **Important numerical provenance gate.** Historical files report *different* KuaiLive sampled Base NDCG@10 anchors (e.g. \\(0.60784\\) in the manuscript planning sheet and \\(0.61714\\) in the frozen state-decomposition evidence). Do not label these as the same experiment. Resolve by sample identity, checkpoint hashes, fusion alpha, candidate construction, and source artifact before finalizing Section 6.1. Historically reported full-active *native* and strict-transfer Base values must also be labeled separately. The new same-checkpoint result is a new diagnostic row, not an in-place replacement for frozen policy results.
 
@@ -375,19 +377,36 @@ Specify training hyperparameters, frozen upstream implementation/commit referenc
 
 Order results around empirically testable propositions, not the chronology in which GitHub workflows ran. Section headings state findings without implying causality. Use **held-out TEST** for frozen policy performance and **DEV/diagnostic** for supplementary mechanisms.
 
-## 6.1 Candidate regime changes operational specialist value
+## 6.1 Candidate-regime reversal persists under a fixed checkpoint pair
 
-**Primary historical observation.** Introduce sampled-active versus full-active specialist-relative ranking differences, then show fixed-composition historical decomposition on the same 10,222 user–time–target events. Cite the frozen KuaiLive decomposition evidence: sampled Memory−Base \\(-0.05125\\), full-active \\(+0.03367\\). Clearly identify the historical full-active native Base and the potentially different fusion configuration.
+**Scientific role.** Test whether candidate-regime sensitivity survives controlling the historical model-checkpoint and fusion-weight mismatch. Distinguish (A) historical regime-specific operational comparisons from (B) the completed, single-checkpoint post-hoc diagnostic. Neither is a randomized trial isolating candidate membership from candidate-wise score normalization.
 
-**New paired-control panel — placeholder pending execution.** Present same-checkpoint sampled and full-active Base/Memory NDCG@10, within-regime Memory−Base, and paired full-minus-sampled difference with 95% CI. Include state-specific paired shifts and model SHA256 hashes in the audit supplement.
+**A. Historical observation (frozen protocol; not pooled with B).** On 10,222 matched KuaiLive events, the frozen regime-decomposition record reports sampled-active Base `0.61714`, Memory `0.56589`, Memory−Base `−0.05125`; native full-active Base `0.39835`, Memory `0.43202`, Memory−Base `+0.03367`. Another planning-context sampled Base `0.60784` remains separately attributed until its exact checkpoint, fusion coefficient, and source artifact are reconciled. Historical regime parameters need not coincide.
 
-Interpretation gate:
+**B. Completed same-checkpoint diagnostic (supporting evidence).** [GPU run 37746520476](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37746520476); artifact ID `11536890439`; `n=10,222` matched users/events, `alpha_room=0.125` selected on sampled DEV, one newly trained room+streamer checkpoint pair, identical Memory definition, and 3,000 paired user-bootstrap replicates. Sampled events are a verified subset of the corresponding full-active candidates; model hashes and event identities are recorded.
 
-- If the sign reversal persists with the *same* checkpoint and alpha, it strengthens the candidate-set-dependent operational-utility claim under this paired protocol.
-- If attenuated or absent, explicitly qualify the historical reversal as entangled with configuration/estimation choices; revise Introduction and Discussion accordingly.
-- No new observed numbers may be imputed from the historical artifacts.
+| NDCG@10, *new paired protocol* | Sampled-active | Full-active |
+|---|---:|---:|
+| Base | 0.60709 | 0.38571 |
+| Memory | 0.56589 | 0.43202 |
+| Memory−Base | **−0.04120** | **+0.04631** |
+| 95% paired bootstrap CI for Memory−Base | [−0.04820, −0.03414] | [+0.03978, +0.05297] |
 
-**Main Figure 2 — KuaiLive candidate-regime comparison.** Historical regime bars distinguished visually from paired same-checkpoint results; state-specific contrasts with interval bars only if the diagnostic has passed identity checks.
+**Full-minus-sampled Memory−Base shift: `+0.08751`, 95% paired user-bootstrap CI `[+0.08183,+0.09311]`.** The reproduced sign reversal rules out historical *between-regime checkpoint/alpha mismatch* as necessary for this new diagnostic's reversal. It does not isolate candidate membership as a causal mechanism. The new Base values do not replace historical Base anchors and were never used to reselect frozen-policy thresholds.
+
+**C. Fixed evidence-state composition; differential conditional shifts.** The target-relative states are unchanged across paired candidate regimes, so prevalence cannot explain the reversal in this matched population:
+
+| Retrospective state | n (share) | Sampled Δ | Full Δ | Full-minus-sampled paired shift [95% CI] |
+|---|---:|---:|---:|---|
+| represented | 4,589 (44.89%) | +0.12859 | +0.21650 | **+0.08790** [+0.08023,+0.09557] |
+| recoverable-but-unrepresented | 206 (2.02%) | +0.18445 | +0.08248 | **−0.10197** [−0.15224,−0.05221] |
+| unavailable | 5,427 (53.09%) | −0.19335 | −0.09898 | **+0.09437** [+0.08602,+0.10214] |
+
+The weighted shift decomposes as `+0.03946` (represented), `−0.00205` (recoverable), and `+0.05010` (unavailable), totaling `+0.08751`. Hence the shift is driven primarily by increased represented relative gains and *less negative* unavailable cases, **not** increasing recoverable prevalence or benefit. Do not describe the KuaiLive reversal as evidence that full-active provides more long-horizon relationship information. The recoverable group's conditional Memory advantage remains positive but is smaller.
+
+**Main Figure 2.** Prefer separate panels for (A) historical operational contrasts and (B) new matched-checkpoint paired contrasts/CIs; show subgroup shifts in a compact Figure 2C or supplementary table. Label old/new model identities and candidate rules. Avoid putting two configurations into an apparently unified paired series.
+
+**Limitations and optional follow-on analysis.** The new result involves a single newly trained checkpoint pair/seed, a previously studied TEST population, and candidate-wise z-standardization that changes when the candidate set changes. Optional supporting checks: score normalization against one fixed reference population, followed by a small independent-training-seed repeat. These checks are **proposed**, not yet completed; the present successful result is valid as a post-hoc controlled-protocol observation.
 
 ## 6.2 Relationship-evidence states and relative utility
 
@@ -432,7 +451,7 @@ The operational \\(u_K(M,x)-u_K(B,x)\\) is a **model- and regime-dependent** per
 
 ## 7.2 Why visibility and available history do not determine utility
 
-Explain differences between KuaiLive regimes and Twitch/LiveRec states. Candidate construction, relative normalization, reference Base strength and target popularity interact; three evidence states are an *analysis partition*, not a causal law or guaranteed utility signs.
+Differentiate the newly controlled KuaiLive regime reversal from Twitch's history-visibility pattern. With fixed KuaiLive state prevalence, represented gains increase, unavailable penalties ease but remain negative, and recoverable gains *decrease* in full-active; thus the reversal is not a simple recovery of long-horizon information. Candidate membership and candidate-wise normalization co-vary. State groups are retrospective analysis partitions, not a causal law or universal utility signs.
 
 ## 7.3 From specialist utility to selective decisions
 
@@ -442,7 +461,7 @@ Explain the difference between evidence-based expert solvability and generic bas
 
 Address:
 - frozen test and separate subsequent diagnostics, DEV OOF threshold selection, multiple analytic comparisons;
-- historical KuaiLive configuration mismatch and status of the new paired candidate swap;
+- historical KuaiLive checkpoint/alpha provenance differences versus the completed same-checkpoint post-hoc diagnostic; single new checkpoint pair/seed, reused TEST population, and candidate-wise z-normalization changing with membership;
 - independently retrained context-length bases and inability to isolate visibility causally;
 - ten-minute Twitch crawl resolution, eligibility semantics, offline logged data, candidate protocols;
 - portability of the principle versus non-transferability of fitted gate parameters;
@@ -457,7 +476,7 @@ The design takeaway is to **assess the marginal decision value of an explicitly 
 
 # 8. Conclusion
 
-One short section, no new results: (i) operational specialist contribution is reference- and regime-dependent; (ii) retrospective relationship evidence states reveal interpretable conditional structure but do not entail universal signs or causal claims; (iii) a DEV-frozen specialist-utility selector improves offline ranking in the supported protocols, with material estimation headroom. Qualify the regime reversal according to the same-checkpoint diagnostic **only after its results exist**.
+One short section, no new results: (i) operational specialist contribution is reference- and regime-dependent; (ii) retrospective relationship evidence states reveal interpretable conditional structure but do not entail universal signs or causal claims; (iii) a DEV-frozen specialist-utility selector improves offline ranking in the supported protocols, with material estimation headroom. Report that regime reversal persists in the completed same-checkpoint paired diagnostic (`+0.08751` paired shift, 95% CI `[+0.08183,+0.09311]`), but qualify the change as protocol dependent, post-hoc, and not isolated causal membership evidence.
 
 ---
 
@@ -474,7 +493,7 @@ One short section, no new results: (i) operational specialist contribution is re
 | Figure 1 | Base-relative specialist valuation and decision/analysis separation | Design diagram |
 | Table 1 | Dataset, temporal split and candidate protocols | Verify counts/protocol |
 | Table 2 | Models and selector comparability | Methods, DEV choices |
-| Figure 2 | Candidate-regime deltas with new paired control | **PENDING same-checkpoint TEST** |
+| Figure 2 | Historical regime contrasts separated from new same-checkpoint results and paired shift intervals | **COMPLETED supporting diagnostic** |
 | Figure 3 | Twitch state replication and context-capacity association | Frozen DEV/TEST + DEV diagnostic |
 | Table 3 | Utility vs Difficulty exact-count decision/composition | Frozen analysis |
 | Table 4 | One-shot Twitch held-out TEST | Frozen results |
@@ -486,7 +505,7 @@ One short section, no new results: (i) operational specialist contribution is re
 - **S2 — Training and freeze record.** Hyperparameters, independent training seeds, DEV OOF threshold, untouched TEST sequence and artifact hashes.
 - **S3 — Comparator performance.** Same-candidate strong-base scorecards, baselines and checkpoint provenance.
 - **S4 — Relationship-memory components.** Short/Long/Popularity, horizon and weight sensitivities.
-- **S5 — Candidate swap and other regime diagnostics.** Same checkpoint hashes, candidate subset and target-presence guards, DEV-chosen alpha, full paired event file, confidence intervals, and any discrepancy with historical baselines.
+- **S5 — Candidate swap and other regime diagnostics.** Run `37746520476`, artifact `11536890439`, DEV-selected alpha `0.125`, fixed model SHA256s (room `b8c9fbb06ad6a627e44477c6387a6fb2eadaad783caa998201b3de76fa0cf0e7`; streamer `82db309e03947187430c844aab35bbce4a8ed4702c32914d1b4e3e0be987d945`), candidate-subset and target guards, user-level paired differences and CIs, and historical/new-protocol reconciliation. Archive a durable independent evidence report since workflow artifacts expire.
 - **S6 — Context-length details.** Canonical Memory invariants, separately retrained Base hashes, nested evidence-state transitions, recency bins.
 - **S7 — Selection analyses.** Development calibration/ranking diagnostics, state composition, threshold sensitivity, feature-family ablations.
 - **S8 — Robustness and external validity.** Training seeds, alternative-explanation strata, temporal-regime details.
@@ -494,11 +513,11 @@ One short section, no new results: (i) operational specialist contribution is re
 
 ## Mandatory claim/source gates before drafting Section 6
 
-1. **No unpaired checkpoint attribution.** Do not assert candidate-set change alone caused a historical reversal with differing Base configurations.
+1. **No isolated causal attribution.** The new matched-checkpoint sign reversal is stronger evidence of candidate-regime-dependent *operational* utility; candidate membership and its score standardization change jointly. Historical configurations remain separate.
 2. **No numeric consolidation by visual similarity.** The \\(0.60784\\) versus \\(0.61714\\) sampled Base values belong to potentially different experimental contexts; resolve provenance first.
 3. **No post-hoc test retuning.** Never use same-checkpoint paired diagnostics, context-length DEV evidence or per-state TEST outcomes to reselect the original frozen Utility threshold.
 4. **No isolated context-visibility causality.** L8/L16/L32 has separately trained bases.
 5. **No target leakage into selector features.** Evidence states, realized \\(\Delta_m\\) and target ranks are analysis/supervision outputs, not serving features.
 6. **No journal policy fabrication.** Check KBS-specific declarations, file requirements and formatting against the actual journal guide at submission time.
 
-*Editorial status, 2026-10-08: Sections 1–4 remain the reviewed LaTeX writing baseline. Sections 5–8 above are the revised scholarly outline. New same-checkpoint results are not yet available; all stated pre-existing effects are labeled by their respective frozen evidence source rather than presented as new measurements.*
+*Editorial status, 2026-10-08: Sections 1–4 remain the reviewed LaTeX scientific baseline; Section 5 now exists in the canonical compiled manuscript. The same-checkpoint diagnostic completed successfully (run 37746520476) and is incorporated solely as **supporting post-hoc evidence**. Sections 6–8 are the remaining drafting targets; historical and frozen-policy results preserve their independent experimental identities.*
