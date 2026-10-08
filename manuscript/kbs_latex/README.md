@@ -4,12 +4,16 @@ This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems
 
 ## Files
 
-- `main.tex` — current manuscript source. It uses Elsevier's `elsarticle` class and now contains the abstract and all eight main sections: Introduction, Related Work, Problem Formulation, Base-Relative Evidence Valuation Framework, Experimental Setup, Experimental Results, Discussion and Conclusion. The Results section is organized as conditional-value heterogeneity, frozen decision validation, candidate-regime sensitivity, robustness and computational considerations.
+- `main.tex` — current manuscript source. It uses Elsevier's `elsarticle` class and currently contains Sections 1–5 and a completed Section 6.1 draft: Introduction, Related Work, Problem Formulation, Base-Relative Evidence Valuation Framework, Experimental Setup, and the first part of Experimental Results.
 - `kbs_references.bib` — BibTeX database for manuscript references.
+
+## Staged-writing rule
+
+The [conditional-value-first submission outline](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md) is an approved **plan**, not completed manuscript text. Keep the canonical LaTeX at Sections 1–5 plus the existing evidence-verified KuaiLive Section 6.1 until the next section is separately assigned and reviewed. Do **not** jointly generate Abstract, all Results subsections, Discussion and Conclusion; write Abstract near the final synthesis stage. The 2026-10-08 premature full-manuscript expansion was reverted to the previously verified source revision, without changing the underlying frozen results or published bibliography.
 
 ## Current review baseline
 
-As of 2026-10-08, Sections 1–4 form the reviewed writing baseline following a cross-section P0–P2 alignment of operational-value claims, mechanism interpretation, and method reproducibility. Earlier writing freezes were reopened only for these explicitly requested scientific corrections. Section 5 (Experimental Setup) has now been drafted directly in `main.tex`, following the updated academic outline. The 2026-10-08 conditional-value-first revision drafted all Sections 6.1–6.5, Discussion and Conclusion using previously frozen Twitch results and completed post-hoc KuaiLive P0/P1 diagnostics. These texts require normal coauthor and submission-stage evidence review, but are no longer unwritten. Reopen Sections 1–4 only for a substantiated scientific inconsistency or a journal requirement.
+As of 2026-10-08, Sections 1–4 form the reviewed writing baseline following a cross-section P0–P2 alignment of operational-value claims, mechanism interpretation, and method reproducibility. Earlier writing freezes were reopened only for these explicitly requested scientific corrections. Section 5 (Experimental Setup) has now been drafted directly in `main.tex`, following the updated academic outline. Section 6.1 now presents verified KuaiLive P0 factorial and P1 three-seed results. Sections 6.2–6.5 and Sections 7–8 remain to be drafted. Reopen Sections 1–4 only for a substantiated scientific inconsistency or a journal requirement.
 
 The frozen scientific boundaries include candidate-regime-specific event contexts, development-frozen utility thresholds with offline matched-budget controls, and non-causal interpretation of the separately trained context-length base comparisons. Section 4 instantiates these definitions without redefining the learning or evaluation protocol. Its method description distinguishes primary first-observed-crawl history from auxiliary strict-split history, explicitly follows the official Twitch ten-minute sampling semantics, distinguishes cross-platform policy re-fitting from zero-shot transfer, and excludes target-relative diagnostic labels from selector features. Reopen Section 4 only for a verified protocol discrepancy or journal-required correction.
 
@@ -27,20 +31,10 @@ The cross-section [retrospective academic audit of Sections 1–4](SECTIONS1-4_R
 
 The hosted PDF compilation workflow is `.github/workflows/kbs-manuscript-latex-build.yml`. The final 2026-10-08 structural revision passed [GitHub Actions build 37755123184](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37755123184) and produced [PDF/log artifact 11539737383](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37755123184/artifacts/11539737383). No LaTeX errors or overfull lines remain in Section 5; two small overfull warnings persist in earlier chapters. This confirms successful compilation, not final publication layout approval. Dataset training scale and supplementary evidence provenance still require submission-stage completion.
 
-**Latest results-first manuscript build:** [run 37760743139](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37760743139), [compiled PDF/log artifact 11542735354](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37760743139/artifacts/11542735354). Compilation and PDF upload succeeded; remaining small pre-existing layout warnings in Section 3/References are not proof of camera-ready typography.
 
+## Section 6 drafting status
 
-## Abstract and Sections 6–8 drafting status
-
-The main manuscript now has a complete **draft** abstract and five-subsection Section 6 aligned to the revised [submission outline](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md): 6.1 heterogeneous relationship-memory value (Twitch frozen group analysis); 6.2 prospective-features/frozen TEST decision value; 6.3 KuaiLive candidate-regime dependence (P0/P1 post-hoc); 6.4 DEV-only robustness and alternative explanations; and 6.5 benchmarked computational overhead. Sections 7–8 contain drafted Discussion and Conclusion. This is not yet a full submission package.
-
-Evidence provenance:
-- [Twitch one-shot TEST run 35708072303](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35708072303), 44,221 target events, realized 6,650 Memory invocations and 5,000 paired bootstrap replicates: the primary policy validation.
-- [Twitch DEV-only feature ablation run 35713931454](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35713931454): supporting—not held-out—feature-family evidence.
-- [KuaiLive factorial and seed ledger](../../KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md), [GPU run 37751814645](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37751814645): post-hoc regime comparison and limited independent-checkpoint robustness.
-- [Separate CPU efficiency run 35730086758](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35730086758): neither Twitch policy latency nor evidence of real deployment savings.
-
-Open acceptance gates: verify complete dataset/split statistics; reconcile historical KuaiLive Base identities; preserve a durable archive of models and per-user result files beyond expiring Actions; complete Supplementary exhibits and journal-specific declarations; independent scholarly review of tables, inferences and typographic layout. Optional P2 negative-sampling sensitivity remains unexecuted.
+Section 6.1, `Candidate-Regime Sensitivity of Base-Relative Memory Utility`, is now in the canonical LaTeX manuscript as a research-results section (not an execution diary). It reports the verified matched-user sampled/full sign reversal, all four P0 candidate/reference-normalization combinations, the two-order additive allocations and paired 95% confidence intervals, and all three P1 independently trained seeds with mean/SD and retrospective evidence-state decomposition. Its outcome provenance is [the verified P0/P1 evidence ledger](../../KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md), based on [GPU run 37751814645](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37751814645). This is supporting post-hoc evidence on an already-inspected TEST population, separate from the frozen Twitch held-out policy evaluation that belongs in Section 6.4. The optional P2 candidate-negative-sampling sensitivity has **not** been executed.
 
 ## Build
 
