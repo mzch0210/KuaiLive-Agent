@@ -9,9 +9,9 @@ This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems
 
 ## Current review baseline
 
-As of 2026-10-08, Sections 1-3 remain frozen after targeted P0/P1 consistency edits. Section 4 (Base-Relative Evidence Valuation Framework) has completed P0–P2 reviewer-style convergence and is now also frozen as a writing baseline. Sections 5 and 6 have not been added. Reopen a frozen section only to correct a substantiated issue or meet a journal requirement.
+As of 2026-10-08, Sections 1–4 form the reviewed writing baseline following a cross-section P0–P2 alignment of operational-value claims, mechanism interpretation, and method reproducibility. Earlier writing freezes were reopened only for these explicitly requested scientific corrections. Sections 5 and 6 have not been added. Reopen these chapters again only for a substantiated issue or a journal requirement.
 
-The frozen scientific boundaries include candidate-regime-specific event contexts, development-frozen utility thresholds with offline matched-budget controls, and non-causal interpretation of the separately trained context-length base comparisons. Section 4 instantiates these definitions without redefining the learning or evaluation protocol. Its method description distinguishes primary per-target interaction-start histories from the auxiliary strict-split history pool, zero-shot gate transfer from cross-platform re-fitting, and diagnostic relationship states from selector inputs. Reopen Section 4 only for a verified protocol discrepancy or journal-required correction.
+The frozen scientific boundaries include candidate-regime-specific event contexts, development-frozen utility thresholds with offline matched-budget controls, and non-causal interpretation of the separately trained context-length base comparisons. Section 4 instantiates these definitions without redefining the learning or evaluation protocol. Its method description distinguishes primary first-observed-crawl history from auxiliary strict-split history, explicitly follows the official Twitch ten-minute sampling semantics, distinguishes cross-platform policy re-fitting from zero-shot transfer, and excludes target-relative diagnostic labels from selector features. Reopen Section 4 only for a verified protocol discrepancy or journal-required correction.
 
 ## Maintenance rule
 
