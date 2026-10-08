@@ -320,7 +320,7 @@ Use for:
 - credible official strong base;
 - pre-specified development analysis and untouched held-out test validation;
 - evidence-state replication;
-- context-capacity intervention;
+- context-capacity comparison across separately retrained base checkpoints;
 - Utility/Difficulty/Oracle selection-composition analysis.
 
 ## 5.2 Recommendation regimes
@@ -441,7 +441,7 @@ Use matched-instance evidence-state transitions as a convergent diagnostic; the 
 
 Conclusion:
 
-> **The operational marginal value of the fixed relationship specialist is strongly Base-relative: when a larger base context comes to represent the same persistent relationship evidence, specialist advantage contracts sharply.**
+> **The fixed specialist's operational marginal value contracts when separately trained larger-context bases improve ranking on matched input-visibility transition instances; this is consistent with, but does not causally isolate, a visibility explanation.**
 
 Use **context-capacity comparison across separately trained bases with associated input-visibility changes**, not an isolated visibility intervention or causal proof. Explicitly report Base retraining, Base-utility differences, and the identity `Δ(L')−Δ(L)=u_K(B_L)−u_K(B_L')` when `M` is unchanged.
 
