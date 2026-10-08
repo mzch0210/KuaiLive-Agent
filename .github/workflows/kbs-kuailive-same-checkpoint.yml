@@ -180,24 +180,40 @@ jobs:
         run: |
           set -euo pipefail
           "$PY" analysis/kbs_kuailive_same_checkpoint.py --self-test
-      - name: Train both Dual-ID branches once, then freeze checkpoint pair
+      - name: Reuse verified checkpoint pair or train each Dual-ID branch once
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p models logs
-          for identity in room streamer; do
-            if [ "$identity" = room ]; then DATASET="$ROOM_DATASET"; else DATASET="$STREAMER_DATASET"; fi
-            (cd third_party/ReChorus/src &&
-              "$PY" main.py --model_name SASRec --dataset "$DATASET" \
-              --path "$DATA_CACHE/rechorus_dual/" --gpu 0 --random_seed "$SEED" \
-              --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
-              --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 256 \
-              --epoch 30 --early_stop 5 --main_metric NDCG@10 --topk 10 \
-              --metric NDCG,HR --num_workers 4 --save_final_results 0 --regenerate 1 \
-              --log_file "$GITHUB_WORKSPACE/logs/$identity.log" \
-              --model_path "$GITHUB_WORKSPACE/models/$identity.pt")
-            test -s "models/$identity.pt"
-          done
+          MODEL_CACHE="$HOME/.cache/kuailive-agent-kbs/dual-id-paired-20260918-model-v1"
+          if [ -s "$MODEL_CACHE/SHA256SUMS" ] &&
+             (cd "$MODEL_CACHE" && sha256sum -c SHA256SUMS >/dev/null) &&
+             [ -s "$MODEL_CACHE/room.pt" ] && [ -s "$MODEL_CACHE/streamer.pt" ]; then
+            cp "$MODEL_CACHE/room.pt" models/room.pt
+            cp "$MODEL_CACHE/streamer.pt" models/streamer.pt
+            echo 'Both checkpoint branches reused from verified private cache.' | tee logs/training_source.txt
+          else
+            echo 'Model cache miss; training the two branches once.' | tee logs/training_source.txt
+            for identity in room streamer; do
+              if [ "$identity" = room ]; then DATASET="$ROOM_DATASET"; else DATASET="$STREAMER_DATASET"; fi
+              (cd third_party/ReChorus/src &&
+                "$PY" main.py --model_name SASRec --dataset "$DATASET" \
+                --path "$DATA_CACHE/rechorus_dual/" --gpu 0 --random_seed "$SEED" \
+                --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+                --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 256 \
+                --epoch 30 --early_stop 5 --main_metric NDCG@10 --topk 10 \
+                --metric NDCG,HR --num_workers 4 --save_final_results 0 --regenerate 1 \
+                --log_file "$GITHUB_WORKSPACE/logs/$identity.log" \
+                --model_path "$GITHUB_WORKSPACE/models/$identity.pt")
+              test -s "models/$identity.pt"
+            done
+            TMP="$MODEL_CACHE.pending.$GITHUB_RUN_ID"
+            rm -rf "$TMP" && mkdir -p "$TMP"
+            cp models/room.pt models/streamer.pt "$TMP/"
+            (cd "$TMP" && sha256sum room.pt streamer.pt > SHA256SUMS && sha256sum -c SHA256SUMS)
+            rm -rf "$MODEL_CACHE" && mv "$TMP" "$MODEL_CACHE"
+          fi
+          test -s models/room.pt && test -s models/streamer.pt
           sha256sum models/*.pt | tee logs/model_sha256.txt
       - name: DEV alpha fitting and paired TEST scoring with same frozen checkpoints
         shell: bash
@@ -225,7 +241,9 @@ jobs:
           path: |
             paired_results/**
             logs/model_sha256.txt
+            logs/training_source.txt
             logs/*.log
+            models/*.pt
           if-no-files-found: warn
           retention-days: 90
       - name: Remove transient data but preserve verified input cache
