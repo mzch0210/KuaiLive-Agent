@@ -1,0 +1,236 @@
+name: KBS KuaiLive same-checkpoint diagnostic
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/kbs_kuailive_same_checkpoint.py'
+      - '.github/workflows/kbs-kuailive-same-checkpoint.yml'
+  workflow_dispatch:
+    inputs:
+      confirm_owner_run:
+        description: 'I approve an experiment on the private RTX 3090 runner'
+        required: true
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: kuailive-gpu-3090
+  cancel-in-progress: false
+env:
+  SEED: '20260918'
+  N_NEG: '574'
+  ROOM_DATASET: 'KuaiLiveShopRoomDualID'
+  STREAMER_DATASET: 'KuaiLiveShopStreamerParallel'
+  RECHORUS_COMMIT: 'c164ec4303cc20ddcfbd1b57de366a481811d1e5'
+  FROZEN_RUN: '35813831725'
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.10'
+      - name: Compile paired diagnostic and check design invariants
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_kuailive_same_checkpoint.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('analysis/kbs_kuailive_same_checkpoint.py').read_text()
+          for x in ('subset_indices(full_items, sample_items)', 'room_raw[index]',
+                    'stream_raw[index]', 'alpha, alpha_grid = score_pair(dev',
+                    'result = score_pair(test', 'sign_neutral_evaluation'):
+              assert x in s, x
+          print('preflight PASS')
+          PY
+  paired_gpu:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'mzch0210' && github.ref == 'refs/heads/main' && inputs.confirm_owner_run }}
+    needs: preflight
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 900
+    steps:
+      - name: Enforce dedicated GPU security guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_EVENT_NAME" = 'workflow_dispatch'
+          test "$GITHUB_ACTOR" = 'mzch0210'
+          test "$GITHUB_REPOSITORY" = 'mzch0210/KuaiLive-Agent'
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$(id -u)" -ne 0
+          if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then exit 1; fi
+          if id -nG | tr ' ' '\n' | grep -qx docker; then exit 1; fi
+          test -z "${SSH_AUTH_SOCK:-}"
+          for d in "$HOME/.aws" "$HOME/.azure" "$HOME/.config/gcloud"; do test ! -e "$d"; done
+          if [ -d "$HOME/.ssh" ]; then
+            ! find "$HOME/.ssh" -maxdepth 1 -type f \( -name 'id_rsa' -o -name 'id_ed25519' -o -name 'id_ecdsa' -o -name 'id_dsa' \) | grep -q .
+          fi
+      - name: Verify pinned CUDA environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          test -x "$PY"
+          "$PY" - <<'PY'
+          import torch
+          assert torch.__version__.startswith('2.4.1')
+          assert torch.cuda.is_available()
+          assert 'RTX 3090' in torch.cuda.get_device_name(0)
+          PY
+          echo "PY=$PY" >> "$GITHUB_ENV"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          persist-credentials: false
+          clean: true
+      - name: Isolate analysis dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEP="$RUNNER_TEMP/kbs-paired-deps-$GITHUB_RUN_ID"
+          mkdir -p "$DEP"
+          "$PY" -m pip install --no-deps --disable-pip-version-check --target "$DEP" \
+            'scipy==1.14.1' 'scikit-learn==1.5.2' 'joblib==1.4.2' \
+            'threadpoolctl==3.5.0' 'pyyaml==6.0.2'
+          echo "PYTHONPATH=$DEP:$GITHUB_WORKSPACE/src:$GITHUB_WORKSPACE/analysis" >> "$GITHUB_ENV"
+          echo "DEP_PATH=$DEP" >> "$GITHUB_ENV"
+      - name: Verify existing one-time dataset cache
+        id: cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          CACHE="$HOME/.cache/kuailive-agent-kbs/dual-id-paired-20260918-574-v1"
+          echo "path=$CACHE" >> "$GITHUB_OUTPUT"
+          if [ -s "$CACHE/SHA256SUMS" ] &&
+             (cd "$CACHE" && sha256sum -c SHA256SUMS >/dev/null) &&
+             [ -s "$CACHE/data/prepared/shop/rooms.pkl" ] &&
+             [ -s "$CACHE/rechorus_dual/$STREAMER_DATASET/streamer_item_map.tsv" ]; then
+            echo "hit=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "hit=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Regenerate once on cache miss
+        if: ${{ steps.cache.outputs.hit != 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PY" scripts/download_kuailive.py --data-root data
+          "$PY" -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" \
+            --out-dir data/prepared/shop --scope shop
+          "$PY" -m kuailive_agent.export_rechorus_room \
+            --prepared-dir data/prepared/shop --out-root rechorus_dual \
+            --dataset "$ROOM_DATASET" --n-neg "$N_NEG" --seed "$SEED"
+          "$PY" -m kuailive_agent.export_rechorus_streamer_parallel \
+            --room-data-dir "rechorus_dual/$ROOM_DATASET" \
+            --out-root rechorus_dual --dataset "$STREAMER_DATASET"
+      - name: Match immutable frozen room export and populate verified cache
+        shell: bash
+        env:
+          CACHE_PATH: ${{ steps.cache.outputs.path }}
+          CACHE_HIT: ${{ steps.cache.outputs.hit }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "$CACHE_HIT" != 'true' ]; then
+            mkdir -p frozen_input
+            gh run download "$FROZEN_RUN" --repo "$GITHUB_REPOSITORY" \
+              --name "kbs-strong-base-kuailive-input-$FROZEN_RUN" --dir frozen_input
+            "$PY" - <<'PY'
+          import hashlib, json, pathlib
+          p=pathlib.Path('rechorus_dual/KuaiLiveShopRoomDualID')
+          f=pathlib.Path('frozen_input/rechorus_dual/KuaiLiveShopRoomDualID')
+          m=json.loads((p/'export_meta.json').read_text())
+          r=json.loads(pathlib.Path('frozen_input/frozen_dual/report.json').read_text())
+          assert m['users']==r['users']==10222
+          assert m['candidate_count']==r['candidate_count']==575
+          for name in ('train.csv','dev.csv','test.csv','export_meta.json'):
+              sha=lambda x:hashlib.sha256(x.read_bytes()).hexdigest()
+              assert sha(p/name)==sha(f/name), name
+          print('Frozen room candidate identity PASS')
+          PY
+            TMP="$CACHE_PATH.pending.$GITHUB_RUN_ID"
+            rm -rf "$TMP"
+            mkdir -p "$TMP/data/prepared"
+            cp -a data/prepared/shop "$TMP/data/prepared/"
+            cp -a rechorus_dual "$TMP/"
+            (cd "$TMP" && find rechorus_dual data -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+            (cd "$TMP" && sha256sum -c SHA256SUMS >/dev/null)
+            rm -rf "$CACHE_PATH"
+            mv "$TMP" "$CACHE_PATH"
+            rm -rf data rechorus_dual frozen_input
+          fi
+          (cd "$CACHE_PATH" && sha256sum -c SHA256SUMS >/dev/null)
+          echo "DATA_CACHE=$CACHE_PATH" >> "$GITHUB_ENV"
+      - name: Fetch pinned official ReChorus
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
+          git -C third_party/ReChorus checkout "$RECHORUS_COMMIT"
+          test "$(git -C third_party/ReChorus rev-parse HEAD)" = "$RECHORUS_COMMIT"
+      - name: Run synthetic paired diagnostic tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PY" analysis/kbs_kuailive_same_checkpoint.py --self-test
+      - name: Train both Dual-ID branches once, then freeze checkpoint pair
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p models logs
+          for identity in room streamer; do
+            if [ "$identity" = room ]; then DATASET="$ROOM_DATASET"; else DATASET="$STREAMER_DATASET"; fi
+            (cd third_party/ReChorus/src &&
+              "$PY" main.py --model_name SASRec --dataset "$DATASET" \
+              --path "$DATA_CACHE/rechorus_dual/" --gpu 0 --random_seed "$SEED" \
+              --emb_size 64 --num_layers 1 --num_heads 4 --history_max 50 \
+              --lr 0.0005 --l2 1e-6 --batch_size 1024 --eval_batch_size 256 \
+              --epoch 30 --early_stop 5 --main_metric NDCG@10 --topk 10 \
+              --metric NDCG,HR --num_workers 4 --save_final_results 0 --regenerate 1 \
+              --log_file "$GITHUB_WORKSPACE/logs/$identity.log" \
+              --model_path "$GITHUB_WORKSPACE/models/$identity.pt")
+            test -s "models/$identity.pt"
+          done
+          sha256sum models/*.pt | tee logs/model_sha256.txt
+      - name: DEV alpha fitting and paired TEST scoring with same frozen checkpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p paired_results
+          /usr/bin/time -v -o paired_results/time.txt \
+            "$PY" analysis/kbs_kuailive_same_checkpoint.py \
+            --rechorus-source third_party/ReChorus \
+            --data-root "$DATA_CACHE/rechorus_dual" \
+            --prepared-dir "$DATA_CACHE/data/prepared/shop" \
+            --room-model models/room.pt --streamer-model models/streamer.pt \
+            --out-dir paired_results --n-neg "$N_NEG" --n-boot 3000
+          "$PY" - <<'PY'
+          import json
+          r=json.load(open('paired_results/report.json'))
+          assert r['n']==10222 and all(r['guards'].values())
+          print('Paired result:',r['paired_full_minus_sampled_delta'])
+          PY
+      - name: Upload compact paired evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-kuailive-paired-${{ github.run_id }}
+          path: |
+            paired_results/**
+            logs/model_sha256.txt
+            logs/*.log
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Remove transient data but preserve verified input cache
+        if: always()
+        shell: bash
+        run: |
+          rm -rf models logs third_party paired_results
+          rm -rf "${DEP_PATH:-$RUNNER_TEMP/kbs-paired-deps-$GITHUB_RUN_ID}"
