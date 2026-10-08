@@ -312,7 +312,7 @@ For the primary relationship-memory replay, historical records enter the candida
 \label{tab:exp-datasets}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\begin{tabularx}{\textwidth}{@{}p{2.4cm}p{1.6cm}X p{2.3cm}@{}}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{1.6cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule
 Protocol & Ranked item & Chronology and candidate construction & DEV / TEST targets \\
 \midrule
@@ -329,7 +329,7 @@ Twitch / LiveRec & Streamer & Chronological crawl steps; available streamers; 16
 
 The KuaiLive reference is the Dual-ID sequential base described in Section~\ref{sec:framework-base}, whose room- and streamer-identity SASRec branches are independently standardized over the current candidates before weighted score combination. The room/streamer coefficients $0.1/0.9$ stated in Section~\ref{sec:framework-base} refer to the original development-selected sampled-active configuration. Native full-active models or a subsequent same-checkpoint candidate-swap diagnostic may use distinct, explicitly reported development-selected coefficients; they must not be treated as the same reference configuration. We additionally examine the room-only and streamer-only SASRec branches, a popularity comparator and common-candidate trained alternatives such as GRU4Rec and a contrastive sequential recommender, where available, to establish the credibility of the trained reference. These checks are protocol-matched comparator evidence, not an exhaustive state-of-the-art competition.
 
-For Twitch we retain the official LiveRec contextual and repeat-consumption components, rather than substituting the KuaiLive architecture. In every within-protocol comparison, the fixed specialist $M$ and base $B$ rank the same eligible candidate set. The specialist's Short/Long/Popularity rule, history horizon, fixed coefficients and deterministic tie policy follow Section~\ref{sec:framework-memory}; its parameters are not refitted using held-out outcomes.
+For Twitch we retain the official LiveRec contextual and repeat-consumption components, rather than substituting the KuaiLive architecture. In every within-protocol comparison, the fixed specialist $M$ and base $B$ rank the same eligible candidate set. The specialist retains the fixed components, history horizon, coefficients and tie policy of Section~\ref{sec:framework-memory}; held-out outcomes are not used to tune its parameters.
 
 The decision comparisons comprise Always-Base, Always-Memory, the development-frozen Utility selector, a base-difficulty predictor and an analysis-only Oracle. The difficulty regressor predicts $1-u_{10}(B,x)$ from the same observable feature family as Utility. In the offline exact-count comparison, Difficulty selects the $m$ highest predicted-difficulty events, where $m$ is the number of test invocations realized by the frozen Utility threshold. Oracle uses the same $m$ but ranks events by the \emph{realized} $\Delta_m(x)$; it is explicitly nondeployable. These offline Top-$m$ controls do not alter the pointwise Utility policy or impose a hard online invocation budget.
 
@@ -339,7 +339,7 @@ The decision comparisons comprise Always-Base, Always-Memory, the development-fr
 \label{tab:exp-methods}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\begin{tabularx}{\textwidth}{@{}p{2.2cm}X p{2.0cm}p{1.8cm}@{}}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.0cm}>{\raggedright\arraybackslash}p{1.8cm}@{}}
 \toprule
 Method & Role and fitting information & Decision rule & Test targets used for decisions? \\
 \midrule
