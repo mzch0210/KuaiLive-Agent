@@ -23,7 +23,7 @@ Section 5 was structurally rewritten on 2026-10-08 as a journal-facing Experimen
 
 The cross-section [retrospective academic audit of Sections 1–4](SECTIONS1-4_RETROSPECTIVE_ACADEMIC_AUDIT_2026-10-08.md) identifies notation ambiguity (memory-utility subscript versus invocation count), an overgeneralized historical fusion coefficient, Related Work listing/redundancy, and methodological repetition in Section 4. These are prioritized recommendations, not silent changes to the reviewed scientific baseline.
 
-The hosted PDF compilation workflow is `.github/workflows/kbs-manuscript-latex-build.yml`. The 2026-10-08 structural revision passed [GitHub Actions build 37754604322](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37754604322) and produced [PDF/log artifact 11539332507](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37754604322/artifacts/11539332507). This confirms successful compilation, not final publication layout approval. Dataset training scale and supplementary evidence provenance still require submission-stage completion.
+The hosted PDF compilation workflow is `.github/workflows/kbs-manuscript-latex-build.yml`. The final 2026-10-08 structural revision passed [GitHub Actions build 37755123184](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37755123184) and produced [PDF/log artifact 11539737383](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37755123184/artifacts/11539737383). No LaTeX errors or overfull lines remain in Section 5; two small overfull warnings persist in earlier chapters. This confirms successful compilation, not final publication layout approval. Dataset training scale and supplementary evidence provenance still require submission-stage completion.
 
 ## Build
 
