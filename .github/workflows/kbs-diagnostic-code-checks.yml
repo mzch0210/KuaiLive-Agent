@@ -1,0 +1,36 @@
+name: KBS post-hoc diagnostic code quality (hosted)
+
+on:
+  push:
+    branches: [kbs-fixed-checkpoint-diagnostic-20261008]
+    paths:
+      - '.github/workflows/kbs-diagnostic-code-checks.yml'
+      - 'analysis/kbs_fixed_newbase_candidate_scores.py'
+      - 'analysis/kbs_newbase_pair_aggregate.py'
+      - 'tests/test_kbs_posthoc_pair.py'
+
+permissions:
+  contents: read
+
+jobs:
+  code-checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile scripts without installing GPU runtime
+        run: |
+          python -m py_compile analysis/kbs_fixed_newbase_candidate_scores.py \
+            analysis/kbs_newbase_pair_aggregate.py tests/test_kbs_posthoc_pair.py
+      - name: Install isolated lightweight statistical dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'numpy==1.26.4' 'pandas==2.2.3'
+      - name: Run pure deterministic pairing and bootstrap tests
+        run: |
+          python tests/test_kbs_posthoc_pair.py
