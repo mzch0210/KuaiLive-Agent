@@ -1,0 +1,83 @@
+name: KBS candidate-regime diagnostic — reconcile frozen scores
+
+on:
+  push:
+    branches: [kbs-fixed-checkpoint-diagnostic-20261008]
+    paths:
+      - '.github/workflows/kbs-candidate-artifact-reconciliation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kbs-candidate-frozen-reconciliation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    name: Cross-checkpoint score provenance and paired-user audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Compile and install lightweight numeric dependencies
+        run: |
+          python -m py_compile analysis/kbs_candidate_artifact_reconciliation.py
+          python -m pip install 'numpy>=1.26,<3' 'pandas>=2.1,<3'
+      - name: Validate algorithm against small synthetic pair
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from analysis.kbs_candidate_artifact_reconciliation import reconcile
+          a = pd.DataFrame({'user_id':[2,1], 'dual_score10':[.4,.3], 'MemoryFusion_score10':[.6,.2]})
+          b = pd.DataFrame({'user_id':[1,2], 'native_base_ndcg10':[.1,.3],
+                            'transfer_base_ndcg10':[.1,.2], 'memory_ndcg10':[.2,.6]})
+          r = reconcile(a,b)
+          assert r['paired_users'] == 2
+          assert abs(r['seed_sampled']['memory_minus_base'] - .05) < 1e-10
+          assert r['memory_score_comparability']['all_exactly_equal']
+          print('Synthetic pairing test: PASS')
+          PY
+      - name: Fetch existing frozen scores only — no checkpoints, data downloads or training
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/seed evidence/full results
+          gh run download 35729896175 --repo "$GITHUB_REPOSITORY" --name seed-20260918 --dir evidence/seed
+          gh run download 35580324870 --repo "$GITHUB_REPOSITORY" --name full-active-dual-id-35580324870 --dir evidence/full
+          SEED_FILE=$(find evidence/seed -path '*/dual_id_results/per_user_test.csv.gz' -print -quit)
+          FULL_FILE=$(find evidence/full -name 'per_user_test_full_active.csv.gz' -print -quit)
+          test -n "$SEED_FILE" && test -n "$FULL_FILE"
+          echo "SEED_FILE=$SEED_FILE" >> "$GITHUB_ENV"
+          echo "FULL_FILE=$FULL_FILE" >> "$GITHUB_ENV"
+          sha256sum "$SEED_FILE" "$FULL_FILE" | tee results/source_sha256.txt
+      - name: Audit frozen per-user scores and source differences
+        run: |
+          python analysis/kbs_candidate_artifact_reconciliation.py \
+            --seed-csv "$SEED_FILE" --full-csv "$FULL_FILE" --output results/reconciliation.json
+      - name: Publish reconciliation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kbs-candidate-source-reconciliation-${{ github.run_id }}
+          path: results/
+          if-no-files-found: warn
+          retention-days: 60
+      - name: Summary
+        if: always()
+        run: |
+          if test -f results/reconciliation.json; then
+            echo '## Existing-score cross-checkpoint reconciliation' >> "$GITHUB_STEP_SUMMARY"
+            cat results/reconciliation.json >> "$GITHUB_STEP_SUMMARY"
+          fi
