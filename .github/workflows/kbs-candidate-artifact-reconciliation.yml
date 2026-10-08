@@ -5,6 +5,7 @@ on:
     branches: [kbs-fixed-checkpoint-diagnostic-20261008]
     paths:
       - '.github/workflows/kbs-candidate-artifact-reconciliation.yml'
+      - 'analysis/kbs_candidate_artifact_reconciliation.py'
   workflow_dispatch:
 
 permissions:
