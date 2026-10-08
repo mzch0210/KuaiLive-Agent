@@ -298,401 +298,207 @@ Move extensive freeze chronology, base comparisons, statistical inference, and h
 
 ---
 
-# 5. Experimental Design
+# 5. Experimental Setup
 
-## 5.1 Complementary roles of the two platforms
+**Purpose.** Make the empirical comparison auditable, distinguish development choices from frozen tests, and state which evidence supports which claim. This is the formal experiment-methods section: omit run diaries, retrospective research decisions, workflow repairs, and numerical conclusions.
 
-Treat the platforms as complementary experimental environments rather than interchangeable benchmarks.
+## 5.1 Datasets, prediction tasks and temporal splits
 
-### KuaiLive
+### 5.1.1 KuaiLive
 
-Use for:
+- Source, release identifier, shop-domain restriction, filtering, event and user counts, and precise recommendation unit (next live **room** with streamer-based relationship evidence).
+- Room/streamer identity maps; leave-one-out chronology; training, development, and test eligibility.
+- Describe timestamp precision, activity windows and the definition of a legal live-room candidate.
+- Report the sampled-active and full-active protocols on identical underlying user–time–target events but different candidate sets, without equating their ranking tasks.
 
-- candidate-regime reversal;
-- temporal-regime effects;
-- selective decision gains;
-- fixed-composition state-specific candidate-regime decomposition.
+### 5.1.2 Twitch / official LiveRec
 
-### Twitch / LiveRec
+- Public data lineage, ten-minute crawl-step start/stop semantics, candidate availability, chronological splits, official base configuration, and 16-step main input.
+- Explicitly distinguish primary pre-target history eligibility from auxiliary strict-split eligibility; do not call crawl start/stop exact viewer arrival/departure.
+- Separate DEV-only exploratory/diagnostic analyses from the one-shot, frozen-policy held-out TEST.
 
-Use for:
+**Table 1 — Datasets and evaluation protocols.** Rows for KuaiLive sampled-active, full-active, strict temporal, and Twitch/LiveRec; columns for user/event counts, target identity, chronological split, candidate generation, Base context, and role of the experiment. Insert only source-audited quantities.
 
-- credible official strong base;
-- pre-specified development analysis and untouched held-out test validation;
-- evidence-state replication;
-- context-capacity comparison across separately retrained base checkpoints;
-- Utility/Difficulty/Oracle selection-composition analysis.
+## 5.2 Models, fixed specialist and controlled comparisons
 
-## 5.2 Recommendation regimes
+### 5.2.1 Strong Base reference
 
-Describe sampled-active, full-active, standard temporal, and strict temporal regimes where applicable. Make candidate construction and temporal availability differences explicit because event-level rank utility is candidate-set relative. In paired candidate-regime comparisons, retain the same underlying user–time–target instances, but treat their candidate-specific rankings as distinct full recommendation events.
+- KuaiLive: SASRec room branch, SASRec streamer branch, candidate-wise z-standardization and DEV-selected fusion. State checkpoint provenance and distinguish a fixed-alpha candidate-swap diagnostic from a separately fitted full-active-native baseline.
+- Twitch: official LiveRec Base, including context and repeat components. Additional comparators establish baseline credibility, not SOTA.
+- Explain that Base-relative deltas must be indexed by the exact \\(B, M, r, D, \\mathcal{C}\\) tuple (model, specialist, regime, data split and candidate protocol).
 
-## 5.3 Pre-specified held-out validation protocol
+### 5.2.2 Relationship-memory specialist and decision policies
 
-Main-text summary:
+- Cite Section 4 rather than rederive Short/Long/Popularity, evidence states, features, or mathematical objective.
+- Always-Base and Always-Memory; DEV-frozen Utility; DEV-fitted Difficulty; offline exact-count Difficulty and Oracle. Keep online policy and batch offline controls conceptually separate.
+- Include strong Base comparators and a simple always-on baseline in the common-protocol comparison.
 
-> **Development-only policy/OOF threshold selection → freeze feature transforms, models, and threshold → untouched one-shot held-out TEST evaluation; subsequently match offline control budgets to the frozen Utility policy's realized test invocation count.**
+**Table 2 — Comparison methods and permissions.** Fixed/learned, training source, observable inputs, threshold/budget selection, whether TEST outcomes are accessed, and whether deployable.
 
-Use `pre-specified`, `policy freeze`, and `untouched held-out test` in the manuscript. Keep immutable hashes, artifacts, chronology, and workflow provenance in reproducibility materials rather than the narrative Results text.
+## 5.3 Development training, pre-specification and freeze
 
-## 5.4 Metrics and statistical inference
+1. Train each Base from training data; choose fusion/estimator hyperparameters using DEV only.
+2. Derive history/score features that exist at decision time; derive historical percentiles using outcome-free full DEV inputs only.
+3. Produce five-fold OOF DEV estimates for threshold selection; fit final model on DEV; freeze parameters and threshold before held-out TEST.
+4. On TEST, apply the frozen pointwise threshold. Its realized invocation count \\(m\\) determines only the *offline* matched-count controls; it is not an online guaranteed quota.
+5. Report the canonical one-shot test separately from subsequent diagnostics; no diagnostic may be used to re-tune the frozen TEST policy.
 
-Primary metric: NDCG@10.  
-Secondary metric: H@10 / HR@10 as appropriate.
+Pre-specified development-to-test replication and one-shot test are **confirmatory in the stated frozen protocol**; post-hoc candidate-swap, context-capacity comparison and fine-grained stratification are **supporting diagnostics**, not independent confirmatory trials.
 
-Use:
+## 5.4 Identification and fairness of candidate-regime comparisons
 
-- paired user-level bootstrap intervals;
-- identical realized invocation budgets for offline Difficulty/Oracle controls determined by the frozen-threshold Utility policy;
-- mean ± SD and sign consistency across independent base training seeds.
+Two distinct estimands must be described and never pooled:
 
-Do not reinterpret within-seed bootstrap intervals as across-seed confidence intervals.
+- **Historically evaluated regime comparison:** previously frozen sampled-active and native full-active results. The native full-active setting may have its own DEV-selected fusion coefficient; this comparison characterizes operational regime dependence but does not fully isolate candidate-set change from configuration differences.
+- **Same-checkpoint paired candidate-swap diagnostic (NEW; pending completed execution):** train one fixed room+streamer checkpoint pair on the frozen split; select a single fusion coefficient from sampled DEV; for each same TEST user–time–target event score all active rooms once; obtain sampled scores by subsetting those exact raw room/streamer scores and re-standardizing *within* each candidate set; evaluate the same fixed relationship specialist in both regimes. Require sampled \\(\subseteq\\) full-active, identical test identities, model hashes, target/room mapping, history and population. Use paired user bootstrap on \\(\Delta_{\\mathrm{full}}-\Delta_{\\mathrm{sampled}}\\), overall and by evidence state.
 
-## 5.5 Evidence hierarchy
+This is an **observational, protocol-controlled candidate replacement diagnostic**, not randomized causal identification. Accept a positive, negative or null result; never gate workflow success on a favorable sign. Retain original frozen TEST policies and records unchanged.
 
-### Primary confirmatory evidence
+**Important numerical provenance gate.** Historical files report *different* KuaiLive sampled Base NDCG@10 anchors (e.g. \\(0.60784\\) in the manuscript planning sheet and \\(0.61714\\) in the frozen state-decomposition evidence). Do not label these as the same experiment. Resolve by sample identity, checkpoint hashes, fusion alpha, candidate construction, and source artifact before finalizing Section 6.1. Historically reported full-active *native* and strict-transfer Base values must also be labeled separately. The new same-checkpoint result is a new diagnostic row, not an in-place replacement for frozen policy results.
 
-- pre-specified development relationship-state structure;
-- untouched held-out TEST replication;
-- untouched held-out selective-utility TEST result.
+## 5.5 Outcomes and statistical analysis
 
-### Primary mechanistic strengthening
+- Primary event utility: NDCG@10 with one positive candidate, reported for Base, Memory, Selective and matched-count controls; H@10 as secondary.
+- Bootstrap at the user level; report 95% intervals for *paired differences*, not independent confidence intervals subtracted after the fact.
+- Training-seed robustness: independent train seeds, mean ± SD and directional consistency; do not confuse with within-seed bootstrap precision.
+- State prevalence and state-conditional effects: exact weighted decomposition and matched identity assertions; include positive-utility fractions where informative.
+- Avoid treating repeated comparisons or DEV threshold selection as unbiased significance claims; label exploratory subgroup inference accordingly.
+- Invocations, latency, throughput and memory footprint: specify environment, evaluation batch, warmup and measurement protocol.
 
-- development-only context-capacity comparison with canonical Memory fixed and Base independently retrained at each input length;
-- matched-instance recoverable→represented transitions interpreted with corresponding Base-utility changes, not as an isolated causal effect;
-- fixed-composition KuaiLive candidate-regime decomposition;
-- Utility/Difficulty/Oracle selection composition under exact matched budgets.
+## 5.6 Implementation and reproducibility
 
-### Secondary robustness and refinement
-
-- component attribution;
-- alternative-explanation stratification;
-- positive-delta fractions;
-- Memory-parameter sensitivity;
-- context-distance consistency and fine recency bins;
-- feature-family ablation;
-- independent training seeds;
-- strong-base comparator checks;
-- complexity and efficiency.
-
-This hierarchy should determine result order and claim strength.
+Specify training hyperparameters, frozen upstream implementation/commit references, seed lists, hardware and evaluation scripts; provide a traceable public artifact inventory in supplementary material. Report unavailable/expired source artifacts and rebuilt replacements as separate provenance entities; never silently substitute a checkpoint with another hash.
 
 ---
 
-# 6. Results
+# 6. Experimental Results
 
-Use descriptive result headings rather than `RQ1`--`RQ4` labels in the manuscript.
+Order results around empirically testable propositions, not the chronology in which GitHub workflows ran. Section headings state findings without implying causality. Use **held-out TEST** for frozen policy performance and **DEV/diagnostic** for supplementary mechanisms.
 
-## 6.1 Aggregate specialist value is regime-dependent
+## 6.1 Candidate regime changes operational specialist value
 
-Begin with the paradox rather than the mechanism.
+**Primary historical observation.** Introduce sampled-active versus full-active specialist-relative ranking differences, then show fixed-composition historical decomposition on the same 10,222 user–time–target events. Cite the frozen KuaiLive decomposition evidence: sampled Memory−Base \\(-0.05125\\), full-active \\(+0.03367\\). Clearly identify the historical full-active native Base and the potentially different fusion configuration.
 
-Key KuaiLive aggregate results:
+**New paired-control panel — placeholder pending execution.** Present same-checkpoint sampled and full-active Base/Memory NDCG@10, within-regime Memory−Base, and paired full-minus-sampled difference with 95% CI. Include state-specific paired shifts and model SHA256 hashes in the audit supplement.
 
-- sampled-active: Base `0.60784`, Always Memory `0.56589`, Selective `0.62102`;
-- full-active: Memory−Base approximately `+0.03367`, native Selective−Base approximately `+0.05345`;
-- strict temporal: Selective−Base approximately `+0.07282` / `+0.09743`.
+Interpretation gate:
 
-### Candidate-regime decomposition
+- If the sign reversal persists with the *same* checkpoint and alpha, it strengthens the candidate-set-dependent operational-utility claim under this paired protocol.
+- If attenuated or absent, explicitly qualify the historical reversal as entangled with configuration/estimation choices; revise Introduction and Discussion accordingly.
+- No new observed numbers may be imputed from the historical artifacts.
 
-For sampled-active versus full-active, use the same 10,222 underlying user–time–target instances and show that evidence-state prevalence is identical while aggregate Memory−Base reverses from `−0.05125` to `+0.03367`.
+**Main Figure 2 — KuaiLive candidate-regime comparison.** Historical regime bars distinguished visually from paired same-checkpoint results; state-specific contrasts with interval bars only if the diagnostic has passed identity checks.
 
-| Base-relative state | Sampled Δ | Full-active Δ | Full−Sampled shift | 95% CI |
-|---|---:|---:|---:|---:|
-| represented | +0.11508 | +0.19261 | +0.07752 | [+0.07046,+0.08472] |
-| recoverable-but-unrepresented | +0.17779 | +0.08049 | −0.09731 | [−0.14897,−0.04647] |
-| unavailable | −0.20060 | −0.10251 | +0.09809 | [+0.08988,+0.10649] |
+## 6.2 Relationship-evidence states and relative utility
 
-Conclusion:
+**Twitch pre-specified DEV → untouched TEST replication.** State-conditional Memory−Base (DEV → TEST):
+represented \\(-0.01995\\) → \\(-0.01935\\); recoverable \\(+0.23097\\) → \\(+0.22045\\); unavailable \\(-0.19562\\) → \\(-0.18215\\). Never universalize state-specific signs.
 
-> **Regime dependence is not reducible to changing state prevalence; candidate regime can change the operational marginal value of the same specialist within the same evidence state.**
+**Context-capacity association (DEV only).** Show separately trained LiveRec Base contexts \\(L=8,16,32\\) with Memory held canonical and identical: Base NDCG@10 \\(0.52619,0.57185,0.59663\\), Memory NDCG@10 \\(0.52170\\). Matched recoverable-to-represented transitions have specialist-minus-base changes \\(-0.44748\\), \\(-0.43229\\) and \\(-0.41896\\). Explicitly note the algebraic opposite Base-utility changes when Memory is fixed; context-length and retraining co-vary.
 
-Do not generalize this fixed-composition conclusion to temporal regimes without direct decomposition evidence.
+**Main Figure 3 — Relationship-state and context-capacity evidence.** Panel A DEV/TEST conditional differences; Panel B context lengths and transition estimates, displaying both Base improvement and Memory−Base contraction. No causal arrow labeled “visibility effect.”
 
-## 6.2 Base-relative evidence state structures specialist utility
+Place Short/Long/Popularity component attribution and nonmonotonic recency refinements in a concise paragraph; extended tables in Supplementary.
 
-### Pre-specified development → untouched held-out test replication
+## 6.3 Utility-based selection differs from base difficulty
 
-| Evidence state | DEV Memory−Base | TEST Memory−Base |
-|---|---:|---:|
-| represented | −0.01995 | −0.01935 |
-| recoverable-but-unrepresented | **+0.23097** | **+0.22045** |
-| unavailable | −0.19562 | −0.18215 |
+**Matched-count comparison.** Distinguish the frozen Utility pointwise threshold from offline Difficulty top-\\(m\\) and Oracle top-\\(m\\). Report realized TEST invocation rate and NDCG@10, H@10 with paired intervals for Utility–Base and Utility–Difficulty.
 
-Interpret these as Twitch/LiveRec conditional patterns, not universal state signs.
+**Selection-composition explanation (Twitch DEV).** Recoverable selection enrichment \\(2.72\\times\\) for Utility versus \\(1.67\\times\\) for Difficulty; unavailable event enrichment approximately \\(1.03\\times\\) versus \\(1.91\\times\\). Emphasize interpretation: difficulty is not the same as specialist solvability. Analysis-only target-relative states are never decision features.
 
-### Context-capacity and Base-visibility comparison
+**Main Table 3 — Exact-count outcome and composition comparisons.** Put target-free serving policy information in a separate panel from retrospective evidence-state composition.
 
-Keep canonical Memory fixed (`NDCG@10 = 0.52170`) while varying base context:
+## 6.4 Held-out test evidence and generalization scope
 
-| Base context | Base NDCG@10 | Memory−Base | 95% CI |
-|---:|---:|---:|---:|
-| 8 | 0.52619 | −0.00450 | [−0.00756,−0.00127] |
-| 16 | 0.57185 | −0.05016 | [−0.05307,−0.04731] |
-| 32 | 0.59663 | −0.07493 | [−0.07766,−0.07227] |
+**Twitch/LiveRec untouched one-shot TEST.** Base NDCG@10 \\(0.58211\\); Utility \\(0.58983\\); Difficulty \\(0.58340\\). Utility–Base \\(+0.00772\\) [\\(+0.00641,+0.00903\\)]; Utility–Difficulty \\(+0.00644\\) [\\(+0.00528,+0.00762\\)]; Utility invocations \\(6650/\\text{TEST}\\), rate \\(15.04\\%\\). State explicitly that this uses a Twitch-fitted DEV selector, **not zero-shot gate transfer** from KuaiLive.
 
-Use matched-instance evidence-state transitions as a convergent diagnostic; the same specialist is held fixed but each context-length Base is trained separately, so a contraction in specialist-minus-base utility is algebraically equal to improved Base utility:
+**Main Table 4 — Confirmatory held-out results.** Include test size, frozen budget realized by Utility, TEST Base/Memory/Utility/Difficulty, paired effect intervals and H@10 in a compact table.
 
-| Transition | n | Δ before | Δ after | change | 95% CI |
-|---|---:|---:|---:|---:|---:|
-| L8→L16 recoverable→represented | 5,055 | +0.29388 | −0.15360 | **−0.44748** | [−0.45767,−0.43730] |
-| L16→L32 recoverable→represented | 3,617 | +0.25755 | −0.17474 | **−0.43229** | [−0.44381,−0.42054] |
-| L8→L32 recoverable→represented | 8,672 | +0.27782 | −0.14114 | **−0.41896** | [−0.42685,−0.41112] |
+**Interpretation.** A positive held-out relative gain supports conditional decision value, but predicted-versus-realized utility correlation (Spearman ~0.173) and Oracle headroom (Oracle NDCG@10 0.64806) limit utility-estimator quality claims.
 
-Conclusion:
+## 6.5 Robustness, competing explanations and cost
 
-> **The fixed specialist's operational marginal value contracts when separately trained larger-context bases improve ranking on matched input-visibility transition instances; this is consistent with, but does not causally isolate, a visibility explanation.**
+Summarize independent training seeds, common-protocol strong-base comparisons, memory-weight sensitivity, feature-family ablations, alternative-explanation strata and throughput. State which claims are robust and which remain model- or regime-specific; avoid SOTA language.
 
-Use **context-capacity comparison across separately trained bases with associated input-visibility changes**, not an isolated visibility intervention or causal proof. Explicitly report Base retraining, Base-utility differences, and the identity `Δ(L')−Δ(L)=u_K(B_L)−u_K(B_L')` when `M` is unchanged.
-
-### Component attribution and recency refinement
-
-Report compactly in the main text:
-
-- Long-only on recoverable DEV events: `ΔNDCG@10 = +0.33688`;
-- Short-only and Popularity-only: negative in the same regime;
-- recency is non-monotonic, including a positive `1–4` pocket.
-
-Move full distance-bin and parameter-sensitivity matrices to Supplementary Material.
-
-## 6.3 Conditional relative utility is not generic base difficulty
-
-Start with exact-budget performance, then explain the result through event composition.
-
-### Selection composition on pre-specified Twitch DEV
-
-Population prevalence:
-
-- represented `52.35%`;
-- recoverable `12.54%`;
-- unavailable `35.11%`.
-
-| Selector | Represented | Recoverable | Unavailable |
-|---|---:|---:|---:|
-| Utility selection share | 29.70% (`0.57×`) | 34.13% (**`2.72×`**) | 36.17% (`1.03×`) |
-| Difficulty selection share | 11.98% (`0.23×`) | 20.89% (**`1.67×`**) | 67.13% (**`1.91×`) |
-| Oracle selection share | 50.39% | 43.00% (**`3.43×`**) | 6.61% |
-
-Conclusion:
-
-> **Base Difficulty disproportionately identifies hard-but-unavailable events, whereas conditional relative Utility more strongly targets events containing recoverable specialist evidence.**
-
-Relationship-state labels remain post-hoc analysis variables and are not used by the selector.
-
-## 6.4 Untouched second-platform validation and robustness
-
-### Twitch/LiveRec held-out TEST
-
-Under the frozen Utility threshold, the realized test count is `m=6,650` (`15.04%` invocation); Difficulty and Oracle use this exact budget offline:
-
-- Base NDCG@10 `0.58211`;
-- Always Memory `0.53980`;
-- Difficulty `0.58340`;
-- Selective Utility `0.58983`;
-- Selective−Base `+0.00772`, 95% CI `[+0.00641,+0.00903]`;
-- Utility−Difficulty `+0.00644`, 95% CI `[+0.00528,+0.00762]`.
-
-Secondary H@10:
-
-- Base `0.75503`;
-- Selective Utility `0.76448`;
-- Difficulty `0.75252`;
-- Selective−Base `+0.00945`;
-- Utility−Difficulty `+0.01196`.
-
-### Utility-estimation headroom
-
-- predicted-versus-realized utility Spearman ≈ `0.173`;
-- Oracle exact-budget NDCG@10 `0.64806`;
-- current router captures approximately `11.71%` of Oracle gain.
-
-Interpretation:
-
-> **The development-frozen Utility threshold identifies a useful positive tail despite imperfect event-level correspondence; offline matched-budget Difficulty and Oracle controls clarify selection quality. Unlike offline top-`m` selection, the frozen threshold depends on score scale as well as ordering.**
-
-Do not describe current utility estimates as calibrated.
-
-### Robustness summary
-
-Keep main text concise and move detailed matrices to Supplementary Material:
-
-- recoverable-state positive utility remains positive across history length, creator exposure, candidate count, and repeat-propensity strata;
-- Memory sensitivity preserves the main Twitch state signs;
-- independent base seeds preserve `Selective > Base` and `Utility > Difficulty`;
-- same-protocol comparator checks establish credible strong bases without SOTA claims.
-
-## 6.5 Deployment trade-offs
-
-Report accuracy versus invocation rate, latency/throughput, and memory/cache footprint. Treat cost-thresholding as a deployment interpretation and practical frontier, not as an empirically calibrated cost-optimization contribution unless an explicit cost model is evaluated.
+**Main Table 5 or supplementary exhibit** — one compact ablation/seed/efficiency summary; long tables, cost curves and exact environments belong in Supplementary. The method is not claimed to be a calibrated cost-optimal online system.
 
 ---
 
 # 7. Discussion
 
-## 7.1 Operational evidence valuation before evidence integration
+## 7.1 What is measured by Base-relative evidence valuation?
 
-Main implication:
+The operational \\(u_K(M,x)-u_K(B,x)\\) is a **model- and regime-dependent** performance contrast. Interpret persistent history through its fixed specialist instantiation, not as an intrinsic content/value metric.
 
-> **An auxiliary evidence source should not be judged solely by standalone predictive strength; in this study its operational value is measured through the marginal ranking contribution of a fixed specialist relative to the current base and regime.**
+## 7.2 Why visibility and available history do not determine utility
 
-This is the main bridge from live-stream relationship memory to the broader KBS audience.
+Explain differences between KuaiLive regimes and Twitch/LiveRec states. Candidate construction, relative normalization, reference Base strength and target popularity interact; three evidence states are an *analysis partition*, not a causal law or guaranteed utility signs.
 
-## 7.2 Evidence state structures but does not determine utility
+## 7.3 From specialist utility to selective decisions
 
-Use the three states as explanatory coordinates rather than a universal taxonomy of signs.
+Explain the difference between evidence-based expert solvability and generic base difficulty. Discuss the decision-theoretic value of predicting conditional specialist-minus-base utility, without claiming novel L2D theory or a calibrated cost policy.
 
-- Twitch: represented is negative in aggregate, recoverable strongly positive, unavailable negative.
-- KuaiLive: represented can be positive, and state-specific utility changes when candidate regime changes despite fixed state prevalence.
+## 7.4 Scope, threats to validity and limitations
 
-Therefore avoid `state → fixed sign`; treat recency and operating regime as modifiers.
+Address:
+- frozen test and separate subsequent diagnostics, DEV OOF threshold selection, multiple analytic comparisons;
+- historical KuaiLive configuration mismatch and status of the new paired candidate swap;
+- independently retrained context-length bases and inability to isolate visibility causally;
+- ten-minute Twitch crawl resolution, eligibility semantics, offline logged data, candidate protocols;
+- portability of the principle versus non-transferability of fitted gate parameters;
+- imperfect utility estimates and far-from-Oracle selection;
+- lack of online satisfaction, watch-time, sales or GMV causal measurements.
 
-## 7.3 Why conditional relative Utility differs from Difficulty
+## 7.5 Implications for knowledge-driven recommender design
 
-Explain that base weakness is not sufficient: some difficult events contain no target-specific evidence that the relationship specialist can recover. Use selection composition to connect mechanism to decision performance.
-
-## 7.4 Transparency versus architectural complexity
-
-Defend the simple specialist as a scientific design choice: transparency makes evidence availability, component attribution, and marginal value inspectable. Do not argue that the weighted specialist is architecturally superior to learned long-memory models.
-
-## 7.5 Relationship to evidence selection, VOI, deferral, and expert routing
-
-State four boundaries succinctly:
-
-- evidence selection/fusion concerns what information to retain or integrate;
-- classical VOI concerns decision value of acquiring information;
-- deferral/routing concerns instance allocation among predictors/experts;
-- this study characterizes the operational marginal ranking value of one fixed transparent evidence specialist relative to a trained base.
-
-Do not claim general deferral or information-value theory.
-
-## 7.6 Remaining utility-estimation headroom
-
-Use modest predicted-versus-realized association and limited Oracle capture to identify improved relative-utility ranking as the principal future algorithmic opportunity. Under exact-budget decisions, emphasize ordering quality; discuss absolute calibration only for threshold/cost deployment.
-
-## 7.7 Limitations and external validity
-
-Explicitly limit conclusions to:
-
-- evaluated live-stream platforms and candidate protocols;
-- strong finite-context sequential bases;
-- explicit persistent user–creator relationship evidence as instantiated by the fixed specialist;
-- offline ranking outcomes.
-
-Do not imply causal effects on satisfaction, engagement, conversion, or GMV. Do not claim model-independent intrinsic evidence value or generalization to arbitrary auxiliary specialists.
+The design takeaway is to **assess the marginal decision value of an explicitly specified evidence specialist relative to a credible incumbent**, not to assume all longer-term memory is useful. Outline future work on calibrated relative-utility estimation and deployment-cost validation without claiming those were tested here.
 
 ---
 
-# 8. Reproducibility and Data Availability
+# 8. Conclusion
 
-Add a short formal section immediately before the Conclusion.
-
-Report:
-
-- public datasets and access sources;
-- code repository;
-- experiment commits and released artifacts sufficient to reproduce reported results;
-- preprocessing and candidate construction;
-- random seeds;
-- development-only analysis, policy-freeze, and untouched held-out test procedure;
-- Supplementary reproducibility package with parameter tables, hashes, and detailed robustness outputs;
-- Data Availability Statement consistent with Elsevier requirements.
-
-Keep workflow failures/recoveries and low-level CI logs out of the narrative manuscript; preserve them in the audit/reproducibility package where needed.
+One short section, no new results: (i) operational specialist contribution is reference- and regime-dependent; (ii) retrospective relationship evidence states reveal interpretable conditional structure but do not entail universal signs or causal claims; (iii) a DEV-frozen specialist-utility selector improves offline ranking in the supported protocols, with material estimation headroom. Qualify the regime reversal according to the same-checkpoint diagnostic **only after its results exist**.
 
 ---
 
-# 9. Conclusion
+# Submission and supplementary package (outside numbered scientific sections)
 
-Close with three points only:
+**Front matter:** title, author/affiliation metadata, abstract (problem–operational quantity–conditional structure–one held-out result–boundary), keywords. Prepare separate Highlights only as required by the journal's current Guide for Authors; Elsevier's general guidance describes 3–5 highlights of at most 85 characters each but does not, by itself, prove KBS-specific mandatory status. See https://www.elsevier.support/publishing/answer/how-do-i-include-highlights-with-my-manuscript .
 
-1. **Scientific finding:** the fixed relationship-memory specialist has no fixed global ordering relative to a strong base; its operational marginal ranking value is Base-relative and regime-dependent.
-2. **Mechanism:** recoverable persistent evidence is especially valuable in the Twitch setting when absent from the base representation, and specialist advantage contracts when the base comes to represent the same evidence.
-3. **Decision implication:** conditional specialist-minus-base utility is more appropriate than generic base difficulty for selective specialist use under matched budgets, although current utility ranking remains far from Oracle.
+**After main text:** unnumbered declarations prepared according to the current journal submission form: acknowledgements/funding, CRediT, competing interests, data/code availability, supplementary materials, and references. Verify exact heading order against KBS's live Guide for Authors rather than assuming a universal Elsevier format; its public guide may be access-restricted. Generic official reproducibility/ethics background: https://www.elsevier.com/en-gb/about/policies-and-standards/publishing-ethics .
 
-Avoid introducing new limitations, literature, or claims in the Conclusion.
+## Main-text display budget and linkage
 
----
+| Display item | Core content | Empirical status |
+|---|---|---|
+| Figure 1 | Base-relative specialist valuation and decision/analysis separation | Design diagram |
+| Table 1 | Dataset, temporal split and candidate protocols | Verify counts/protocol |
+| Table 2 | Models and selector comparability | Methods, DEV choices |
+| Figure 2 | Candidate-regime deltas with new paired control | **PENDING same-checkpoint TEST** |
+| Figure 3 | Twitch state replication and context-capacity association | Frozen DEV/TEST + DEV diagnostic |
+| Table 3 | Utility vs Difficulty exact-count decision/composition | Frozen analysis |
+| Table 4 | One-shot Twitch held-out TEST | Frozen results |
+| Table 5 (optional) | Seeds/ablation/efficiency summary | Secondary |
 
-# Main figures and tables
+## Supplementary Materials
 
-## Figure 1 — Base-relative evidence valuation framework
+- **S1 — Dataset provenance and exact eligibility.** Zenodo/official sources, checksum, protocol-level event identifiers, activity timing and streamer/room map rules.
+- **S2 — Training and freeze record.** Hyperparameters, independent training seeds, DEV OOF threshold, untouched TEST sequence and artifact hashes.
+- **S3 — Comparator performance.** Same-candidate strong-base scorecards, baselines and checkpoint provenance.
+- **S4 — Relationship-memory components.** Short/Long/Popularity, horizon and weight sensitivities.
+- **S5 — Candidate swap and other regime diagnostics.** Same checkpoint hashes, candidate subset and target-presence guards, DEV-chosen alpha, full paired event file, confidence intervals, and any discrepancy with historical baselines.
+- **S6 — Context-length details.** Canonical Memory invariants, separately retrained Base hashes, nested evidence-state transitions, recency bins.
+- **S7 — Selection analyses.** Development calibration/ranking diagnostics, state composition, threshold sensitivity, feature-family ablations.
+- **S8 — Robustness and external validity.** Training seeds, alternative-explanation strata, temporal-regime details.
+- **S9 — Resource and reproducibility audit.** Hardware, latency, throughput, cache footprint, complete scripts and artifact-to-claim matrix.
 
-Show (i) eligible context and fixed Base ranking, (ii) persistent user–creator relationship history feeding the transparent Short / Long / Popularity specialist when invoked, and (iii) a separate offline supervision/diagnostic path: target plus two rankings supply \(\Delta_m\), while target-relative history supplies \(S_L\). The online selector uses observable \(Z\) and a DEV-frozen utility threshold only. Never draw target-relative diagnostic states as online gate features or infer a deployed online budget from offline matched controls.
+## Mandatory claim/source gates before drafting Section 6
 
-## Table 1 — Regime performance and fixed-composition decomposition
+1. **No unpaired checkpoint attribution.** Do not assert candidate-set change alone caused a historical reversal with differing Base configurations.
+2. **No numeric consolidation by visual similarity.** The \\(0.60784\\) versus \\(0.61714\\) sampled Base values belong to potentially different experimental contexts; resolve provenance first.
+3. **No post-hoc test retuning.** Never use same-checkpoint paired diagnostics, context-length DEV evidence or per-state TEST outcomes to reselect the original frozen Utility threshold.
+4. **No isolated context-visibility causality.** L8/L16/L32 has separately trained bases.
+5. **No target leakage into selector features.** Evidence states, realized \\(\Delta_m\\) and target ranks are analysis/supervision outputs, not serving features.
+6. **No journal policy fabrication.** Check KBS-specific declarations, file requirements and formatting against the actual journal guide at submission time.
 
-Combine compact KuaiLive regime results with sampled-active/full-active state-specific utility shifts. Make visually clear that candidate-regime sign reversal occurs with unchanged state prevalence.
-
-## Figure 2 — Signature mechanism figure
-
-### Panel A — Pre-specified development → untouched held-out test state replication
-
-Show Memory−Base for represented, recoverable, and unavailable states.
-
-### Panel B — Context-capacity comparison with retrained Base
-
-Show `L=8/16/32`, canonical Memory fixed, separately retrained Base checkpoints, and matched-instance recoverable→represented transitions with approximately `0.42–0.45` decline in specialist-minus-base utility. Label corresponding Base gains and avoid an isolated-visibility causal arrow.
-
-Move fine context-distance bins to Supplementary Material unless space permits a small inset.
-
-## Table/Figure 3 — Conditional relative Utility versus Difficulty
-
-Combine:
-
-- exact-budget NDCG@10 / H@10;
-- selected-state composition;
-- enrichment relative to population;
-- Oracle composition as an analysis upper bound.
-
-## Table 4 — Untouched second-platform TEST and robustness summary
-
-Keep primary held-out results in the main table. Put full sensitivity, seed, comparator, and alternative-explanation matrices in Supplementary Material.
-
-## Figure/Table 5 — Accuracy–invocation–latency/footprint frontier
-
-Use only if space permits; otherwise move detailed serving curves to Supplementary Material and retain one compact deployment summary in the main text.
-
----
-
-# Supplementary Material structure
-
-## S1. Dataset preprocessing and candidate construction
-## S2. Pre-specified validation protocol and reproducibility details
-## S3. Full base comparator results
-## S4. Memory component and parameter sensitivity
-## S5. Context-distance and recency-bin analyses
-## S6. Alternative-explanation stratification
-## S7. Feature-family ablations and training-seed results
-## S8. Complexity, latency, throughput, and footprint details
-## S9. Additional bootstrap intervals and H@10 tables
-
----
-
-# Claim discipline to maintain during drafting
-
-Supported manuscript-level claims:
-
-- the fixed relationship-memory specialist is regime-dependent rather than globally ordered against the base;
-- `Δ_m` operationalizes the specialist's marginal ranking contribution relative to a fixed base and is not intrinsic model-independent information value;
-- Base-relative evidence state strongly structures specialist utility in Twitch/LiveRec;
-- recoverable-but-unrepresented evidence is the dominant positive Twitch relationship-memory regime;
-- pre-specified development state structure reproduces on untouched held-out TEST;
-- development-only context-capacity comparisons with separately retrained bases are consistent with Base-relative visibility and improved Base representation quality;
-- evidence state does not uniquely determine utility across regimes;
-- conditional relative Utility and Difficulty select materially different event compositions at the same exact budget;
-- Utility better enriches recoverable events, while Difficulty disproportionately selects unavailable events;
-- the frozen Utility threshold benefits from useful utility scoring and a transferable score scale; offline top-`m` controls require only useful ordering;
-- selective Utility improves strong bases in the evaluated settings and transfers under untouched second-platform evaluation;
-- substantial Oracle headroom remains.
-
-Avoid claims of:
-
-- a universal theory of auxiliary evidence valuation;
-- intrinsic or model-independent value of relationship evidence;
-- fixed utility signs for represented/recoverable/unavailable states;
-- a universal context-length threshold;
-- causal proof that visibility alone determines specialist utility;
-- generic novelty in evidence selection, gating, MoE, Learning-to-Defer, long/short-term modeling, or feature fusion;
-- SOTA / leaderboard superiority;
-- calibrated event-level utility prediction or near-Oracle routing;
-- generalization beyond the evaluated live-stream settings or arbitrary auxiliary specialists.
+*Editorial status, 2026-10-08: Sections 1–4 remain the reviewed LaTeX writing baseline. Sections 5–8 above are the revised scholarly outline. New same-checkpoint results are not yet available; all stated pre-existing effects are labeled by their respective frozen evidence source rather than presented as new measurements.*
