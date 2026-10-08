@@ -89,29 +89,6 @@ def encode_phase_batched(model, corpus, phase: str, batch_size: int = 96):
                               "seconds": time.perf_counter() - start}
 
 
-def rank_event(candidates, target, uid, room_vectors, streamer_vectors, room_weight,
-               streamer_weight, to_streamer, memory_pop, memory_hist):
-    cands = np.asarray(candidates, dtype=np.int64)
-    if not len(cands) or len(set(cands.tolist())) != len(cands):
-        raise ValueError(f"Invalid candidate list uid={uid}")
-    hits = np.flatnonzero(cands == target)
-    if len(hits) != 1 or np.any(cands <= 0):
-        raise ValueError(f"Invalid target or candidate IDs uid={uid}")
-    if cands.max() >= len(to_streamer):
-        raise ValueError(f"room ID beyond streamer mapping uid={uid}")
-    room_score = room_weight[cands] @ room_vectors[uid]
-    sitems = to_streamer[cands]
-    streamer_score = streamer_weight[sitems] @ streamer_vectors[uid]
-    combined = ALPHA_ROOM * zscore(room_score) + (1 - ALPHA_ROOM) * zscore(streamer_score)
-    brank = rank_ge_at(combined, int(hits[0]))
-    mscore = memory_scores(cands, uid, memory_pop, memory_hist, to_streamer)
-    # The memory scorer expects a dict room->actual streamer IDs, while
-    # to_streamer above maps room->ReChorus streamer item. Hand in the
-    # original room->streamer mapping, not the model-internal item mapping.
-    mrank = memory_rank(cands, mscore, target)
-    return brank, mrank
-
-
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--rechorus-source", type=Path, required=True)
