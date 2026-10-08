@@ -1,0 +1,81 @@
+name: KBS post-hoc diagnostic candidates rebuild (hosted)
+
+on:
+  push:
+    branches: [kbs-fixed-checkpoint-diagnostic-20261008]
+    paths: ['.github/workflows/kbs-diagnostic-rebuild-data-hosted.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kbs-posthoc-data-rebuild
+  cancel-in-progress: false
+
+jobs:
+  data:
+    name: Rebuild deterministic original-style candidate files
+    if: github.repository == 'mzch0210/KuaiLive-Agent' && github.actor == 'mzch0210' && github.ref == 'refs/heads/kbs-fixed-checkpoint-diagnostic-20261008'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+      OMP_NUM_THREADS: '2'
+      OPENBLAS_NUM_THREADS: '2'
+      MKL_NUM_THREADS: '2'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Fixed CPU preparation dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1' 'tqdm==4.66.5' 'PyYAML==6.0.2'
+          python -m py_compile scripts/download_kuailive.py \
+            src/kuailive_agent/prepare.py src/kuailive_agent/export_rechorus_room.py \
+            src/kuailive_agent/export_rechorus_streamer_parallel.py
+      - name: Download official data and verify published MD5
+        run: |
+          set -euo pipefail
+          python scripts/download_kuailive.py --data-root data
+          python -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" --out-dir data/prepared/shop --scope shop
+      - name: Rebuild candidates using original seed (no model tuning)
+        run: |
+          set -euo pipefail
+          python -m kuailive_agent.export_rechorus_room \
+            --prepared-dir data/prepared/shop --out-root rechorus_dual \
+            --dataset KuaiLiveShopRoomDualID --n-neg 574 --seed 20260918
+          python -m kuailive_agent.export_rechorus_streamer_parallel \
+            --room-data-dir rechorus_dual/KuaiLiveShopRoomDualID \
+            --out-root rechorus_dual --dataset KuaiLiveShopStreamerParallel
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path('rechorus_dual/KuaiLiveShopRoomDualID/export_meta.json').read_text())
+          assert m['candidate_count']==575 and m['n_neg']==574 and m['users']==10222, m
+          print('Candidate protocol sanity PASS:', m['users'], m['candidate_count'])
+          PY
+      - name: Write source hashes and make compact dataset artifact
+        run: |
+          set -euo pipefail
+          mkdir -p diagnostic_input/prepared/shop
+          cp -a rechorus_dual diagnostic_input/
+          cp data/prepared/shop/rooms.pkl diagnostic_input/prepared/shop/
+          (
+            cd diagnostic_input
+            find rechorus_dual prepared/shop -type f -print0 | sort -z | xargs -0 sha256sum
+          ) > diagnostic_input/source_sha256.txt
+          printf '{"kind":"REGENERATED_POSTHOC_KUAILIVE_INPUTS","zenodo_record":16565801,"seed":20260918,"negative_count":574,"not_proven_byte_identical_to_expired_artifact":true}\n' > diagnostic_input/provenance.json
+      - name: Upload candidate data (not model weights)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: kbs-posthoc-regenerated-inputs-${{ github.run_id }}
+          path: diagnostic_input/**
+          retention-days: 90
+          if-no-files-found: warn
