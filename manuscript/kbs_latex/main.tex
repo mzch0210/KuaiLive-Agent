@@ -287,6 +287,116 @@ Two controls characterize the learned selection. A \emph{base-difficulty} regres
 
 Matched invocation counts ensure that the offline control comparison isolates event selection rather than invocation frequency. They do not impose a hard online budget on the pointwise Utility policy. Actual serving latency, cache footprint, and any cost optimization must be distinguished from these offline ranking comparisons.
 
+
+\section{Experimental Setup}
+\label{sec:experimental-setup}
+
+The experiments assess two complementary questions: how the ranking contribution of a fixed relationship-memory specialist varies across base-relative evidence states and operating regimes, and whether estimates of this contribution support more effective selective decisions than generic base-difficulty scores. We evaluate two live-streaming platforms with different recommendation units and availability protocols. We distinguish model development and frozen held-out evaluation from subsequent explanatory diagnostics, and interpret ranking gains as operational contrasts rather than intrinsic information value.
+
+\subsection{Datasets and Evaluation Protocols}
+\label{sec:exp-data}
+
+\paragraph{KuaiLive.}
+We use the public KuaiLive dataset \cite{qu2026kuailive}, focusing on the live-shopping interactions and associated live-room metadata. The prediction target is the next \emph{live room}; historical relationship evidence, in contrast, is attached to its \emph{streamer} and transferred to eligible rooms through an explicit room--streamer map. Distinct rooms of the same streamer thus remain distinct ranking items even when they share relationship-memory scores. After removal of duplicate user--room--timestamp records, we retain users with eligible preceding interactions and distinct development and test targets. The primary chronological leave-last-two-out export assigns each retained user's last interaction to test, the penultimate interaction to development, and earlier interactions to training. Both development and test contain 10,222 user-level target events. Test-time history includes the preceding development interaction; the popularity prior is estimated from training only.
+
+Live-room eligibility uses metadata intervals: a room is active at time $t$ when its start timestamp is no later than $t$ and its end timestamp is later than $t$. Under the \emph{sampled-active} protocol, each observed target is ranked with 574 distinct active-room negatives, yielding 575 candidates. The \emph{full-active} protocol evaluates the same underlying user--time--target instance against every metadata-active room; the target is retained if metadata would otherwise exclude it, and such exceptions are recorded. Changing the candidate universe changes candidate-wise standardization and the evaluated ranking problem even if history and target are unchanged. A separate global-time protocol uses chronological windows across the platform, with different event eligibility and potentially multiple evaluation events per user. It is treated as temporal robustness evidence, not as a paired variant of the user-level leave-last-two-out data.
+
+\paragraph{Twitch/LiveRec.}
+The second platform follows the public Twitch benchmark and official LiveRec evaluation conventions \cite{rappaz2021liverec}. Its ranking items are streamers rather than individual rooms. User--streamer records are observed at discrete ten-minute crawl steps. Their start and stop fields indicate first and last \emph{observations}, not precisely known viewer arrival or departure times. The chronological train/development/test windows and candidate availability follow the frozen official protocol, in which an eligible streamer must be available at the target step. There is one observed relevant target per evaluation event. The primary base has at most 16 preceding sequence interactions, and the frozen exports contain 46,878 development events and 44,221 held-out test events.
+
+For the primary relationship-memory replay, historical records enter the candidate-specific past when their first observed step precedes the target step; popularity uses records ending before the training boundary. A supplementary strict-split analysis additionally requires history records to end before the respective split boundary. These are distinct evidence-eligibility definitions; neither warrants a claim about exact within-step viewing times. Comparisons across the two platforms concern within-protocol Base-relative specialist utility rather than cross-platform comparisons of absolute NDCG.
+
+\begin{table}[t]
+\centering
+\caption{Datasets and principal evaluation protocols. Counts refer to eligible evaluation targets, not the total number of raw interaction records. The global-time KuaiLive experiment uses a separate split and is not paired with the user-level evaluation.}
+\label{tab:exp-datasets}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{@{}p{2.4cm}p{1.6cm}X p{2.3cm}@{}}
+\toprule
+Protocol & Ranked item & Chronology and candidate construction & DEV / TEST targets \\
+\midrule
+KuaiLive sampled-active & Live room & Per-user leave-last-two-out; one target and 574 active negatives & 10,222 / 10,222 \\
+KuaiLive full-active & Live room & Identical user--time--target instances; all active rooms plus retained target & 10,222 / 10,222 \\
+KuaiLive global-time & Live room & Independent global chronological windows; active-room candidates & Separate protocol \\
+Twitch / LiveRec & Streamer & Chronological crawl steps; available streamers; 16-step base input & 46,878 / 44,221 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Baselines and Comparison Methods}
+\label{sec:exp-comparators}
+
+The KuaiLive reference is the Dual-ID sequential base described in Section~\ref{sec:framework-base}, whose room- and streamer-identity SASRec branches are independently standardized over the current candidates before weighted score combination. The room/streamer coefficients $0.1/0.9$ stated in Section~\ref{sec:framework-base} refer to the original development-selected sampled-active configuration. Native full-active models or a subsequent same-checkpoint candidate-swap diagnostic may use distinct, explicitly reported development-selected coefficients; they must not be treated as the same reference configuration. We additionally examine the room-only and streamer-only SASRec branches, a popularity comparator and common-candidate trained alternatives such as GRU4Rec and a contrastive sequential recommender, where available, to establish the credibility of the trained reference. These checks are protocol-matched comparator evidence, not an exhaustive state-of-the-art competition.
+
+For Twitch we retain the official LiveRec contextual and repeat-consumption components, rather than substituting the KuaiLive architecture. In every within-protocol comparison, the fixed specialist $M$ and base $B$ rank the same eligible candidate set. The specialist's Short/Long/Popularity rule, history horizon, fixed coefficients and deterministic tie policy follow Section~\ref{sec:framework-memory}; its parameters are not refitted using held-out outcomes.
+
+The decision comparisons comprise Always-Base, Always-Memory, the development-frozen Utility selector, a base-difficulty predictor and an analysis-only Oracle. The difficulty regressor predicts $1-u_{10}(B,x)$ from the same observable feature family as Utility. In the offline exact-count comparison, Difficulty selects the $m$ highest predicted-difficulty events, where $m$ is the number of test invocations realized by the frozen Utility threshold. Oracle uses the same $m$ but ranks events by the \emph{realized} $\Delta_m(x)$; it is explicitly nondeployable. These offline Top-$m$ controls do not alter the pointwise Utility policy or impose a hard online invocation budget.
+
+\begin{table}[t]
+\centering
+\caption{Comparison methods and information boundaries. Target labels and realized ranking utility are distinguished from pre-outcome candidate or base-score information.}
+\label{tab:exp-methods}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{@{}p{2.2cm}X p{2.0cm}p{1.8cm}@{}}
+\toprule
+Method & Role and fitting information & Decision rule & Test targets used for decisions? \\
+\midrule
+Always-Base & Trained sequential reference; training and DEV selection & Return $B$ & No \\
+Always-Memory & Fixed history specialist, no selector training & Return $M$ & No \\
+Utility & DEV-supervised specialist-minus-base prediction using pre-outcome features & Frozen threshold & No \\
+Difficulty & DEV-supervised base-loss prediction with identical feature family & Offline Top-$m$ & No; uses realized $m$ \\
+Oracle & Hindsight upper bound from realized relative utility & Offline Top-$m$ & Yes; analysis only \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The Twitch estimator and threshold are fitted on Twitch development events even though the specialist definition is transferred unchanged. Thus the second platform tests cross-platform replication of a valuation and selection \emph{principle}, not zero-shot transfer of the fitted KuaiLive router.
+
+\subsection{Training, Development, and Policy Freezing}
+\label{sec:exp-freeze}
+
+Training data are used to fit the specified base checkpoints and global popularity reference, while permitted fusion and selection choices use development information. Models re-trained for context-capacity stress tests or candidate-regime diagnostics are considered distinct reference models, even when architecture and dataset coincide. At decision time the selector can access only eligible past behavior, candidate information and the base's pre-outcome score descriptors. Neither the observed target nor the diagnostic relationship-evidence state is an invocation feature.
+
+The relative-utility target $\Delta_m(x)$ is constructed offline for development examples by scoring the \emph{same} candidate set with both $B$ and $M$. Following Section~\ref{sec:framework-estimation}, the Utility regressor uses six history descriptors and eight base-confidence descriptors. The primary histogram-gradient-boosting configuration has 200 iterations, learning rate $0.05$, maximum depth $3$, minimum leaf size $50$, $\ell_2$ regularization $1$, and fixed random seed $20260918$. Five-fold shuffled out-of-fold (OOF) predictions on development data are used for supervised selection of a score threshold maximizing development mean switched NDCG@10, with ties resolved in favor of fewer specialist invocations. The final regressor is fitted on the complete development split.
+
+For the composite history-complexity descriptor, percentile reference distributions are computed once from the full \emph{unlabeled} development features, shared across OOF folds, and transferred unchanged to test. OOF regressor fits therefore exclude the evaluation fold's outcome labels, although the outcome-free percentile reference is not separately rebuilt within each fold. Before canonical held-out evaluation, model parameters, the specialist, feature transformations, and threshold are frozen. Test predictions apply the fixed pointwise threshold without recalibration, and the realized invocation count fixes only the batch size of the offline Difficulty and Oracle controls. Because development OOF scores are used to select the threshold, the resulting development-selected score is not presented as an unbiased generalization estimate. Subsequent diagnostic work does not retrospectively alter the original frozen policy; this experimental freeze is not a claim of formal external preregistration.
+
+\subsection{Candidate-Regime Comparability and Controlled Diagnostics}
+\label{sec:exp-regimes}
+
+We distinguish two estimands. The first compares historically evaluated sampled-active and native full-active KuaiLive regimes under their own development-defined models and eligible candidate universes. These experiments share user--time--target instances but may differ in candidate count, fusion coefficients and checkpoint provenance. The native full-active protocol learns its regime-specific choices from full-active development data; the strict-transfer comparison instead retains sampled-regime learned choices while recomputing candidate-dependent scores on full-active candidates. Consequently, aggregate differences across historical protocols are descriptive of operational regimes and cannot isolate candidate-set membership as their sole cause.
+
+A supporting \emph{same-checkpoint candidate-swap diagnostic} controls the most direct model-configuration differences. It uses one newly trained, frozen pair of room- and streamer-identity checkpoints and a \emph{single} fusion coefficient chosen on sampled-active development data. For each matched test event, raw room and streamer scores are computed over the full-active candidate set once, and sampled candidates are recovered by subsetting those very scores. Candidate-wise branch standardization is applied separately to the two sets, according to the original ranking definition. The history and fixed Memory rule are identical on both sides. Input checks enforce event identity, a unique positive target, candidate-set inclusion, room--streamer mapping integrity and model-file hashes. A candidate-swap therefore changes the candidates and their induced score normalization, but not model weights, fusion coefficient, target or historical information.
+
+For matched test instance $i$, we compute
+\begin{equation}
+D_i =
+\big[u_{10}(M,x_i^{\mathrm{full}})-u_{10}(B,x_i^{\mathrm{full}})\big]
+-
+\big[u_{10}(M,x_i^{\mathrm{sampled}})-u_{10}(B,x_i^{\mathrm{sampled}})\big].
+\label{eq:paired-regime-shift}
+\end{equation}
+The paired difference is evaluated overall and within the retrospective target-relative states of Eq.~\eqref{eq:diagnostic-states}. This test is a \emph{post-hoc protocol-controlled diagnostic}, not a randomized causal intervention or a second independent frozen-policy validation. Its outcome is reported regardless of effect direction. Historical and newly paired comparisons retain separate protocol identities and are never numerically pooled solely because they use the same source dataset.
+
+\subsection{Evaluation Metrics and Statistical Analysis}
+\label{sec:exp-statistics}
+
+The primary ranking metric is NDCG@10, computed as the mean of the one-positive event utility in Eq.~\eqref{eq:event-ndcg}; HR@10 is secondary. We compare Base, Memory, and selected rankings within each protocol and report paired Memory--Base, Utility--Base and Utility--Difficulty differences. Invocation rate is the fraction of events assigned to Memory by the development-frozen Utility selector. Evidence-state means are decomposed by observed state prevalence and checked against the aggregate contrast; target-dependent states are used only retrospectively.
+
+Uncertainty for ranking differences is quantified with paired percentile bootstrap intervals, resampling users so that all observations from the same user remain together. In one-target-per-user protocols the user and event bootstrap units coincide; global-time multi-event analyses use user-level clustering. The new same-checkpoint comparison uses 3,000 paired user-bootstrap replicates; other frozen evaluations follow their recorded bootstrap settings. Repeated-seed variation reflects independently trained models and is reported separately from within-checkpoint sampling uncertainty. Fine-grained state, distance, component, and context-capacity contrasts are explanatory or exploratory rather than unqualified multiplicity-free confirmatory tests. In particular, context lengths $8$, $16$, and $32$ compare separately trained LiveRec bases against an unchanged specialist, so context visibility is not isolated from accompanying changes in base ranking quality.
+
+Efficiency is assessed through invocation frequency and reported latency, throughput and model/cache footprint under specified batch sizes, hardware and measurement conditions. Offline ranking comparisons do not measure causal changes in viewer satisfaction, watch time, sales or conversion, and we do not claim a calibrated cost-optimal serving policy.
+
+\subsection{Implementation and Reproducibility}
+\label{sec:exp-implementation}
+
+The KuaiLive sequential references use pinned ReChorus SASRec code with 64-dimensional embeddings, one self-attention layer, four attention heads, and a maximum history of 50. The Twitch experiments use the official LiveRec implementation with contextual and repeat-consumption components enabled. Full training schedules, optimizer settings, random seeds, source revisions, chronology and candidate generation, model/policy hashes, evaluation scripts and statistical configurations are recorded per protocol in reproducibility manifests. The newly trained same-checkpoint diagnostic is not asserted to reproduce an expired historical checkpoint merely because model architecture and data preparation coincide.
+
+Supplementary materials document dataset provenance, exact eligibility rules, comparator hyperparameters, alternative temporal and history protocols, seed and ablation matrices, efficiency environments and artifact-to-claim traces. At submission, data and code availability statements will distinguish published source data, re-runnable scripts and actually retained model or result files; temporary hosted artifacts are not treated as permanent public archives without verification.
+
+
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
 
