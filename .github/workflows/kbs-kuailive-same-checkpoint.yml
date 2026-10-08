@@ -75,7 +75,7 @@ jobs:
         github.ref == 'refs/heads/main' &&
         (
           (github.event_name == 'workflow_dispatch' && inputs.confirm_owner_run) ||
-          (github.event_name == 'push' && github.event.head_commit.message == 'KBS authorized one-shot GPU repair retry 2026-10-08 v2')
+          (github.event_name == 'push' && github.event.head_commit.message == 'KBS authorized one-shot GPU repair retry 2026-10-08 v3')
         )
       }}
     needs: preflight
@@ -92,7 +92,7 @@ jobs:
             "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
           import json, os
           e=json.load(open(os.environ["GITHUB_EVENT_PATH"]))
-          assert e["head_commit"]["message"] == "KBS authorized one-shot GPU repair retry 2026-10-08 v2", "non-authorized push"
+          assert e["head_commit"]["message"] == "KBS authorized one-shot GPU repair retry 2026-10-08 v3", "non-authorized push"
           changed=set().union(*(set(e["head_commit"].get(k, [])) for k in ("modified","added","removed")))
           if changed:
               assert changed=={".github/workflows/kbs-kuailive-same-checkpoint.yml"}, changed
@@ -238,20 +238,34 @@ jobs:
           persist-credentials: false
           set-safe-directory: false
           fetch-depth: 1
-      - name: Validate checked-out ReChorus commit and required files
+      - name: Verify upstream ReChorus against pinned Git tree (Git not required)
         shell: bash
         env:
           UPSTREAM_COMMIT: ${{ steps.rechorus_source.outputs.commit }}
         run: |
           set -euo pipefail
-          test "$UPSTREAM_COMMIT" = "$RECHORUS_COMMIT"
-          test -s third_party/ReChorus/src/main.py
-          test -s third_party/ReChorus/src/helpers/SeqReader.py
-          test -s third_party/ReChorus/src/models/sequential/SASRec.py
+          if [ -n "$UPSTREAM_COMMIT" ]; then
+            test "$UPSTREAM_COMMIT" = "$RECHORUS_COMMIT"
+          fi
+          "$PY" - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              "src/main.py": "e2a55e6063737e2d536723b084a453629f81aeb1",
+              "src/helpers/SeqReader.py": "069d78e1e14d774207a12620536ce72255c1a903",
+              "src/models/sequential/SASRec.py": "d274ada8542b490139d97401a1db1ea58e4bf16b",
+          }
+          root = Path("third_party/ReChorus")
+          for name, git_blob_sha in expected.items():
+              data = (root / name).read_bytes()
+              blob = hashlib.sha1(("blob " + str(len(data)) + "\\0").encode("ascii") + data).hexdigest()
+              assert blob == git_blob_sha, f"pinned source blob mismatch: {name}: {blob}"
+              print(f"Verified pinned Git blob {name}: {blob}")
+          PY
           "$PY" -m py_compile third_party/ReChorus/src/main.py \
             third_party/ReChorus/src/helpers/SeqReader.py \
             third_party/ReChorus/src/models/sequential/SASRec.py
-          echo "Pinned ReChorus $UPSTREAM_COMMIT verified (no shell git required)."
+          echo "ReChorus pinned source verified by blob identity without shell git."
       - name: Run synthetic paired diagnostic tests
         shell: bash
         run: |
