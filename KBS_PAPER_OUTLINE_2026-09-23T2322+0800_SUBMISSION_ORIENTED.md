@@ -162,7 +162,7 @@ The purpose is precise differentiation, not a claim that adjacent work is absent
 
 # 3. Problem Formulation
 
-The revised LaTeX manuscript is canonical for Section 3. Reserve (m) for the invoked-event count and use (\Delta_M) for Memory-minus-Base utility throughout; retain only general selection mathematics here, while DEV/OOF details belong to Section 5.
+The revised LaTeX manuscript is canonical for Section 3. Reserve $m$ for the invoked-event count and use $\Delta_M$ for Memory-minus-Base utility throughout; retain only general selection mathematics here, while DEV/OOF details belong to Section 5.
 
 ## 3.1 Recommendation setting and event-level ranking utility
 
@@ -328,7 +328,7 @@ Specify NDCG@10 (one target per event), HR@10, invocation frequency, per-user pa
 
 Report only necessary core settings: ReChorus SASRec base (64-dimensional embeddings, one attention layer, four heads, length 50), Twitch LiveRec context/repeat configuration (length 16), and HGB estimator configuration (200 iterations, 0.05 rate, depth 3, leaf minimum 50, regularization 1). Full implementation commits, data preprocessing logs, run IDs, checkpoint manifests and extended robustness matrices belong in the Supplementary Material. Do not suggest that offline invocation rate establishes deployment latency.
 
-**Related audit:** [Sections 1–4 retrospective academic assessment](manuscript/kbs_latex/SECTIONS1-4_RETROSPECTIVE_ACADEMIC_AUDIT_2026-10-08.md). Its P0 symbol and fusion-weight consistency items remain open until checked against the entire manuscript and applied consistently.
+**Related audit:** [Sections 1–4 retrospective academic assessment](manuscript/kbs_latex/SECTIONS1-4_RETROSPECTIVE_ACADEMIC_AUDIT_2026-10-08.md). Its P0 symbol and fusion-weight consistency items have now been resolved in the canonical LaTeX manuscript; the audit remains the rationale and change history.
 
 ---
 
@@ -476,7 +476,7 @@ One short section, no new results: (i) operational specialist contribution is re
 - **S8 — Robustness and external validity.** Training seeds, alternative-explanation strata, temporal-regime details.
 - **S9 — Resource and reproducibility audit.** Hardware, latency, throughput, cache footprint, complete scripts and artifact-to-claim matrix.
 
-## Mandatory claim/source gates before drafting Section 6
+## Mandatory claim/source gates before finalizing Section 6
 
 1. **No isolated causal attribution.** The new matched-checkpoint sign reversal is stronger evidence of candidate-regime-dependent *operational* utility; candidate membership and its score standardization change jointly. Historical configurations remain separate.
 2. **No numeric consolidation by visual similarity.** The \\(0.60784\\) versus \\(0.61714\\) sampled Base values belong to potentially different experimental contexts; resolve provenance first.
@@ -485,4 +485,4 @@ One short section, no new results: (i) operational specialist contribution is re
 5. **No target leakage into selector features.** Evidence states, realized \\(\Delta_M\\) and target ranks are analysis/supervision outputs, not serving features.
 6. **No journal policy fabrication.** Check KBS-specific declarations, file requirements and formatting against the actual journal guide at submission time.
 
-*Editorial status, 2026-10-08: Sections 1–4 remain the reviewed LaTeX scientific baseline; Section 5 now exists in the canonical compiled manuscript. The same-checkpoint diagnostic completed successfully (run 37746520476) and is incorporated solely as **supporting post-hoc evidence**. Sections 6–8 are the remaining drafting targets; historical and frozen-policy results preserve their independent experimental identities.*
+*Editorial status, 2026-10-08: Sections 1–5 have been reviewed and implemented in the canonical LaTeX manuscript; **Section 6.1 has now been drafted with verified P0 factorial and P1 three-seed results**, including confidence intervals and retrospective evidence-state contributions. Sections 6.2–6.5, 7 and 8 remain unfinished. Historical regime comparisons, post-hoc KuaiLive diagnostics, and frozen Twitch held-out policy evaluation retain distinct scientific identities. P2 negative-sampling sensitivity remains proposed/unexecuted.*
