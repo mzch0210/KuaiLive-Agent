@@ -49,6 +49,25 @@ jobs:
               assert x in s, x
           print('preflight PASS')
           PY
+      - name: Smoke-test pinned upstream ReChorus checkout
+        id: smoke_rechorus
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: THUwangcy/ReChorus
+          ref: c164ec4303cc20ddcfbd1b57de366a481811d1e5
+          path: third_party/ReChorus
+          persist-credentials: false
+          set-safe-directory: false
+          fetch-depth: 1
+      - name: Verify upstream commit and source modules
+        env:
+          PINNED_UPSTREAM: ${{ steps.smoke_rechorus.outputs.commit }}
+        run: |
+          set -euo pipefail
+          test "$PINNED_UPSTREAM" = 'c164ec4303cc20ddcfbd1b57de366a481811d1e5'
+          python -m py_compile third_party/ReChorus/src/main.py \
+            third_party/ReChorus/src/helpers/SeqReader.py \
+            third_party/ReChorus/src/models/sequential/SASRec.py
   paired_gpu:
     if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'mzch0210' && github.ref == 'refs/heads/main' && inputs.confirm_owner_run }}
     needs: preflight
@@ -180,13 +199,30 @@ jobs:
           fi
           (cd "$CACHE_PATH" && sha256sum -c SHA256SUMS >/dev/null)
           echo "DATA_CACHE=$CACHE_PATH" >> "$GITHUB_ENV"
-      - name: Fetch pinned official ReChorus
+      - name: Fetch pinned official ReChorus without shell git
+        id: rechorus_source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: THUwangcy/ReChorus
+          ref: c164ec4303cc20ddcfbd1b57de366a481811d1e5
+          path: third_party/ReChorus
+          persist-credentials: false
+          set-safe-directory: false
+          fetch-depth: 1
+      - name: Validate checked-out ReChorus commit and required files
         shell: bash
+        env:
+          UPSTREAM_COMMIT: ${{ steps.rechorus_source.outputs.commit }}
         run: |
           set -euo pipefail
-          git clone --filter=blob:none https://github.com/THUwangcy/ReChorus.git third_party/ReChorus
-          git -C third_party/ReChorus checkout "$RECHORUS_COMMIT"
-          test "$(git -C third_party/ReChorus rev-parse HEAD)" = "$RECHORUS_COMMIT"
+          test "$UPSTREAM_COMMIT" = "$RECHORUS_COMMIT"
+          test -s third_party/ReChorus/src/main.py
+          test -s third_party/ReChorus/src/helpers/SeqReader.py
+          test -s third_party/ReChorus/src/models/sequential/SASRec.py
+          "$PY" -m py_compile third_party/ReChorus/src/main.py \
+            third_party/ReChorus/src/helpers/SeqReader.py \
+            third_party/ReChorus/src/models/sequential/SASRec.py
+          echo "Pinned ReChorus $UPSTREAM_COMMIT verified (no shell git required)."
       - name: Run synthetic paired diagnostic tests
         shell: bash
         run: |
