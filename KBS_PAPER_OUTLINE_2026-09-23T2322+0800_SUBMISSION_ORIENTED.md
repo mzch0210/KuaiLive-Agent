@@ -406,7 +406,7 @@ The weighted shift decomposes as `+0.03946` (represented), `−0.00205` (recover
 
 **Main Figure 2.** Prefer separate panels for (A) historical operational contrasts and (B) new matched-checkpoint paired contrasts/CIs; show subgroup shifts in a compact Figure 2C or supplementary table. Label old/new model identities and candidate rules. Avoid putting two configurations into an apparently unified paired series.
 
-**Limitations and optional follow-on analysis.** The new result involves a single newly trained checkpoint pair/seed, a previously studied TEST population, and candidate-wise z-standardization that changes when the candidate set changes. Optional supporting checks: score normalization against one fixed reference population, followed by a small independent-training-seed repeat. These checks are **proposed**, not yet completed; the present successful result is valid as a post-hoc controlled-protocol observation.
+**Limitations and staged follow-up plan (PROPOSED; not executed).** The completed controlled result uses a single newly trained checkpoint pair/seed, an already-studied TEST population, and candidate-wise standardization that co-varies with candidate membership. The efficiency-optimized [follow-up experimental plan](KBS_KUAILIVE_FOLLOWUP_EXPERIMENT_PLAN_2026-10-08.md) prioritizes (P0) a no-retraining four-cell candidate/reference-normalization decomposition with an exact algebraic attribution, then (P1) two additional training seeds under fixed alpha and cached-data/checkpoint reuse, with (P2) negative-sampling sensitivity only if needed. All remain post-hoc supporting evidence; do not insert results into Sections 5–7 before execution and audit.
 
 ## 6.2 Relationship-evidence states and relative utility
 
