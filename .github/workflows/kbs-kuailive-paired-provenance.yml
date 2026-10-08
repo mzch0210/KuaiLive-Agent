@@ -1,0 +1,77 @@
+name: KBS paired input provenance audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-kuailive-paired-provenance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Download regenerated candidate set from diagnostic branch
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: 11534262601
+          path: regenerated
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 37741843252
+      - name: Download authoritative frozen strong-base input bundle
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: 10730951727
+          path: frozen
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 35813831725
+      - name: Compare candidate identity, metadata and source hashes
+        run: |
+          set -euo pipefail
+          mkdir -p audit
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,datetime
+          def loc(root, dataset, name):
+              candidates = [p for p in root.rglob(name) if p.parent.name == dataset]
+              if len(candidates)!=1:
+                  raise RuntimeError(f'expected one {dataset}/{name}, found {candidates}')
+              return candidates[0]
+          dataset='KuaiLiveShopRoomDualID'
+          names=['train.csv','dev.csv','test.csv','export_meta.json']
+          report={'source_regenerated_artifact_id':11534262601,
+                  'source_regenerated_run_id':37741843252,
+                  'frozen_strong_base_artifact_id':10730951727,
+                  'frozen_strong_base_run_id':35813831725,
+                  'byte_identity':{},'sha256':{},'all_identical':False}
+          for name in names:
+              a=loc(Path('regenerated'),dataset,name)
+              b=loc(Path('frozen'),dataset,name)
+              sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+              sa,sb=sha(a),sha(b)
+              report['sha256'][name]={'regenerated':sa,'frozen':sb}
+              report['byte_identity'][name]=(sa==sb)
+          meta=json.loads(loc(Path('regenerated'),dataset,'export_meta.json').read_text())
+          report['users']=meta['users'];report['candidate_count']=meta['candidate_count']
+          report['all_identical']=all(report['byte_identity'].values())
+          report['provenance_boundary']='If identical to archived strong-base inputs, this does not automatically prove identity to every expired experiment artifact or model checkpoint.'
+          Path('audit/provenance.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report,indent=2))
+          assert meta['users']==10222 and meta['candidate_count']==575
+          assert report['all_identical'], 'Candidate input mismatch: do not pool historical and regenerated input claims.'
+          PY
+      - name: Upload immutable provenance audit
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-kuailive-paired-provenance-${{ github.run_id }}
+          path: audit/provenance.json
+          retention-days: 90
+          if-no-files-found: warn
