@@ -4,8 +4,14 @@ This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems
 
 ## Files
 
-- `main.tex` — current manuscript source. It uses Elsevier's `elsarticle` class and currently contains the Introduction and Related Work sections.
+- `main.tex` — current manuscript source. It uses Elsevier's `elsarticle` class and currently contains Sections 1-3: Introduction, Related Work, and Problem Formulation.
 - `kbs_references.bib` — BibTeX database for manuscript references.
+
+## Current review baseline
+
+As of 2026-10-08, Sections 1-3 are frozen after targeted P0/P1 consistency edits. Drafting is paused before Section 4. New chapter drafts have not been included. Reopen a frozen section only to correct a substantiated issue or meet a journal requirement.
+
+The frozen scientific boundaries include candidate-regime-specific event contexts, development-frozen utility thresholds with offline matched-budget controls, and non-causal interpretation of the separately trained context-length base comparisons.
 
 ## Maintenance rule
 
