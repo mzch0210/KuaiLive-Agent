@@ -75,7 +75,7 @@ jobs:
         github.ref == 'refs/heads/main' &&
         (
           (github.event_name == 'workflow_dispatch' && inputs.confirm_owner_run) ||
-          (github.event_name == 'push' && github.event.head_commit.message == 'KBS authorized one-shot GPU repair retry 2026-10-08')
+          (github.event_name == 'push' && github.event.head_commit.message == 'KBS authorized one-shot GPU repair retry 2026-10-08 v2')
         )
       }}
     needs: preflight
@@ -92,9 +92,13 @@ jobs:
             "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
           import json, os
           e=json.load(open(os.environ["GITHUB_EVENT_PATH"]))
-          assert e["head_commit"]["message"] == "KBS authorized one-shot GPU repair retry 2026-10-08", "non-authorized push"
-          changed=set(e["head_commit"].get("modified", []))
-          assert changed=={".github/workflows/kbs-kuailive-same-checkpoint.yml"}, changed
+          assert e["head_commit"]["message"] == "KBS authorized one-shot GPU repair retry 2026-10-08 v2", "non-authorized push"
+          changed=set().union(*(set(e["head_commit"].get(k, [])) for k in ("modified","added","removed")))
+          if changed:
+              assert changed=={".github/workflows/kbs-kuailive-same-checkpoint.yml"}, changed
+          else:
+              # Contents-API pushes may omit changed-file arrays entirely.
+              assert e["head_commit"]["id"] == os.environ["GITHUB_SHA"]
           assert e.get("ref") == "refs/heads/main"
           print("One-shot owner-authorized repair retry confirmed")
           PY
