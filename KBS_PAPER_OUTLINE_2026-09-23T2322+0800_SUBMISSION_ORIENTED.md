@@ -3,7 +3,7 @@
 > **INDEPENDENT / NON-AUTHORITATIVE MANUSCRIPT OUTLINE**  
 > This document is a paper-facing writing outline. It does not replace frozen experimental protocols, immutable test results, or prior authoritative experimental snapshots unless explicitly promoted by the authors.
 
-**Updated:** 2026-09-25  
+**Updated:** 2026-10-08  
 **Target journal:** *Knowledge-Based Systems*  
 **Project:** `mzch0210/KuaiLive-Agent`
 
@@ -67,7 +67,7 @@ Preview only three facts:
 
 - aggregate specialist ordering reverses across KuaiLive candidate regimes;
 - conditional evidence-state structure identified in pre-specified Twitch/LiveRec development analysis reproduces on untouched held-out test data;
-- under a development-only context-capacity intervention, the same evidence loses approximately `0.42–0.45` NDCG@10 of specialist-minus-base utility when a larger base context comes to represent it.
+- in a development-only context-capacity comparison, matched instances changing from recoverable to visible show approximately `0.42–0.45` NDCG@10 lower specialist-minus-base utility; canonical Memory is fixed, but the Base is retrained at each length, so visibility is not isolated as the sole cause.
 
 Do not reproduce the full result matrix in the Introduction.
 
@@ -99,7 +99,7 @@ Organize Related Work around nearest conceptual neighbors, using one concise pos
 
 ## 2.1 Sequential and long-horizon recommendation
 
-Cover strong sequential encoders and later work that broadens or enriches historical representation.
+Cover strong sequential encoders and later work that broadens or enriches historical representation, including recent intent-driven augmentation (IDMARec, KBS 2025) and multi-interest / multi-granular modeling (DSMGRec, KBS 2025).
 
 Positioning boundary:
 
@@ -170,7 +170,7 @@ Distinguish the pre-outcome decision context
 \xi=(u,t,\mathcal C_{u,t},\mathcal H_{u,t})
 \]
 
-from the evaluated event `x=(ξ,y)`. Models and selectors receive `ξ`, not the observed target `y`.
+from the evaluated event `x=(ξ,y)`. Under candidate regime `r`, use `ξ_r=(u,t,C^{(r)}_{u,t},H_{u,t})` and `x_r=(ξ_r,y)`. The same underlying user–time–target instance can yield distinct full ranking events under alternative candidate sets. Models and selectors receive `ξ_r`, not the observed target `y`.
 
 For one relevant target at cutoff `K`, define event-level NDCG utility:
 
@@ -216,23 +216,19 @@ For a serving action `a`, define selective utility in prose or inline and retain
 
 This is the decision rationale for predicting conditional relative utility rather than generic base difficulty.
 
-## 3.4 Budget-constrained selective specialist use
+## 3.4 Development-frozen selective invocation and matched-budget evaluation
 
-Make **exact matched budget** the primary experimental decision formulation. For cardinality budget `m`, choose the `m` largest predicted `\hat\eta_r` values, with deterministic tie-breaking.
-
-Key interpretation:
-
-> Exact-budget evaluation depends on the ordering induced by `\hat\eta_r`, not on perfect absolute calibration.
-
-Define the exact-budget Oracle by replacing predicted `\hat\eta_r` with realized offline `Δ_m`; Oracle is analysis-only.
-
-Cost-sensitive thresholding is secondary deployment interpretation:
+Define the primary learned policy as a **development-frozen pointwise threshold** on estimated conditional relative utility:
 
 \[
-a_r^*(z)=\mathbf 1[\eta_r(z)>\lambda\kappa_r(z)].
+a_{\tau_r}(z)=\mathbf 1[\hat\eta_r(z)>\tau_r].
 \]
 
-At deployment, replace unobserved `η_r` with `\hatη_r`. Do not present this threshold as a new routing theorem.
+Select \(\tau_r\) using out-of-fold development utility; fit the final regressor on development data and freeze both model and threshold before held-out test access. The realized held-out invocation count is an **outcome of the fixed policy**, not a predetermined exact budget.
+
+For matched comparison, let \(m=\sum_i a_{\tau_r}(z_i)\) be the frozen utility policy's realized evaluation-set invocation count. The Difficulty control uses **top-\(m\)** predicted base-difficulty scores, and the analysis-only Oracle uses **top-\(m\)** realized \(\Delta_m\) values. Both are **offline, batch-level matched-budget controls**; neither is the serving rule of the primary Utility selector. Use deterministic tie-breaking.
+
+The frozen Utility threshold is sensitive to the score distribution; it is not calibration-free. Offline top-\(m\) controls require only an ordering, but assume the evaluation batch is available. A theoretical cost rule \(a_r^*(z)=\mathbf 1[\eta_r(z)>\lambda\kappa_r(z)]\) is an optional deployment interpretation, not an evaluated calibrated cost policy. Avoid claiming online hard-budget guarantees or a new routing theorem.
 
 ## 3.5 Regime-level decomposition
 
@@ -250,7 +246,7 @@ This separates evidence-state composition from state-specific specialist utility
 
 # 4. Base-Relative Evidence Valuation Framework
 
-Section 4 must instantiate Section 3 rather than redefine it. Reuse `B`, `M`, `Z`, `S`, `\hat\eta_r`, and the exact-budget action rule consistently.
+Section 4 must instantiate Section 3 rather than redefine it. Reuse `B`, `M`, `Z`, `S`, `\hat\eta_r`, and the development-frozen Utility threshold consistently; reserve offline top-`m` selection for Difficulty and Oracle controls.
 
 ## 4.1 Strong sequential base recommenders
 
@@ -294,8 +290,9 @@ The HGB implementation is operational rather than the source of novelty. Emphasi
 
 ## 4.5 Difficulty control, Oracle, and serving interpretation
 
-- **Difficulty:** use the same observable information and matched model family where feasible; test whether base weakness alone identifies useful specialist invocation.
-- **Oracle:** exact-budget selection using realized `Δ_m`; analysis upper bound only.
+- **Primary Utility:** development-selected and frozen threshold, with realized held-out invocation count and rate reported.
+- **Difficulty:** use the same observable information and matched model family where feasible; select offline top-`m` cases where `m` is the realized Utility invocation count.
+- **Oracle:** use offline top-`m` realized `Δ_m` values as a hindsight upper bound under the same budget.
 - **Serving interpretation:** report base cost + estimator overhead + invoked-specialist cost, latency/throughput, and memory/cache footprint. Do not imply that the paper directly optimizes a calibrated event-dependent cost model unless such an experiment is explicitly performed.
 
 ---
@@ -327,13 +324,13 @@ Use for:
 
 ## 5.2 Recommendation regimes
 
-Describe sampled-active, full-active, standard temporal, and strict temporal regimes where applicable. Make candidate construction and temporal availability differences explicit because event-level rank utility is candidate-set relative.
+Describe sampled-active, full-active, standard temporal, and strict temporal regimes where applicable. Make candidate construction and temporal availability differences explicit because event-level rank utility is candidate-set relative. In paired candidate-regime comparisons, retain the same underlying user–time–target instances, but treat their candidate-specific rankings as distinct full recommendation events.
 
 ## 5.3 Pre-specified held-out validation protocol
 
 Main-text summary:
 
-> **Development-only analysis and policy specification → policy freeze → untouched one-shot held-out TEST evaluation.**
+> **Development-only policy/OOF threshold selection → freeze feature transforms, models, and threshold → untouched one-shot held-out TEST evaluation; subsequently match offline control budgets to the frozen Utility policy's realized test invocation count.**
 
 Use `pre-specified`, `policy freeze`, and `untouched held-out test` in the manuscript. Keep immutable hashes, artifacts, chronology, and workflow provenance in reproducibility materials rather than the narrative Results text.
 
@@ -345,7 +342,7 @@ Secondary metric: H@10 / HR@10 as appropriate.
 Use:
 
 - paired user-level bootstrap intervals;
-- exact matched invocation budgets;
+- identical realized invocation budgets for offline Difficulty/Oracle controls determined by the frozen-threshold Utility policy;
 - mean ± SD and sign consistency across independent base training seeds.
 
 Do not reinterpret within-seed bootstrap intervals as across-seed confidence intervals.
@@ -360,8 +357,8 @@ Do not reinterpret within-seed bootstrap intervals as across-seed confidence int
 
 ### Primary mechanistic strengthening
 
-- development-only context-capacity intervention with canonical Memory held fixed;
-- within-event recoverable→represented transitions;
+- development-only context-capacity comparison with canonical Memory fixed and Base independently retrained at each input length;
+- matched-instance recoverable→represented transitions interpreted with corresponding Base-utility changes, not as an isolated causal effect;
 - fixed-composition KuaiLive candidate-regime decomposition;
 - Utility/Difficulty/Oracle selection composition under exact matched budgets.
 
@@ -397,7 +394,7 @@ Key KuaiLive aggregate results:
 
 ### Candidate-regime decomposition
 
-For sampled-active versus full-active, use the same 10,222 events and show that evidence-state prevalence is identical while aggregate Memory−Base reverses from `−0.05125` to `+0.03367`.
+For sampled-active versus full-active, use the same 10,222 underlying user–time–target instances and show that evidence-state prevalence is identical while aggregate Memory−Base reverses from `−0.05125` to `+0.03367`.
 
 | Base-relative state | Sampled Δ | Full-active Δ | Full−Sampled shift | 95% CI |
 |---|---:|---:|---:|---:|
@@ -423,7 +420,7 @@ Do not generalize this fixed-composition conclusion to temporal regimes without 
 
 Interpret these as Twitch/LiveRec conditional patterns, not universal state signs.
 
-### Context-capacity Base-visibility intervention
+### Context-capacity and Base-visibility comparison
 
 Keep canonical Memory fixed (`NDCG@10 = 0.52170`) while varying base context:
 
@@ -433,7 +430,7 @@ Keep canonical Memory fixed (`NDCG@10 = 0.52170`) while varying base context:
 | 16 | 0.57185 | −0.05016 | [−0.05307,−0.04731] |
 | 32 | 0.59663 | −0.07493 | [−0.07766,−0.07227] |
 
-Use within-event state transitions as the principal mechanism result:
+Use matched-instance evidence-state transitions as a convergent diagnostic; the same specialist is held fixed but each context-length Base is trained separately, so a contraction in specialist-minus-base utility is algebraically equal to improved Base utility:
 
 | Transition | n | Δ before | Δ after | change | 95% CI |
 |---|---:|---:|---:|---:|---:|
@@ -445,7 +442,7 @@ Conclusion:
 
 > **The operational marginal value of the fixed relationship specialist is strongly Base-relative: when a larger base context comes to represent the same persistent relationship evidence, specialist advantage contracts sharply.**
 
-Use **interventional support**, not causal theorem, in the wording.
+Use **controlled context-capacity comparison with associated visibility changes**, not an isolated visibility intervention or causal proof. Explicitly report Base retraining, Base-utility differences, and the identity `Δ(L')−Δ(L)=u_K(B_L)−u_K(B_L')` when `M` is unchanged.
 
 ### Component attribution and recency refinement
 
@@ -485,7 +482,7 @@ Relationship-state labels remain post-hoc analysis variables and are not used by
 
 ### Twitch/LiveRec held-out TEST
 
-At exact budget `m=6,650` (`15.04%` invocation):
+Under the frozen Utility threshold, the realized test count is `m=6,650` (`15.04%` invocation); Difficulty and Oracle use this exact budget offline:
 
 - Base NDCG@10 `0.58211`;
 - Always Memory `0.53980`;
@@ -510,7 +507,7 @@ Secondary H@10:
 
 Interpretation:
 
-> **Exact-budget selection depends on utility ranking rather than perfect absolute calibration: the current estimator identifies a useful positive tail despite weak event-level correspondence, while the Oracle gap shows substantial remaining headroom.**
+> **The development-frozen Utility threshold identifies a useful positive tail despite imperfect event-level correspondence; offline matched-budget Difficulty and Oracle controls clarify selection quality. Unlike offline top-`m` selection, the frozen threshold depends on score scale as well as ordering.**
 
 Do not describe current utility estimates as calibrated.
 
@@ -626,7 +623,8 @@ Show:
 - analysis-only evidence states;
 - serving-observable `Z` feeding `\hat\eta_r(z)`;
 - specialist-minus-base utility supervision offline;
-- exact-budget selective decision as the primary experimental rule;
+- development-frozen Utility threshold as the primary scientific policy and realized held-out invocation count;
+- offline exact-matched-budget Difficulty/Oracle controls on a separate evaluation branch;
 - cost-sensitive threshold only as a secondary deployment interpretation.
 
 Visually separate offline supervision/analysis variables from online selector inputs to reinforce leakage safety.
@@ -641,9 +639,9 @@ Combine compact KuaiLive regime results with sampled-active/full-active state-sp
 
 Show Memory−Base for represented, recoverable, and unavailable states.
 
-### Panel B — Base-context intervention
+### Panel B — Context-capacity comparison with retrained Base
 
-Show `L=8/16/32`, canonical Memory fixed, and within-event recoverable→represented transitions with approximately `0.42–0.45` decline in specialist-minus-base utility.
+Show `L=8/16/32`, canonical Memory fixed, separately retrained Base checkpoints, and matched-instance recoverable→represented transitions with approximately `0.42–0.45` decline in specialist-minus-base utility. Label corresponding Base gains and avoid an isolated-visibility causal arrow.
 
 Move fine context-distance bins to Supplementary Material unless space permits a small inset.
 
@@ -689,11 +687,11 @@ Supported manuscript-level claims:
 - Base-relative evidence state strongly structures specialist utility in Twitch/LiveRec;
 - recoverable-but-unrepresented evidence is the dominant positive Twitch relationship-memory regime;
 - pre-specified development state structure reproduces on untouched held-out TEST;
-- controlled context-capacity intervention supports a Base-relative visibility interpretation;
+- development-only context-capacity comparisons with separately retrained bases are consistent with Base-relative visibility and improved Base representation quality;
 - evidence state does not uniquely determine utility across regimes;
 - conditional relative Utility and Difficulty select materially different event compositions at the same exact budget;
 - Utility better enriches recoverable events, while Difficulty disproportionately selects unavailable events;
-- exact-budget selection requires useful utility ordering rather than perfect absolute calibration;
+- the frozen Utility threshold benefits from useful utility scoring and a transferable score scale; offline top-`m` controls require only useful ordering;
 - selective Utility improves strong bases in the evaluated settings and transfers under untouched second-platform evaluation;
 - substantial Oracle headroom remains.
 
