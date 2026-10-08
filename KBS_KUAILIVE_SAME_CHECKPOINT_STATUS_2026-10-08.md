@@ -1,7 +1,7 @@
 # KBS KuaiLive same-checkpoint diagnostic — execution and evidence ledger
 
 **Date:** 2026-10-08  
-**Status:** Dataset provenance confirmed; analysis controller and hosted preflight prepared. **No new GPU paired TEST result at time of writing.**  
+**Historical status:** Dataset provenance confirmed; analysis controller and hosted preflight prepared (recorded before the GPU run). **This preparation-stage status is now superseded for experimental outcomes by [the completed 2026-10-08 evidence ledger](KBS_KUAILIVE_SAME_CHECKPOINT_RESULTS_2026-10-08.md) and [successful run 37746520476](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37746520476).**  
 **Nature:** Post-hoc diagnostic for candidate-regime comparability. The previous frozen scientific and policy results remain unchanged.
 
 ## Why this diagnostic is necessary
@@ -62,4 +62,4 @@ The audit verified 10,222 users and 575 sampled candidates (1 target + 574 negat
 
 ## Manuscript coordination
 
-The updated [submission-oriented outline](KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md) retains Sections 1–4 and restructures the remaining article as Sections 5 Experimental Setup, 6 Experimental Results, 7 Discussion, and 8 Conclusion. The new diagnostic is a pending panel within Section 6.1, not a completed numeric result. Resolve all Base/protocol label discrepancies before finalizing its prose or main-text figures.
+The updated [submission-oriented outline](KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md) retains Sections 1–4 and restructures the remaining article as Sections 5 Experimental Setup, 6 Experimental Results, 7 Discussion, and 8 Conclusion. The new diagnostic has since completed successfully and its numbers were promoted to a **separate supporting post-hoc panel** in Section 6.1 of the updated outline; see [completed evidence ledger](KBS_KUAILIVE_SAME_CHECKPOINT_RESULTS_2026-10-08.md). Resolve all Base/protocol label discrepancies before finalizing its prose or main-text figures.
