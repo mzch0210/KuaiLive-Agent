@@ -116,55 +116,67 @@ jobs:
           else
             echo "hit=false" >> "$GITHUB_OUTPUT"
           fi
-      - name: Regenerate once on cache miss
+      - name: Download already-validated regenerated dataset only on cache miss
         if: ${{ steps.cache.outputs.hit != 'true' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          "$PY" scripts/download_kuailive.py --data-root data
-          "$PY" -m kuailive_agent.prepare --data-dir "$(cat data/dataset_dir.txt)" \
-            --out-dir data/prepared/shop --scope shop
-          "$PY" -m kuailive_agent.export_rechorus_room \
-            --prepared-dir data/prepared/shop --out-root rechorus_dual \
-            --dataset "$ROOM_DATASET" --n-neg "$N_NEG" --seed "$SEED"
-          "$PY" -m kuailive_agent.export_rechorus_streamer_parallel \
-            --room-data-dir "rechorus_dual/$ROOM_DATASET" \
-            --out-root rechorus_dual --dataset "$STREAMER_DATASET"
-      - name: Match immutable frozen room export and populate verified cache
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: 11534262601
+          path: regenerated
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 37741843252
+      - name: Verify frozen-input hashes and stage dataset cache
         shell: bash
         env:
           CACHE_PATH: ${{ steps.cache.outputs.path }}
           CACHE_HIT: ${{ steps.cache.outputs.hit }}
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           if [ "$CACHE_HIT" != 'true' ]; then
-            mkdir -p frozen_input
-            gh run download "$FROZEN_RUN" --repo "$GITHUB_REPOSITORY" \
-              --name "kbs-strong-base-kuailive-input-$FROZEN_RUN" --dir frozen_input
-            "$PY" - <<'PY'
-          import hashlib, json, pathlib
-          p=pathlib.Path('rechorus_dual/KuaiLiveShopRoomDualID')
-          f=pathlib.Path('frozen_input/rechorus_dual/KuaiLiveShopRoomDualID')
-          m=json.loads((p/'export_meta.json').read_text())
-          r=json.loads(pathlib.Path('frozen_input/frozen_dual/report.json').read_text())
-          assert m['users']==r['users']==10222
-          assert m['candidate_count']==r['candidate_count']==575
-          for name in ('train.csv','dev.csv','test.csv','export_meta.json'):
-              sha=lambda x:hashlib.sha256(x.read_bytes()).hexdigest()
-              assert sha(p/name)==sha(f/name), name
-          print('Frozen room candidate identity PASS')
-          PY
             TMP="$CACHE_PATH.pending.$GITHUB_RUN_ID"
             rm -rf "$TMP"
-            mkdir -p "$TMP/data/prepared"
-            cp -a data/prepared/shop "$TMP/data/prepared/"
-            cp -a rechorus_dual "$TMP/"
+            mkdir -p "$TMP/data/prepared/shop"
+            "$PY" - "$TMP" <<'PY'
+          from pathlib import Path
+          import hashlib, json, shutil, sys
+          root=Path('regenerated')
+          target_dir=Path(sys.argv[1])
+          matches=[p for p in root.rglob('train.csv') if p.parent.name=='KuaiLiveShopRoomDualID']
+          rooms=list(root.rglob('rooms.pkl'))
+          if len(matches)!=1 or len(rooms)!=1:
+              raise RuntimeError(f'Invalid candidate artifact structure: {matches}, {rooms}')
+          rechorus=matches[0].parent.parent
+          assert rechorus.name=='rechorus_dual'
+          shutil.copytree(rechorus,target_dir/'rechorus_dual')
+          shutil.copy2(rooms[0],target_dir/'data/prepared/shop/rooms.pkl')
+          expected={
+              'train.csv':'ad91413537175b9f6e9013c525a552b6004cc00e029b41360f08519e0735b5b4',
+              'dev.csv':'46dd3081688468c89acf6366d36d87c122fa45850ddb69320c05da9de94a9f54',
+              'test.csv':'3491862df4de5cfb487fbd21c2f62c2d1d62acac110f852cc83c019dfcc6e956',
+              'export_meta.json':'821d06dd0d7335cc49bf892490f7b9098a53bb8467da6de438a30c975c6cb459',
+          }
+          p=target_dir/'rechorus_dual/KuaiLiveShopRoomDualID'
+          for name,sha in expected.items():
+              actual=hashlib.sha256((p/name).read_bytes()).hexdigest()
+              assert actual==sha, f'Frozen input mismatch for {name}: {actual}'
+          assert (target_dir/'rechorus_dual/KuaiLiveShopStreamerParallel/streamer_item_map.tsv').is_file()
+          m=json.loads((p/'export_meta.json').read_text())
+          assert m['users']==10222 and m['candidate_count']==575
+          (target_dir/'PROVENANCE.json').write_text(json.dumps({
+              'regenerated_artifact_id':11534262601,
+              'regenerated_run':37741843252,
+              'independent_frozen_input_provenance_audit_run':37744831516,
+              'frozen_strong_base_input_artifact_id':10730951727,
+              'frozen_room_hashes':expected,
+              'checkpoint_comparison':'newly trained pair; not a claim to reproduce old expired model weights'
+          },indent=2)+'\n')
+          print('Reused validated candidate dataset; no Zenodo re-download or dataset re-export.')
+          PY
             (cd "$TMP" && find rechorus_dual data -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
             (cd "$TMP" && sha256sum -c SHA256SUMS >/dev/null)
             rm -rf "$CACHE_PATH"
             mv "$TMP" "$CACHE_PATH"
-            rm -rf data rechorus_dual frozen_input
+            rm -rf regenerated
           fi
           (cd "$CACHE_PATH" && sha256sum -c SHA256SUMS >/dev/null)
           echo "DATA_CACHE=$CACHE_PATH" >> "$GITHUB_ENV"
