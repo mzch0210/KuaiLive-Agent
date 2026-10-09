@@ -308,7 +308,7 @@ Report only necessary core settings: ReChorus SASRec base (64-dimensional embedd
 
 # 6. Experimental Results
 
-**Planned narrative: observed conditional value → predictive decision value → candidate-context boundary.** This is a *writing plan*, not a statement that the manuscript already contains all five subsections. As of this correction, the canonical LaTeX retains the previous completed KuaiLive candidate-regime Section 6.1 only. Reorganize the Results progressively, one evidence-backed subsection per writing/review stage; preserve the previous section until its contents are migrated without loss. Keep the frozen Twitch policy TEST distinct from post-hoc KuaiLive diagnostics.
+**Staged narrative: observed conditional value → predictive decision value → candidate-context boundary.** As of 2026-10-09, **the new Twitch evidence-heterogeneity Section 6.1 has been drafted in the canonical LaTeX manuscript** with one figure and one complementary table. Sections 6.2–6.5 remain writing plans and have not been drafted. The formerly completed KuaiLive P0/P1 Section 6.1 is preserved verbatim in [`section6_3_kuailive_migration_source.tex`](manuscript/kbs_latex/section6_3_kuailive_migration_source.tex) for a later, independently reviewed Section 6.3 migration; it is not currently in the compiled main manuscript. The frozen Twitch policy validation remains planned for 6.2, separate from the post-hoc KuaiLive diagnostic.
 
 ## 6.1 Heterogeneous Utility of Relationship Memory
 
@@ -316,7 +316,7 @@ Report only necessary core settings: ReChorus SASRec base (64-dimensional embedd
 
 Twitch DEV→TEST state-conditional Memory−Base NDCG@10: represented `−0.01995 → −0.01935` (TEST n=24,285), recoverable `+0.23097 → +0.22045` (n=5,539), unavailable `−0.19562 → −0.18215` (n=14,397). All subgroup CI values should be taken from the frozen one-shot run [35708072303](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35708072303).
 
-**Main Table 3:** one compact state-by-DEV/TEST table. The states are target-relative diagnostic categories, not features known before the outcome; do not claim universal value signs.
+**Current Section 6.1 exhibits:** Figure 2 plots DEV and TEST state-conditional Memory−Base deltas (with TEST 95% paired bootstrap intervals), while its compact table reports TEST state counts, Base/Memory absolute NDCG@10 and paired intervals. The two displays have distinct functions. The states are target-relative diagnostic categories and are unavailable to the serving selector. Status: **drafted, pending coauthor scholarly review and final visual inspection**.
 
 ## 6.2 Decision Value of Predicting Relative Utility
 
@@ -380,7 +380,7 @@ Recommend `incremental, model-relative decision assessment` of interpretable aux
 
 # 8. Conclusion
 
-The canonical manuscript conclusion is **drafted**, and synthesizes three findings without adding numbers: (i) persistent relationship history is conditionally useful against a strong Base, (ii) a DEV-frozen relative-Utility selector improves untouched Twitch ranking despite the expert's inferior aggregate results, and (iii) KuaiLive's sign reversal persists across three model seeds and is described primarily by ranked-candidate changes in a post-hoc algebraic attribution. Scope remains operational, offline, model- and regime-dependent.
+The canonical manuscript conclusion remains **unwritten** and must later synthesize three findings without adding numbers: (i) persistent relationship history is conditionally useful against a strong Base, (ii) a DEV-frozen relative-Utility selector improves untouched Twitch ranking despite the expert's inferior aggregate results, and (iii) KuaiLive's sign reversal persists across three model seeds and is described primarily by ranked-candidate changes in a post-hoc algebraic attribution. Scope remains operational, offline, model- and regime-dependent.
 
 ---
 
@@ -425,4 +425,4 @@ The paper-facing LaTeX currently has four Section 6 tables plus two Section 5 ta
 5. **No target leakage into selector features.** Evidence states, realized \\(\Delta_M\\) and target ranks are analysis/supervision outputs, not serving features.
 6. **No journal policy fabrication.** Check KBS-specific declarations, file requirements and formatting against the actual journal guide at submission time.
 
-*Editorial status, 2026-10-08 (staged-writing correction): The canonical LaTeX manuscript currently contains Sections 1–5 plus the previously validated KuaiLive P0/P1 Section 6.1. The five-part conditional-value-first Section 6 above is **an agreed outline, not finished prose**. Abstract, remaining Results, Discussion and Conclusion are deliberately unwritten in the main manuscript; they should be drafted and reviewed in separate stages, with Abstract near the end. The P0/P1 evidence is complete and archived; optional P2 negative-sampling sensitivity is still unexecuted.*
+*Editorial status, 2026-10-09: The canonical LaTeX manuscript contains Sections 1–5 and the newly drafted Twitch Section 6.1. The former KuaiLive 6.1 has been archived without alteration for eventual 6.3. Sections 6.2–6.5, Discussion, Conclusion and Abstract remain unwritten and will be developed in separate reviewed stages. P0/P1 evidence is complete and archived; optional P2 negative-sampling sensitivity is unexecuted.*
