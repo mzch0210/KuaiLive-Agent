@@ -80,7 +80,7 @@ No edits were warranted in Section 6.1–6.5 text at this stage; the existing in
 
 **Open source/package checks:** S1 original dataset mapping/eligibility and all component-specific checkpoint provenance need a single completed formal supplement. The S2 table must preserve artifact paths and split-specific training metadata. S1–S8 are not yet assembled as submission-ready documents; S9 is a staged efficiency audit awaiting its formal typesetting and source checks.
 
-**Open final PDF gate:** verify an Actions LaTeX build corresponding to the exact updated Section 5.5 source commit and inspect the resulting PDF before marking typesetting fully approved. No successful updated-build outcome should be assumed just from a GitHub source edit.
+**Completed exact-source PDF gate:** the Section 5.5 correction commit [fb1be75a](https://github.com/mzch0210/KuaiLive-Agent/commit/fb1be75ad6caa43f7214e918ea4c16ae8f7e5d3c) triggered [successful Actions build 37956836331](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37956836331) with [artifact 11627494599](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37956836331/artifacts/11627494599). The 27-page PDF and LaTeX log were downloaded and checked: the corrected maximum-iteration wording appears on rendered page 16, §6.5 remains legible on page 23, References begins page 24, no undefined references are reported and no new overfull box was introduced. The single previously reported 5.51282-pt overfull line in Section 3 remains a later presentation-cleanup item.
 
 **Stage boundaries:** No new DEV budget curve, Memory-component manuscript insertion, Gate-objective training, P2 negative-resampling run or extra strong-Base training was undertaken; those belong to later P1/optional phases. Discussion, Conclusion and Abstract remain unwritten.
 
@@ -94,6 +94,6 @@ No edits were warranted in Section 6.1–6.5 text at this stage; the existing in
 | One minor Section 5.5 parameter wording inconsistency | **CORRECTED** |
 | Full historical and Twitch checkpoint-byte hashes | **OPEN** |
 | Submission-ready complete S1–S9 | **OPEN** |
-| Updated exact-source compiled PDF verification | **PENDING** |
+| Updated exact-source compiled PDF verification | **PASS** — build 37956836331, artifact 11627494599, rendered pages 16/23 reviewed |
 
 **Interpretation:** The central Stage-1 audit and narrowly necessary text housekeeping have been executed. Do not describe the formal supplement package or archival fingerprint coverage as completed.
