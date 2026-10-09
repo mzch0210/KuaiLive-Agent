@@ -44,6 +44,8 @@ The hosted PDF compilation workflow is `.github/workflows/kbs-manuscript-latex-b
 
 **Preserved research content:** [`section6_3_kuailive_migration_source.tex`](section6_3_kuailive_migration_source.tex) is an exact archival copy of the prior KuaiLive P0/P1 Section 6.1, including factorial and seed tables, for controlled migration to 6.3. The canonical results ledger remains [`KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md`](../../KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md).
 
+**Section 6.2 compilation and PDF review:** [run 37878085855](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37878085855), [PDF/log artifact 11593351074](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37878085855/artifacts/11593351074). Final manuscript commit `3a776dc`. Experiment provenance and actual rendered-page verification are recorded in [the 6.2 evidence audit](SECTION6_2_RESULTS_PROVENANCE_2026-10-09.md). First draft complete, awaiting separate reviewer-style tightening and coauthor approval.
+
 **Not drafted:** Sections 6.3–6.5, Discussion, Conclusion and Abstract. Optional P2 sampling sensitivity has not been run.
 
 **Reviewer-style 6.1 tightening complete:** see [the line-by-line academic review and frozen-result cross-check](SECTION6_1_KBS_REVIEWER_TIGHTENING_2026-10-09.md). Final PDF visual verification and compilation: [run 37876933951](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37876933951), [PDF/log artifact 11592638016](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37876933951/artifacts/11592638016). The 6.1 review remained restricted to 6.1. Section 6.2 has now been drafted independently, without modifying any later chapter.
