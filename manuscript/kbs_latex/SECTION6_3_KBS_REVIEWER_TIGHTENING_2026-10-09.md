@@ -24,7 +24,7 @@ The empirical diagnostic is relevant to the manuscript's claim that relationship
 | R08 | P1 | User-bootstrap intervals and seed SD quantify distinct uncertainty. | Specify bootstrap CIs condition on frozen checkpoints/evaluation events while the sample SD comes from only three trained checkpoint pairs. |
 | R09 | P1 | It would be inaccurate to call the tiny negative normalization contribution robustly nonzero across all seeds. | The main text says it is **not uniformly distinguishable from zero** across seeds; seed 20260920's conditional CI crosses zero. |
 | R10 | P1 | A recoverable-state conclusion could become a history-recovery mechanism story. | State that 206 recoverable cases contribute **−0.00222** to the mean regime shift, while represented and unavailable cases contribute positively; diagnostic target-relative states are not causal mediators. |
-| R11 | P1 | Main text may resemble a run diary and duplicate the supplement. | One four-cell table; four focused result paragraphs. Omit checkpoint SHA hashes, per-seed full tables, historical scoring-anchor disputes, command logs and per-state detailed panels from main text. |
+| R11 | P1 | Main text may resemble a run diary and duplicate the supplement. | One four-cell table and five short, evidence-focused result/qualification paragraphs. Omit checkpoint SHA hashes, per-seed full tables, historical scoring-anchor disputes, command logs and per-state detailed panels from main text. |
 | R12 | P1 | Claims could extend implicitly to online preferences, causal behavior, or selector transfer. | Do not infer online preference, business outcome or expert-gate portability from this post-hoc ranking comparison. |
 
 ## Fixed numeric reconciliation (do not change)
