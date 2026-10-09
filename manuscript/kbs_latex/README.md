@@ -42,7 +42,9 @@ The hosted PDF compilation workflow is `.github/workflows/kbs-manuscript-latex-b
 
 **Preserved research content:** [`section6_3_kuailive_migration_source.tex`](section6_3_kuailive_migration_source.tex) is an exact archival copy of the prior KuaiLive P0/P1 Section 6.1, including factorial and seed tables, for controlled migration to 6.3. The canonical results ledger remains [`KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md`](../../KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md).
 
-**Not drafted:** Sections 6.2–6.5, Discussion, Conclusion and Abstract. Optional P2 sampling sensitivity has not been run. The next step must be independently scoped before any further main-text writing.
+**Not drafted:** Sections 6.2–6.5, Discussion, Conclusion and Abstract. Optional P2 sampling sensitivity has not been run.
+
+**Reviewer-style 6.1 tightening complete:** see [the line-by-line academic review and frozen-result cross-check](SECTION6_1_KBS_REVIEWER_TIGHTENING_2026-10-09.md). Final PDF visual verification and compilation: [run 37876933951](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37876933951), [PDF/log artifact 11592638016](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37876933951/artifacts/11592638016). No other Results sections were modified. The next step must be independently scoped before any further main-text writing.
 
 **Verified Section 6.1 build:** [GitHub Actions #37875699664](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37875699664) completed successfully and uploaded [PDF/log artifact #11592361414](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37875699664/artifacts/11592361414). The compiler reports no fatal errors or new Section 6.1 overfull boxes; one minor pre-existing overfull paragraph remains in an earlier chapter. This is a successful PDF smoke test, not finished typographic author review.
 
