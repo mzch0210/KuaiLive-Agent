@@ -9,7 +9,7 @@ This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems
 
 ## Staged-writing rule
 
-The [conditional-value-first submission outline](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md) is an approved **staged writing plan**. As of 2026-10-09, Twitch `6.1 Heterogeneous Utility of Relationship Memory` has been reviewer-tightened and `6.2 Decision Value of Predicting Relative Utility` has been newly drafted in the main text; 6.3–6.5, Discussion, Conclusion and Abstract remain unwritten. The fully verified original KuaiLive P0/P1 Section 6.1 was saved without alteration as [the 6.3 migration source](section6_3_kuailive_migration_source.tex) before replacing it. Do **not** jointly generate multiple unassigned chapters. Write the Abstract after the evidence and main interpretation have stabilized.
+The [conditional-value-first submission outline](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md) is an approved **staged writing plan**. As of 2026-10-09, Twitch `6.1 Heterogeneous Utility of Relationship Memory` has been reviewer-tightened and `6.2 Decision Value of Predicting Relative Utility` has been reviewer-tightened in the main text; 6.3–6.5, Discussion, Conclusion and Abstract remain unwritten. The fully verified original KuaiLive P0/P1 Section 6.1 was saved without alteration as [the 6.3 migration source](section6_3_kuailive_migration_source.tex) before replacing it. Do **not** jointly generate multiple unassigned chapters. Write the Abstract after the evidence and main interpretation have stabilized.
 
 ## Current review baseline
 
@@ -34,7 +34,7 @@ The hosted PDF compilation workflow is `.github/workflows/kbs-manuscript-latex-b
 
 ## Section 6 drafting status (2026-10-09)
 
-**6.1 has been reviewer-tightened and 6.2 has now been drafted; no later Results subsection has been drafted.** [`main.tex`](main.tex) now contains `Heterogeneous Utility of Relationship Memory` based on [Twitch frozen one-shot TEST run 35708072303](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35708072303) and its 46,878 DEV / 44,221 TEST event protocols. The new section provides:
+**6.1 and 6.2 are reviewer-tightened; no later Results subsection has been drafted.** [`main.tex`](main.tex) now contains `Heterogeneous Utility of Relationship Memory` based on [Twitch frozen one-shot TEST run 35708072303](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35708072303) and its 46,878 DEV / 44,221 TEST event protocols. The new section provides:
 - a Results-style scholarly argument from aggregate inferiority to target-relative three-state heterogeneity;
 - Figure 2, using DEV and TEST Memory-minus-Base point estimates and TEST 5,000-replicate paired-bootstrap 95% intervals;
 - a compact TEST state table with Base/Memory NDCG@10, sample counts, paired effect sizes and intervals;
@@ -44,7 +44,7 @@ The hosted PDF compilation workflow is `.github/workflows/kbs-manuscript-latex-b
 
 **Preserved research content:** [`section6_3_kuailive_migration_source.tex`](section6_3_kuailive_migration_source.tex) is an exact archival copy of the prior KuaiLive P0/P1 Section 6.1, including factorial and seed tables, for controlled migration to 6.3. The canonical results ledger remains [`KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md`](../../KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md).
 
-**Section 6.2 compilation and PDF review:** [run 37878085855](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37878085855), [PDF/log artifact 11593351074](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37878085855/artifacts/11593351074). Final manuscript commit `3a776dc`. Experiment provenance and actual rendered-page verification are recorded in [the 6.2 evidence audit](SECTION6_2_RESULTS_PROVENANCE_2026-10-09.md). First draft complete, awaiting separate reviewer-style tightening and coauthor approval.
+**Section 6.2 reviewer-tightened version:** final manuscript commit [`29801a2f`](https://github.com/mzch0210/KuaiLive-Agent/commit/29801a2f3dfba95ce5528962babb05b0eccfe89d), successful [Actions compilation #37879043504](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37879043504), [PDF/log artifact #11593392050](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37879043504/artifacts/11593392050). See the [reviewer-style issue and source audit](SECTION6_2_KBS_REVIEWER_TIGHTENING_2026-10-09.md) and the [frozen numerical evidence record](SECTION6_2_RESULTS_PROVENANCE_2026-10-09.md). Reviewer-style tightening completed; coauthor approval and later integration review remain pending.
 
 **Not drafted:** Sections 6.3–6.5, Discussion, Conclusion and Abstract. Optional P2 sampling sensitivity has not been run.
 
