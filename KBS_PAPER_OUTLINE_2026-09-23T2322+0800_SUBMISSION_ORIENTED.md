@@ -342,7 +342,7 @@ Use DEV-only group-composition evidence to explain why Difficulty is not equival
 
 ## 6.4 Robustness and Alternative Explanations
 
-**Status, 2026-10-09: independent Section 6.4 first draft written in canonical `main.tex`.** This is an explanatory robustness subsection, not an additional frozen TEST policy experiment. A separate reviewer-style tightening, author review and final supplementary assembly remain pending.
+**Status, 2026-10-09: independent Section 6.4 first draft written in canonical `main.tex`, frozen sources reconciled, [GitHub Actions build #37883819061](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37883819061) successful, and final 26-page PDF inspected on pages 21–22 ([PDF/log artifact #11595443761](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37883819061/artifacts/11595443761)).** These remain DEV-only explanatory robustness results, not a fresh frozen TEST policy trial. Separate reviewer-style tightening, coauthor approval and formal Supplementary S5/S8 assembly are pending.
 
 **DEV-only Twitch feature-family comparison:** [Successful run 35713931454](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35713931454), 46,878 events, same exact-K=6,563 Memory calls, five-fold OOF analysis. History-only six predictors: ΔNDCG@10 `+0.00372` (95% CI [`+0.00256,+0.00490`]); Base-score eight predictors: `+0.00160` ([`+0.00048,+0.00270`]); combined 14 predictors: `+0.00838` ([`+0.00713,+0.00963`]). Spearman correlations `0.14791/0.09109/0.18990`. Main Table 6 has been **drafted** with these values, not claimed as a new untouched TEST validation or causal feature synergy.
 
