@@ -308,7 +308,7 @@ Report only necessary core settings: ReChorus SASRec base (64-dimensional embedd
 
 # 6. Experimental Results
 
-**Staged narrative: observed conditional value → predictive decision value → candidate-context boundary.** As of 2026-10-09, the canonical LaTeX manuscript contains **reviewer-tightened Sections 6.1–6.3** (Twitch history-state heterogeneity, Twitch frozen decision value, and KuaiLive P0/P1 candidate-regime diagnostics). Sections 6.4–6.5 remain writing plans. The previously completed KuaiLive result section is still preserved verbatim in [`section6_3_kuailive_migration_source.tex`](manuscript/kbs_latex/section6_3_kuailive_migration_source.tex); its scientifically relevant results have now been carefully migrated into the shorter Section 6.3 while full run and seed details stay in the [experiment ledger](KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md). Frozen Twitch policy evidence remains distinct from KuaiLive post-hoc diagnostics.
+**Staged narrative: observed conditional value → predictive decision value → candidate-context boundary.** As of 2026-10-09, the canonical LaTeX manuscript contains **reviewer-tightened Sections 6.1–6.3** (Twitch history-state heterogeneity, Twitch frozen decision value, and KuaiLive P0/P1 candidate-regime diagnostics), plus a **new first draft of Section 6.4** using DEV-only robustness evidence. Section 6.5 remains an unwritten plan. The previously completed KuaiLive result section is still preserved verbatim in [`section6_3_kuailive_migration_source.tex`](manuscript/kbs_latex/section6_3_kuailive_migration_source.tex); its scientifically relevant results have now been carefully migrated into the shorter Section 6.3 while full run and seed details stay in the [experiment ledger](KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md). Frozen Twitch policy evidence remains distinct from KuaiLive post-hoc diagnostics.
 
 ## 6.1 Heterogeneous Utility of Relationship Memory
 
@@ -342,11 +342,17 @@ Use DEV-only group-composition evidence to explain why Difficulty is not equival
 
 ## 6.4 Robustness and Alternative Explanations
 
-**Twitch DEV-only pre-outcome feature-family ablation** ([run #35713931454](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35713931454)): equal 6,563-event selection count. Relative-Utility gain over Base: history six features `+0.00372`, Base confidence eight features `+0.00160`, combined 14 features `+0.00838`. OOF Spearman `0.14791,0.09109,0.18990`, respectively. This supports descriptive complementarity without deriving a causal synergy or treating the DEV ablation as an additional untouched test.
+**Status, 2026-10-09: independent Section 6.4 first draft written in canonical `main.tex`.** This is an explanatory robustness subsection, not an additional frozen TEST policy experiment. A separate reviewer-style tightening, author review and final supplementary assembly remain pending.
 
-**History capacity:** DEV-only separately trained LiveRec bases with lengths `8,16,32`, Base NDCG@10 `0.52619,0.57185,0.59663`, canonical Memory `0.52170`. Matched recoverable→represented shifts of Memory−Base about `−0.42` to `−0.45`; changing context length is confounded with model retraining. Supplementary controls include common-candidate KuaiLive strong-base checks, weight/recency sensitivity and temporal robustness.
+**DEV-only Twitch feature-family comparison:** [Successful run 35713931454](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35713931454), 46,878 events, same exact-K=6,563 Memory calls, five-fold OOF analysis. History-only six predictors: ΔNDCG@10 `+0.00372` (95% CI [`+0.00256,+0.00490`]); Base-score eight predictors: `+0.00160` ([`+0.00048,+0.00270`]); combined 14 predictors: `+0.00838` ([`+0.00713,+0.00963`]). Spearman correlations `0.14791/0.09109/0.18990`. Main Table 6 has been **drafted** with these values, not claimed as a new untouched TEST validation or causal feature synergy.
 
-**Main Table 6:** compact DEV-only feature-family ablation, labelled as exploratory. Unresolved/optional sensitivity must not be written as measured.
+**Fixed specialist parameter sensitivity and recency:** [DEV robustness record](KBS_ROBUSTNESS_RESULTS_2026-09-22.md) documents seven explored Memory settings preserving represented-negative/recoverable-positive/unavailable-negative sign pattern. Recency is **non-monotonic**, including a positive 1–4-event near-repeat pocket and positive long-horizon region beyond the 16-event Base context, with a negative intermediate region. Neither analysis is a newly learned routing policy.
+
+**Base history capacity:** [Repaired DEV context-length result](KBS_CONTEXT_LENGTH_INTERVENTION_REPAIR_2026-09-23_RUN35877647543.md) checks L8/L16/L32 on identical events with canonical Memory held invariant. Base NDCG@10 `0.52619/0.57185/0.59663` while Memory stays `0.52170`. Paired recoverable→represented shifts: `−0.44748` (L8→L16) and `−0.43229` (L16→L32). Since Base weights were re-trained, this does **not** causally isolate visibility itself.
+
+**Base competitiveness:** same-candidate auxiliary comparisons verify the designated baselines under the evaluated protocols, but have limited model/tuning coverage; do not claim exhaustive SOTA superiority, and do not mix the separate KuaiLive baseline checkpoint 0.61714 with the Section 6.3 same-checkpoint Base 0.60709.
+
+**Full source audit:** [Section 6.4 Results Provenance](manuscript/kbs_latex/SECTION6_4_RESULTS_PROVENANCE_2026-10-09.md). Detailed variants, state/recency bins, checkpoint identities and comparison grids belong in the later Supplementary S5/S8. Optional P2 candidate-sampling sensitivity is still not completed.
 
 ## 6.5 Computational Considerations
 
@@ -402,7 +408,7 @@ The canonical manuscript conclusion remains **unwritten** and must later synthes
 | Table 6 | Twitch feature-family OOF ablation | DEV-only exploratory |
 | Efficiency paragraph | Implemented CPU costs, no speedup promise | Separate KuaiLive CPU benchmark |
 
-The paper-facing LaTeX currently has three Section 6 tables (relationship states, frozen policy and candidate factorial) plus two Section 5 tables; the proposed DEV feature-family table in 6.4 remains unwritten. Renumbering may change across layouts. Preserve scientific roles, not literal table numbers, when moving exhibits to Supplementary.
+The paper-facing LaTeX now has four Section 6 tables (relationship states, frozen policy, candidate factorial, and DEV-only feature-family ablation) plus two Section 5 tables; the 6.4 ablation table is a first draft. Renumbering may change across layouts. Preserve scientific roles, not literal table numbers, when moving exhibits to Supplementary.
 
 ## Supplementary Materials
 
@@ -425,4 +431,4 @@ The paper-facing LaTeX currently has three Section 6 tables (relationship states
 5. **No target leakage into selector features.** Evidence states, realized \\(\Delta_M\\) and target ranks are analysis/supervision outputs, not serving features.
 6. **No journal policy fabrication.** Check KBS-specific declarations, file requirements and formatting against the actual journal guide at submission time.
 
-*Editorial status, 2026-10-09: The canonical LaTeX manuscript contains Sections 1–5, reviewer-tightened Sections 6.1–6.3 (Twitch conditional value and frozen decisions; KuaiLive P0/P1 post-hoc candidate dependence). Original KuaiLive experimental prose and full provenance are archived independently, with the scientific evidence migrated into 6.3. Sections 6.4–6.5, Discussion, Conclusion and Abstract remain unwritten; each requires an independent writing and review stage. Frozen Twitch and post-hoc KuaiLive results retain distinct scientific status; optional P2 negative-sampling sensitivity is unexecuted.*
+*Editorial status, 2026-10-09: The canonical LaTeX manuscript contains Sections 1–5, reviewer-tightened Sections 6.1–6.3 (Twitch conditional value and frozen decisions; KuaiLive P0/P1 post-hoc candidate dependence). Original KuaiLive experimental prose and full provenance are archived independently, with the scientific evidence migrated into 6.3. Section 6.4 is a source-checked first draft awaiting its own reviewer-style tightening; Section 6.5, Discussion, Conclusion and Abstract remain unwritten and require independent writing stages. Frozen Twitch and post-hoc KuaiLive results retain distinct scientific status; optional P2 negative-sampling sensitivity is unexecuted.*
