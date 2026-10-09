@@ -316,7 +316,7 @@ Report only necessary core settings: ReChorus SASRec base (64-dimensional embedd
 
 Twitch DEV→TEST state-conditional Memory−Base NDCG@10: represented `−0.01995 → −0.01935` (TEST n=24,285), recoverable `+0.23097 → +0.22045` (n=5,539), unavailable `−0.19562 → −0.18215` (n=14,397). All subgroup CI values should be taken from the frozen one-shot run [35708072303](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35708072303).
 
-**Current Section 6.1 exhibits:** Figure 2 plots DEV and TEST state-conditional Memory−Base deltas (with TEST 95% paired bootstrap intervals), while its compact table reports TEST state counts, Base/Memory absolute NDCG@10 and paired intervals. The two displays have distinct functions. The states are target-relative diagnostic categories and are unavailable to the serving selector. Status: **drafted, pending coauthor scholarly review and final visual inspection**.
+**Current Section 6.1 exhibits:** Figure 2 plots DEV and TEST state-conditional Memory−Base deltas (with TEST 95% paired bootstrap intervals), while its compact table reports TEST state counts, Base/Memory absolute NDCG@10 and paired intervals. The two displays have distinct functions. The states are target-relative diagnostic categories and are unavailable to the serving selector. Status: **reviewer-style tightening completed, frozen evidence and final compiled PDF visually checked; pending coauthor approval**. See [the detailed Section 6.1 review log](manuscript/kbs_latex/SECTION6_1_KBS_REVIEWER_TIGHTENING_2026-10-09.md).
 
 ## 6.2 Decision Value of Predicting Relative Utility
 
