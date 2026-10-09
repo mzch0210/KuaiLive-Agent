@@ -403,7 +403,9 @@ To distinguish predicted specialist benefit from predicted Base weakness, we com
 
 Development-only out-of-fold results offer a descriptive check on this selection difference. At 6,563 invocations per method, Utility enriches recoverable-history events by $2.72$ times their prevalence, compared with $1.67$ for Difficulty; the corresponding unavailable-history enrichments are $1.03$ and $1.91$. As in Section~\ref{sec:results-heterogeneity}, these groups are identified retrospectively from observed targets and are not regressor inputs. Their composition does not establish that either model predicts future group membership or causally explains its test gain.
 
+\begin{samepage}
 Finally, the hindsight Oracle in Table~\ref{tab:results-twitch-policy} selects the $6{,}650$ events with the largest \emph{realized} Memory-minus-Base NDCG@10 differences, obtaining $0.64806$. It is an upper bound only for choosing exactly this many events between these two fixed rankings on the evaluated test population, not a deployable benchmark or an upper bound for arbitrary experts, budgets, or environments. Relative to its $+0.06595$ gain over Base, Utility captures approximately 11.7\%; the test Spearman correlation between predicted and realized utility is $0.173$. Thus, the observed benefit of Base-relative selection is positive but limited by imperfect event-level utility prediction.
+\end{samepage}
 
 \begin{table}[!h]
 \centering
