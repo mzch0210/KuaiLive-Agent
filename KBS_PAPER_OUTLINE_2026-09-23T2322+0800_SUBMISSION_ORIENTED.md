@@ -326,7 +326,7 @@ Twitch DEV→TEST state-conditional Memory−Base NDCG@10: represented `−0.019
 
 Use DEV-only group-composition evidence to explain why Difficulty is not equivalent to expert solvability: recoverable enrichment Utility/Difficulty ~2.72×/1.67×, unavailable ~1.03×/1.91×. Selection labels are never target-state features. Explicitly flag the modest Spearman correlation `0.173` and approximately `11.7%` of hindsight Oracle potential gain captured.
 
-**Main Table 4 (now drafted):** five-row frozen TEST comparison of Base, Memory, development-frozen Utility, retrospective equal-count Difficulty and hindsight Oracle, including NDCG@10, HR@10 and Memory invocations. Both primary paired 95% NDCG and secondary HR intervals appear in the prose. **Status: draft written from frozen experiment and development OOF sources; awaiting final typography/academic tightening.** See [Section 6.2 result provenance](manuscript/kbs_latex/SECTION6_2_RESULTS_PROVENANCE_2026-10-09.md).
+**Main Table 4 (first draft completed):** five-row frozen TEST comparison of Base, Memory, development-frozen Utility, retrospective equal-count Difficulty and hindsight Oracle, including NDCG@10, HR@10 and Memory invocations. Primary paired NDCG and secondary HR intervals are reported in prose. **Status: numbers checked, PDF compiled and visually inspected; separate reviewer-style academic tightening and coauthor approval remain pending.** See [6.2 result provenance](manuscript/kbs_latex/SECTION6_2_RESULTS_PROVENANCE_2026-10-09.md) and [compiled preview](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37878085855/artifacts/11593351074).
 
 ## 6.3 Candidate-Regime Dependence of Relative Utility
 
