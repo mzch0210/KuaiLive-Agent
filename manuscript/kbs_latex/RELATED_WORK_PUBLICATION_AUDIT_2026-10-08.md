@@ -38,7 +38,7 @@
 | Stable key | Verified published paper title | Publisher citation year | Official final-version record | Scientific scope / note |
 |---|---|---:|---|---|
 | `yue2026collappa` | Collaborative knowledge and personalized preference alignment for sequential recommendation | 2026 | [Final venue/source](https://doi.org/10.1016/j.knosys.2026.116234) | KBS 2026 issue 347:116234, verified but not cited in Related Work |
-| `krichene2020sampled` | On Sampled Metrics for Item Recommendation | 2020 | [Final venue/source](https://doi.org/10.1145/3394486.3403226) | ACM KDD 2020, cited in Experimental Setup |
+| `krichene2020sampled` | On Sampled Metrics for Item Recommendation | **2022** | [Final journal version](https://doi.org/10.1145/3535335) | *Communications of the ACM* 65(7):75–83; later journal publication superseding the cited KDD 2020 proceedings version, DOI cross-checked against dblp |
 
 ## High-priority published-version decisions
 
@@ -63,3 +63,8 @@
 - Compile with BibTeX in CI. Compiler success validates syntax and references, not authenticity; this report is the external-provenance check.
 
 **Primary-source record hierarchy:** publisher journal page or DOI > official PMLR/NeurIPS/ACM/IEEE proceedings > DBLP or academic institutional index as independent cross-check > author project page as supplementary verification. Preprints and research-network metadata were used, at most, to identify version history, never as the final citation target.
+
+
+### October 9, 2026 follow-up — sampled-metrics citation version
+
+The existing bibliography key `krichene2020sampled` was retained for backward compatibility with the manuscript's previously reviewed section references. Its publication metadata now resolves to Krichene and Rendle's **later, formally published** *Communications of the ACM* (2022), 65(7):75–83, DOI [10.1145/3535335](https://doi.org/10.1145/3535335), rather than the earlier formal KDD 2020 proceedings record, DOI 10.1145/3394486.3403226. The new 6.3 explicitly distinguishes the known generic inconsistency of sampled top-k metrics from the paper's conditional specialist-minus-base evaluation and 2×2 score-reference allocation. Verified against [dblp journal bibliographic record](https://dblp.org/rec/journals/cacm/KricheneR22) and [dblp proceedings record](https://dblp.org/rec/conf/kdd/KricheneR20); neither is a preprint. No duplicate entry was created. As with other bibliographic revisions, manuscript citations must be rebuilt and the final reference list inspected.
