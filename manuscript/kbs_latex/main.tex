@@ -405,7 +405,7 @@ A development-only selection-composition analysis provides supporting evidence f
 
 The hindsight Oracle in Table~\ref{tab:results-twitch-policy}, which selects events using their realized test utility differences, reaches $0.64806$ NDCG@10 at the same count and is not deployable. The learned Utility policy captures approximately 11.7\% of this Oracle's gain over Base; its predicted-versus-realized event utility has Spearman correlation $0.173$ on the frozen test set. Thus, although estimating relative benefit improves the evaluated selection decision, substantial event-level prediction error and remaining hindsight headroom limit the strength of the routing claim.
 
-\begin{table}[!t]
+\begin{table}[!h]
 \centering
 \caption{Twitch/LiveRec one-shot frozen TEST results ($n=44{,}221$). Only Utility applies a development-frozen pointwise threshold; Difficulty and Oracle are retrospective top-$m$ comparisons with $m=6{,}650$, the realized Utility invocation count. Oracle uses observed TEST utility, whereas all deployable predictors use only pre-outcome features.}
 \label{tab:results-twitch-policy}
