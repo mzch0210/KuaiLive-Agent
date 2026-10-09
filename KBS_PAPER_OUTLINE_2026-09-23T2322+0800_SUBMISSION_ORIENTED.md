@@ -308,7 +308,7 @@ Report only necessary core settings: ReChorus SASRec base (64-dimensional embedd
 
 # 6. Experimental Results
 
-**Staged narrative: observed conditional value → predictive decision value → candidate-context boundary.** As of 2026-10-09, the canonical LaTeX manuscript contains **reviewer-tightened Section 6.1** (Twitch retrospective history-state heterogeneity) and **newly drafted Section 6.2** (frozen Twitch Utility-versus-Difficulty selection, one table). Sections 6.3–6.5 remain writing plans and have not been drafted. The formerly completed KuaiLive P0/P1 6.1 is preserved verbatim in [`section6_3_kuailive_migration_source.tex`](manuscript/kbs_latex/section6_3_kuailive_migration_source.tex) for the later, independently reviewed 6.3 migration; it is not currently in the compiled main manuscript. Twitch's frozen one-shot policy evidence must remain distinguishable from the KuaiLive post-hoc candidate-regime diagnostic.
+**Staged narrative: observed conditional value → predictive decision value → candidate-context boundary.** As of 2026-10-09, the canonical LaTeX manuscript contains **reviewer-tightened Sections 6.1 and 6.2** (Twitch retrospective evidence states and frozen selection value) and a **newly drafted Section 6.3** (KuaiLive P0/P1 candidate-regime dependence, one table). Sections 6.4–6.5 remain writing plans. The previously completed KuaiLive result section is still preserved verbatim in [`section6_3_kuailive_migration_source.tex`](manuscript/kbs_latex/section6_3_kuailive_migration_source.tex); its scientifically relevant results have now been carefully migrated into the shorter Section 6.3 while full run and seed details stay in the [experiment ledger](KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md). Frozen Twitch policy evidence remains distinct from KuaiLive post-hoc diagnostics.
 
 ## 6.1 Heterogeneous Utility of Relationship Memory
 
@@ -338,7 +338,7 @@ Use DEV-only group-composition evidence to explain why Difficulty is not equival
 
 **P1 checkpoint training-seed panel**: `20260918: +0.08751`, `20260919: +0.08363`, `20260920: +0.08408`; three-seed mean `+0.08508` and SD `0.00212`, 3/3 sampled negative/full positive. Target-relative state counts `4,589/206/5,427` do not change across paired candidate sets; the smallest recoverable subgroup contributes negatively to the paired shift. Do **not** claim long-history recovery drives the aggregate reversal.
 
-**Main Table 5:** compact four-cell protocol decomposition. Model-seed rows, checkpoint hashes, state-by-seed contributions and historical protocol comparisons belong in **Supplementary S5/S8**, with full provenance [P0/P1 evidence ledger](KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md). Sampling size/draw sensitivity (P2) is still proposed, **not completed**.
+**Main Table 5 (first draft completed):** the compiled manuscript source now includes one four-cell candidate-set/normalization-reference table with explicit native versus mixed protocol labels. All three training-seed shifts and the paired bootstrap allocations are reported concisely in prose. Model-seed tables, checkpoints, state-by-seed contributions and historical protocol comparisons remain in [the full P0/P1 ledger](KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md) for future Supplementary S5/S8. See the [Section 6.3 evidence audit](manuscript/kbs_latex/SECTION6_3_RESULTS_PROVENANCE_2026-10-09.md). **Status: newly drafted, pending a separate reviewer-style tightening and coauthor approval.** Sampling size/draw sensitivity (P2) is still proposed, **not completed**.
 
 ## 6.4 Robustness and Alternative Explanations
 
@@ -402,7 +402,7 @@ The canonical manuscript conclusion remains **unwritten** and must later synthes
 | Table 6 | Twitch feature-family OOF ablation | DEV-only exploratory |
 | Efficiency paragraph | Implemented CPU costs, no speedup promise | Separate KuaiLive CPU benchmark |
 
-The paper-facing LaTeX currently has four Section 6 tables plus two Section 5 tables; renumbering may change across layouts. Preserve scientific roles, not literal table numbers, when moving exhibits to Supplementary.
+The paper-facing LaTeX currently has three Section 6 tables (relationship states, frozen policy and candidate factorial) plus two Section 5 tables; the proposed DEV feature-family table in 6.4 remains unwritten. Renumbering may change across layouts. Preserve scientific roles, not literal table numbers, when moving exhibits to Supplementary.
 
 ## Supplementary Materials
 
@@ -425,4 +425,4 @@ The paper-facing LaTeX currently has four Section 6 tables plus two Section 5 ta
 5. **No target leakage into selector features.** Evidence states, realized \\(\Delta_M\\) and target ranks are analysis/supervision outputs, not serving features.
 6. **No journal policy fabrication.** Check KBS-specific declarations, file requirements and formatting against the actual journal guide at submission time.
 
-*Editorial status, 2026-10-09: The canonical LaTeX manuscript contains Sections 1–5, a reviewer-tightened Twitch Section 6.1 and the newly drafted frozen-policy Twitch Section 6.2. The earlier KuaiLive P0/P1 result section remains archived without alteration for eventual 6.3 migration. Sections 6.3–6.5, Discussion, Conclusion and Abstract remain unwritten and must be developed in separate reviewed stages. The frozen Twitch evidence and KuaiLive post-hoc P0/P1 evidence retain distinct status; optional P2 negative-sampling sensitivity is unexecuted.*
+*Editorial status, 2026-10-09: The canonical LaTeX manuscript contains Sections 1–5, reviewer-tightened Twitch Sections 6.1–6.2, and the first complete KuaiLive P0/P1 Section 6.3 draft. Original KuaiLive experimental prose and full provenance are archived independently, with the scientific evidence migrated into 6.3. Sections 6.4–6.5, Discussion, Conclusion and Abstract remain unwritten; each requires an independent writing and review stage. Frozen Twitch and post-hoc KuaiLive results retain distinct scientific status; optional P2 negative-sampling sensitivity is unexecuted.*
