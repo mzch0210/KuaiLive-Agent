@@ -44,6 +44,8 @@ The hosted PDF compilation workflow is `.github/workflows/kbs-manuscript-latex-b
 
 **Not drafted:** Sections 6.2–6.5, Discussion, Conclusion and Abstract. Optional P2 sampling sensitivity has not been run. The next step must be independently scoped before any further main-text writing.
 
+**Verified Section 6.1 build:** [GitHub Actions #37875699664](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37875699664) completed successfully and uploaded [PDF/log artifact #11592361414](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37875699664/artifacts/11592361414). The compiler reports no fatal errors or new Section 6.1 overfull boxes; one minor pre-existing overfull paragraph remains in an earlier chapter. This is a successful PDF smoke test, not finished typographic author review.
+
 ## Build
 
 A typical local build is:
