@@ -4,7 +4,7 @@
 **Canonical text:** [main.tex](main.tex), `\subsection{Computational Considerations}`, `sec:results-efficiency`.  
 **Independent scope:** only Section 6.5 of canonical `main.tex` was rewritten. Chapters 1–5, previously reviewed 6.1–6.4, frozen policy comparisons, model artifacts and bibliography were not modified. Sections 7–8 and Abstract remain unwritten.  
 **First draft:** [86aa425b](https://github.com/mzch0210/KuaiLive-Agent/commit/86aa425ba8dd032c13d34106a6c723907e33b43d).  
-**Reviewer-tightened source:** [6ed0a42e](https://github.com/mzch0210/KuaiLive-Agent/commit/6ed0a42eca653e1709e62db8e38c60d77105b14d).  
+**Reviewer-tightened source:** initial [6ed0a42e](https://github.com/mzch0210/KuaiLive-Agent/commit/6ed0a42eca653e1709e62db8e38c60d77105b14d), further condensed [f85a5031](https://github.com/mzch0210/KuaiLive-Agent/commit/f85a503154c1039fca849f3383622d6c28699f69) following rendered-PDF page review.  
 **Nature of review:** Simulated KBS reviewer/editor check of claim accuracy and publication-oriented writing, not real journal referee feedback or a guarantee of acceptance.
 
 ## Overall decision
@@ -26,6 +26,7 @@ The pre-revision Section 6.5 had an unnecessarily wide comparison with multiple 
 | E7 | P1 | Process peak RSS could be misread as gate footprint; serialized data sizes as active memory. | Moves checkpoint file, fitted HGB file, cache serialization and process RSS to an S9 table with separate semantics. | Memory loading/reconstruction costs and production concurrency remain unmeasured. |
 | E8 | P1 | Claims of throughput or production latency could go beyond data. | Ends with explicit no-deployment-throughput, no-tail-SLA, no-online-engagement boundary. | Empirical portability requires new same-platform deployment study. |
 | E9 | P1 | A two-row timing table has little incremental information beyond one paired sentence. | Removes primary 6.5 table in favor of prose; preserves full multi-row table with original precision and context in S9. | Main Results now better prioritizes selection value in 6.2 and contextual boundaries in 6.3–6.4. |
+| E10 | P1 | The first tightened 27-page PDF left the last three lines of 6.5 alone at the top of the next page, immediately before References. | Condensed repeated qualifications from 353 to roughly 280 words without inserting manual pagination commands or weakening evidence limits. | Requires visual confirmation on the matching f85a5031 PDF. |
 
 ## Exact checks on the benchmark
 
@@ -50,4 +51,4 @@ If journal referees demand a deployment cost claim, a new **same-platform, match
 
 ## Build and document-status gates
 
-Source-only revision commit: [6ed0a42e](https://github.com/mzch0210/KuaiLive-Agent/commit/6ed0a42eca653e1709e62db8e38c60d77105b14d). [Corresponding LaTeX workflow run 37950210098](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37950210098) is the matching source to check for compilation, PDF/log upload and visual layout; its status must be verified independently before declaring typography closed. The original first-draft PDF from run 37948687922 is not a valid post-revision visual proof. Reviewer-style source tightening is complete; formal S9 document assembly, visual verification and coauthor approval remain distinct outstanding steps.
+Initial revision [6ed0a42e](https://github.com/mzch0210/KuaiLive-Agent/commit/6ed0a42eca653e1709e62db8e38c60d77105b14d) passed [GitHub Actions build 37950210098](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37950210098), with 27-page [PDF/log artifact 11626395142](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37950210098/artifacts/11626395142). The actual PDF pages 23–24 were rendered and inspected: the results were legible, but a short three-line tail of 6.5 remained on page 24 just before References. A scoped reflow without manual page-breaking commands was committed as [f85a5031](https://github.com/mzch0210/KuaiLive-Agent/commit/f85a503154c1039fca849f3383622d6c28699f69); the [matching build 37950859490](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37950859490) must be verified and its pages inspected before final typography closure. The original first-draft PDF from run 37948687922 is not a valid post-revision proof. Scientific editing, formal S9 document assembly and coauthor approval remain separate gates.
