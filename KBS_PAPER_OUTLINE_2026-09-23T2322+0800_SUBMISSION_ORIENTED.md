@@ -308,7 +308,7 @@ Report only necessary core settings: ReChorus SASRec base (64-dimensional embedd
 
 # 6. Experimental Results
 
-**Staged narrative: observed conditional value → predictive decision value → candidate-context boundary.** As of 2026-10-09, **the new Twitch evidence-heterogeneity Section 6.1 has been drafted in the canonical LaTeX manuscript** with one figure and one complementary table. Sections 6.2–6.5 remain writing plans and have not been drafted. The formerly completed KuaiLive P0/P1 Section 6.1 is preserved verbatim in [`section6_3_kuailive_migration_source.tex`](manuscript/kbs_latex/section6_3_kuailive_migration_source.tex) for a later, independently reviewed Section 6.3 migration; it is not currently in the compiled main manuscript. The frozen Twitch policy validation remains planned for 6.2, separate from the post-hoc KuaiLive diagnostic.
+**Staged narrative: observed conditional value → predictive decision value → candidate-context boundary.** As of 2026-10-09, the canonical LaTeX manuscript contains **reviewer-tightened Section 6.1** (Twitch retrospective history-state heterogeneity) and **newly drafted Section 6.2** (frozen Twitch Utility-versus-Difficulty selection, one table). Sections 6.3–6.5 remain writing plans and have not been drafted. The formerly completed KuaiLive P0/P1 6.1 is preserved verbatim in [`section6_3_kuailive_migration_source.tex`](manuscript/kbs_latex/section6_3_kuailive_migration_source.tex) for the later, independently reviewed 6.3 migration; it is not currently in the compiled main manuscript. Twitch's frozen one-shot policy evidence must remain distinguishable from the KuaiLive post-hoc candidate-regime diagnostic.
 
 ## 6.1 Heterogeneous Utility of Relationship Memory
 
@@ -316,7 +316,7 @@ Report only necessary core settings: ReChorus SASRec base (64-dimensional embedd
 
 Twitch DEV→TEST state-conditional Memory−Base NDCG@10: represented `−0.01995 → −0.01935` (TEST n=24,285), recoverable `+0.23097 → +0.22045` (n=5,539), unavailable `−0.19562 → −0.18215` (n=14,397). All subgroup CI values should be taken from the frozen one-shot run [35708072303](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35708072303).
 
-**Current Section 6.1 exhibits:** Figure 2 plots DEV and TEST state-conditional Memory−Base deltas (with TEST 95% paired bootstrap intervals), while its compact table reports TEST state counts, Base/Memory absolute NDCG@10 and paired intervals. The two displays have distinct functions. The states are target-relative diagnostic categories and are unavailable to the serving selector. Status: **reviewer-style tightening completed, frozen evidence and final compiled PDF visually checked; pending coauthor approval**. See [the detailed Section 6.1 review log](manuscript/kbs_latex/SECTION6_1_KBS_REVIEWER_TIGHTENING_2026-10-09.md).
+**Current Section 6.1 exhibits:** Figure 2 plots DEV and TEST state-conditional Memory−Base deltas, while its compact table reports TEST state counts, Base/Memory absolute NDCG@10 and the 95% paired bootstrap intervals. The two displays have distinct functions. The states are target-relative diagnostic categories and are unavailable to the serving selector. Status: **reviewer-style tightening completed, frozen evidence and final compiled PDF visually checked; pending coauthor approval**. See [the detailed Section 6.1 review log](manuscript/kbs_latex/SECTION6_1_KBS_REVIEWER_TIGHTENING_2026-10-09.md).
 
 ## 6.2 Decision Value of Predicting Relative Utility
 
@@ -326,7 +326,7 @@ Twitch DEV→TEST state-conditional Memory−Base NDCG@10: represented `−0.019
 
 Use DEV-only group-composition evidence to explain why Difficulty is not equivalent to expert solvability: recoverable enrichment Utility/Difficulty ~2.72×/1.67×, unavailable ~1.03×/1.91×. Selection labels are never target-state features. Explicitly flag the modest Spearman correlation `0.173` and approximately `11.7%` of hindsight Oracle potential gain captured.
 
-**Main Table 4:** exact-count, target-label-permission-aware policy comparison. This is the paper's strongest independent frozen decision evidence; highlight it early.
+**Main Table 4 (now drafted):** five-row frozen TEST comparison of Base, Memory, development-frozen Utility, retrospective equal-count Difficulty and hindsight Oracle, including NDCG@10, HR@10 and Memory invocations. Both primary paired 95% NDCG and secondary HR intervals appear in the prose. **Status: draft written from frozen experiment and development OOF sources; awaiting final typography/academic tightening.** See [Section 6.2 result provenance](manuscript/kbs_latex/SECTION6_2_RESULTS_PROVENANCE_2026-10-09.md).
 
 ## 6.3 Candidate-Regime Dependence of Relative Utility
 
@@ -425,4 +425,4 @@ The paper-facing LaTeX currently has four Section 6 tables plus two Section 5 ta
 5. **No target leakage into selector features.** Evidence states, realized \\(\Delta_M\\) and target ranks are analysis/supervision outputs, not serving features.
 6. **No journal policy fabrication.** Check KBS-specific declarations, file requirements and formatting against the actual journal guide at submission time.
 
-*Editorial status, 2026-10-09: The canonical LaTeX manuscript contains Sections 1–5 and the newly drafted Twitch Section 6.1. The former KuaiLive 6.1 has been archived without alteration for eventual 6.3. Sections 6.2–6.5, Discussion, Conclusion and Abstract remain unwritten and will be developed in separate reviewed stages. P0/P1 evidence is complete and archived; optional P2 negative-sampling sensitivity is unexecuted.*
+*Editorial status, 2026-10-09: The canonical LaTeX manuscript contains Sections 1–5, a reviewer-tightened Twitch Section 6.1 and the newly drafted frozen-policy Twitch Section 6.2. The earlier KuaiLive P0/P1 result section remains archived without alteration for eventual 6.3 migration. Sections 6.3–6.5, Discussion, Conclusion and Abstract remain unwritten and must be developed in separate reviewed stages. The frozen Twitch evidence and KuaiLive post-hoc P0/P1 evidence retain distinct status; optional P2 negative-sampling sensitivity is unexecuted.*
