@@ -392,6 +392,38 @@ Unavailable & 14,397 & 0.21948 & 0.03734 & $-0.18215$ & $[-0.18681,-0.17715]$ \\
 \end{tabular}
 \end{table}
 
+\subsection{Decision Value of Predicting Relative Utility}
+\label{sec:results-decision}
+
+The preceding analysis establishes heterogeneous specialist utility using target-relative states that are unavailable at recommendation time. We therefore test whether predicting the \emph{incremental} utility of Memory from pre-outcome features improves the choice between two fixed ranking models. On Twitch, the Utility regressor and its invocation threshold were selected from development data using the protocol in Section~\ref{sec:exp-freeze}. The resulting policy was then applied without reselecting its threshold to 44,221 previously untouched test events, where it invoked Memory 6,650 times (15.04\%). Table~\ref{tab:results-twitch-policy} compares this policy against the same Base and Memory rankings and the controls specified in Section~\ref{sec:exp-comparators}.
+
+The development-frozen Utility policy attains NDCG@10 of $0.58983$, compared with $0.58211$ for always using Base and $0.53980$ for always using Memory. Its paired improvement over Base is $+0.00772$ NDCG@10 (95\% CI $[+0.00641,+0.00903]$). The secondary HR@10 comparison similarly favors Utility over Base by $+0.00945$ (95\% CI $[+0.00776,+0.01117]$). These gains occur despite the Memory specialist's negative aggregate utility, showing that the selective policy extracts value from only a subset of events rather than improving the underlying expert.
+
+The more discriminating control asks whether predicting Base weakness would select equally useful events. At the \emph{same realized test invocation count} of 6,650, the Base-Difficulty regressor yields NDCG@10 of $0.58340$, giving Utility an advantage of $+0.00644$ (95\% paired CI $[+0.00528,+0.00762]$); the corresponding HR@10 difference is $+0.01196$ (95\% CI $[+0.01033,+0.01364]$). Difficulty uses the same observable feature family but predicts Base loss instead of Memory-minus-Base utility. Unlike the pointwise Utility threshold, the reported Difficulty comparison selects the top 6,650 test events \emph{retrospectively} according to its pre-outcome score; the equal-count analysis controls invocation frequency but is not a separately deployed fixed-threshold policy.
+
+A development-only selection-composition analysis provides supporting evidence for this distinction. Among the 46,878 development events, Utility selects recoverable-history targets at $2.72$ times their population prevalence, compared with $1.67$ times for Difficulty, whereas their enrichment factors for unavailable-history targets are $1.03$ and $1.91$, respectively. Both selectors were compared at 6,563 invocations using out-of-fold predictions. The target-relative groups are assigned only for retrospective analysis and were not inputs to either regressor. The group differences are therefore descriptive evidence of \emph{which events} are favored, not proof that the policy recognizes the future target or a causal explanation of its ranking gain.
+
+The hindsight Oracle in Table~\ref{tab:results-twitch-policy}, which selects events using their realized test utility differences, reaches $0.64806$ NDCG@10 at the same count and is not deployable. The learned Utility policy captures approximately 11.7\% of this Oracle's gain over Base; its predicted-versus-realized event utility has Spearman correlation $0.173$ on the frozen test set. Thus, although estimating relative benefit improves the evaluated selection decision, substantial event-level prediction error and remaining hindsight headroom limit the strength of the routing claim.
+
+\begin{table}[!t]
+\centering
+\caption{Twitch/LiveRec one-shot frozen TEST results ($n=44{,}221$). Only Utility applies a development-frozen pointwise threshold; Difficulty and Oracle are retrospective top-$m$ comparisons with $m=6{,}650$, the realized Utility invocation count. Oracle uses observed TEST utility, whereas all deployable predictors use only pre-outcome features.}
+\label{tab:results-twitch-policy}
+\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Ranking policy & NDCG@10 & HR@10 & Memory invocations \\
+\midrule
+Always-Base & 0.58211 & 0.75503 & 0 \\
+Always-Memory & 0.53980 & 0.68402 & 44,221 \\
+Utility (DEV-frozen) & \textbf{0.58983} & \textbf{0.76448} & 6,650 \\
+Difficulty (equal count) & 0.58340 & 0.75252 & 6,650 \\
+Oracle (hindsight) & 0.64806 & 0.80455 & 6,650 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
 
