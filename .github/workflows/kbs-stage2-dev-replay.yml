@@ -1,0 +1,54 @@
+name: KBS Section 6 Stage 2 DEV-Only Replay
+on:
+  push:
+    paths:
+      - '.github/workflows/kbs-stage2-dev-replay.yml'
+      - 'analysis/kbs_section6_stage2_dev_replay.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install numerical dependencies
+        run: python -m pip install 'numpy>=1.26,<3' 'pandas>=2.2,<3' 'threadpoolctl>=3.1,<4'
+      - name: Recover completed frozen development experiment (not TEST)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p historical_dev
+          gh run download 35713931454 --repo mzch0210/KuaiLive-Agent --name kbs-journal-strengthening-dev-only-35713931454 --dir historical_dev
+          test -f historical_dev/results/gate_features/kbs_gate_feature_family_oof.csv.gz
+          test -f historical_dev/results/memory_components/kbs_memory_component_dev_events.csv.gz
+      - name: Replay existing OOF budget masks and paired Memory variants
+        run: |
+          python analysis/kbs_section6_stage2_dev_replay.py --source-dir historical_dev --out-dir stage2_dev_results --budget-boot 3000 --component-boot 5000
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          p=Path('stage2_dev_results')
+          a=pd.read_csv(p/'budget_profile.csv')
+          b=pd.read_csv(p/'budget_contrasts.csv')
+          c=pd.read_csv(p/'component_pairwise.csv')
+          assert len(a)==36 and len(b)==18 and len(c)==20
+          old=a.query("budget=='historical_6563' and family=='full' and decision_target=='utility'").iloc[0]
+          assert abs(old.gain_vs_base-0.0083809818615)<1e-10
+          z=a.query("budget=='15pct' and family=='full' and decision_target=='utility'").iloc[0]
+          assert 0.00830 < z.gain_vs_base < 0.00834
+          d=c.query("group=='long_horizon_only' and variant_a=='long_only' and variant_b=='full_memory'").iloc[0]
+          assert abs(d.mean_ndcg10_a_minus_b-0.105915)<1e-5
+          print('CHECKS PASSED: original K=6563, 5 budgets, 20 paired component contrasts')
+          PY
+      - name: Save reproducible DEV-only outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: kbs-section6-stage2-dev-only-${{ github.run_id }}
+          path: stage2_dev_results/*
+          retention-days: 90
