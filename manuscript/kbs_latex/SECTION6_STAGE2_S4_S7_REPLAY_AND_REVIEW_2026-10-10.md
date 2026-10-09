@@ -54,7 +54,7 @@ At each inspected budget, direct within-user combined-versus-restricted feature 
 - Independently reviewer-tightened 6.4 from **896 whitespace-delimited words to 610** (including unchanged table source) to reduce repeated caveats and keep the journal-facing Results scientifically dense. Full panels belong in S4, S6 and S7; only the most material effects remain in Results. The section ordering and related framework remain unchanged.
 - The first revised source commit [fe78ed69](https://github.com/mzch0210/KuaiLive-Agent/commit/fe78ed69c6b869b6969c226067d93ba46165f651) passed a matching [LaTeX build 37959035191](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37959035191) but the extra prose crowded the efficiency subsection over a page break. A scoped layout reviewer-tightening commit [008e4704](https://github.com/mzch0210/KuaiLive-Agent/commit/008e47043d017ab8492cdc232d9b2f1260c4075c) compressed Section 6.4 only, without changing any effect, CI or policy.
 
-**Additional PDF gate:** Check final commit 008e4704 (not just the earlier 28-page intermediate) against a successful, exact-SHA GitHub Actions build and visually inspect pages containing §6.4–6.5 and References. This status must be updated with actual evidence before declaring full layout approval.
+**Final exact-source PDF verification:** The compact Section 6.4 commit [008e4704](https://github.com/mzch0210/KuaiLive-Agent/commit/008e47043d017ab8492cdc232d9b2f1260c4075c) passed [matching LaTeX build 37959994693](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37959994693), artifact [11630127980](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37959994693/artifacts/11630127980). The actual **27-page PDF** and log were inspected: §6.4 occupies pp. 21–22; §6.5 begins near the bottom of p. 22, continues without clipped content on p. 23 and is followed there by References. Its heading remains with multiple lines of body text, not an orphan. There are **no new overfull warnings**, no undefined references and zero fatal LaTeX errors. The sole pre-existing **5.51282 pt** overfull box in earlier §3 (source lines 141–142) remains outside this phase. Final paper-wide pagination should be revisited after Sections 7–8 and Abstract are added; do not manually force a page before all chapters are written.
 
 ## 5. Reviewer-style acceptance checklist
 
@@ -68,7 +68,7 @@ At each inspected budget, direct within-user combined-versus-restricted feature 
 | Clear causal/multiple-comparison/OOF uncertainty limits | PASS |
 | No new main-text figure density or additional table creep | PASS |
 | No false production budget/latency or online treatment-effect promise | PASS |
-| Final matching-PDF render of compact 6.4 | PENDING current source-specific final check |
+| Final matching-PDF render of compact 6.4 | **PASS**, matching source SHA 008e4704; compiled and reviewed pp. 21–23 (27 pages) |
 | Formal S4/S7 supplementary PDF/coauthor sign-off | OPEN |
 
 **No additional new experiment is required to substantiate these *development robustness* results.** The next authorized work outside this phase is submission-ready S1–S9 assembly and optional, separately approved candidate-sampling P2; neither should be silently described as completed.
