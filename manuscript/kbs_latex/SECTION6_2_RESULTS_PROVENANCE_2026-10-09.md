@@ -55,3 +55,9 @@ These groups use observed targets and are assigned *after the outcome* solely to
 - The standard Results versus Discussion boundary remains: no new performance causality or deployment inference is claimed in §6.2.
 
 **Academic writing rationale:** The [official KBS journal description](https://shop.elsevier.com/journals/knowledge-based-systems/0950-7051) highlights original AI decision support and practical/theoretical balance; [Elsevier's Results-section guidance](https://scientific-publishing.webshop.elsevier.com/manuscript-preparation/how-to-write-the-results-section-of-a-research-paper/) recommends clear scientific questions, objective findings and nonduplicative tables. These are editorial principles, not additional experimentally verified evidence.
+
+## Final typeset verification (2026-10-09)
+
+The final Section 6.2 source at commit `3a776dc256e17e91afe0ccd2fee461652f1d47df` was compiled by [KBS LaTeX Actions run 37878085855](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37878085855), which **succeeded** and uploaded [PDF / compile logs artifact 11593351074](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37878085855/artifacts/11593351074). The 23-page PDF was rendered and the Section 6.2 pages 18–19 visually inspected. Results prose and the DEV-only composition paragraph occupy a complete sequence on page 18; the Oracle paragraph and Table 4 appear on page 19 with readable figures, no awkward interrupted sentence, and no clipped table columns. The compiled log has zero fatal LaTeX errors; its sole 5.51-pt overfull-paragraph warning originates outside §6.2 (older lines 141–142).
+
+**Current stage:** Section 6.2 first full draft written, experimental numbers checked, CI artifact verified, LaTeX compiled, PDF visually inspected. It still merits a separate reviewer-style academic tightening and coauthor sign-off before publication. This work did not draft 6.3–6.5, Discussion, Conclusion or Abstract.
