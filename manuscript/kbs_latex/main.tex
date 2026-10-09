@@ -334,51 +334,69 @@ The KuaiLive Dual-ID branches use ReChorus SASRec encoders with 64-dimensional e
 \section{Experimental Results}
 \label{sec:results}
 
-\subsection{Candidate-Regime Sensitivity of Base-Relative Memory Utility}
-\label{sec:results-regimes}
+\subsection{Heterogeneous Utility of Relationship Memory}
+\label{sec:results-heterogeneity}
 
-The KuaiLive sampled-active and full-active evaluations yield different rankings of the fixed relationship-memory specialist relative to the Dual-ID base. To separate candidate-protocol variation from differences between historically trained base configurations, we first evaluate identical user--time--target events with a single fixed Room-SASRec/Streamer-SASRec checkpoint pair and one development-selected fusion coefficient ($\alpha_{\mathrm{room}}=0.125$). For the 10,222 paired test events, Memory--Base NDCG@10 is $-0.04120$ under sampled-active ranking (Base $0.60709$, Memory $0.56589$) and $+0.04631$ under full-active ranking (Base $0.38571$, Memory $0.43202$). The mean full-minus-sampled contrast is $+0.08751$ (95\% user-paired bootstrap interval $[+0.08210,+0.09326]$ in the factorial replay). Both absolute scores decrease when more candidates are ranked, but the base decreases more; the observed sign reversal is therefore a change in \emph{relative}, not absolute, specialist utility.
+We first examine whether the fixed relationship-memory specialist offers uniform incremental utility over the LiveRec base or whether its advantage depends on the target's relationship to the user's preceding interactions. On the frozen Twitch test set ($n=44{,}221$), always using Memory obtains an aggregate NDCG@10 of $0.53980$, below the Base value of $0.58211$ (Memory minus Base: $-0.04232$). The aggregate comparison, however, masks differences across the three target-relative relationship-evidence states defined in Section~\ref{sec:framework-states}.
 
-Table~\ref{tab:results-factorial} crosses the ranked candidate set with the reference population used for the two branch-wise score standardizations, while holding raw model scores, fusion weight, user history, target and Memory rule fixed. The original sampled/sampled and full/full cells reproduce the preceding paired contrast. The mixed cells preserve ranking candidates while changing normalization moments, or preserve normalization moments while changing candidates. Their two-order allocation (Eq.~\eqref{eq:factorial-allocations}) assigns $+0.08827$ of the mean shift to the candidate-membership factor (95\% CI $[+0.08287,+0.09397]$) and $-0.00076$ to the normalization-reference factor (95\% CI $[-0.00117,-0.00036]$). The allocations sum exactly to $+0.08751$. Thus, in this specified evaluation, the change in the \emph{ranked candidate universe} dominates the standardized-score reference change. These are descriptive, path-averaged algebraic allocations rather than independently identified causal effects.
+Figure~\ref{fig:results-evidence-states} contrasts the state-conditional differences on development and test events; Table~\ref{tab:results-evidence-states} reports the corresponding held-out Base and Memory scores and paired confidence intervals. In the \emph{recoverable-but-unrepresented} state, where the target creator occurs in eligible history but falls outside the Base's visible input, Memory exceeds the Base by $+0.22045$ NDCG@10 on 5,539 test events (95\% CI $[+0.21140,+0.23001]$). By contrast, the difference is $-0.01935$ for the 24,285 \emph{represented} events and $-0.18215$ for the 14,397 \emph{unavailable} events. The signs match the development results ($-0.01995$, $+0.23097$, and $-0.19562$, respectively), although their magnitudes are not identical. Thus, even when an identical scoring rule is applied to every event, the relative ranking outcome depends strongly on the relationship-evidence state.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=1cm,y=6.6cm]
+  \draw[->,thin] (0.65,-0.245) -- (0.65,0.285) node[above,font=\scriptsize] {$\Delta_M$};
+  \foreach \v in {-0.2,-0.1,0,0.1,0.2}{
+    \draw[thin] (0.59,\v) -- (0.71,\v);
+    \node[anchor=east,font=\scriptsize] at (0.52,\v) {$\v$};
+  }
+  \draw[densely dashed,gray] (0.7,0) -- (9.9,0);
+  \node[font=\scriptsize,anchor=west] at (2.3,0.274) {%
+    \tikz[baseline=-0.5ex]\draw (0,0) circle[radius=2.4pt];\quad DEV estimate};
+  \node[font=\scriptsize,anchor=west] at (5.2,0.274) {%
+    \tikz[baseline=-0.5ex]\fill (0,0) circle[radius=2.4pt];\quad TEST estimate and 95\% CI};
+  % DEV point estimates (no DEV uncertainty intervals plotted).
+  \draw[fill=white] (1.88,-0.01995) circle[radius=2.5pt];
+  \draw[fill=white] (4.98,0.23097) circle[radius=2.5pt];
+  \draw[fill=white] (8.08,-0.19562) circle[radius=2.5pt];
+  % TEST user-paired 95% intervals with capped whiskers.
+  \foreach \x/\lo/\hi in {
+    2.33/-0.02234267/-0.01632736,
+    5.43/0.21139676/0.23000868,
+    8.53/-0.18680734/-0.17715296
+  }{
+    \draw[semithick] (\x,\lo) -- (\x,\hi);
+    \draw[semithick] ([xshift=-3pt]\x,\lo) -- ([xshift=3pt]\x,\lo);
+    \draw[semithick] ([xshift=-3pt]\x,\hi) -- ([xshift=3pt]\x,\hi);
+  }
+  \fill (2.33,-0.01935012) circle[radius=2.5pt];
+  \fill (5.43,0.22044597) circle[radius=2.5pt];
+  \fill (8.53,-0.18214811) circle[radius=2.5pt];
+  \node[anchor=north,align=center,font=\scriptsize] at (2.10,-0.248) {Represented};
+  \node[anchor=north,align=center,font=\scriptsize] at (5.20,-0.248) {Recoverable};
+  \node[anchor=north,align=center,font=\scriptsize] at (8.30,-0.248) {Unavailable};
+\end{tikzpicture}
+\caption{Conditional Memory-minus-Base NDCG@10 on Twitch development and frozen test evaluations. Open circles denote development estimates; filled circles and capped whiskers denote test estimates and 95\% user-paired bootstrap confidence intervals (5,000 replicates). Target-relative evidence states are assigned retrospectively and are never used as selection inputs.}
+\label{fig:results-evidence-states}
+\end{figure}
 
 \begin{table}[t]
 \centering
-\caption{Memory--Base NDCG@10 under a $2\times2$ candidate-membership and score-normalization-reference comparison (10,222 paired KuaiLive test events; checkpoint seed 20260918). Rows specify ranked items; columns specify the z-score reference population.}
-\label{tab:results-factorial}
+\caption{Frozen Twitch TEST performance by retrospective relationship-evidence state. Base and Memory refer to the same eligible-candidate ranking events; $\Delta_M$ is their event-paired NDCG@10 difference.}
+\label{tab:results-evidence-states}
 \footnotesize
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{@{}lrr@{}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrl@{}}
 \toprule
-Ranked candidates & Sampled reference & Full-active reference \\
+Evidence state & Events & Base & Memory & $\Delta_M$ [95\% CI] \\
 \midrule
-Sampled-active & $-0.04120$ & $-0.04142$ \\
-Full-active & $+0.04761$ & $+0.04631$ \\
+Represented & 24,285 & 0.86102 & 0.84167 & $-0.01935$ [$-0.02234,-0.01633$] \\
+Recoverable & 5,539 & 0.30181 & 0.52225 & $+0.22045$ [$+0.21140,+0.23001$] \\
+Unavailable & 14,397 & 0.21948 & 0.03734 & $-0.18215$ [$-0.18681,-0.17715$] \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The direction of the candidate-regime contrast is robust across the three independently trained checkpoint pairs (Table~\ref{tab:results-seeds}). Sampled-active Memory--Base is negative and full-active Memory--Base is positive for all three seeds. The mean paired shift across seeds is $+0.08508$, with a between-seed sample standard deviation of $0.00212$ (range $+0.08363$ to $+0.08751$). The mean candidate-membership allocation is $+0.08563$, compared with $-0.00056$ for normalization-reference changes. The three training realizations support directional stability within this model configuration but are insufficient to characterize a wider seed distribution; each seed's user-bootstrap interval and the across-seed standard deviation describe different sources of variability.
-
-\begin{table}[t]
-\centering
-\caption{Candidate-regime shifts across independently trained Dual-ID checkpoint pairs. All use identical input data, Memory definitions, sampled/full evaluation targets and room fusion coefficient $0.125$. Differences are NDCG@10 units.}
-\label{tab:results-seeds}
-\footnotesize
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-Training seed & Sampled Memory--Base & Full Memory--Base & Full$-$Sampled \\
-\midrule
-20260918 & $-0.04120$ & $+0.04631$ & $+0.08751$ \\
-20260919 & $-0.05157$ & $+0.03206$ & $+0.08363$ \\
-20260920 & $-0.04904$ & $+0.03505$ & $+0.08408$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Evidence-state prevalence is unchanged by the paired candidate swap: represented, recoverable-but-unrepresented and unavailable states account for 4,589, 206 and 5,427 users, respectively. Across the three seeds, their average full-minus-sampled Memory--Base shifts are $+0.08618$, $-0.10997$ and $+0.09155$. Their prevalence-weighted contributions to the average overall shift are $+0.03869$, $-0.00222$ and $+0.04860$, summing to $+0.08508$. Consequently, the aggregate reversal does not arise from increased prevalence of recoverable histories, nor from an increased conditional benefit in that small group. It is associated chiefly with increased represented-state relative utility and reduced, though generally still negative, unavailable-state penalties. The recoverable group comprises only 206 events, warranting particular caution in its interpretation.
-
-These comparisons isolate trained-checkpoint and fusion-parameter identities, but neither candidate-set contrasts nor their factor allocations identify a causal effect on user behavior or intrinsic history value. The factorial and seed analyses reuse an already examined test population and are therefore reported as post-hoc supporting evidence; they are not independent held-out validation of the selective policy. Details of model identity, per-user paired outcomes and robustness calculations are retained in the accompanying reproducibility records.
+These results characterize \emph{retrospective} heterogeneity in ranking utility rather than an observable rule for invoking Memory. In particular, the states are determined using the realized target creator, whereas the selection policy must use only pre-outcome features. The relevant decision question is therefore not whether the recoverable group benefits on average, but whether incremental specialist benefit can be predicted sufficiently well \emph{before} the target is observed to improve ranking under a fixed invocation policy. This question motivates the subsequent selective-decision evaluation.
 
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
