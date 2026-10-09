@@ -453,6 +453,36 @@ The directional reversal recurs for checkpoint seeds 20260918, 20260919, and 202
 
 The target-relative state counts remain fixed across paired regimes (represented: 4,589; recoverable-but-unrepresented: 206; unavailable: 5,427). Their across-seed prevalence-weighted contributions to the aggregate shift are $+0.03869$, $-0.00222$, and $+0.04860$, respectively. Thus, the reversal does not reflect more recoverable histories or an increase in that small group's conditional contribution. These target-based strata are retrospective, not causal mediators. Because the KuaiLive test population was previously examined, the factorial and seed analyses are \emph{supporting diagnostics}, neither independent held-out confirmation of the Twitch selector nor evidence of zero-shot policy transfer.
 
+\subsection{Robustness and Alternative Explanations}
+\label{sec:results-robustness}
+
+We next examine whether the conditional-utility findings are sensitive to the information supplied to the selector, the Memory specification, or the Base's observable history. These are \emph{development-only explanatory analyses}, separate from the frozen Twitch selection test in Section~\ref{sec:results-decision} and the post-hoc KuaiLive candidate-regime diagnostic in Section~\ref{sec:results-regimes}.
+
+Table~\ref{tab:results-feature-ablation} reports five-fold out-of-fold (OOF) Twitch development comparisons on the same 46,878 events and at a common count of 6,563 Memory invocations. Using six history descriptors alone yields a Utility-minus-Base NDCG@10 gain of $+0.00372$, and eight Base-score descriptors alone yield $+0.00160$; combining all 14 features yields $+0.00838$. The corresponding rank correlations between predicted and observed relative utility are $0.14791$, $0.09109$, and $0.18990$. Both feature families therefore contain useful information for predicting the specialist's incremental utility, and the combined representation performs best in this comparison. These OOF results do not establish an additive contribution or interaction effect, and the family-specific model fits are not independently confirmed on another untouched test set.
+
+\begin{table}[!htbp]
+\centering
+\caption{Twitch DEV-only five-fold OOF feature-family ablation ($n=46{,}878$), evaluated at an identical 6,563-event Memory selection count. All gains are relative to the same development Base; paired 95\% bootstrap intervals concern the evaluated OOF event differences, not independently frozen policy tests.}
+\label{tab:results-feature-ablation}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrlr@{}}
+\toprule
+Feature family & Dim. & $\Delta$NDCG@10 & 95\% CI & Spearman \\
+\midrule
+History descriptors & 6 & $+0.00372$ & $[+0.00256,+0.00490]$ & 0.14791 \\
+Base-score descriptors & 8 & $+0.00160$ & $[+0.00048,+0.00270]$ & 0.09109 \\
+Combined & 14 & $\mathbf{+0.00838}$ & $[+0.00713,+0.00963]$ & \textbf{0.18990} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+To check dependence on the fixed specialist specification, we replayed Twitch development rankings under seven perturbations of long-term weight, short-history length, and short-term decay without retraining the Base or retuning the frozen selector. All seven preserved the sign pattern of Memory-minus-Base utility across the represented, recoverable, and unavailable states. For example, changing the long-term weight from $0.30$ to $0.60$ changed recoverable-state utility from $+0.13852$ to $+0.28231$, while unavailable-state utility remained negative. This supports directional stability over the examined configurations, not invariance of effect magnitude or general robustness to all Memory designs.
+
+A complementary development analysis varies the trained LiveRec Base context length ($L=8,16,32$) while holding the canonical Memory ranking fixed. Base NDCG@10 increases from $0.52619$ to $0.57185$ and $0.59663$, respectively, while Memory remains at $0.52170$. On matched events whose target relationship changes from recoverable to represented as the Base context expands, Memory-minus-Base utility decreases by $0.44748$ for $L=8\rightarrow16$ and $0.43229$ for $L=16\rightarrow32$. These results are consistent with the Base recovering information that previously complemented its bounded context. However, the three Base models are trained separately; context visibility and learned ranking quality cannot be isolated as independent causes.
+
+History recency provides a further qualification. On Twitch development events, Memory-minus-Base utility is positive for a target creator last seen 1--4 interactions earlier ($+0.04606$), negative for distances 9--16 ($-0.15268$), and positive again for distances 17--32 ($+0.25668$). The conditional effect is therefore not monotonic in the age of a relationship. Finally, same-candidate auxiliary sequential-model comparisons provide a competitiveness check for the designated LiveRec and KuaiLive bases, but their restricted implementation and tuning coverage does not support a claim of exhaustive state-of-the-art superiority. Full parameter, recency, context-length and comparator results belong to the supplementary robustness record; none was used to revise the frozen Twitch test policy.
+
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
 
