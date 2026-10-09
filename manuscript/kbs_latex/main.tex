@@ -424,6 +424,33 @@ Oracle (hindsight) & 0.64806 & 0.80455 & 6,650 \\
 \end{tabular}
 \end{table}
 
+\subsection{Candidate-Regime Dependence of Relative Utility}
+\label{sec:results-regimes}
+
+The Twitch results establish that a fixed relationship-memory specialist has heterogeneous Base-relative utility and that pre-outcome utility estimates can guide selective ranking. They do not imply that the specialist's measured advantage is invariant to the candidate-ranking environment. We examine this boundary using 10,222 paired KuaiLive user--time--target events under sampled-active and full-active candidate protocols. For the original training seed (20260918), the same Room-SASRec/Streamer-SASRec checkpoint pair, development-selected room fusion coefficient ($\alpha_{\mathrm{room}}=0.125$), Memory rule and eligible history are used in both regimes. Memory-minus-Base NDCG@10 changes from $-0.04120$ with sampled-active ranking (Base $0.60709$; Memory $0.56589$) to $+0.04631$ with full-active ranking (Base $0.38571$; Memory $0.43202$). The within-user full-minus-sampled change is $+0.08751$ (95\% paired bootstrap CI $[+0.08210,+0.09326]$; 3,000 resamples). Both absolute scores fall when the larger candidate universe is ranked, but the Base score falls more; the sign reversal therefore concerns \emph{relative} specialist utility rather than an absolute improvement in Memory.
+
+The two native protocols differ in both ranked candidate membership and the reference population for z-score standardization of the two Base branches. To separate these score-protocol components descriptively, Table~\ref{tab:results-factorial} crosses the ranked set ($S$: sampled-active; $F$: full-active) with the standardization reference ($S$ or $F$), reusing identical raw scores. The two-order allocation defined in Eq.~\eqref{eq:factorial-allocations} assigns $+0.08827$ of the $+0.08751$ paired shift to ranked candidate membership (95\% CI $[+0.08287,+0.09397]$) and $-0.00076$ to the standardization reference (95\% CI $[-0.00117,-0.00036]$). The allocations sum algebraically to the total contrast. Hence, under the specified scoring and ranking protocols, the membership-related term is much larger than the normalization-reference term. This attribution is not a causal identification of independent candidate-set interventions: membership also changes candidate count, composition and ranking difficulty.
+
+\begin{table}[!htbp]
+\centering
+\caption{KuaiLive Memory-minus-Base NDCG@10 under crossed ranked-candidate and score-normalization reference sets ($n=10{,}222$ paired test events; seed 20260918). The diagonal cells reproduce the native sampled-active and full-active protocols; off-diagonal cells are diagnostic score-protocol combinations, not separately deployed configurations.}
+\label{tab:results-factorial}
+\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Ranked candidates & Sampled reference ($S$) & Full-active reference ($F$) \\
+\midrule
+Sampled-active ($S$) & $-0.04120$ & $-0.04142$ \\
+Full-active ($F$) & $+0.04761$ & $+0.04631$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This direction persists across three independently trained Dual-ID checkpoint pairs evaluated on the \emph{same} KuaiLive users and candidate sets. The full-minus-sampled shifts are $+0.08751$, $+0.08363$, and $+0.08408$ for training seeds 20260918, 20260919, and 20260920, respectively; all three have negative sampled-active and positive full-active Memory-minus-Base utility. Their mean shift is $+0.08508$ with a between-seed sample standard deviation of $0.00212$. The corresponding mean membership and normalization-reference allocations are $+0.08563$ and $-0.00056$. These three realizations support directional consistency within the studied training configuration, not a population-level seed-robustness guarantee. The user-bootstrap intervals condition on fixed checkpoints, whereas the reported standard deviation describes variation among trained checkpoint pairs.
+
+The retrospective relationship-state partition is identical across the paired regimes (represented: 4,589; recoverable-but-unrepresented: 206; unavailable: 5,427 events). Averaged across seeds, the prevalence-weighted contributions to the overall shift are $+0.03869$, $-0.00222$, and $+0.04860$, respectively. Thus, the aggregate reversal is not attributable to an increased recoverable-state share or a larger benefit within that small group. These state-specific contrasts should not be read as causal mechanisms, particularly for the 206 recoverable events. Finally, the factorial and seed comparisons reuse an already examined KuaiLive test population. They are \emph{post-hoc supporting diagnostics} of the operational candidate context, not a second independent held-out validation of the Twitch selection policy or a demonstration of its cross-platform transfer.
+
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
 
