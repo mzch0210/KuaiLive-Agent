@@ -337,66 +337,60 @@ The KuaiLive Dual-ID branches use ReChorus SASRec encoders with 64-dimensional e
 \subsection{Heterogeneous Utility of Relationship Memory}
 \label{sec:results-heterogeneity}
 
-We first examine whether the fixed relationship-memory specialist offers uniform incremental utility over the LiveRec base or whether its advantage depends on the target's relationship to the user's preceding interactions. On the frozen Twitch test set ($n=44{,}221$), always using Memory obtains an aggregate NDCG@10 of $0.53980$, below the Base value of $0.58211$ (Memory minus Base: $-0.04232$). The aggregate comparison, however, masks differences across the three target-relative relationship-evidence states defined in Section~\ref{sec:framework-states}.
+We first assess whether the fixed relationship-memory specialist offers uniform incremental ranking utility over the LiveRec Base. Across 44,221 events in the frozen Twitch test evaluation, Memory obtains NDCG@10 of $0.53980$, compared with $0.58211$ for Base, yielding a paired mean difference of $-0.04232$ (95\% CI $[-0.04521,-0.03950]$). We next stratify this contrast by the three target-relative relationship-evidence states defined in Section~\ref{sec:framework-states}, using the same eligible candidates and models within each event.
 
-Figure~\ref{fig:results-evidence-states} contrasts the state-conditional differences on development and test events; Table~\ref{tab:results-evidence-states} reports the corresponding held-out Base and Memory scores and paired confidence intervals. In the \emph{recoverable-but-unrepresented} state, where the target creator occurs in eligible history but falls outside the Base's visible input, Memory exceeds the Base by $+0.22045$ NDCG@10 on 5,539 test events (95\% CI $[+0.21140,+0.23001]$). By contrast, the difference is $-0.01935$ for the 24,285 \emph{represented} events and $-0.18215$ for the 14,397 \emph{unavailable} events. The signs match the development results ($-0.01995$, $+0.23097$, and $-0.19562$, respectively), although their magnitudes are not identical. Thus, even when an identical scoring rule is applied to every event, the relative ranking outcome depends strongly on the relationship-evidence state.
+Figure~\ref{fig:results-evidence-states} compares the state-specific Memory-minus-Base differences on development and test data. The sign is consistent across the two chronological evaluation windows: positive for \emph{recoverable-but-unrepresented} targets and negative for \emph{represented} and \emph{unavailable} targets. On the frozen test set, the recoverable group has a mean gain of $+0.22045$ NDCG@10 over 5,539 events, whereas the represented and unavailable groups have mean differences of $-0.01935$ and $-0.18215$, respectively (Table~\ref{tab:results-evidence-states}). The table also reports the Base and Memory scores underlying these contrasts, together with user-paired bootstrap intervals. Thus, the aggregate inferiority of Memory coexists with a substantial positive conditional contrast for targets present in eligible history but absent from the Base's length-limited input.
+
+The stratification is descriptive: state membership is determined with knowledge of the observed target creator, not from features available when a recommendation is made. Accordingly, the observed recoverable-state advantage is not itself a deployable invocation rule, nor does agreement between the two Twitch windows establish independent cross-dataset replication. It instead motivates the next question: whether pre-outcome context can predict sufficient specialist benefit to improve selective ranking decisions.
 
 \begin{figure}[t]
 \centering
-\begin{tikzpicture}[x=1cm,y=6.6cm]
-  \draw[->,thin] (0.65,-0.245) -- (0.65,0.285) node[above,font=\scriptsize] {$\Delta_M$};
+\begin{tikzpicture}[x=1cm,y=6.7cm]
+  \draw[->,thin] (0.65,-0.245) -- (0.65,0.277)
+    node[above,font=\scriptsize] {$\Delta_M$};
   \foreach \v in {-0.2,-0.1,0,0.1,0.2}{
     \draw[thin] (0.59,\v) -- (0.71,\v);
-    \node[anchor=east,font=\scriptsize] at (0.52,\v) {$\v$};
+    \node[anchor=east,font=\scriptsize] at (0.51,\v) {$\v$};
   }
-  \draw[densely dashed,gray] (0.7,0) -- (9.9,0);
-  \node[font=\scriptsize,anchor=west] at (2.3,0.274) {%
-    \tikz[baseline=-0.5ex]\draw (0,0) circle[radius=2.4pt];\quad DEV estimate};
-  \node[font=\scriptsize,anchor=west] at (5.2,0.274) {%
-    \tikz[baseline=-0.5ex]\fill (0,0) circle[radius=2.4pt];\quad TEST estimate and 95\% CI};
-  % DEV point estimates (no DEV uncertainty intervals plotted).
-  \draw[fill=white] (1.88,-0.01995) circle[radius=2.5pt];
-  \draw[fill=white] (4.98,0.23097) circle[radius=2.5pt];
-  \draw[fill=white] (8.08,-0.19562) circle[radius=2.5pt];
-  % TEST user-paired 95% intervals with capped whiskers.
-  \foreach \x/\lo/\hi in {
-    2.33/-0.02234267/-0.01632736,
-    5.43/0.21139676/0.23000868,
-    8.53/-0.18680734/-0.17715296
-  }{
-    \draw[semithick] (\x,\lo) -- (\x,\hi);
-    \draw[semithick] ([xshift=-3pt]\x,\lo) -- ([xshift=3pt]\x,\lo);
-    \draw[semithick] ([xshift=-3pt]\x,\hi) -- ([xshift=3pt]\x,\hi);
-  }
-  \fill (2.33,-0.01935012) circle[radius=2.5pt];
-  \fill (5.43,0.22044597) circle[radius=2.5pt];
-  \fill (8.53,-0.18214811) circle[radius=2.5pt];
-  \node[anchor=north,align=center,font=\scriptsize] at (2.10,-0.248) {Represented};
-  \node[anchor=north,align=center,font=\scriptsize] at (5.20,-0.248) {Recoverable};
-  \node[anchor=north,align=center,font=\scriptsize] at (8.30,-0.248) {Unavailable};
+  \draw[densely dashed,gray] (0.70,0) -- (9.60,0);
+  \node[font=\scriptsize,anchor=west] at (2.55,0.265)
+    {\tikz[baseline=-0.4ex]\draw (0,0) circle[radius=2.3pt];\quad DEV};
+  \node[font=\scriptsize,anchor=west] at (5.5,0.265)
+    {\tikz[baseline=-0.4ex]\fill (0,0) circle[radius=2.3pt];\quad Frozen TEST};
+  % Each adjacent pair shows the same evidence state across two windows.
+  \draw[thin,gray] (1.89,-0.01995) -- (2.30,-0.01935012);
+  \draw[thin,gray] (4.89,0.23096894) -- (5.30,0.22044597);
+  \draw[thin,gray] (7.89,-0.19562009) -- (8.30,-0.18214811);
+  \draw[fill=white] (1.89,-0.01995) circle[radius=2.3pt];
+  \draw[fill=white] (4.89,0.23096894) circle[radius=2.3pt];
+  \draw[fill=white] (7.89,-0.19562009) circle[radius=2.3pt];
+  \fill (2.30,-0.01935012) circle[radius=2.3pt];
+  \fill (5.30,0.22044597) circle[radius=2.3pt];
+  \fill (8.30,-0.18214811) circle[radius=2.3pt];
+  \node[anchor=north,font=\scriptsize] at (2.1,-0.247) {Represented};
+  \node[anchor=north,font=\scriptsize] at (5.1,-0.247) {Recoverable};
+  \node[anchor=north,font=\scriptsize] at (8.1,-0.247) {Unavailable};
 \end{tikzpicture}
-\caption{Conditional Memory-minus-Base NDCG@10 on Twitch development and frozen test evaluations. Open circles denote development estimates; filled circles and capped whiskers denote test estimates and 95\% user-paired bootstrap confidence intervals (5,000 replicates). Target-relative evidence states are assigned retrospectively and are never used as selection inputs.}
+\caption{State-conditional Memory-minus-Base NDCG@10 on Twitch development and frozen test events. Paired open and filled markers denote development and test means for the same state definition; connecting lines are visual guides, not paired event trajectories. Numerical TEST 95\% confidence intervals are provided in Table~\ref{tab:results-evidence-states}. The states are assigned retrospectively.}
 \label{fig:results-evidence-states}
 \end{figure}
 
 \begin{table}[t]
 \centering
-\caption{Frozen Twitch TEST performance by retrospective relationship-evidence state. Base and Memory refer to the same eligible-candidate ranking events; $\Delta_M$ is their event-paired NDCG@10 difference.}
+\caption{Memory and Base NDCG@10 by retrospective evidence state on frozen Twitch TEST ($n=44{,}221$). The 95\% intervals are from 5,000 user-paired bootstrap resamples within each state.}
 \label{tab:results-evidence-states}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lrrrl@{}}
+\begin{tabular}{@{}lrrrrl@{}}
 \toprule
-Evidence state & Events & Base & Memory & $\Delta_M$ [95\% CI] \\
+Evidence state & Events & Base & Memory & $\Delta_M$ & 95\% CI for $\Delta_M$ \\
 \midrule
-Represented & 24,285 & 0.86102 & 0.84167 & $-0.01935$ [$-0.02234,-0.01633$] \\
-Recoverable & 5,539 & 0.30181 & 0.52225 & $+0.22045$ [$+0.21140,+0.23001$] \\
-Unavailable & 14,397 & 0.21948 & 0.03734 & $-0.18215$ [$-0.18681,-0.17715$] \\
+Represented & 24,285 & 0.86102 & 0.84167 & $-0.01935$ & $[-0.02234,-0.01633]$ \\
+Recoverable & 5,539 & 0.30181 & 0.52225 & $+0.22045$ & $[+0.21140,+0.23001]$ \\
+Unavailable & 14,397 & 0.21948 & 0.03734 & $-0.18215$ & $[-0.18681,-0.17715]$ \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-These results characterize \emph{retrospective} heterogeneity in ranking utility rather than an observable rule for invoking Memory. In particular, the states are determined using the realized target creator, whereas the selection policy must use only pre-outcome features. The relevant decision question is therefore not whether the recoverable group benefits on average, but whether incremental specialist benefit can be predicted sufficiently well \emph{before} the target is observed to improve ranking under a fixed invocation policy. This question motivates the subsequent selective-decision evaluation.
 
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
