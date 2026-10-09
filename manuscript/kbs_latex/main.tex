@@ -485,6 +485,35 @@ Recency further qualifies a simple context-boundary account. On Twitch DEV, Memo
 
 Finally, same-candidate comparisons with auxiliary sequential recommenders provide limited checks that the designated LiveRec and KuaiLive bases are meaningful references for the evaluated protocols. The auxiliary models use restricted implementations and hyperparameter/training budgets, however, and the KuaiLive competitiveness checkpoint is distinct from the paired checkpoint used in Section~\ref{sec:results-regimes}. These comparisons neither establish superiority to comprehensively tuned contemporary recommenders nor remove Base-choice dependence from the proposed valuation. Full feature-family settings, Memory and recency profiles, context-model provenance, and comparator configurations are retained for supplementary reporting. None of these analyses changes the frozen Twitch TEST policy.
 
+\subsection{Computational Considerations}
+\label{sec:results-efficiency}
+
+Selective specialist invocation should be distinguished from reductions in end-to-end inference cost. On the frozen Twitch test set, the development-frozen Utility policy invokes Memory for 6,650 of 44,221 events (15.04\%; Section~\ref{sec:results-decision}). However, the Base must still score the eligible candidates to provide the ranking reference and Base-score descriptors used by the selector. The observed invocation fraction therefore describes how often the alternative ranking is used; it is not a measured latency reduction, a fixed online compute budget, or a serving-time speedup.
+
+We assess computational overhead using a separate, previously completed KuaiLive sampled-active benchmark rather than timings of the frozen Twitch policy. The benchmark uses 575 candidates per query, a Dual-ID Base with maximum history length 50, cached relationship state, and single-threaded, batch-size-one CPU execution. Results pool 1,200 warmed queries on each of three GitHub-hosted CPU replicas, with input batches and historical features prepared outside the timed region. Table~\ref{tab:results-efficiency} reports observed means and pooled 95th-percentile (P95) latencies. The HGB selector in this benchmark has a distinct KuaiLive invocation rate of 14.25\%, not the 15.04\% realized by the Twitch policy.
+
+\begin{table}[!htbp]
+\centering
+\caption{Measured steady-state CPU latency in an auxiliary KuaiLive sampled-active setting (575 candidates; three hosted replicas, 1,200 queries each). P95 denotes the pooled per-query latency percentile, not a confidence bound. Invocation rates reflect each KuaiLive selector's own decisions; alternative gates are not matched-utility substitutes for HGB or for the frozen Twitch selector.}
+\label{tab:results-efficiency}
+\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Ranking pipeline & Memory invoked (\%) & Mean (ms) & P95 (ms) \\
+\midrule
+Dual-ID Base & 0 & 0.991 & 1.276 \\
+Selective HGB & 14.25 & 2.007 & 2.905 \\
+Selective Ridge & 30.99 & 1.387 & 2.148 \\
+Selective Tiny-MLP & 10.37 & 1.272 & 2.039 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In this measured environment, Selective HGB adds approximately $1.016$\,ms per query over the Base, corresponding to a mean latency ratio of $2.03$. Thus, invoking the specialist on only a minority of events does not offset the cost of scoring the Base, extracting confidence descriptors, and executing the gate in this implementation. The HGB gate uses 14 observable features and approximately 81 fitted trees of maximum depth three; its measured prediction-only mean is $0.617$\,ms. With cached relationship statistics, Memory scoring scales with the candidate count, but history construction and cache maintenance are separate costs. The Dual-ID checkpoint files occupy approximately 303.85\,MiB, versus 0.105\,MiB for the fitted HGB gate; the serialized relationship cache is approximately 4.31\,MiB. These file sizes are not process-memory measurements: a separate single-process stack-loading probe reached 875.6\,MiB peak resident memory, including runtime and cached data.
+
+The lighter Ridge and Tiny-MLP selectors show lower measured latency but use different fitted rules and invocation frequencies. Their timing differences therefore cannot establish a quality-preserving speedup for the frozen Utility policy. Moreover, the benchmark times warmed CPU scoring with preconstructed inputs and replayed selection masks; it excludes data loading and online state updates, and the sampled-active KuaiLive candidate protocol differs from the availability-aware Twitch evaluation. These observations characterize a concrete implementation trade-off, not production throughput, tail-latency guarantees, or online engagement effects. Reproducibility settings, component-level measurements, and the auxiliary accuracy--latency profiles are reserved for the supplementary efficiency record.
+
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
 
