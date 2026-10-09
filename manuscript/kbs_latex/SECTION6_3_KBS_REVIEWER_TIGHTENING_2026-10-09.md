@@ -4,7 +4,7 @@
 **Manuscript subsection:** [6.3 Candidate-Regime Dependence of Relative Utility](main.tex)  
 **Scope:** The requested reviewer-style revision touches only the Section 6.3 prose/table in `main.tex`, the sampled-metrics bibliographic record, and the explicitly scoped review/provenance/status documents. Sections 1–5 and reviewer-tightened 6.1–6.2 have not been rewritten. Section 6.4 onward and the abstract remain unwritten.  
 **Scientific baseline:** [verified P0/P1 experiment ledger](../../KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md); [original full KuaiLive manuscript archive](section6_3_kuailive_migration_source.tex), which remains intact; [P0/P1 artifact run 37751814645](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37751814645).  
-**Status:** An internal simulation of reviewer objections and revisions, not a decision from KBS reviewers.
+**Status:** Reviewer-style revisions and final PDF build/visual validation completed; coauthor approval pending. This is an internal simulated peer review, not a decision from KBS reviewers.
 
 ## Reviewer verdict before revision
 
@@ -56,3 +56,17 @@ Krichene, W., and Rendle, S., *On sampled metrics for item recommendation*, **Co
 4. Mark 6.3 reviewer-tightened only after the matching-commit build and visual check succeed; coauthor approval remains a distinct gate.
 
 **Interpretive standard:** KBS explicitly includes recommender systems and intelligent decision support and calls for original AI contributions balancing theoretical and practical study ([official journal scope](https://shop.elsevier.com/journals/knowledge-based-systems/0950-7051)). This paper's defensible increment in 6.3 is the bounded context-dependence of the fixed specialist's Base-relative utility, not newly proving a generic property of sampled ranking metrics.
+
+## Completed source, compilation, and PDF inspection
+
+The final Section 6.3 text is committed in [`a1eb2f65`](https://github.com/mzch0210/KuaiLive-Agent/commit/a1eb2f6560b1af1f5d62e26f4358790534a29570). Subsequent commits updated only review/provenance/workspace records. The matching [GitHub Actions build #37882832573](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37882832573) **completed successfully** and uploaded [PDF/log artifact #11595053815](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37882832573/artifacts/11595053815). The compiled PDF has **24 pages**.
+
+**Actual rendered-document verification:**
+
+- Section 6.3 starts on PDF page 19. Its first paragraph reports the full native-protocol contrast with both absolute model scores; the second paragraph ends on page 19 with a complete sentence about the signed allocation identity.
+- On page 20, the crossed 2×2 factorial table is complete, its rows and headers legible, and the standalone interpretive paragraph distinguishes *descriptive algebraic allocation* from causal effects and known sampled-ranking inconsistency. The three-seed and retrospective history-state analyses both finish before references begin on page 21. No orphaned "The..." line remains at the page boundary.
+- The bibliography on page 24 displays *Communications of the ACM* **65**(7) (2022) 75–83, DOI **10.1145/3535335**, rather than the older 2020 KDD entry. Only one Krichene–Rendle work is cited, with the prior internal key retained.
+- There were **zero fatal LaTeX errors** and no new Section 6.3 overfull boxes. The existing 5.51282-pt overfull paragraph at source lines 141–142 occurs in an earlier chapter and was deliberately left untouched.
+- Static source comparison against the pre-review manuscript confirmed **Sections 1–5 and 6.1–6.2 unchanged byte-for-byte**; only the Section 6.3 body and reference metadata changed in the paper. All labels and BibTeX keys resolve.
+
+**Final scoped decision:** Section 6.3 now meets the requested simulated KBS reviewer-style tightening and source/build/visual gates. Scientific conclusions remain **bounded, post-hoc, and noncausal**. Full user-event data, detailed seed tables and provenance still need assembly and final stable numbering in the actual submission Supplementary S5/S8. Final coauthor scientific approval remains outstanding.
