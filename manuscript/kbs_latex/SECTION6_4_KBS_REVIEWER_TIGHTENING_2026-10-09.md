@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-09  
 **Scope:** Section 6.4 in [canonical main.tex](main.tex) only; prior Sections 1–5 and 6.1–6.3, frozen Twitch test policy/results, and unstarted 6.5/7/8/Abstract remain unchanged.  
-**Manuscript source revision:** [78fb4db3](https://github.com/mzch0210/KuaiLive-Agent/commit/78fb4db3b7235b67781772f313a3b0d25a7dd7b9).  
+**Manuscript source revisions:** [78fb4db3](https://github.com/mzch0210/KuaiLive-Agent/commit/78fb4db3b7235b67781772f313a3b0d25a7dd7b9) (reviewer tightening), followed by [01e403c4](https://github.com/mzch0210/KuaiLive-Agent/commit/01e403c42abd4b1f5ea90688c12841f6f34e96c6) (precise DEV/TEST scope correction).  
 **Evidence:** [original 6.4 provenance](SECTION6_4_RESULTS_PROVENANCE_2026-10-09.md); [Twitch OOF ablation run 35713931454](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35713931454); [Memory robustness record](../../KBS_ROBUSTNESS_RESULTS_2026-09-22.md); [repaired context experiment](../../KBS_CONTEXT_LENGTH_INTERVENTION_REPAIR_2026-09-23_RUN35877647543.md); [Twitch base comparison](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35815886641); [KuaiLive base comparison](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35820514662).  
 **Review character:** Internal simulated reviewer critique, not an actual KBS editorial decision.
 
@@ -44,6 +44,10 @@ Section 6.4 is useful as **development-only robustness and explanatory evidence*
 
 **Prioritized study, if submission completeness is challenged:** First publish exact model sizes, data eligibility, negative sampling, candidate alignment, tuned grid, epochs/early-stopping and seed protocol in Supplementary S3; then reproduce at least one well-tuned modern sequential reference per platform under the same candidate task (or provide a well-justified canonical implementation), with DEV-only model selection, paired final evaluation and Base-relative Memory/Utility effects. This is a new experiment requirement, not evidence currently in the repository.
 
+## Further P0 provenance qualification — not all 6.4 evidence is DEV-only
+
+The feature-family OOF, Memory-weight/decay, recency, and L8/L16/L32 context-length checks are all **Twitch DEV-only**. The **auxiliary KuaiLive competitiveness bundle also reports an existing TEST result** from its independently trained Dual-ID checkpoint (0.6171415), distinct from the Section 6.3 paired checkpoint (0.6070916). Accordingly, describing **the entire subsection** as DEV-only is factually overbroad. The revised first paragraph differentiates the DEV robustness studies from the comparator-score provenance. These historical KuaiLive TEST comparator results are not a new independent TEST of the Memory specialist, selector, or candidate-regime mechanism.
+
 ## Preserved evidence and scope guards
 
 - **OOF ablation:** 46,878 DEV events; K=6,563, distinct from the frozen Twitch TEST's **6,650** calls among **44,221** TEST events. The five-fold OOF comparison is an exploratory development analysis; bootstrap intervals remain conditional and unadjusted.
@@ -54,6 +58,6 @@ Section 6.4 is useful as **development-only robustness and explanatory evidence*
 
 ## Completion and publication gate
 
-The subsection was source-edited in [commit 78fb4db3](https://github.com/mzch0210/KuaiLive-Agent/commit/78fb4db3b7235b67781772f313a3b0d25a7dd7b9), and the source-range update was restricted to the existing 6.4 block. **Post-revision LaTeX compilation is confirmed for that exact commit:** [Actions run 37884535058](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37884535058) completed successfully, with [PDF/log artifact 11596011574](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37884535058/artifacts/11596011574). The log reports a 26-page PDF, no fatal compilation errors, and only the pre-existing 5.51282-pt overfull line in earlier source lines 141--142. **Independent rendered-page visual inspection of the revised PDF remains pending**; do not conflate compilation with visual approval. The current revision does not create a new scientific run or prove journal acceptability.
+The subsection was source-edited in [commits 78fb4db3 and 01e403c4](https://github.com/mzch0210/KuaiLive-Agent/commit/01e403c42abd4b1f5ea90688c12841f6f34e96c6), and both source-range updates were restricted to the existing 6.4 block. **Initial tightening LaTeX compilation is confirmed for commit 78fb4db3:** [Actions run 37884535058](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37884535058) completed successfully, with [PDF/log artifact 11596011574](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37884535058/artifacts/11596011574). The log reports a 26-page PDF, no fatal compilation errors, and only the pre-existing 5.51282-pt overfull line in earlier source lines 141--142. **Independent rendered-page visual inspection of the revised PDF remains pending**; do not conflate compilation with visual approval. The final provenance wording correction is compiled in a [separate follow-up workflow run 37884813373](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37884813373); completion and revised-PDF visual validation must be checked separately. The current revision does not create a new scientific run or prove journal acceptability.
 
 Recommended supplement allocation: S3 (baseline competition), S4 (Memory component/sensitivity), S6 (context/recency), S7 (OOF feature families and calibration), and S8 (regime/seed robustness). Keep the main 6.4 table compact, but do not submit with merely a promise of future supplementary material.
