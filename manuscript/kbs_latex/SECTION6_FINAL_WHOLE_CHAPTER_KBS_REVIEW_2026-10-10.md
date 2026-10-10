@@ -77,6 +77,14 @@ Frozen Twitch **15.04%** calls is an invocation-frequency statistic and says not
 
 The sequence and transitions are satisfactory. Do not relocate core tests across 6.1–6.5 or expand Section 6 into a Discussion. Issues of underlying mechanisms, deployment or transfer belong in a future Section 7, clearly marked as interpretation or untested hypotheses.
 
+### Issue R6 — Results figure/table crossing a subsection boundary (P1, layout repair applied)
+
+Visual inspection of the pre-repair **27-page rendered PDF**, not just the LaTeX log, found that the §6.1 state figure floated below the new §6.2 heading and the §6.1 state table was delayed until §6.2 prose. Although every numeric label and citation was technically correct, this is a genuine scientific communication risk: a reader could associate the retrospective evidence-state exhibits with the selective-decision experiment. A **local \`\\FloatBarrier\` before §6.2**, with \`placeins\`, was added so both §6.1 exhibits appear before §6.2 begins. Final acceptance requires checking the newly generated PDF, not relying on compilation alone.
+
+### Issue R7 — Computational subsection ending separated from its Results text (P2, layout repair applied)
+
+The first whole-chapter PDF after §5.1/5.2/6.3/6.4 wording repairs put the final two lines of §6.5 alone on the first References page. This did not corrupt an inference but was not publication-quality paragraph flow. The last 6.5 caution was shortened (with **no change** to 0.991/2.007 ms, +1.016 ms, 2.03×, 14.25% KuaiLive calls or HGB fitted 81 trees) to recover space without a manual forced page break. The result still disclaims equal-utility gate speedup, deployment throughput, tail latency and online engagement effects. Final visual/pagination check remains required.
+
 ## 4. Residual scope/validity concerns for reviewers (not numerical errors)
 
 | Priority | Remaining vulnerability | Exact needed publication action |
@@ -91,15 +99,17 @@ The sequence and transitions are satisfactory. Do not relocate core tests across
 
 ## 5. Exact-scope changes, compile and acceptance gate
 
-The scientific audit introduced only four **textual clarity** edits, impacting **three** manuscript source lines, with **zero altered numerical results, selection decisions, model weights, tables, charts, source citations or S1–S9 definitions**:
+The scientific audit introduced four **scientific-precision** edits, a compacting change to the 6.5 closing caveats, and one **local float-placement repair**, with **zero altered numerical results, selection decisions, model weights, table contents, plotted data, source citations or S1–S9 definitions**:
 1. §5.1 correct current-time negative-candidate semantics and prior-visit possibility.
 2. §5.2 qualify unequal-budget baseline competitiveness.
 3. §6.3 include P2 candidate draws in final supporting-diagnostic status.
 4. §6.4 differentiate parameter-local robustness from component removal.
+5. §6.5 compress the duplicate online-deployment caveat to prevent an orphaned two-line spillover onto the References page.
+6. Add the standard LaTeX `placeins` package and a local `\FloatBarrier` before §6.2 so that the §6.1 state figure and evidence table cannot drift after the next subsection's heading.
 
-Applied source commits: [0194e8ae](https://github.com/mzch0210/KuaiLive-Agent/commit/0194e8ae28918f7ce0d7bf1181aac9174644ba16) and [9e258636](https://github.com/mzch0210/KuaiLive-Agent/commit/9e258636c487ba63db30bb45460de196537c6560). The final manuscript source must match the latter commit for exact-source PDF verification, not merely an earlier successful build. Once the final matching Actions PDF log and rendered pages have passed, replace the pending status below with actual run ID/artifact and render findings.
+Applied source commits: [0194e8ae](https://github.com/mzch0210/KuaiLive-Agent/commit/0194e8ae28918f7ce0d7bf1181aac9174644ba16), [9e258636](https://github.com/mzch0210/KuaiLive-Agent/commit/9e258636c487ba63db30bb45460de196537c6560), [442b6cdb](https://github.com/mzch0210/KuaiLive-Agent/commit/442b6cdb515a50ee6072f7fc637ee0b4c41d2075), and [571e6d82](https://github.com/mzch0210/KuaiLive-Agent/commit/571e6d828117f301a82ed321509542dedb14ec10). Only the matching final `571e6d82` compiled PDF can close the final typesetting gate; earlier successful builds establish neither final pagination nor float placement. Once the final matching Actions PDF log and rendered pages have passed, replace the pending status below with actual run ID/artifact and render findings.
 
-**Citation/link static preflight:** original source reviewed contains **25 unique cited references with all 25 BibTeX keys present**, **43 distinct LaTeX labels with no duplicates**, and **no unresolved textual \`\\ref\`/\`\\eqref\` keys**. Main Results references draft supplementary S4/S5/S6/S7/S9; S6 has not yet been prepared as a final formal supplement. The scientific result subsection length is approximately **2,450 words** in source-prose-inclusive estimates, with 1 state figure and 3 primary Results tables (evidence states, frozen policy comparison, candidate factorial, plus one feature-family table; **four** Results tables total), avoiding an additional P2/S4 plot in main.
+**Citation/link static preflight:** original source reviewed contains **25 unique cited references with all 25 BibTeX keys present**, **43 distinct LaTeX labels with no duplicates**, and **no unresolved textual \`\\ref\`/\`\\eqref\` keys**. Main Results references draft supplementary S4/S5/S6/S7/S9; S6 has not yet been prepared as a final formal supplement. The scientific result subsection length is approximately **2,450 words** in source-prose-inclusive estimates, with **one state figure and four Results tables** (Twitch evidence states, frozen policy comparison, KuaiLive candidate factorial, and DEV feature families), avoiding new large P2/S4 plots in the main paper.
 
 | Acceptance item | Verdict |
 |---|---|
