@@ -1,0 +1,48 @@
+# KBS reviewer-style scientific and rhetorical audit — Discussion 7.1 and 7.2
+
+**Date:** 2026-10-10  
+**Status:** First Discussion writing step completed in canonical [main.tex](main.tex); exact-source final PDF acceptance is tracked below. This is an internal scientific review, **not** a journal peer-review verdict.  
+**Approved plan:** [Section 7 argument-first writing plan](SECTION7_KBS_DISCUSSION_WRITING_PLAN_2026-10-10.md); [four-stage stabilized Sections 1–6](KBS_FOUR_STAGE_ARGUMENT_RESTRUCTURING_REVIEW_2026-10-10.md); [unified Supplement S1–S9](SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md).  
+**Final scholarly source commit:** [8441e38e](https://github.com/mzch0210/KuaiLive-Agent/commit/8441e38e5930ad833378585ec9607c0558078196). No new training, new held-out test, causal identification or substantive C1–C3 novelty claim was introduced.
+
+## Scientific argument and paragraph assignments
+
+**7.1 Operational Value Is Base- and Context-Dependent:** Two paragraphs, approximately **183 whitespace-delimited English source words**. Paragraph 1 interprets the fixed within-event specialist-versus-Base ranking contrast and the coexistence of an overall negative Memory effect and large recoverable-state advantage. Paragraph 2 interprets model relative dependence with **separately retrained** longer-context Base models and the **Long-only versus fixed Full Memory** state trade-off, then situates the argument beside already cited evidence-fusion, reliability and negative-transfer literature. The resulting claim concerns *operational marginal decision utility*, not a new semantic/information-theoretic property.
+
+**7.2 Interpreting Conditional Evidence and Candidate Regimes:** Three paragraphs, approximately **283 whitespace-delimited source words**. Paragraph 1 bridges Twitch recoverable-history subgroup and fixed KuaiLive target-state membership under a sampled/full candidate switch: relative-utility sign reversal cannot be attributed to changes in the distribution of historical target states in that matched cohort. Paragraph 2 properly credits pre-existing sampled-metric inconsistency research and identifies the manuscript-specific added descriptive contrast: fixed Memory versus Base under crossed ranked-membership and branch-standardization references, with allocations **+0.08827** and **−0.00076** summing to shift **+0.08751**. Paragraph 3 relates three fitted checkpoint seeds and nine candidate draws to **within-protocol directional stability**, then transitions directly into 7.3's as-yet-unwritten pre-outcome selection interpretation.
+
+## Reviewer issues tested and dispositions
+
+| Risk | Evidence check | Final text outcome |
+|---|---|---|
+| **P0 — reinterpret target-defined evidence state as serving-time knowledge** | §4.3 definition, §6.1, S1 state semantics | **PASS.** Refers to *observed target*, and 7.2 explicitly states *retrospectively assigned target-history states*. State observation is explanatory, not pre-outcome policy input. |
+| **P0 — candidate-count causality falsely isolated** | §5 crossed-score method, §6.3, S5 exact paired numbers | **PASS.** 7.2 says the +0.08827 allocation combines candidate count, composition and ranking competition; the two-order decomposition is descriptive, not a causal size effect. |
+| **P0 — prior sampled-metric literature presented as new theorem** | Krichene and Rendle, *On Sampled Metrics for Item Recommendation*, CACM 2022 ([DOI 10.1145/3535335](https://doi.org/10.1145/3535335)) | **PASS.** Prior inconsistency result is acknowledged; present study's increment is the fixed evidence-specialist-versus-Base decision framing and score-reference crossover. |
+| **P1 — DEV-only stronger context Base treated as isolated intervention** | Separately trained L8/16/32 models, canonical Memory fixed (S6) | **PASS.** "separately trained longer-context Bases" is explicit; no causal attribution to input length alone. |
+| **P1 — component study interpreted as selection of newly optimal Memory** | S4 fixed Full and Long-only state results | **PASS.** 7.1 interprets trade-off under the frozen specialist; no post-hoc redefinition of the primary Memory treatment. |
+| **P1 — KuaiLive P1 seeds and P2 candidate draws mistaken for independent test datasets** | S5, S8 and previously inspected KuaiLive TEST cohort | **PASS.** "three trained checkpoint pairs and nine candidate draws" supports directional stability *within the examined protocol*, not independent population replication or cross-platform gate transfer. |
+| **P1 — Discussion duplicates Results as a numbers catalogue** | 6.1–6.3 headline results and full S5/S8 panels | **PASS.** 7.1 presents implications without copying numeric tables; 7.2 retains only the distinctive sign reversal and its descriptive decomposition, needed to ground interpretation. |
+| **P1 — defensive/negative methodological reporting overwhelms positive scientific insight** | User-requested four-stage argument rewrite | **PASS.** Interpretive topic sentences are positive and decision-focused; scientific negative effects remain substantive and inferential assumptions appear once near the relevant claim. |
+| **P1 — wrong bibliography keys / extra speculative citations** | Existing \`kbs_references.bib\` | **PASS.** Only \`zhu2026mifusr\`, \`huo2026reliability\`, \`peng2025negative\`, and \`krichene2020sampled\` are cited; all keys already existed. No unverified KBS citation introduced. |
+| **P2 — rhetorical and PDF subsection flow** | 7.1/7.2 source length, stable bibliography and compile | First preview PDF split the interpretive part of 7.1 across two pages. A concise 7.1 paragraph removed 40 words to improve page flow, while preserving evidence and citations. Exact final build below closes this gate. |
+
+## Revision and source correspondence
+
+- **First source insertion:** [b2ad5f7a](https://github.com/mzch0210/KuaiLive-Agent/commit/b2ad5f7aae117b154706ffae3e2eee44f23964d0), both sections inserted after 6.5 and before the \`elsarticle\` bibliography.
+- **7.2 tightening:** [a018e9de](https://github.com/mzch0210/KuaiLive-Agent/commit/a018e9de348e82570fa62387111d28cca6043de0), omitted redundant context-length caution from the regime section; 7.1 and 7.4 are better homes for that issue.
+- **7.1 final prose and 7.2 retrospective state precision:** [8441e38e](https://github.com/mzch0210/KuaiLive-Agent/commit/8441e38e5930ad833378585ec9607c0558078196), concise scholarly interpretation and clearer term.
+- Previous Sections 1–6 were compared against approved [a9c42b87](https://github.com/mzch0210/KuaiLive-Agent/commit/a9c42b8742a69e826b9010c112566cd1bef19e44): **identical body**, including formulas, scientific results, plots, tables and previously defined labels. Added only the new \`sec:discussion\`, \`sec:discussion-operational-value\`, and \`sec:discussion-candidate-regimes\` labels.
+
+**Scientific figures and inferential levels:** The 10,222-user KuaiLive shift is post-hoc matched scoring under P0 trained weights; the P1 trained seeds and P2 negative-list draws use the same user cohort; the separate Twitch frozen policy's decision evidence belongs in future 7.3, not falsely "replicated" by 7.2. These restrictions are not a list of apology sentences for publication, but the scientific meaning of the measurements. S1–S9 remain unchanged by Section 7 drafting.
+
+## Academic presentation source check
+
+[Elsevier's Guide for Authors](https://www.elsevier.com/subject/next/guide-for-authors) says that Discussion should explore the significance of the findings rather than repeat them and encourages avoiding extensive citations; [Elsevier Discussion-writing guidance](https://scientific-publishing.webshop.elsevier.com/manuscript-preparation/steps-to-write-excellent-discussion-in-manuscript/) likewise recommends interpretation, relevant literature comparison, a considered limitation analysis and implications. KBS's [official scope](https://shop.elsevier.com/journals/knowledge-based-systems/0950-7051) includes recommender systems, knowledge methods and decision-support research. There is no unsupported claim that this journal mandates a specific number of Discussion words or exactly five subsections.
+
+### Final PDF QA
+
+**Status at creation:** Last requested exact-source build is [run 38031513111](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38031513111) for **8441e38e**. Add a matching artifact ID, actual page boundary checks and log outcome **only when verified**. An earlier [successful source-a018e9de build](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38031230654) produced 26 pages and no overfull boxes or undefined references, but the last sentences of 7.1 crossed from p.21 into p.22. Do not pass off that earlier PDF as the final revision.
+
+### Next scoped writing action
+
+Proceed to **7.3 From Relative Utility to Selective Decisions** only after the present 7.1–7.2 discussion and independent reviewer-style audit are accepted or explicitly approved by the author. Then prepare 7.4 and 7.5, and only later a whole-Section-7 consistency pass. **No 7.3–7.5 text, Section 8 Conclusion or Abstract has been authored in this step.**
