@@ -2,6 +2,12 @@
 
 This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems* manuscript.
 
+## October 10 independent Section 7 optimization and formal Related Work update
+
+The [independently reassessed Section 7 writing plan](SECTION7_KBS_DISCUSSION_WRITING_PLAN_2026-10-10.md#7-independent-scientificeditorial-reassessment-and-targeted-optimization-2026-10-10) retains the accepted §§7.1–7.2 and sharpens the uncompleted §§7.3–7.5 around **relative-utility decision value, evidence-tier hierarchy, and derived knowledge-based system design principles**. No new experiment or change to frozen C1–C3 is implied.
+
+The canonical [Related Work in main.tex](main.tex) now includes newly verified official final-publication comparisons to **MemRec (ACL 2026), GUIDER (AAAI 2026), and DCGLive (WWW 2026)**, with exact publisher metadata and the exclusion of the not-yet-formally-published DS-Frame version recorded in the [expanded bibliography audit](RELATED_WORK_PUBLICATION_AUDIT_2026-10-08.md). A GitHub Actions compile check is automatically triggered by each `main.tex` or BibTeX update.
+
 ## Current Section 7 Discussion writing status (2026-10-10)
 
 **Discussion 7.1–7.2 have been drafted and independently reviewer-tightened** in the canonical [`main.tex`](main.tex) at [source commit aa1d511d](https://github.com/mzch0210/KuaiLive-Agent/commit/aa1d511df190c9ec0a7dd29ae538636bc8d646f4). These sections interpret operational Base-relative history value and the interaction of target-defined evidence states with candidate-ranking regimes, following the approved [Section 7 writing plan](SECTION7_KBS_DISCUSSION_WRITING_PLAN_2026-10-10.md). The evidence scope, causal qualifications, literature positioning and page-layout edits are documented in the [KBS 7.1–7.2 reviewer audit](SECTION7_1_7_2_KBS_REVIEWER_TIGHTENING_2026-10-10.md).
