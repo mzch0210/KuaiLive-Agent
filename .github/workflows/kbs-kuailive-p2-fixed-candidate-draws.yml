@@ -1,0 +1,114 @@
+name: KBS KuaiLive P2 original-model candidate sensitivity (hosted CPU)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-kuailive-p2-fixed-candidate-draws.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  p2_cpu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - name: Enforce GitHub-hosted CPU only
+        run: |
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test "$GITHUB_REF" = refs/heads/main
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$(id -u)" -ne 0
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout pinned reference implementation
+        uses: actions/checkout@v4
+        with:
+          repository: THUwangcy/ReChorus
+          ref: c164ec4303cc20ddcfbd1b57de366a481811d1e5
+          path: third_party/ReChorus
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install pinned compatible CPU versions
+        run: |
+          python -m pip install 'torch==2.4.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1' 'scikit-learn==1.5.2' 'pyyaml==6.0.2' 'tqdm==4.66.5'
+      - name: Prespecified code preflight
+        run: |
+          set -euo pipefail
+          test "$(git -C third_party/ReChorus rev-parse HEAD)" = c164ec4303cc20ddcfbd1b57de366a481811d1e5
+          python -m py_compile analysis/kbs_kuailive_p2_fixed_checkpoint_sampling.py
+          PYTHONPATH=analysis:src python analysis/kbs_kuailive_p2_fixed_checkpoint_sampling.py --self-test
+      - name: Get archived original 20260918 P0 checkpoints
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: 11536890439
+          github-token: ${{ github.token }}
+          repository: mzch0210/KuaiLive-Agent
+          path: archived_model
+      - name: Get exact frozen original dataset and availability intervals
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: 11534262601
+          github-token: ${{ github.token }}
+          repository: mzch0210/KuaiLive-Agent
+          path: archived_data
+      - name: Get independently archived P0 per-user reference
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: 11538678848
+          github-token: ${{ github.token }}
+          repository: mzch0210/KuaiLive-Agent
+          path: archived_p0
+      - name: Check original model and dataset exact SHA-256s
+        run: |
+          set -euo pipefail
+          test "$(sha256sum archived_model/models/room.pt | cut -d' ' -f1)" = b8c9fbb06ad6a627e44477c6387a6fb2eadaad783caa998201b3de76fa0cf0e7
+          test "$(sha256sum archived_model/models/streamer.pt | cut -d' ' -f1)" = 82db309e03947187430c844aab35bbce4a8ed4702c32914d1b4e3e0be987d945
+          test "$(sha256sum archived_data/rechorus_dual/KuaiLiveShopRoomDualID/train.csv | cut -d' ' -f1)" = ad91413537175b9f6e9013c525a552b6004cc00e029b41360f08519e0735b5b4
+          test "$(sha256sum archived_data/rechorus_dual/KuaiLiveShopRoomDualID/dev.csv | cut -d' ' -f1)" = 46dd3081688468c89acf6366d36d87c122fa45850ddb69320c05da9de94a9f54
+          test "$(sha256sum archived_data/rechorus_dual/KuaiLiveShopRoomDualID/test.csv | cut -d' ' -f1)" = 3491862df4de5cfb487fbd21c2f62c2d1d62acac110f852cc83c019dfcc6e956
+          test -s archived_p0/results/20260918/factorial_per_user.csv.gz
+      - name: Reproduce every P0 user, then execute all nine P2 conditions
+        env:
+          PYTHONPATH: analysis:src
+          OMP_NUM_THREADS: '1'
+          OPENBLAS_NUM_THREADS: '1'
+          MKL_NUM_THREADS: '1'
+        run: |
+          set -euo pipefail
+          python -u analysis/kbs_kuailive_p2_fixed_checkpoint_sampling.py \
+            --rechorus-source third_party/ReChorus \
+            --data-root archived_data/rechorus_dual \
+            --prepared-dir archived_data/prepared/shop \
+            --room-model archived_model/models/room.pt \
+            --streamer-model archived_model/models/streamer.pt \
+            --reference-per-user archived_p0/results/20260918/factorial_per_user.csv.gz \
+            --out-dir p2_outputs --n-boot 3000
+          python - <<'PY'
+          import pandas as pd,json
+          from pathlib import Path
+          p=Path('p2_outputs')
+          d=pd.read_csv(p/'p2_per_user_fixed_checkpoint.csv.gz')
+          x=pd.read_csv(p/'p2_predeclared_draws.csv')
+          m=json.loads((p/'p2_protocol_and_provenance.json').read_text())
+          assert len(d)==10222 and d.user_id.nunique()==10222
+          assert len(x)==9 and set(x['size'])=={128,256,575}
+          assert set(x['seed'])=={20261010,20261011,20261012}
+          assert m['original_575_reference_reproduced_per_user']
+          print('Replayed P0 and all nine P2 conditions')
+          PY
+      - name: Upload only compact derived reports, not checkpoint/data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kuailive-p2-frozen-candidates-${{ github.run_id }}
+          path: p2_outputs/*
+          if-no-files-found: ignore
+          retention-days: 90
+      - name: Clear temporary frozen inputs
+        if: always()
+        run: rm -rf archived_model archived_data archived_p0 third_party/ReChorus
