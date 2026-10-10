@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/kbs-supplementary-material-build.yml'
       - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md'
+      - 'analysis/kbs_supplement_tex_postprocess.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -49,6 +50,8 @@ jobs:
             --pdf-engine=xelatex \
             -o supplementary_information.tex
           test -s supplementary_information.tex
+          cd ../..
+          python analysis/kbs_supplement_tex_postprocess.py manuscript/kbs_latex/supplementary_information.tex
       - name: Compile supplementary PDF in isolated LaTeX container
         uses: xu-cheng/latex-action@v4
         with:
