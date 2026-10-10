@@ -2,6 +2,18 @@
 
 This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems* manuscript.
 
+## Stage 1 complete — outline-aligned argument and evidence audit (2026-10-10)
+
+**Current editorial status:** Stage 1 of the [KBS outline-aligned argument revision plan](KBS_OUTLINE_ALIGNED_ARGUMENT_REVISION_PLAN_2026-10-10.md) is **complete and Gate 1 accepted**, with no modification to the canonical **main.tex** or integrated S1–S9 experiment evidence. The central scientific question, C1–C3, and the outline's prescribed Section 6 result order are preserved. The audit separately traces **Twitch frozen Utility selection** and **KuaiLive previously inspected candidate-regime analysis** rather than treating these as one cross-platform validated gate.
+
+**Four primary Stage-1 deliverables:**
+- [Complete prose paragraph audit matrix](STAGE1_PARAGRAPH_ARGUMENT_MATRIX_2026-10-10.md): **95** source-grounded prose paragraphs, 22 editorial P1 / 33 editorial P2 / 40 KEEP, each tagged by location, contribution, evidence, proposed action and line number.
+- [P1/P2 edit queue](STAGE1_P1_P2_EDIT_QUEUE_2026-10-10.md): 12 P1 and 12 P2 execution tasks, plus concrete rules for moving protocol details without discarding scientific evidence.
+- [Frozen claims and GitHub baseline](STAGE1_FROZEN_CLAIMS_AND_BASELINE_2026-10-10.md): pre-revision GitHub SHA, C1–C3 and audited Twitch/KuaiLive/CPU result values, immutable-in-principle inference constraints.
+- [Gate-1 acceptance and chapter argument spine](STAGE1_ARGUMENT_GATE1_ACCEPTANCE_2026-10-10.md): chapter-level claim/evidence/interpretation map, quantitative coverage checks, next-stage prerequisites.
+
+**Baseline:** pre-revision branch head \`f7cd9e7f\`, manuscript **blob \`5222d53e071987d651e3d5cb2f1a7a51c8323954\`**, original outline blob \`89734dbec9f852fcb728b2ef3a767d19ebe22109\`, integrated supplementary blob \`067d4e5713eb927d8aab3dee3bf2dde512b314ed\`. P1 denotes scholarly narrative **editing priority**, not experimental invalidity. The next stage is **§1 → §6 → §7 source revision**, then §§2–5 coherence and journal-level acceptance. Previous “Section 7 accepted” entries are historical **technical/local review statuses**, not proof that Stage 2 global rhetorical restructuring is complete.
+
 ## Section 7 complete — independent subsection and cross-chapter acceptance (2026-10-10)
 
 **Current Discussion status: §§7.1–7.5 all written and independently reviewer-tightened, with complete cross-section / cross-chapter acceptance.** The [full KBS scientific, statistical, bibliography and rendered-PDF audit](SECTION7_COMPLETE_CROSS_SECTION_CROSS_CHAPTER_KBS_AUDIT_2026-10-10.md) covers the canonical [main.tex](main.tex) source commit [4c603065](https://github.com/mzch0210/KuaiLive-Agent/commit/4c6030653d6a00d7197266e3642e8823397df4ff). The [separate §7.5 reviewer audit](SECTION7_5_KBS_REVIEWER_TIGHTENING_2026-10-10.md) verifies a two-paragraph (~217-word) design-principle synthesis, its Base/candidate/policy validity assumptions and its distinct role relative to forthcoming §8 Conclusion. During cross-section review, one §7.2 sentence was clarified to separate three fitted checkpoint pairs from nine candidate draws around the original fixed pair; no frozen result changed.
