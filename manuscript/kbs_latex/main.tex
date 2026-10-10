@@ -504,6 +504,25 @@ In a separate warmed KuaiLive CPU scoring experiment with 575 candidates, the Ba
 
 The measured path combines Base ranking, 14 features, gate inference and conditional Memory scoring. The benchmarked KuaiLive HGB has $T=81$ trees (maximum depth $D=3$), requiring $O(TD)$ traversal after feature construction; with cached relationship state, Memory scores $C$ candidates in $O(C)$. Supplementary Table~S9.1 reports other gate costs and footprints under nonmatched invocation rates. Feature preparation and cache maintenance impose separate costs, so the benchmark quantifies local computation rather than net deployment throughput.
 
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Operational Value Is Base- and Context-Dependent}
+\label{sec:discussion-operational-value}
+
+The central implication of our findings is that historical relationships acquire decision value through the ranking improvement they enable, rather than through their presence in a user record alone. For a specified Base $B$, relationship specialist $M$, and eligible candidate set, $\Delta_M(x)=u_K(M,x)-u_K(B,x)$ measures this incremental utility. On frozen Twitch TEST, Memory underperforms Base in aggregate, yet its advantage is substantial when the observed target has an eligible historical relationship beyond the Base's input window (Section~\ref{sec:results-heterogeneity}). This contrast reveals conditional complementarity: a specialist may be useful precisely where its historical evidence changes the ranking in a favorable direction, even if routinely invoking it reduces average performance.
+
+Complementarity also depends on the incumbent and on how the specialist uses history. In Twitch DEV, separately trained Bases with longer input contexts attain higher ranking accuracy while the fixed Memory rankings remain unchanged, making Memory's relative advantage smaller (Supplementary Table~S6.1). Within Memory, Long-only scoring outperforms the fixed Full mixture for recoverable targets but is less effective for unavailable targets (Supplementary Tables~S4.1--S4.2). These patterns complement work on adaptive evidence fusion, reliability and negative transfer \cite{zhu2026mifusr,huo2026reliability,peng2025negative}. They also clarify the distinction between assessing the quality of an information source and assessing its marginal contribution to a particular decision: the latter is necessarily relative to the incumbent ranking model and its operating context.
+
+\subsection{Interpreting Conditional Evidence and Candidate Regimes}
+\label{sec:discussion-candidate-regimes}
+
+The ranking environment is another determinant of operational evidence value. The positive recoverable-history subgroup on Twitch identifies one condition under which relationship Memory complements the Base. Yet in KuaiLive, the same 10,222 evaluated user--target events retain identical target-history state assignments when the ranking changes from sampled-active to full-active candidates, while Memory-minus-Base utility reverses from $-0.04120$ to $+0.04631$ (Section~\ref{sec:results-regimes}). The represented and unavailable groups account for most of the aggregate regime shift across trained checkpoints, whereas the small recoverable group contributes negatively (Supplementary S8). Thus, target-history composition alone does not determine the observed advantage: the alternatives against which the Base and specialist are ranked also matter.
+
+Sampled ranking metrics are already known to alter relative model comparisons \cite{krichene2020sampled}. Our matched KuaiLive analysis places this phenomenon in a specific evidence-selection decision by comparing one fixed relationship specialist with its designated Base, using the same user events and checkpoint scores. Crossing the ranked candidates with the reference population for branch-score standardization attributes $+0.08827$ of the $+0.08751$ paired change to ranked-candidate membership and $-0.00076$ to score reference (Section~\ref{sec:results-regimes}). This is a descriptive allocation within the studied scoring protocol: candidate number, composition and ranking competition vary together, so the membership term does not isolate a causal candidate-count effect.
+
+The sign reversal persists across three separately trained checkpoint pairs and nine fixed-checkpoint candidate draws covering three sampled sizes (Supplementary S5 and S8). These analyses support stability within the examined KuaiLive regime, while the independently trained Twitch context-length Bases likewise show that historical visibility and Base capacity cannot be disentangled by observation alone. Together, the findings place relative evidence value at the intersection of historical context, the incumbent ranking rule, and the candidate environment. They motivate the next question: how much of that value can be anticipated using information available when a ranking decision must be made?
+
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
 
