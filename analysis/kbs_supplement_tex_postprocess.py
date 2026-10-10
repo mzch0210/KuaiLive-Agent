@@ -58,6 +58,19 @@ def polish(path: Path) -> dict:
         raise ValueError(f"Supplement must have exactly 23 source tables; found {tables}")
     if rotations < 3:
         raise ValueError(f"Expected several publication-width tables; found {rotations}")
+    # Pandoc emits the supplementary caption as a bold paragraph preceding
+    # its longtable. Move this caption *inside* the landscape page so the
+    # caption cannot be stranded on the preceding portrait page.
+    source, n_captions = re.subn(
+        r"(\\textbf\{Table S\d+\.\d+\.[^\n]*\})\s+(\\begin\{landscape\}\n)",
+        lambda m: m.group(2) + m.group(1) + "\n\n",
+        source,
+    )
+    if n_captions != rotations:
+        raise ValueError(
+            f"Each landscape table needs a caption on its own page: "
+            f"{n_captions} of {rotations}"
+        )
     path.write_text(source, encoding="utf-8")
     return {"breakable_sha256": n_hash, "tables": tables, "landscape_tables": rotations}
 
