@@ -46,6 +46,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           artifact-ids: 11536890439
+          merge-multiple: true
           run-id: 37746520476
           github-token: ${{ github.token }}
           repository: mzch0210/KuaiLive-Agent
@@ -54,6 +55,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           artifact-ids: 11534262601
+          merge-multiple: true
           run-id: 37741843252
           github-token: ${{ github.token }}
           repository: mzch0210/KuaiLive-Agent
@@ -62,6 +64,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           artifact-ids: 11538678848
+          merge-multiple: true
           run-id: 37751814645
           github-token: ${{ github.token }}
           repository: mzch0210/KuaiLive-Agent
