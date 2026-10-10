@@ -54,8 +54,8 @@ jobs:
           from pathlib import Path
           import re
           s=Path('supplementary_information.tex').read_text()
-          assert r'\\Delta' in s, 'Mathematical delta unexpectedly missing'
-          assert r'\\mathrm{membership}' in s, 'Factorial identity rendered as text, not math'
+          assert r'\Delta' in s, 'Mathematical delta unexpectedly missing'
+          assert r'\mathrm{membership}' in s, 'Factorial identity rendered as text, not math'
           assert r'\Delta\emph' not in s and r'\Delta\textbf' not in s, 'TeX math markup corrupted'
           assert r'\(\Delta_{FF}' in s, 'Paired factorial identity not in math mode'
           print('CRITICAL S5 math mode guard PASS')
