@@ -31,7 +31,7 @@ The accepted original chapter and subsection order was maintained. Results delib
 
 ## Stage 3 — Argument-first academic English: complete
 
-[Source change 1df5df22](https://github.com/mzch0210/KuaiLive-Agent/commit/1df5df22d127a78e8b14954ce0b85ff48d50a594) revises **26 Results narrative paragraphs**. A final narrowly scoped four-paragraph typesetting revision is [commit 21f67113](https://github.com/mzch0210/KuaiLive-Agent/commit/21f67113af8bc0d5ae5b75543214685a05f8432f). The flow now uses **finding → direct matched evidence → necessary scientific boundary**, not an experiment-chronology or response-to-reviewer narrative.
+[Source change 1df5df22](https://github.com/mzch0210/KuaiLive-Agent/commit/1df5df22d127a78e8b14954ce0b85ff48d50a594) revises **26 Results narrative paragraphs**. The final four-paragraph typesetting revision is [commit 21f67113](https://github.com/mzch0210/KuaiLive-Agent/commit/21f67113af8bc0d5ae5b75543214685a05f8432f); a subsequent source-only float-position refinement [a9c42b87](https://github.com/mzch0210/KuaiLive-Agent/commit/a9c42b8742a69e826b9010c112566cd1bef19e44) prevents the Figure 2 panel from occupying a nearly empty standalone page. The flow now uses **finding → direct matched evidence → necessary scientific boundary**, not an experiment-chronology or response-to-reviewer narrative.
 
 - **6.1:** begins with the substantive result: overall Twitch Memory−Base −0.04232 despite recoverable-history +0.22045; connects the diagnostic observation to pre-outcome choice.
 - **6.2:** emphasizes that DEV-frozen Utility actually chose higher-value events: +0.05136 selected, −0.05890 unselected versus +0.00855 retrospectively Difficulty-selected; preserves overall +0.00772 TEST Utility gain, paired CIs, the retrospective equal count, realistic Spearman 0.173 and ~11.7% Oracle headroom.
@@ -43,7 +43,7 @@ The accepted original chapter and subsection order was maintained. Results delib
 
 ## Stage 4 — Independent scientific and submission-source checks
 
-**Baseline for invariant verification:** pre-rewrite frozen `main.tex` source commit [687814cc](https://github.com/mzch0210/KuaiLive-Agent/commit/687814ccca7884b3eee91121fcf8cd4e521e6531). New editorial source at [21f67113](https://github.com/mzch0210/KuaiLive-Agent/commit/21f67113af8bc0d5ae5b75543214685a05f8432f).
+**Baseline for invariant verification:** pre-rewrite frozen `main.tex` source commit [687814cc](https://github.com/mzch0210/KuaiLive-Agent/commit/687814ccca7884b3eee91121fcf8cd4e521e6531). Final editorial manuscript source at [a9c42b87](https://github.com/mzch0210/KuaiLive-Agent/commit/a9c42b8742a69e826b9010c112566cd1bef19e44), following the [21f67113](https://github.com/mzch0210/KuaiLive-Agent/commit/21f67113af8bc0d5ae5b75543214685a05f8432f) paragraph tightening and a local FloatBarrier-compatible Figure 2 placement correction.
 
 | Independent check | Result | Notes |
 |---|---|---|
@@ -54,8 +54,12 @@ The accepted original chapter and subsection order was maintained. Results delib
 | Main-to-supplement Table Sx.y pointers | **PASS** | S5.2, S6.1, S6.4, S7.1 and S9.1 all present in the 23-table unified S1–S9 source |
 | Primary effect and cohort identities | **PASS** | Original 44,221 Twitch, 6,650 selected, 10,222 KuaiLive, +0.00772 Utility, +0.08751 matched regime and −0.04232 overall Memory retained |
 | Source-level scientific inferential limits | **PASS within stated protocols** | Target-defined states retrospective; DEV-only feature tests; KuaiLive P2 previously inspected TEST; Difficulty same-count batch control retrospective; benchmarked CPU mask replay remains separate |
-| Final exact-source LaTeX PDF and rendered-page confirmation | **PENDING**, current build [Actions #38027453165](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38027453165) | Update only with actual matching run artifact, pdf log, and visual inspection |
+| Final exact-source LaTeX PDF and rendered-page confirmation | **PASS**, [Actions #38027661198](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38027661198), [PDF artifact #11660413059](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38027661198/artifacts/11660413059) | **25 pages**, final §6.5 cost text on p.21 followed by References on p.21, no unreadable overflows or blank figure page |
 | C1–C3 novelty definitions | **UNCHANGED** | Reorganized prose, not the outline's substantive claims |
+
+### Exact-source final PDF proof
+
+The accepted compilation is [GitHub Actions run 38027661198](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38027661198) at source commit **a9c42b8742a69e826b9010c112566cd1bef19e44**, [artifact 11660413059](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38027661198/artifacts/11660413059). The actual binary PDF and `main.log` were downloaded and inspected with PyMuPDF and visual page rendering. The compiled PDF is **25 pages**, with **zero new LaTeX errors, no overfull hboxes, no undefined citations or references**. The §6.1 figure and evidence table appear before §6.2 without a float-only page; Methods → Results and Results → References transitions are legible. **This passes the requested six-chapter source/PDF gate, not the complete eight-chapter submission gate** because the Abstract, Discussion and Conclusion remain unwritten.
 
 ## Remaining issues outside six-chapter editorial scope
 
@@ -63,7 +67,7 @@ The accepted original chapter and subsection order was maintained. Results delib
 2. **S1–S9 is compiled and source-audited, but author / coauthor approvals, durable archive location for historical artifacts, and final live KBS-specific submission rules remain to be cleared.** Published GitHub Actions artifacts are retention-limited.
 3. **Broader external validity and deployment:** no new independent full-scale KuaiLive gate TEST, causal candidate-count experiment or online production A/B is claimed. Existing restrictions are sufficient for C1–C3 as currently defined; future claims beyond that scope require dedicated evidence.
 4. **Scholarly language verification:** final coauthor native-level English review should verify term capitalization (Base, Memory, Utility, Difficulty) and avoid interchanging event-level utility with user-level welfare or real business engagement.
-5. **PDF source line spacing:** the initial Stage-3 build compiled 25 pages and ended 6.5 on p.21 before References began p.22, but its log exposed four small overfull paragraphs (2.27pt, 1.77pt, 5.34pt, 5.49pt). These were locally rewritten in commit 21f67113; new exact-source PDF must be inspected before technical status is promoted from PENDING to PASS.
+5. **PDF layout resolved:** an initial Stage-3 build exposed four slight overfull lines (2.27pt, 1.77pt, 5.34pt and 5.49pt), removed by [21f67113](https://github.com/mzch0210/KuaiLive-Agent/commit/21f67113af8bc0d5ae5b75543214685a05f8432f). Rendered pages then exposed Figure 2 stranded on an almost empty page; [a9c42b87](https://github.com/mzch0210/KuaiLive-Agent/commit/a9c42b8742a69e826b9010c112566cd1bef19e44) permits top/here placement. The final 25-page PDF was downloaded and rendered: **Table 3 on p.15 and Figure 2 on p.16, both preceding the §6.2 text on p.16; §6.3 begins p.17; §6.4 begins p.19; §6.5 begins p.20 and ends p.21; References starts p.21**. No new blank page or text clipping, no overfull or undefined references. The sole remaining log notice is the benign LaTeX change of a `!h` float specifier to `!ht`.
 
 ## Editorial verdict
 
