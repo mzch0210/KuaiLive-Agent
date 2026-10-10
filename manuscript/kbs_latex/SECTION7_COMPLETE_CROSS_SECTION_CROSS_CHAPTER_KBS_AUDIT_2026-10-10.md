@@ -25,7 +25,7 @@ This is a *decision-oriented interpretation and empirically validated test* of h
 
 ## Cross-subsection scientific structure
 
-All five subsections fulfil separate manuscript functions. The source has **11 body paragraphs, approximately 1,193 whitespace-delimited English words** (depending on whether math/citation tokens count); this is within the previously approved **1,050–1,350** target.
+All five subsections fulfil separate manuscript functions. The source has **11 body paragraphs, approximately 1,200 whitespace-delimited English words** (depending on whether math/citation tokens count); this is within the previously approved **1,050–1,350** target.
 
 | Discussion | Unique scholarly task | Empirical/formal support | Cohesion and acceptance |
 |---|---|---|---|
