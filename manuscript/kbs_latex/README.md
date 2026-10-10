@@ -2,6 +2,14 @@
 
 This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems* manuscript.
 
+## Current canonical revision: four-stage argument and scholarly style audit (2026-10-10)
+
+**Latest source of record:** [`main.tex` commit a9c42b87](https://github.com/mzch0210/KuaiLive-Agent/commit/a9c42b8742a69e826b9010c112566cd1bef19e44). An author-requested four-stage rewrite **has now completed**, following [the paragraph-level scientific argument map](KBS_FULL_MANUSCRIPT_ARGUMENT_MAP_STAGE1_2026-10-10.md): (1) map the C1–C3 argument and each chapter's role; (2) remove cross-chapter duplication, improve analytical Related Work and retain Methods-specific protocols; (3) tighten all Results 6.1–6.5 with finding-first scientific language; and (4) test mathematical, numeric and bibliographic invariants and visually verify the source-matched PDF. See [the full four-stage KBS reviewer audit](KBS_FOUR_STAGE_ARGUMENT_RESTRUCTURING_REVIEW_2026-10-10.md).
+
+**Matching build and rendered inspection:** [GitHub Actions #38027661198](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38027661198), [PDF/log artifact #11660413059](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38027661198/artifacts/11660413059), **25 pages**. All 10 original scientific equations and eight major table/figure environments are retained; 43 labels, 25 cited keys and S1–S9 table pointers resolve; **no new overfull hbox or undefined citation/reference**. Figure 2 and Table 3 remain within the §6.1 evidence presentation before §6.2. The Results finish before References in the rendered PDF, with no almost-empty figure-only page.
+
+**Scientific and completion boundary:** No original numeric result, Memory scoring coefficient, trained checkpoint, one-shot frozen TEST threshold or official C1–C3 contribution is changed. This revises **Sections 1–6 only**. Abstract, Discussion §7, Conclusion §8, corresponding-author declarations, KBS-specific upload compliance, long-term artifact archiving and coauthor confirmation remain open. Older source-status and review paragraphs below are retained as dated historical records; their earlier page counts, source freeze instructions and build IDs are **superseded** by this current status.
+
 ## Files
 
 - **Stage-1 (2026-10-10):** [19-record source/claim ledger](SECTION6_STAGE1_CLAIM_EVIDENCE_LEDGER_2026-10-10.csv) and [whole-chapter statistical/provenance audit](SECTION6_STAGE1_CROSS_CHAPTER_AUDIT_2026-10-10.md). These distinguish Twitch frozen TEST, Twitch DEV, historical KuaiLive native policy, matched fixed-checkpoint KuaiLive diagnostics, and the separate CPU benchmark. Remaining source-byte hashes and formal supplements are explicitly open.
