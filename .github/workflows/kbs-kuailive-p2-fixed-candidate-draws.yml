@@ -46,6 +46,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           artifact-ids: 11536890439
+          run-id: 37746520476
           github-token: ${{ github.token }}
           repository: mzch0210/KuaiLive-Agent
           path: archived_model
@@ -53,6 +54,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           artifact-ids: 11534262601
+          run-id: 37741843252
           github-token: ${{ github.token }}
           repository: mzch0210/KuaiLive-Agent
           path: archived_data
@@ -60,6 +62,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           artifact-ids: 11538678848
+          run-id: 37751814645
           github-token: ${{ github.token }}
           repository: mzch0210/KuaiLive-Agent
           path: archived_p0
