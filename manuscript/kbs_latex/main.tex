@@ -276,7 +276,7 @@ Memory is the fixed Short--Long--Popularity ranking specialist of Eq.~\eqref{eq:
 
 \begin{table}[t]
 \centering
-\caption{Compared methods and their experimental roles. Predictive models use development training; Utility thresholding is DEV-frozen, while equal-count Difficulty and Oracle event choices use the observed Utility TEST call count.}
+\caption{Compared methods and their experimental roles. Base parameters are trained on TRAIN, Utility and Difficulty regressors are fitted on DEV, and the Utility threshold is fixed before TEST. Difficulty and Oracle use the Utility policy's realized TEST invocation count for retrospective equal-count selection.}
 \label{tab:exp-methods}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
