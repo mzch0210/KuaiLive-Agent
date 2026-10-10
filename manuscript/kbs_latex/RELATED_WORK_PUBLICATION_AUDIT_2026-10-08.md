@@ -84,4 +84,13 @@ The existing bibliography key `krichene2020sampled` was retained for backward co
 
 **Related domain-model comparison caveat:** The [DCGLive protocol-compatibility audit](../../DCGLIVE_COMPATIBILITY_AUDIT_2026-09-21.md) documents differences between the official full-item/global-time setting and this project's active-room leave-last-two-out evaluation. Citing DCGLive as closely related representation research does **not** imply a numerically comparable experiment; no unsupported head-to-head performance claim was introduced.
 
-**Integrity check:** New keys appear once each in the bibliography and are each cited once in the appropriate Section-2 scientific comparison. The main manuscript's preexisting reference keys remain unchanged. A BibTeX/LaTeX build is separately needed to confirm exact-source compilation and bibliography layout; the publisher checks here establish reference authenticity independent of the compiler.
+**Integrity check:** New keys appear once each in the bibliography and are each cited once in the appropriate Section-2 scientific comparison. The main manuscript's preexisting reference keys remain unchanged. The exact-source GitHub Actions build and final BibTeX/LaTeX warning check were completed after the final citation-format adjustment; the publisher checks above separately establish reference authenticity.
+
+
+### Exact-source bibliography and manuscript build acceptance (2026-10-10)
+
+**PASS for compilation and references, not a fresh PDF page-by-page visual inspection.** The final bibliography-format commit [e3c88dc](https://github.com/mzch0210/KuaiLive-Agent/commit/e3c88dc23132984314f70cc6cd4c2144dfce34f6) passed [GitHub Actions #38033646641](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38033646641); its [27-page PDF/build-log artifact #11663367587](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38033646641/artifacts/11663367587) is available for inspection subject to GitHub retention. All compilation, generated-PDF verification and artifact-upload steps succeeded.
+
+In the *final* LaTeX pass, the job log contains **zero** fatal LaTeX errors, **zero** overfull hboxes, **zero** unresolved citation/reference warnings, and **zero** BibTeX incompatible volume/issue warnings. The initial new GUIDER BibTeX record had an \`elsarticle-num.bst\` warning about simultaneous \`volume\` and \`number\` fields; the record now keeps \`volume = 40\` and \`note = {Issue 19}\`, retaining the publisher's correct **40(19)** publication identity while avoiding the bibliography-style conflict. Standard first-pass unresolved-citation messages before BibTeX are not final errors. No manuscript empirical content or numbered subsection structure was changed.
+
+This exact-source build applies to the final \`main.tex\` and \`kbs_references.bib\` pair; later markdown-only README and audit commits do not alter the compiled inputs.
