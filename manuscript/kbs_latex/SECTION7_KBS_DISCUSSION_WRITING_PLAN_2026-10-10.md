@@ -1,6 +1,6 @@
 # Section 7 Discussion — KBS submission-oriented writing plan
 
-**Date:** 2026-10-10. **Status:** Writing plan only; Section 7 has **not** been inserted into `main.tex`. **Canonical source:** [latest argument-restructured manuscript](main.tex), after [four-stage academic audit](KBS_FOUR_STAGE_ARGUMENT_RESTRUCTURING_REVIEW_2026-10-10.md); [approved outline](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md); [unified Supplementary S1–S9](SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md). Official journal scope: [KBS/Elsevier](https://shop.elsevier.com/journals/knowledge-based-systems/0950-7051); general publisher structure guidance: [Elsevier Guide for Authors](https://www.elsevier.com/subject/next/guide-for-authors) and [Elsevier Discussion advice](https://scientific-publishing.webshop.elsevier.com/manuscript-preparation/steps-to-write-excellent-discussion-in-manuscript/). These guide *academic presentation*; no unsupported KBS-specific mandatory Discussion word count is claimed.
+**Date:** 2026-10-10. **Updated status:** §§7.1–7.2 are written and independently reviewer-tightened in canonical `main.tex` (accepted source `aa1d511d`; [matching PDF build](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38031685746)). This independently reassessed plan now governs the still-unwritten §§7.3–7.5; it does not reopen the accepted first two subsections without a substantiated scientific inconsistency. **Canonical source:** [latest argument-restructured manuscript](main.tex), after [four-stage academic audit](KBS_FOUR_STAGE_ARGUMENT_RESTRUCTURING_REVIEW_2026-10-10.md); [approved outline](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md); [unified Supplementary S1–S9](SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md). Official journal scope: [KBS/Elsevier](https://shop.elsevier.com/journals/knowledge-based-systems/0950-7051); general publisher structure guidance: [Elsevier Guide for Authors](https://www.elsevier.com/subject/next/guide-for-authors) and [Elsevier Discussion advice](https://scientific-publishing.webshop.elsevier.com/manuscript-preparation/steps-to-write-excellent-discussion-in-manuscript/). These guide *academic presentation*; no unsupported KBS-specific mandatory Discussion word count is claimed.
 
 ## 1. Section 7 central argument — what the Results collectively mean
 
@@ -124,3 +124,49 @@ Already-present vetted bibliography keys; **do not add extra 2026 references mer
 8. **Do not start §8 Conclusion or Abstract** until Section 7 receives scoped scientific and reviewer-style tightening. This respects the approved staged writing process.
 
 **Editorial endpoint:** Section 7 succeeds when a KBS reviewer can state in one sentence **what has been learned about the decision value of historical knowledge**, distinguish that from an extra fusion architecture or generic expert gating theorem, identify which of C1–C3 support that claim, and understand the scope without reading a defensive checklist.
+
+## 7. Independent scientific/editorial reassessment and targeted optimization (2026-10-10)
+
+**Decision: retain the five approved subsections and the C1–C3 thesis; optimize the argument within §§7.3–7.5 rather than expand Section 7 or reword the already accepted §§7.1–7.2.** This appraisal is made against the current canonical manuscript and unified S1–S9 rather than accepting the original blueprint uncritically. The formal Related Work has additionally been updated with publisher-verified MemRec (ACL 2026), GUIDER (AAAI 2026), and DCGLive (WWW 2026); see the [published-version bibliography audit](RELATED_WORK_PUBLICATION_AUDIT_2026-10-08.md). DS-Frame remains accepted for a later CIKM 2026 meeting, without an accessible final proceedings record at this review date, and is **not** inserted into the formal bibliography under the author’s published-only rule.
+
+### 7.1/7.2 source freeze and scientific verdict
+
+- **7.1** has a distinct job: interpret Base- and specialist-relative history utility. It uses the overall-versus-recoverable contrast, separately trained stronger Base contexts and Full/Long-only specialist state trade-offs. This is the correct C1 interpretation and requires no rewriting.
+- **7.2** has a distinct job: explain candidate-regime dependence without treating retrospective target states as decision features or a membership allocation as an isolated causal candidate-count effect. Prior sampled-ranking metric inconsistency is already cited and acknowledged. This is the correct C2 interpretation and requires no rewriting.
+- Neither subsection contains the frozen selective-policy result as its claimed empirical confirmation. The final transition to §7.3 appropriately separates retrospective diagnosis from pre-outcome decisions.
+
+### Optimization A — 7.3: make the estimand-to-action interpretation explicit
+
+**Issue in original blueprint:** The primary frozen selector result and matched-count Difficulty scores are correctly planned but could be read as a second Results summary. **Revised intellectual function:** show *why predicting $\eta_r(Z)$ targets a distinct decision quantity* rather than the difficulty of $B$.
+
+**Suggested exact paragraph architecture (2–3 paragraphs, 215–265 words):**
+1. **Mechanism and decision identity.** Open with a decisive claim that the expected policy gain is $\mathbb{E}[a(Z)\eta_r(Z)\mid R=r]$; selecting a request with difficult Base rankings is useful only when the alternative ranker has positive conditional benefit. This makes the C3 prediction target distinctive without claiming a new L2D theorem.
+2. **Frozen test and fair interpretation.** Give Utility–Base **+0.00772** and Utility–Difficulty **+0.00644** on the one-shot Twitch TEST, paired with selected **+0.05136** versus unselected **−0.05890** event-level realized Memory–Base utility. The Utility threshold was frozen on DEV; Difficulty top-$m$ is a **retrospective batch-control using the realized Utility call count**, not an online comparator with an externally fixed budget. Interpret the conditional means descriptively rather than as causal subgroup effects.
+3. **Established prior art and bounded prediction.** Position against formally published post-hoc L2D and (if useful) GUIDER’s uncertainty-adaptive LLM reranking: these address routing or uncertainty; our evidentiary increment is a *fixed relationship-specialist relative-utility target plus a held-out specialist-choice test*. **Spearman 0.173** and **11.7%** Oracle-headroom recovery evidence a useful imperfect rank-ordering, not per-event calibration. If word-limited, merge paragraphs 2 and 3 without dropping this distinction.
+
+**Acceptance test:** A reader can explain why Difficulty and Utility select different events, which result tests that difference, and why this result does not establish universal L2D optimality or zero-shot policy transfer.
+
+### Optimization B — 7.4: use a hierarchy of scope, not a checklist of disclaimers
+
+**Issue in original blueprint:** Numerous true qualifications risk a process-audit tone if each appears in a separate negative sentence. **Revised architecture (three compact paragraphs, 215–270 words):**
+1. **Identification level:** Anchor what *is* independently tested: one DEV-frozen Twitch policy on a frozen TEST cohort, distinguished from Twitch DEV post-hoc diagnostics and already examined KuaiLive TEST same-event candidate analysis. Checkpoint seeds, candidate draws and user bootstrap characterize different sources of uncertainty, not repeated independent cohorts.
+2. **Observable label/evaluation level:** Distinguish target-defined retrospective states from the 14 pre-outcome selector features, discuss one-positive event labeling and candidate constraints, and state that L8/16/32 use separately trained Bases. One sentence each on interpretive implications, avoiding duplication of all §5/§6 caveats.
+3. **Serving and transfer level:** Contrast the unmeasured cost of the frozen Twitch policy with the *separate* KuaiLive archived-mask CPU timing (+1.016 ms, 2.03× Base), and identify which external/online validations would support broader claims. A 15.04% call fraction is not a demonstrated speed gain.
+
+**Acceptance test:** Scope is precise enough to prevent target leakage, causal extrapolation and online-efficiency claims, but remains secondary to the positive scientific findings.
+
+### Optimization C — 7.5: make the KBS knowledge-decision principle the primary contribution
+
+**Issue in original blueprint:** Three sensible recommendations risk sounding like generic systems advice. **Revised architecture (two paragraphs, 185–235 words):**
+1. **Principle and derivation:** From C1, value an auxiliary historical knowledge source by *paired incremental ranking action relative to a designated Base*; from C2, assess this action within the contemporaneous candidate universe; from C3, select a specialist by a prediction of *relative* benefit based on pre-outcome information. Distinguish evidence presence, evidence reliability and **decision value** as three separate ideas. Tie resource cost to the *same policy* only when measured; the present KuaiLive CPU result is not that Twitch deployment measurement.
+2. **Targeted research agenda:** Prioritize an independently frozen cross-regime/cross-platform utility-policy replication; factor-controlled candidate-number/composition/hardness comparisons; calibration and budget-aware policies with end-to-end serving measurement. Online ranking/engagement trials are an eventual applicability test. These are concrete empirical next steps, not suggestions that the current C1–C3 claims should be redefined.
+
+**Acceptance test:** The two paragraphs communicate an original *decision-oriented use of historical knowledge*, not a new memory architecture, new subtraction theorem, universal deferral solution or known sampled-metric result.
+
+### Cross-chapter integration and formal-publication gates
+
+- **C1/C2/C3 mapping:** C1 (§§3–4, 6.1, S4/S6) in 7.1; C2 (§5/6.3, S5/S8) in 7.2; C3 (§3/5/6.2, S7) in 7.3; validity tiers in 7.4; joint knowledge-system inference in 7.5.
+- **Explicitly do not generalize** the frozen Twitch Utility selector to KuaiLive: the cross-platform transfer experiment is absent; KuaiLive ranks rooms while Twitch ranks streamers.
+- **Preserve evidence and scientific negatives** (overall specialist disadvantage, finite Oracle capture, measured CPU penalty) but put extended run/checkpoint chronology in S1–S9.
+- **Citation provenance:** New citations must come from final publisher/conference records, not acceptance lists, arXiv versions, media recaps or unverified DOI assignments; published-version source evidence is in the separate bibliography audit.
+- **Source and PDF gate:** Finish §7.3, then §7.4, then §7.5 as separately scoped drafts; perform full §7 claim/citation audit and exact-source PDF build at the end. Leave §8 Conclusion and Abstract for later approved steps.
