@@ -2,6 +2,10 @@
 
 This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems* manuscript.
 
+## Section 8 Conclusion — outline-aligned writing plan (2026-10-10)
+
+The [new §8 KBS Conclusion writing plan](SECTION8_KBS_CONCLUSION_WRITING_PLAN_2026-10-10.md) is now available. It preserves the authoritative outline's three conclusions **(C1 historical complementarity, C3 DEV-frozen Twitch selective decision gains, C2 paired KuaiLive candidate-regime reversal)**, recommends a three-paragraph ~180–240-word closing synthesis, and defines evidence, academic-rhetoric and exact-source acceptance gates. **This is a writing plan only:** §8 and Abstract remain absent from [main.tex](main.tex); no accepted earlier chapter or experimental evidence was edited. Draft §8, run its independent reviewer tightening and final-source build, and only then draft Abstract and submission declarations.
+
 ## Stage 4 independent KBS referee audit — seven-chapter acceptance (2026-10-10)
 
 **CURRENT SCIENTIFIC STATUS:** The complete **§§1–7** journal/editor/referee review is accepted under the outline's Base-relative knowledge-value thesis. The detailed [Stage 4 independent scientific, experimental and journal-policy review](STAGE4_INDEPENDENT_KBS_SUBMISSION_REVIEW_2026-10-10.md) identifies no uncorrected P0/P1 *internal scientific argument contradiction* within the stated C1–C3 scope. It preserves the distinct Twitch DEV-frozen TEST selector and KuaiLive previously inspected cohort's candidate-regime analysis, and it records **one justified source edit**: [Table 2 caption precision commit 70adf0c](https://github.com/mzch0210/KuaiLive-Agent/commit/70adf0c4620fa7454f6a4fd71e955f0eb9c32721). Unchanged: all scientific equations, Results, Discussion, 49 source labels, 28 cited literature keys, and S1–S9.
