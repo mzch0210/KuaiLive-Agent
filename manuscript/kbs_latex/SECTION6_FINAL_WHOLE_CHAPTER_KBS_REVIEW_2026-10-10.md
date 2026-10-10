@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-10-10  
 **Scientific authority:** [Submission-oriented outline](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md), especially frozen C1–C3; [canonical LaTeX](main.tex) after all three empirical strengthening stages.  
-**Status:** **Results scientific-content audit passed with limited, documented line-level repairs.** This is **not** equivalent to final manuscript / supplemental package acceptance. Further S1–S9 document assembly, bibliographic signoff, non-Results sections 7–8, Abstract and coauthor review remain explicitly open.  
+**Status:** **Results scientific-content and exact-source PDF-layout audit PASSED** with documented scientific-precision and float-placement corrections. This is **not** equivalent to final manuscript or supplementary package acceptance. Further S1–S9 document assembly, bibliographic signoff, non-Results sections 7–8, Abstract and coauthor review remain explicitly open.  
 **Review standard:** Assess whether each empirical claim follows from its stated data/model/protocol, whether C1–C3 receive the promised evidence, whether controls and uncertainty are comparable, whether results repeat needlessly, whether causal/generalization claims overreach, and whether the main/supplement boundary is defensible. We do not redefine novelty as a new Gate architecture or demand unbounded SOTA gains.
 
 ## Executive editorial verdict
@@ -77,13 +77,17 @@ Frozen Twitch **15.04%** calls is an invocation-frequency statistic and says not
 
 The sequence and transitions are satisfactory. Do not relocate core tests across 6.1–6.5 or expand Section 6 into a Discussion. Issues of underlying mechanisms, deployment or transfer belong in a future Section 7, clearly marked as interpretation or untested hypotheses.
 
-### Issue R6 — Results figure/table crossing a subsection boundary (P1, layout repair applied)
+### Issue R6 — Results exhibits floating across a subsection boundary (P1, corrected)
 
-Visual inspection of the pre-repair **27-page rendered PDF**, not just the LaTeX log, found that the §6.1 state figure floated below the new §6.2 heading and the §6.1 state table was delayed until §6.2 prose. Although every numeric label and citation was technically correct, this is a genuine scientific communication risk: a reader could associate the retrospective evidence-state exhibits with the selective-decision experiment. A **local \`\\FloatBarrier\` before §6.2**, with \`placeins\`, was added so both §6.1 exhibits appear before §6.2 begins. Final acceptance requires checking the newly generated PDF, not relying on compilation alone.
+A rendered-PDF review found that the §6.1 state figure and evidence-state table had originally appeared **after the §6.2 heading**, although source citation and numerical labels were correct. This confused experimental roles. A local standard LaTeX \`placeins\` / \`\\FloatBarrier\` before §6.2 was combined with relaxing the Table 3 float from bottom-only \`[!b]\` to \`[!htbp]\`. The first barrier-only attempt created a nearly empty float page, so that rejected layout was not retained.
 
-### Issue R7 — Computational subsection ending separated from its Results text (P2, layout repair applied)
+**Exact-source final PDF PASS:** Figure 2 is on page **17**, Table 3 appears at the **top of page 18**, and the §6.2 heading begins **after** Table 3 on that same page. No redundant blank float page remains. These were layout-only adjustments, not changes to any group statistic.
 
-The first whole-chapter PDF after §5.1/5.2/6.3/6.4 wording repairs put the final two lines of §6.5 alone on the first References page. This did not corrupt an inference but was not publication-quality paragraph flow. The last 6.5 caution was shortened (with **no change** to 0.991/2.007 ms, +1.016 ms, 2.03×, 14.25% KuaiLive calls or HGB fitted 81 trees) to recover space without a manual forced page break. The result still disclaims equal-utility gate speedup, deployment throughput, tail latency and online engagement effects. Final visual/pagination check remains required.
+### Issue R7 — Computational results ending before References (P2, corrected)
+
+An intermediate manuscript build placed the last 2–4 lines of §6.5 on the opening References page. The last deployment-cost caveat, the first invocation-frequency paragraph and repetitive §6.4 baseline cross-reference prose were condensed without removing the distinct Twitch/KuaiLive inference boundary or changing **0.991/2.007 ms, +1.016 ms, 2.03×, 14.25% calls, or HGB T=81/D=3**. No forced page break was used.
+
+**Exact-source final PDF PASS:** all of §6.5 ends on page **23**; References begins on page **24**, with no isolated paragraph tail, figure/table relocation to the wrong chapter, or clipped text.
 
 ## 4. Residual scope/validity concerns for reviewers (not numerical errors)
 
@@ -97,32 +101,35 @@ The first whole-chapter PDF after §5.1/5.2/6.3/6.4 wording repairs put the fina
 | **P1 — efficiency** | Auxiliary cached KuaiLive timing executes Gate prediction but branches according to replayed masks, not autonomous production routing; per-replica CPU mix and missing cache/update/I/O time limit practical generalization. | Keep S9 traceable; never claim online SLA, throughput or saved Twitch serving computation. |
 | **P2 — presentation** | Early Section 3 has one existing ~5.51-pt overfull warning, outside Section 6; final publication formatting will change after Section 7, 8 and Abstract. | Address once final main paper layout is assembled. Verify cross refs and full PDF at final source SHA. |
 
-## 5. Exact-scope changes, compile and acceptance gate
+## 5. Final source diff, bibliography and PDF acceptance
 
-The scientific audit introduced four **scientific-precision** edits, a compacting change to the 6.5 closing caveats, and one **local float-placement repair**, with **zero altered numerical results, selection decisions, model weights, table contents, plotted data, source citations or S1–S9 definitions**:
-1. §5.1 correct current-time negative-candidate semantics and prior-visit possibility.
-2. §5.2 qualify unequal-budget baseline competitiveness.
-3. §6.3 include P2 candidate draws in final supporting-diagnostic status.
-4. §6.4 differentiate parameter-local robustness from component removal.
-5. §6.5 compress the duplicate online-deployment caveat to prevent an orphaned two-line spillover onto the References page.
-6. Add the standard LaTeX `placeins` package and a local `\FloatBarrier` before §6.2 so that the §6.1 state figure and evidence table cannot drift after the next subsection's heading.
+The audit resulted in **limited textual and layout revisions**, leaving **all** scientific outcomes, trained checkpoints, data subsets, thresholds, Math/Delta definitions, bootstrap CIs, numbered tables/plots and C1–C3 contribution statements unchanged:
 
-Applied source commits: [0194e8ae](https://github.com/mzch0210/KuaiLive-Agent/commit/0194e8ae28918f7ce0d7bf1181aac9174644ba16), [9e258636](https://github.com/mzch0210/KuaiLive-Agent/commit/9e258636c487ba63db30bb45460de196537c6560), [442b6cdb](https://github.com/mzch0210/KuaiLive-Agent/commit/442b6cdb515a50ee6072f7fc637ee0b4c41d2075), and [571e6d82](https://github.com/mzch0210/KuaiLive-Agent/commit/571e6d828117f301a82ed321509542dedb14ec10). Only the matching final `571e6d82` compiled PDF can close the final typesetting gate; earlier successful builds establish neither final pagination nor float placement. Once the final matching Actions PDF log and rendered pages have passed, replace the pending status below with actual run ID/artifact and render findings.
+1. **§5.1 — candidate eligibility:** define sampled negatives as **current-time eligible non-target rooms**, not rooms the user has never previously clicked; the latter constraint was never part of the protocol.
+2. **§5.2 — comparator fairness:** accurately label heterogeneous/training-limited auxiliary Base comparisons as **limited reference-competitiveness checks**, not a uniformly tuned SOTA competition.
+3. **§6.3 — evidence hierarchy:** explicitly include candidate-draw P2 along with checkpoint-seed and factorial results as **retrospective supporting diagnostics**, not fresh policy confirmation.
+4. **§6.4 — experiment-family separation:** qualify the sign preservation of **seven local parameter perturbations** so it is not mistaken for the distinct **component-removal variants**.
+5. **§6.4 and §6.5 — Results density:** compress repeated auxiliary Base limitations and invocation-cost/deployment caveats, without omitting inference restrictions or the measured latency/complexity results.
+6. **§6.1 and §6.2 — figure/table relationship:** add a local FloatBarrier and permit evidence table top placement so Figure 2 and Table 3 remain **before** the §6.2 heading without a mostly-empty float-only page.
 
-**Citation/link static preflight:** original source reviewed contains **25 unique cited references with all 25 BibTeX keys present**, **43 distinct LaTeX labels with no duplicates**, and **no unresolved textual \`\\ref\`/\`\\eqref\` keys**. Main Results references draft supplementary S4/S5/S6/S7/S9; S6 has not yet been prepared as a final formal supplement. The scientific result subsection length is approximately **2,450 words** in source-prose-inclusive estimates, with **one state figure and four Results tables** (Twitch evidence states, frozen policy comparison, KuaiLive candidate factorial, and DEV feature families), avoiding new large P2/S4 plots in the main paper.
+Full source trail: [initial precision fix 0194e8ae](https://github.com/mzch0210/KuaiLive-Agent/commit/0194e8ae28918f7ce0d7bf1181aac9174644ba16), [local Memory clarification 9e258636](https://github.com/mzch0210/KuaiLive-Agent/commit/9e258636c487ba63db30bb45460de196537c6560), [cost clarification 442b6cdb](https://github.com/mzch0210/KuaiLive-Agent/commit/442b6cdb515a50ee6072f7fc637ee0b4c41d2075), [float barrier 571e6d82](https://github.com/mzch0210/KuaiLive-Agent/commit/571e6d828117f301a82ed321509542dedb14ec10), [top-allowed table b597d9f2](https://github.com/mzch0210/KuaiLive-Agent/commit/b597d9f273067f465b01b885e6a3ca631edd4259), and **final source [86653733](https://github.com/mzch0210/KuaiLive-Agent/commit/86653733ac032214d1baaed9f4aed81b21acc045)**.
 
-| Acceptance item | Verdict |
+**Exact-source PDF acceptance — PASSED.** [GitHub Actions #38016815215](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38016815215), [build PDF and log artifact #11655883649](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38016815215/artifacts/11655883649). This build matches source SHA **86653733** and produces **27 pages**. Log checked: **0 fatal LaTeX errors, 0 undefined citations/references, no newly introduced overfull box**; the sole pre-existing **5.51282-pt** Section 3 overfull remains. The actual PDF pages **16–24** were rendered and inspected: §6.1 Figure 2 on page 17, Table 3 before §6.2 on page 18, §6.3 paired factorization and P2 remain in their intended order, §6.4 feature table/DEV mechanisms remain together, and §6.5 finishes page 23 with References on page 24.
+
+**Source-reference integrity:** Main text has **25 distinct citation keys, all present in BibTeX**, **43 LaTeX labels with zero duplicates**, and **zero missing textual \`\\ref\`/\`\\eqref\` keys**. There is **one state figure and four Results tables**, with the full nine-draw P2 matrix and extensive mechanism/budget/latency panels located in their designated **draft** supplements, not duplicated in Results. Main §6 refers to supplementary S4/S5/S6/S7/S9; **S6 is not yet assembled as a final supplement**.
+
+| Acceptance test | Result |
 |---|---|
-| Established C1–C3 evidence support and unchanged novelty | **PASS** |
-| Statistical magnitudes and subgroup/full aggregation identities | **PASS** |
-| DEV/TEST, checkpoint, random-draw and sampling-regime distinctions | **PASS after precision repairs** |
-| No unsupported causal, SOTA, policy transfer or online speedup claim | **PASS for current bounded main text** |
-| No serious redundant experimental exhibits in 6.1–6.5 | **PASS** |
-| Exact-source final PDF compile and visual layout | **PENDING matching Actions build** |
-| Complete author-approved, citable S1–S9 package | **OPEN — prevents declaring final journal submission ready** |
-| Unwritten Discussion, Conclusion and Abstract | **OPEN — separately authorized manuscript stages** |
+| C1–C3 empirical correspondence and original outline novelty | **PASS** |
+| Main text numerical identities, user-level P2 and model/sampling distinctions | **PASS** |
+| Conditional inference and noncausal/out-of-distribution limitations | **PASS** |
+| No inappropriate all-method SOTA or online efficiency claims | **PASS** |
+| Nonredundant primary evidence displays | **PASS** |
+| Final source-specific LaTeX build and 27-page visual verification | **PASS** |
+| Submission-ready unified S1–S9, author signoff and reference packaging | **OPEN** |
+| Unwritten Sections 7–8 and Abstract | **OPEN — later independent stages** |
 
-**Bottom line:** Results 6.1–6.5 substantiate the approved bounded scientific contributions; the highest-value remaining work is not additional gating or baseline experiments, but S1–S9 evidence packaging, editorial integration into Sections 7–8/Abstract, and final whole-paper consistency review.
+**Editorial decision:** Chapter 6's **scientific Results content and current standalone layout** are ready to serve as the evidentiary foundation for further manuscript stages. **The paper itself is not submission ready** until formal S1–S9 and subsequent sections are completed, approved and finally cross-checked.
 
 ## Primary sources and scope references
 
