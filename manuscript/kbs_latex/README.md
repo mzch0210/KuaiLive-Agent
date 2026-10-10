@@ -2,6 +2,16 @@
 
 This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems* manuscript.
 
+## Stage 2 complete — submission-oriented academic argument restructuring (2026-10-10)
+
+**CURRENT STATUS: Gate 2 PASS.** Sections **§1 Introduction, §6 Results and §7 Discussion** have been materially revised against the [authoritative paper outline](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md) and [Stage-1 paragraph/evidence audit](STAGE1_ARGUMENT_GATE1_ACCEPTANCE_2026-10-10.md), preserving the central Base-relative knowledge-value question, C1–C3, and the intended **§6.1→§6.2→§6.3** result order. Source revision commits: [§1 81c6142](https://github.com/mzch0210/KuaiLive-Agent/commit/81c614266b26012518b65d42547797857d14de5f), [§6 540b9d3](https://github.com/mzch0210/KuaiLive-Agent/commit/540b9d3f57764bfebebe7990f8fbc903ebabbfdc), [§7 739748c](https://github.com/mzch0210/KuaiLive-Agent/commit/739748c0980775b4319686d2e72f10523a3968df), final §6.3 layout sentence [cfc8676](https://github.com/mzch0210/KuaiLive-Agent/commit/cfc8676d707d7525023a957f3732452d6161f3d7).
+
+The detailed [Stage-2 revision and Gate-2 reviewer acceptance report](STAGE2_ARGUMENT_REVISION_AND_GATE2_REVIEW_2026-10-10.md) confirms byte-identical §2–§5 source relative to the Stage-1 baseline, preservation of all core frozen Twitch/KuaiLive/CPU results, **49 unique manuscript LaTeX labels and 28 resolved citation keys**, and unchanged integrated S1–S9. Discussion now emphasizes scientific interpretation instead of repeating Results and protocol histories; real negative Memory cases and positive CPU overhead remain visible.
+
+**Matching PDF and build: PASS.** [GitHub Actions #38039935659](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38039935659) compiled final source commit \`cfc8676d\` into a **28-page PDF**, [PDF/log artifact #11664854126](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38039935659/artifacts/11664854126). No final unresolved citation/reference, fatal error or overfull hbox; the initial 2.65pt overflow in a three-seed §6.3 sentence was resolved. Full 28-page visual review is a separate final Gate-4 task.
+
+**NEXT:** Stage 3—coordinate **§2 Related Work / §3 Problem Formulation / §4 Framework / §5 Experimental Setup** and manuscript-wide terminology/academic style under the frozen baseline; do not reopen §1/§6/§7 without a substantive cross-chapter inconsistency. After Stage 3, conduct Stage 4 journal-level reviewer acceptance and draft §8 Conclusion and Abstract. Historical stage-status notes below are preserved as an audit trail; this entry supersedes them for current status.
+
 ## Stage 1 complete — outline-aligned argument and evidence audit (2026-10-10)
 
 **Current editorial status:** Stage 1 of the [KBS outline-aligned argument revision plan](KBS_OUTLINE_ALIGNED_ARGUMENT_REVISION_PLAN_2026-10-10.md) is **complete and Gate 1 accepted**, with no modification to the canonical **main.tex** or integrated S1–S9 experiment evidence. The central scientific question, C1–C3, and the outline's prescribed Section 6 result order are preserved. The audit separately traces **Twitch frozen Utility selection** and **KuaiLive previously inspected candidate-regime analysis** rather than treating these as one cross-platform validated gate.
