@@ -242,7 +242,7 @@ For evaluation we compare the Utility score with a Base-Difficulty objective tha
 \section{Experimental Setup}
 \label{sec:experimental-setup}
 
-Two evidence settings test the same Base-relative question. Twitch/LiveRec supplies the frozen ranking-choice test and history-conditional diagnostics. KuaiLive supplies matched, fixed-checkpoint candidate-regime comparisons that probe when the measured advantage changes with the alternatives ranked. The model, evaluation population and candidates within each setting are summarized in Table~\ref{tab:exp-datasets}.
+Twitch/LiveRec and KuaiLive address complementary aspects of the same Base-relative question. Twitch provides the frozen selective-ranking test and history-state comparisons; KuaiLive tests candidate-regime dependence with matched users and checkpoints. Table~\ref{tab:exp-datasets} identifies each dataset's model, evaluation cohort and eligible candidates.
 
 \subsection{Datasets and Prediction Tasks}
 \label{sec:exp-data}
@@ -399,9 +399,9 @@ Unavailable & 14,397 & 0.21948 & 0.03734 & $-0.18215$ & $[-0.18681,-0.17715]$ \\
 \subsection{Decision Value of Predicting Relative Utility}
 \label{sec:results-decision}
 
-The recoverable-history gain motivates an actionable question: can decision-time history and Base-score summaries identify requests on which Memory improves the ranking? A Utility regressor and its threshold were selected from Twitch DEV out-of-fold predictions, then held fixed for the 44,221-event TEST evaluation. This pointwise policy invoked Memory 6,650 times (15.04\%).
+Can features available before a ranking decision identify requests on which Memory adds value? On Twitch, we fitted the Utility regressor and chose its threshold from DEV out-of-fold predictions, then fixed both for the 44,221-event TEST set. The policy selected Memory 6,650 times (15.04\%).
 
-The fixed Utility policy achieves NDCG@10 $0.58983$ versus $0.58211$ for always-Base (Table~\ref{tab:results-twitch-policy}), a paired gain of $+0.00772$ (95\% CI $[+0.00641,+0.00903]$). Its HR@10 gain is $+0.00945$ (95\% CI $[+0.00776,+0.01117]$). The 5,000 user-paired bootstrap resamples hold fitted predictions, threshold and observed decisions fixed, giving uncertainty for the realized ranking gain.
+Utility raises frozen Twitch TEST NDCG@10 from the Base's $0.58211$ to $0.58983$ (Table~\ref{tab:results-twitch-policy}), a paired gain of $+0.00772$ (95\% CI $[+0.00641,+0.00903]$). Its HR@10 gain is $+0.00945$ (95\% CI $[+0.00776,+0.01117]$). The 5,000 user-paired bootstrap resamples retain fitted predictions, threshold and selection decisions, measuring uncertainty in the observed ranking gain.
 
 Predicting specialist benefit produces better choices than merely predicting Base difficulty. At the Utility policy's observed 6,650 calls, the DEV-trained Difficulty score selects its highest-ranked TEST events and reaches NDCG@10 $0.58340$; Utility exceeds it by $+0.00644$ (paired 95\% CI $[+0.00528,+0.00762]$), with HR@10 difference $+0.01196$ (95\% CI $[+0.01033,+0.01364]$). This equal-count comparison isolates event selection: Difficulty uses retrospective TEST-batch top-$m$, whereas Utility uses its previously fixed pointwise threshold.
 
@@ -491,7 +491,7 @@ The component-level DEV contrast identifies a trade-off within the fixed special
 
 The Base's accessible history also matters. Across separately trained Twitch DEV Bases with contexts $L=8,16,32$, Base NDCG@10 rises from $0.52619$ to $0.57185$ and $0.59663$ while the same frozen Memory ranking remains at $0.52170$ (Supplementary Table~S6.1). Among users whose target state changes from recoverable to represented, Memory-minus-Base utility falls by $0.44748$ ($L=8\rightarrow16$; $n=5{,}055$) and $0.43229$ ($L=16\rightarrow32$; $n=3{,}617$). Those changes equal the negative Base improvements for fixed Memory and include differences in separately trained Base weights, alongside context length.
 
-Recurrence distance exhibits a similarly nonmonotonic association: Memory-minus-Base utility is $+0.04606$ for the observed target creator's latest recurrence within 1--4 earlier interactions, $-0.15268$ at 9--16 and $+0.25668$ at 17--32 (Supplementary Table~S6.4). These target-defined distance groups differ in user activity and ranking context, making them explanatory descriptions rather than serving-time features.
+Target-creator recurrence distance has a nonmonotonic association with Memory's incremental utility: $+0.04606$ NDCG@10 at 1--4 interactions since the latest occurrence, $-0.15268$ at 9--16 and $+0.25668$ at 17--32 (Supplementary Table~S6.4). These target-defined bins also differ in user activity and candidate difficulty; their contrasts characterize historical context rather than deployment features.
 
 Together, feature-family and history-context results support the central distinction: \emph{having} relationship evidence is different from \emph{gaining} utility over an already capable Base. Auxiliary Base checks provide context under limited, nonuniform training budgets (Supplementary Tables~S3.1--S3.3); their KuaiLive checkpoints are separate from the matched study in Section~\ref{sec:results-regimes}.
 
