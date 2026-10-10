@@ -73,7 +73,7 @@ Historical representation, knowledge fusion, expert routing and sampled ranking 
 \section{Problem Formulation}
 \label{sec:problem}
 
-The formulation follows the decision from an eligible ranking event to its realized specialist benefit, its pre-outcome conditional expectation, and the resulting choice of ranking. The same event-level definition supports both a selective policy and comparisons across candidate environments.
+An auxiliary relationship specialist is valuable for a recommendation event insofar as its ranking improves on the incumbent's result. We define this event-level contribution under a specified candidate regime, then relate its conditional expectation to selection decisions and changes in evaluation context.
 
 \subsection{Recommendation Setting and Event-Level Ranking Utility}
 \label{sec:event-utility}
@@ -101,7 +101,7 @@ Let $B$ denote a fixed base recommender and $M$ a fixed relationship-memory spec
 \end{equation}
 The sign of $\Delta_M(x)$ states whether the specialist improves, ties or worsens Base's ranking for the evaluated request. This is an \emph{operational} measure relative to a specified model pair and candidate regime: history acquires value through the improvement in the decision it enables.
 
-The realized $\Delta_M(x)$ is an offline supervisory quantity because computing it requires the observed target $y$ and the rankings produced by both $B$ and $M$. Selective specialist use must therefore estimate its conditional expectation from information available before $y$ is known.
+The realized $\Delta_M(x)$ is an offline supervisory quantity defined using the observed target $y$ and both candidate rankings. Decision-time selection instead relies on the expected difference given observable information.
 
 \subsection{Conditional Relative Utility}
 \label{sec:conditional-utility}
@@ -112,7 +112,7 @@ Let $R$ index the operating recommendation condition under which candidate const
     =\mathbb{E}\!\left[\Delta_M(X)\mid Z=z,R=r\right].
     \label{eq:eta}
 \end{equation}
-When training and evaluating within a fixed regime, we suppress $r$ for notational simplicity. A learned estimator $\hat{\eta}_r(z)$ scores events by expected specialist-minus-base value; Section~4 specifies its implementation.
+Within a fixed regime we suppress $r$ when unambiguous. An estimator $\hat{\eta}_r(z)$ uses the available descriptors to predict specialist-minus-base ranking value before the event outcome.
 
 Let $a(Z)\in\{0,1\}$ denote a pre-outcome selection policy, where $a(Z)=0$ uses the base ranking and $a(Z)=1$ uses the specialist ranking. This includes development-frozen score-threshold policies but excludes any dependence on the realized target. For an evaluated event $x$, define $u_K^{\mathrm{sel}}(x;a)=(1-a)u_K(B,x)+a\,u_K(M,x)$. The expected improvement over always using the base satisfies
 \begin{align}
@@ -121,9 +121,9 @@ Let $a(Z)\in\{0,1\}$ denote a pre-outcome selection policy, where $a(Z)=0$ uses 
     =\mathbb{E}\!\left[a(Z)\eta_r(Z)\mid R=r\right].
     \label{eq:expected-selective-gain}
 \end{align}
-Equation~\eqref{eq:expected-selective-gain} gives the decision rationale for estimating $\eta_r$: under a fixed regime, expected gain over the base is determined by which events are selected and their conditional relative utility.
+Equation~\eqref{eq:expected-selective-gain} connects knowledge valuation to the selection objective: expected ranking improvement depends jointly on the chosen events and their conditional specialist-relative utility.
 
-The selector sees only $Z$, never the target $y$ or the realized utility difference. Later evidence-state groups and target-specific recurrence distances are retrospective outcomes, separate from decision-time inputs. Base Difficulty estimates the quality of $B$ alone; the desired $\eta_r$ estimates the \emph{difference} between the two rankings. A difficult Base event can therefore still be unsuitable for Memory.
+Decision-time predictors use $Z$; target-defined history states, recurrence distances and realized relative utility are available only for retrospective diagnosis or supervision. Base Difficulty concerns $B$ alone, whereas $\eta_r$ evaluates the advantage of substituting $M$. A poor Base ranking therefore need not imply a profitable specialist substitution.
 
 \subsection{Selective Invocation and Equal-Count Comparison}
 \label{sec:decision-rule}
@@ -133,9 +133,9 @@ Given $\hat{\eta}_r(z)$, a threshold selects the specialist whenever its predict
     a_{\tau_r}(z)=\mathbf{1}\!\left[\hat{\eta}_r(z)>\tau_r\right],
     \label{eq:utility-threshold}
 \end{equation}
-where a selected event uses $M$ and an unselected event uses $B$. This rule does not enforce an exact invocation count across future requests. The training and threshold-selection protocol is given in Section~\ref{sec:exp-freeze}.
+where a selected event uses $M$ and an unselected event uses $B$. The threshold is applied to requests individually; its realized invocation rate depends on the evaluated context distribution.
 
-At evaluation, the number of specialist calls produced by the fixed rule defines $m=\sum_{i=1}^{n}a_{\tau_r}(z_i)$. Matching another method to this same count isolates \emph{which events} it selects from \emph{how many} times the specialist runs. The score objectives and retrospective matching procedure are specified in Section~\ref{sec:exp-comparators}.
+For a set of $n$ evaluated requests, the frozen policy produces $m=\sum_{i=1}^{n}a_{\tau_r}(z_i)$ specialist calls. Comparisons at this observed count assess the quality of event selection separately from invocation frequency; the comparator's batch-level information access is specified in Section~\ref{sec:exp-comparators}.
 
 \subsection{Regime-Level Utility Decomposition}
 \label{sec:regime-decomposition}
@@ -147,13 +147,13 @@ A change in aggregate specialist value can reflect a changed distribution of evi
     \,\mathbb{E}\!\left[\Delta_M(X)\mid S=s,R=r\right].
     \label{eq:regime-decomposition}
 \end{equation}
-Equation~\eqref{eq:regime-decomposition} is a descriptive partition of value across states. It provides a common account of history-related heterogeneity even when the underlying candidates or Base change; the methods in Section~\ref{sec:experimental-setup} specify which quantities are held fixed in each experiment.
+Equation~\eqref{eq:regime-decomposition} decomposes observed knowledge value into state prevalence and state-conditional ranking utility. Its interpretation remains relative to the specified incumbent and candidate environment; the paired evaluation designs distinguish these sources of variation.
 
 
 \section{Base-Relative Evidence Valuation Framework}
 \label{sec:framework}
 
-Figure~\ref{fig:framework} connects the mathematical estimand with an executable ranking choice. Base provides candidate scores and default ranking; a transparent historical specialist provides the alternative; and a predictor uses decision-time descriptors to determine which ranking to return. Realized target outcomes supervise and diagnose the choice offline.
+The framework implements relative-utility valuation through three complementary components (Figure~\ref{fig:framework}): a trained Base that supplies the default ranking, a fixed relationship-memory specialist that supplies the alternative, and a predictor of their expected utility difference constructed from decision-time information. Observed targets provide learning and diagnostic evidence only in offline analysis.
 
 \begin{figure}[t]
 \centering
@@ -184,9 +184,9 @@ Figure~\ref{fig:framework} connects the mathematical estimand with an executable
 \subsection{Strong Sequential Base Recommenders}
 \label{sec:framework-base}
 
-KuaiLive uses a Dual-ID sequential Base with room-level and streamer-level SASRec branches. The room branch represents individual live sessions; the streamer branch connects sessions involving one creator. Both score the eligible \emph{rooms}, and their within-candidate standardized scores are fused by development-selected coefficients. This preserves the room prediction task while providing persistent identity context. Fusion settings for the distinct evaluated protocols belong to Section~\ref{sec:exp-freeze}.
+KuaiLive uses a Dual-ID sequential Base with room-level and streamer-level SASRec branches. The room branch represents individual live sessions; the streamer branch connects sessions involving one creator. Both score the eligible \emph{rooms}, and their within-candidate standardized scores are fused by development-selected coefficients. This preserves next-room ranking while exploiting persistent streamer identity as part of the incumbent's own representation. Fusion coefficients are selected separately for the experimental candidate protocols.
 
-For Twitch/LiveRec, Base is the availability-aware LiveRec recommender \cite{rappaz2021liverec}, including context and repeat-consumption components (input length 16). Both datasets therefore instantiate the same Base-relative decision criterion with different recommendation units and incumbent model architectures; Section~\ref{sec:exp-data} specifies their candidates and time splits.
+For Twitch/LiveRec, Base is the availability-aware LiveRec recommender \cite{rappaz2021liverec}, including context and repeat-consumption components (input length 16). The two platforms instantiate the same Base-relative utility criterion with distinct ranking units and incumbent architectures, making the role of the designated Base explicit in each comparison.
 
 \subsection{Transparent Relationship-Memory Specialist}
 \label{sec:framework-memory}
@@ -202,7 +202,7 @@ s_M(u,i,t)=
 \label{eq:memory-scoring}
 \end{equation}
 
-The same scoring coefficients, short-history horizon and decay are used on both platforms; a candidate without prior interaction may still receive a nonzero popularity score. Candidates are ordered by score with deterministic identifier-based tie-breaking. In KuaiLive, distinct rooms mapped to one creator can consequently share a Memory score; Twitch candidates are streamers directly. The eligibility of pre-target records and platform-specific timing conventions are given in Section~\ref{sec:exp-data}. The fixed specialist supplies an interpretable alternative ranking rather than a learned fusion layer.
+The same scoring coefficients, short-history horizon and decay are used on both platforms; a candidate without prior interaction may still receive a nonzero popularity score. Candidates are ordered by score with deterministic identifier-based tie-breaking. In KuaiLive, distinct rooms mapped to one creator can consequently share a Memory score; Twitch candidates are streamers directly. The eligibility of pre-target records and platform-specific timing conventions are given in Section~\ref{sec:exp-data}. The fixed specialist defines an interpretable alternative ranking against which the incremental value of relationship evidence can be measured.
 
 \subsection{Base-Relative Relationship-Evidence States}
 \label{sec:framework-states}
@@ -218,21 +218,21 @@ S_L(x)=
 \label{eq:diagnostic-states}
 \end{equation}
 
-These states are properties of the \emph{observed target relative to the Base input}, not of a directly observable deployment label. Represented means visible in the input window; it does not assert successful representation learning. None of $S_L$, target recurrence distance or realized $\Delta_M$ is included in the decision-time vector $Z$.
+These target-relative states describe input visibility for retrospective evaluation. In particular, \emph{represented} denotes membership in the Base input window rather than an assumption about what its trained representation has learned. The selector's observable vector $Z$ excludes $S_L$, target-specific recurrence distance and realized $\Delta_M$.
 
 \subsection{Observable Features and Conditional Relative-Utility Estimation}
 \label{sec:framework-estimation}
 
 The estimator $\hat{\eta}_r(z)$ predicts the development-event utility difference $\Delta_M(x)$ from pre-outcome history and Base-score descriptors. Six history features summarize log history length, creator repeat rate, normalized preference entropy, old-versus-recent Jensen--Shannon drift, circular temporal regularity, and composite history complexity. On Twitch, regularity uses phases modulo $144$ ten-minute steps, representing a daily cycle. Eight Base-score features comprise score standard deviation and range, top-1/top-2, top-1/top-5 and top-10/top-11 margins, the top score's standardized value, normalized score entropy, and top-ten softmax mass. These quantities summarize candidate ranking patterns; entropy and softmax mass are not assumed to be calibrated uncertainty estimates.
 
-The composite history-complexity descriptor weights percentiles of entropy, preference drift and log history length by $0.4$, $0.4$ and $0.2$. For Twitch, the reference percentile distributions are determined from unlabeled development features and then reused during evaluation; KuaiLive uses eligible split-specific past-history reference pools. These transformations are based on pre-outcome information, not the target or the diagnostic evidence state. Training the regression estimator, selecting its threshold and evaluating frozen policies are described in Section~\ref{sec:exp-freeze}.
+The composite history-complexity descriptor weights percentiles of entropy, preference drift and log history length by $0.4$, $0.4$ and $0.2$. The transformations use pre-outcome features and preserve the target-independent decision context. Reference-pool construction and estimator fitting follow the split-specific protocol in Section~\ref{sec:exp-freeze}.
 
 \subsection{Specialist Selection and Matched-Budget Controls}
 \label{sec:framework-controls}
 
-At decision time the system scores candidates with Base, constructs $Z$, estimates $\hat{\eta}_r(Z)$ and invokes Memory only if the threshold rule in Eq.~\eqref{eq:utility-threshold} selects it. The method consequently uses history evidence as a conditional alternative ranking rather than fusing its score indiscriminately into every Base result.
+For each request, Base scores form part of $Z$, and the utility estimator predicts whether the separately scored Memory ranking is expected to improve the decision. Equation~\eqref{eq:utility-threshold} then returns either the incumbent or specialist ranking, making historical knowledge use conditional on predicted relative benefit.
 
-For evaluation we compare the Utility score with a Base-Difficulty objective that predicts $1-u_K(B,x)$ from the same feature family. The independent roles of these predictors follow Eq.~\eqref{eq:eta}; the retrospective equal-count comparator and hindsight Oracle are defined in Section~\ref{sec:exp-comparators}, where their label access and evaluation limits can be specified precisely.
+The competing Base-Difficulty objective predicts $1-u_K(B,x)$ from the same pre-outcome feature family, thereby separating incumbent difficulty from specialist-relative benefit. Their evaluation, including the retrospective matched-count comparator and hindsight Oracle, is defined in Section~\ref{sec:exp-comparators}.
 
 
 \section{Experimental Setup}
