@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-10  
 **Scope:** Existing **§§1–7**, formally published nearest prior art, integrated **S1–S9**, PDF display QA, journal-facing requirements and next-stage writing readiness.  
-**Status:** **Seven-chapter scientific/rhetorical Gate 4-A PASS after a one-caption precision repair; full submission readiness HOLD** until §8 Conclusion, Abstract, author-approved declarations and final submission materials exist. Exact-source final PDF success / final artifact must be recorded below following GitHub Actions completion.
+**Status:** **Gate 4-A (seven-chapter scientific/rhetorical review) PASS; Gate 4-B (exact-source PDF source/visual integrity) PASS; final submission readiness HOLD** until §8 Conclusion, Abstract, author-reviewed declarations and final submission materials exist. This seven-chapter review does not constitute a complete submission.
 
 **Authoritative paper outline:** [KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md).  
 **Evidence:** [S1–S9](SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md).  
@@ -10,7 +10,7 @@
 **Stage-4 source precision update:** [commit 70adf0c](https://github.com/mzch0210/KuaiLive-Agent/commit/70adf0c4620fa7454f6a4fd71e955f0eb9c32721), canonical [main.tex](main.tex), exact source blob **37c0b5fbefb945174aa13b18da80d8af87b502a3**.  
 **Original Stage-3 source:** [db6f9654](https://github.com/mzch0210/KuaiLive-Agent/commit/db6f96545fdbdede198f4a129a29f6db0735a92b), blob **afee37b087dee507f908e0d16816cd462daf7823**.  
 **Pre-correction PDF:** [GitHub Actions #38040591733](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38040591733), corresponding 28-page PDF and logs [artifact #11665259920](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38040591733/artifacts/11665259920).  
-**Final source matched build:** [GitHub Actions #38041650582](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38041650582). The final status, PDF pages, citations, overfull warnings and source-matched visual recheck are a separate record to complete when the run finishes.
+**Final source-matched build PASS:** [GitHub Actions #38041650582](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38041650582), source commit 70adf0c, [PDF/log artifact #11666461686](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38041650582/artifacts/11666461686). Generated a 28-page PDF; compile, PDF validity and artifact upload passed with zero overfull hboxes, undefined citations/references and fatal errors.
 
 ## I. Independent editorial verdict (different from earlier self-acceptance)
 
@@ -71,7 +71,7 @@ Other scientific boundaries (retrospective history labels, sampled metric, negat
 
 On that 28-page PDF, main chapter positions are Introduction p1, Related Work p2, Problem Formulation p4, Framework p7, Setup p10, Results p15, Discussion p21, References p24. The **first page has no Abstract** because it has not yet been written; absence is a completion blocker, not a PDF rendering error. Final page-by-page QA must be repeated at least for changed front matter / last pages when §8/Abstract are added.
 
-**Following the one-caption edit** (commit \`70adf0c\`), the exact-source final build **#38041650582** must be checked and its final PDF verified. Do not present the prior \`db6f9654\` visual check as if it had examined the corrected caption.
+**After the one-caption edit** (commit 70adf0c), the final exact-source [build #38041650582](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38041650582) **PASSED**. The 28-page PDF was downloaded and its updated Table 2 on page 13 rendered and examined at high resolution: no clipping, collision, orphaning or table overflow is visible. The full previous-version 28-page visual review and focused final-source table recheck jointly establish Stage-4 PDF integrity at the current scope. After writing the Abstract, Conclusion and author declarations, a fresh full-pagination audit will be required.
 
 ### R6. Referencing and formal publication metadata — PASS in validated scope
 
@@ -105,4 +105,4 @@ Publication information in the current BibTeX conforms in these checked cases; *
 | **P1 required final-manuscript components** | **No Abstract, no §8 Conclusion, author record placeholder and no author-confirmed declarations** | **Submission HOLD** |
 | **P2 source cleanup** | One uncited BibTeX record, final KBS-specific Guide for Authors rules not independently retrievable, exact final-source PDF visual recheck to close | **Do at final package stage** |
 
-**Gate-4 disposition:** Existing **seven-chapter research narrative is suitable as a stable base for writing §8 Conclusion**, after actual final-source build pass. **Do not call the whole manuscript “submission-ready” yet.** The next authoring sequence should be (1) §8 factual bounded Conclusion; (2) concise independent Abstract; (3) Highlights and truthful AI/data/funding/author declarations, possibly in separate submission files; (4) final current KBS-specific author-guide and final PDF whole-page review. Avoid reopening accepted §§1–7 for incremental stylistic preferences unless a concrete contradiction appears.
+**Gate-4 disposition:** **PASS for current §§1–7 substantive review and matching-PDF technical integrity.** The seven-chapter research narrative is suitable as a stable base for writing §8 Conclusion. **Do not call the whole manuscript “submission-ready” yet.** The next authoring sequence should be (1) §8 factual bounded Conclusion; (2) concise independent Abstract; (3) Highlights and truthful AI/data/funding/author declarations, possibly in separate submission files; (4) final current KBS-specific author-guide and final PDF whole-page review. Avoid reopening accepted §§1–7 for incremental stylistic preferences unless a concrete contradiction appears.
