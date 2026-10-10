@@ -112,6 +112,10 @@ The existing Twitch GRU4Rec-small/SASRec-small models were trained with restrict
 
 ## 6. Optional P2 experiments and conditions for undertaking them
 
+**2026-10-10 post-Phase-2 update (authoritative prioritization addendum):** See the [Stage-3 reprioritization decision](manuscript/kbs_latex/SECTION6_STAGE3_REPRIORITIZATION_DECISION_2026-10-10.md). S4/S7 source-pinned DEV results reduce the need for additional Gate objectives and Base retraining; fixed-checkpoint KuaiLive candidate size/draw P2 is the **first priority only if any new experiment is undertaken**, remains optional and post-hoc, and depends on recovering exact frozen scores/model identities and a need to assert robustness across sampled-negative lists. The Long-only versus Full Memory ranking-variant trade-off must be addressed by evidence-boundary explanation, **not** a new TEST-optimized specialist. C1–C3 novelty and the preexisting optional status of P2 are unchanged.
+
+
+
 ### P2a — same-checkpoint KuaiLive repeated negative-sampling sensitivity
 
 This test is absent in the exact proposal, despite four earlier **retrained-model** candidate-seed runs and a distinct 20-negative official-exposure protocol. Authorize P2 only if the desired final prose needs stronger statements about robustness to particular sampled-negative lists/sizes than the current fixed-\(S\)/\(F\) paired contrast warrants.
