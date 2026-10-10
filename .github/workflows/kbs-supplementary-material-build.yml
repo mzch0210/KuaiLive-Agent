@@ -50,6 +50,16 @@ jobs:
             --pdf-engine=xelatex \
             -o supplementary_information.tex
           test -s supplementary_information.tex
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('supplementary_information.tex').read_text()
+          assert r'\\Delta' in s, 'Mathematical delta unexpectedly missing'
+          assert r'\\mathrm{membership}' in s, 'Factorial identity rendered as text, not math'
+          assert not re.search(r'\\Delta\\(?:emph|textbf)\\b',s), 'TeX math markup was corrupted by converter'
+          assert re.search(r'\\\\\\(\\Delta_\\{FF\\}',s), 'Paired factorial identity not in math mode'
+          print('CRITICAL S5 math mode guard PASS')
+          PY
           cd ../..
           python analysis/kbs_supplement_tex_postprocess.py manuscript/kbs_latex/supplementary_information.tex
       - name: Compile supplementary PDF in isolated LaTeX container
@@ -63,6 +73,13 @@ jobs:
           set -euo pipefail
           test -s manuscript/kbs_latex/supplementary_information.pdf
           ls -lh manuscript/kbs_latex/supplementary_information.pdf
+          python - <<'PY'
+          from pathlib import Path
+          log=Path('manuscript/kbs_latex/supplementary_information.log').read_text(errors='replace')
+          for failure in ('! LaTeX Error:', '! Undefined control sequence.', 'Missing $ inserted.', 'Emergency stop', 'Fatal error occurred'):
+              assert failure not in log, f'Unacceptable PDF compilation problem: {failure}'
+          print('Final LaTeX error/undefined-math guard PASS')
+          PY
       - name: Retain scholarly supplementary PDF, source and log
         if: always()
         uses: actions/upload-artifact@v4
