@@ -54,7 +54,7 @@ Arithmetic independently checked against manuscript precision: Twitch state coun
 
 A source-level read of the current canonical LaTeX identified **25 distinct \`\\cite\` keys present in the BibTeX source**, **43 uniquely defined \`\\label\` values**, and **zero unresolved textual \`\\ref\`/\`\\eqref\` keys**. Main Section 6 refers to **Supplementary S3, S4, S5, S6, S7 and S9**, all of which now exist within a single S1–S9 manuscript. Standalone original drafts for S4/S5/S7/S9 remain retained as immutable historical evidence inputs; the **unified** file is the one intended for compilation.
 
-The complete nine-chapter supplementary source and Table Sx.y labels must pass CI conversion/compilation and PDF render inspection before declaring the compiled deliverable technically final. Actual source and downloadable PDF/CI artifact identifiers are to be inserted **only after a successful matching compiled run**. This report deliberately does not invent an artifact status.
+**Technical PDF gate PASSED.** The [exact-source, fail-closed GitHub Actions #38019908447](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38019908447), [artifact #11658120976](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38019908447/artifacts/11658120976), compiled the unified nine-section, 23-table supplementary source into a **25-page searchable PDF**. The source includes an in-line mathematical ΔFF−ΔSS identity in **genuine LaTeX math mode**, which was verified in the generated TeX as well as the extracted PDF text. The CI workflow hard-fails on damaged equations, malformed table counts or compile errors. PDF log has **zero LaTeX errors, zero overfull hboxes** (some tolerable underfull lines), and 23/23 Table Sx.y captions. All four landscape tables on pages 4, 10, 13 and 21 start with their own caption on the same page and contain legible full-width rows. Representative first, last, long-table and S5 formula pages were rendered and inspected. This verifies technical preparation, **not journal-specific formal approval or full manuscript submission readiness**.
 
 ### Missing required manuscript components (blocking full journal submission)
 
@@ -74,9 +74,9 @@ The complete nine-chapter supplementary source and Table Sx.y labels must pass C
 | Exact source-to-main claim/evidence crosswalk, no changed C1–C3 | **PASS with explicit source limitations** |
 | Independent numeric consistency from archived evidence | **PASS for highlighted primary statistics** |
 | Corrected context-length Memory invariance | **PASS (repaired source only)** |
-| Formal PDF compile + render/caption audit | **PENDING exact-source CI and visual signoff** |
+| Formal PDF compile + render/caption audit | **PASS**, 25 pages, source-verified Actions #38019908447, no missing table/caption or LaTeX error |
 | All historical checkpoint SHA files publicly archived indefinitely | **NOT VERIFIED** |
 | Main Abstract/Sections 7–8 and declarations complete | **NOT YET** |
 | Final manuscript + supplement authorized for KBS upload | **NO — do not claim submission ready** |
 
-**Editorial recommendation:** The compilation of scientific supplementary text is substantially complete. The remaining **highest-value steps are actual PDF typesetting/QA, author source-fingerprint and data rights review, then separately authorized Discussion/Conclusion/Abstract drafting**. Extra P2 sampling, Gate model training or new Base fitting is not required for the existing bounded C1–C3 claims.
+**Editorial recommendation:** The scientific supplementary text **and technical PDF typesetting/QA are complete**. The remaining highest-value steps are **author source-fingerprint review, rights/archival permanence and KBS journal-specific submission-file verification**, followed by separately authorized Discussion/Conclusion/Abstract drafting. Extra P2 sampling, Gate model training or new Base fitting is not required for the existing bounded C1–C3 claims.
