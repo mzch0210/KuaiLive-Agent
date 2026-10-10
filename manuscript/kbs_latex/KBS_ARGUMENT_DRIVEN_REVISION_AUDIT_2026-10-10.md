@@ -93,12 +93,20 @@ A single clearly placed methodological statement and a localized Discussion limi
 
 Discussion §7, Conclusion §8, and Abstract remain absent in the canonical manuscript. Coauthor scientific review, formal author/declaration data, KBS-specific live guide verification, long-term source artifact archiving, and complete final-paper post-authoring typesetting remain separately required.
 
+## 5. Exact-source manuscript and PDF verification — completed
+
+- **Final revised canonical main.tex source commit:** [687814ccca7884b3eee91121fcf8cd4e521e6531](https://github.com/mzch0210/KuaiLive-Agent/commit/687814ccca7884b3eee91121fcf8cd4e521e6531).
+- **Matching paper build:** [GitHub Actions #38026274590](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38026274590), [PDF/log artifact #11659329125](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38026274590/artifacts/11659329125).
+- **Technical check:** the complete **27-page PDF** and build log were downloaded. All **25 cited keys** occur in the BibTeX; **43 unique labels** have no duplication, and no `\\ref`/`\\eqref` is unresolved. The supplementary cross-references match existing S1–S9 Table Sx.y captions. No LaTeX error, undefined citation/reference, or new overfull box; one original **5.51282-pt** overfull line persists outside the Results.
+- **Visual check:** pages 16–24 were rendered; §6.1 exhibits precede §6.2, the three 6.2 conditional means and Table 4 appear on **page 19**, and all of §6.5 remains on **page 23**. **References begins page 24.** There is no orphan computational paragraph after References, clipped data row or cross-subsection evidence table.
+- **Scientific scope:** no original evaluation result, model, seed, threshold or CI changed. The three displayed event-subset means are exact consequences of existing frozen aggregates. Sections 7–8 and Abstract remain unwritten, and journal acceptance is not implied.
+
 ## 5. Acceptance and editorial gate
 
 - Confirm only intended text changed and **no C1–C3 novelty redefinition** occurred.
 - Recheck original n=44,221, m=6,650, n_unselected=37,571 and three new conditional mean identities.
 - Confirm 23 S1–S9 extended tables and all **Sx.y** pointers align.
-- Compile the exact GitHub `main.tex` revision; check missing citations, typography, float/table placement and the 6.5 versus References boundary. Matching run/verified artifact should be recorded **only when actually complete**.
+- **PASS:** final exact-source [GitHub Actions #38026274590](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38026274590) compiled and the 27-page PDF was visually reviewed (results through page 23; References page 24).
 - Preserve source and author-review distinction: a successful LaTeX build is a format validation, not a guarantee of KBS publication or acceptance.
 
 **Editorial verdict:** This scoped round completes the requested P1/P2 modifications and materially improves the **argument-first organization of Sections 1–6**. The next major gains in paper coherence will come from disciplined Discussion/Conclusion synthesis, not from loosening verified scientific boundaries or adding a new algorithm competition.
