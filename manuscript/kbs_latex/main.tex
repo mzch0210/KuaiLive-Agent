@@ -523,6 +523,15 @@ Sampled ranking metrics are already known to alter relative model comparisons \c
 
 The reversal persists across three trained checkpoint pairs and nine candidate draws spanning three sampled sizes (Supplementary S5 and S8), supporting directional stability within the examined KuaiLive protocol. Together, the Twitch and KuaiLive findings place evidence value at the intersection of historical context, the incumbent ranking rule, and the candidate environment. The next question is how much of that conditional value can be anticipated from information available at the moment of ranking.
 
+\subsection{From Relative Utility to Selective Decisions}
+\label{sec:discussion-selective-decisions}
+
+Conditional selection requires anticipating which ranking will benefit from relationship evidence before the target outcome is observed. From Eq.~\eqref{eq:expected-selective-gain}, the gain over Base is $\mathbb{E}[a(Z)\eta_r(Z)\mid R=r]$: invoking Memory is valuable when its expected incremental utility is positive on selected events. Base Difficulty instead estimates the incumbent's potential loss, irrespective of whether Memory can repair it. Thus, identifying a difficult recommendation request and identifying one on which an available knowledge specialist is preferable are distinct prediction problems.
+
+The frozen Twitch TEST experiment substantiates this distinction. A DEV-frozen Utility policy gains $+0.00772$ NDCG@10 over Base and $+0.00644$ over Difficulty at the same 6,650 Memory invocations (Section~\ref{sec:results-decision}). Under its realized selection mask, Memory-minus-Base utility averages $+0.05136$ on selected events and $-0.05890$ on unselected events. These descriptive contrasts show that the benefit depends on where the specialist is applied. Difficulty matches the realized invocation count by retrospectively selecting its top-ranked events over the TEST batch; it is consequently an equal-use event-selection control, while Utility is the independently DEV-frozen pointwise rule.
+
+Learning-to-Defer has established post-hoc expert allocation \cite{narasimhan2022posthoc}, while uncertainty-guided reranking provides a different adaptation signal \cite{xu2026guider}. The present result connects these decision ideas to a specific source of historical knowledge by learning the utility difference between two fixed rankers rather than predicting incumbent difficulty alone. The TEST Spearman correlation between predicted and realized relative utility is $0.173$, and Utility recovers approximately $11.7\%$ of the same-count hindsight Oracle's improvement over Base. Selective ranking can therefore benefit from imperfect relative-utility predictions, while calibrated event-level gains and serving costs remain separate empirical questions.
+
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
 
