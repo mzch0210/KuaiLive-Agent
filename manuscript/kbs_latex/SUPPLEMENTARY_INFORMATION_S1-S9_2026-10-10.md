@@ -235,8 +235,9 @@ The observed recoverable subgroup shows stronger performance for the long-histor
 ## S4.5 Reproducibility
 
 Original artifact input SHA256s:
-- Event scores: b84e187290a7df2918e3bd050c4ab0a6a2baac611f72eb72f8616c7634c0644b.
-- Original 20-row table: cc97794c49431c547ccf08a29da96bc275a900ed78a9ae71674b748b05e0750a.
+
+- Event scores: `b84e187290a7df2918e3bd050c4ab0a6a2baac611f72eb72f8616c7634c0644b`.
+- Original 20-row table: `cc97794c49431c547ccf08a29da96bc275a900ed78a9ae71674b748b05e0750a`.
 
 All rows and new paired contrasts can be reproduced without training or TEST access using [the stage-2 DEV replay source](https://github.com/mzch0210/KuaiLive-Agent/blob/main/analysis/kbs_section6_stage2_dev_replay.py). The original rank-level arrays remain available in Actions artifact 10688746451. 
 
@@ -308,10 +309,9 @@ These ranges are **descriptive**, not empirical 95% sampling-distribution CIs or
 
 For each sample size and draw, the crossed 2×2 design yields an event-level algebraic identity:
 
-\[
-\Delta_{FF}-\Delta_{SS}
-= A_{\mathrm{membership}}+A_{\mathrm{normalization}} .
-\]
+$
+\Delta_{FF}-\Delta_{SS}=A_{\mathrm{membership}}+A_{\mathrm{normalization}}.
+$
 
 Across the three fixed draws per size, the means of these **descriptive path-averaged terms** are:
 
@@ -331,7 +331,7 @@ This controlled fixed-checkpoint replay strengthens the **bounded** original C2 
 
 The known general fact that sampled ranking metrics can invert model orderings is due to prior work (Krichene and Rendle, *On Sampled Metrics for Item Recommendation*, CACM 65(7):75–83, 2022, DOI 10.1145/3535335; original KDD 2020). Our result is about the **observed Base-relative utility of a fixed interpretably scored relationship specialist on KuaiLive rooms**, not a new sampled-metric theorem, new gate training method, or causal attribution to sample count.
 
-**Submission organization:** One concise robustness paragraph appears in Results Section 6.3; all per-draw outcomes, confidence intervals, original rank reproduction and factorization belong here. The three alternative *training*-seed model realizations are reported separately in S8, not as nine new independent checkpoint seeds. This supplement is prepared for later unified S1–S9 submission formatting; coauthor verification and publisher-ready cross-reference packaging are still open.
+**Submission organization:** One concise robustness paragraph appears in Results Section 6.3; all per-draw outcomes, confidence intervals, original rank reproduction and factorization belong here. The three alternative *training*-seed model realizations are reported separately in S8, not as nine new independent checkpoint seeds. The paired-draw estimates and the three independently trained checkpoint realizations address distinct sources of uncertainty.
 
 ## S5.7 Archive manifest and exact source protocol
 
@@ -508,11 +508,12 @@ This analysis uses precomputed cross-fitted OOF prediction vectors, so the score
 
 The bounded conclusion is that **the original combined history + Base-score feature family supports positive relative-utility selection gains across this finite DEV operating grid**, with direct paired comparisons versus the restricted feature families and a Base-Difficulty objective. This is relevant to C3 but **not a new test of the frozen selector**.
 
-## S7.5 Reproducibility and remaining publication work
+## S7.5 Reproducibility
 
 Original archive member SHA256s:
-- OOF predictions: 25b5e560ce67d16221e483e9c18cad679eb28525ce0a8279ae91555726547627.
-- Original 3-family comparison: 58d835e0ae53c43fe1ae522fdefee83374ba4ae58900968ea741780cffe92e48.
+
+- OOF predictions: `25b5e560ce67d16221e483e9c18cad679eb28525ce0a8279ae91555726547627`.
+- Original 3-family comparison: `58d835e0ae53c43fe1ae522fdefee83374ba4ae58900968ea741780cffe92e48`.
 
 Reproduction source: [analysis/kbs_section6_stage2_dev_replay.py](https://github.com/mzch0210/KuaiLive-Agent/blob/main/analysis/kbs_section6_stage2_dev_replay.py). Input files reside in archived artifact **10688746451**. Its output tables contain **all six prediction orderings at the five budgets plus the original 6,563-call reference**, and direct paired contrasts for each; the entire output can be regenerated from archived inputs without model training. 
 
