@@ -1,6 +1,6 @@
 # Related Work: published-version bibliography audit (2026-10-08)
 
-**Original audit baseline (2026-10-08):** The 24 unique citations then used in Section 2 Related Work, plus 2 remaining entries in the BibTeX library. The formally published additions accepted on 2026-10-10 are audited in the addendum below; the canonical Section 2 now has 27 unique citations and the BibTeX contains 29 records. Verification prioritizes final journal publisher pages, official peer-reviewed conference proceedings (ACM/IEEE/PMLR/NeurIPS), stable DOIs and publication metadata. No preprint is used as the reference-of-record.
+**Original audit baseline (2026-10-08):** The 24 unique citations then used in Section 2 Related Work, plus 2 remaining entries in the BibTeX library. The formally published additions accepted on 2026-10-10 are audited in the addendum below; the canonical Section 2 now has 28 unique citations (25 were present immediately before this update, including the later-added sampled-metric citation) and the BibTeX contains 29 records. Verification prioritizes final journal publisher pages, official peer-reviewed conference proceedings (ACM/IEEE/PMLR/NeurIPS), stable DOIs and publication metadata. No preprint is used as the reference-of-record.
 
 **Original 2026-10-08 result:** All 24 then-current Related Work citations can be matched to formally published journal articles or conference proceedings. The two additional bibliography records also have final publication versions. This finding is limited to the verified set; it does not assert that Related Work covers all recent research.
 
@@ -72,7 +72,7 @@ The existing bibliography key `krichene2020sampled` was retained for backward co
 
 ## October 10, 2026 independent nearest-neighbor publication audit and manuscript revision
 
-**Source-level outcome.** Section 2 of [the canonical main.tex](main.tex) now compares three additional close neighbors in its existing evidence-integration, expert-choice, and live-room subsections. Corresponding final-version BibTeX records were added to [kbs_references.bib](kbs_references.bib); all previously cited 24 references remain in place. This is a substantive closest-work comparison, not citation-count padding. The total is now **27 unique Section-2 cited keys** and **29 bibliography entries** (the other two were already in the file). The accepted 7.1–7.2 text, all results, models, C1–C3 definitions and S1–S9 are unchanged.
+**Source-level outcome.** Section 2 of [the canonical main.tex](main.tex) now compares three additional close neighbors in its existing evidence-integration, expert-choice, and live-room subsections. Corresponding final-version BibTeX records were added to [kbs_references.bib](kbs_references.bib); all previously cited 24 references remain in place. This is a substantive closest-work comparison, not citation-count padding. The total is now **28 unique Section-2 cited keys** and **29 bibliography entries**. Of these 28, 24 were covered by the October 8 audit, one additional sampled-metric key was present in the accepted October 10 manuscript, and three are the new publisher-verified additions. The accepted 7.1–7.2 text, all results, models, C1–C3 definitions and S1–S9 are unchanged.
 
 | New BibTeX key | Official final publication | Verified metadata and link | Why this is actually close / what differs |
 |---|---|---|---|
