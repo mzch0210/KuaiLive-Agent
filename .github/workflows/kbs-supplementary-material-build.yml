@@ -1,0 +1,74 @@
+name: KBS S1-S9 supplementary PDF build and QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-supplementary-material-build.yml'
+      - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-supplement:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Markdown-to-LaTeX converter
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq pandoc
+      - name: Validate academic section/table structure and render TeX
+        run: |
+          set -euo pipefail
+          cd manuscript/kbs_latex
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md')
+          s=p.read_text(encoding='utf-8')
+          titles=[int(x) for x in re.findall(r'^# S([1-9])\.',s,re.M)]
+          assert titles==list(range(1,10)),titles
+          tables=re.findall(r'\*\*Table S([1-9])\.(\d+)\.',s)
+          assert len(tables)>=20,len(tables)
+          for section in range(2,10):
+              nums=[int(n) for k,n in tables if int(k)==section]
+              assert nums==list(range(1,len(nums)+1)),(section,nums)
+          assert 'n=44,221' in s or '44,221' in s
+          assert '10,222' in s
+          print('Supplementary structure and core cohort tokens PASS, tables:',len(tables))
+          PY
+          pandoc SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md \
+            -f markdown+pipe_tables+raw_tex+tex_math_dollars+yaml_metadata_block \
+            -t latex -s --toc --toc-depth=1 \
+            -V documentclass=article -V fontsize=10pt \
+            -V mainfont='DejaVu Serif' -V sansfont='DejaVu Sans' -V monofont='DejaVu Sans Mono' \
+            -V geometry:margin=0.75in -V colorlinks=true -V urlcolor=blue \
+            --pdf-engine=xelatex \
+            -o supplementary_information.tex
+          test -s supplementary_information.tex
+      - name: Compile supplementary PDF in isolated LaTeX container
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: supplementary_information.tex
+          working_directory: manuscript/kbs_latex
+          args: -pdfxe -file-line-error -halt-on-error -interaction=nonstopmode
+      - name: Verify deliverable and report source-backed section count
+        run: |
+          set -euo pipefail
+          test -s manuscript/kbs_latex/supplementary_information.pdf
+          ls -lh manuscript/kbs_latex/supplementary_information.pdf
+      - name: Retain scholarly supplementary PDF, source and log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kbs-s1-s9-supplementary-${{ github.run_id }}
+          path: |
+            manuscript/kbs_latex/supplementary_information.pdf
+            manuscript/kbs_latex/supplementary_information.tex
+            manuscript/kbs_latex/supplementary_information.log
+            manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md
+          if-no-files-found: warn
+          retention-days: 90
