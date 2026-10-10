@@ -307,11 +307,7 @@ These ranges are **descriptive**, not empirical 95% sampling-distribution CIs or
 
 ## S5.5 Scoring-reference allocation under independent draws
 
-For each sample size and draw, the crossed 2×2 design yields an event-level algebraic identity:
-
-$
-\Delta_{FF}-\Delta_{SS}=A_{\mathrm{membership}}+A_{\mathrm{normalization}}.
-$
+For each sample size and draw, the crossed 2×2 design satisfies the event-level algebraic identity \(\Delta_{FF}-\Delta_{SS}=A_{\mathrm{membership}}+A_{\mathrm{normalization}}\).
 
 Across the three fixed draws per size, the means of these **descriptive path-averaged terms** are:
 
