@@ -2,11 +2,11 @@
 
 This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems* manuscript.
 
-## Section 7.3 first manuscript draft (2026-10-10)
+## Section 7.3 draft and independent reviewer tightening (2026-10-10)
 
 The canonical [main.tex](main.tex) now includes **§7.3 From Relative Utility to Selective Decisions**, first drafted in [commit 3615a0a](https://github.com/mzch0210/KuaiLive-Agent/commit/3615a0a2542bfe497013efb2cb83ed20296b0caa), using the [independently optimized Discussion plan](SECTION7_KBS_DISCUSSION_WRITING_PLAN_2026-10-10.md). Three scholarly paragraphs connect the expected conditional specialist gain identity in §3 to the one-shot Twitch TEST Utility–Base and matched-count Utility–Difficulty comparisons in §6.2, then position the empirically supported selection benefit alongside published learning-to-defer and uncertainty-guided reranking work. The text retains the retrospective matched TEST count for Difficulty, the bounded TEST Spearman 0.173 and 11.7% same-count hindsight Oracle headroom capture. No retraining, TEST retuning, change to C1–C3 or change to §§7.1–7.2 was performed.
 
-**Status:** §7.3 first scholarly draft complete; its separate reviewer-style tightening, full Discussion consolidation and remaining §§7.4–7.5 are subsequent stages. Prior README statements that only §§7.1–7.2 exist refer to earlier source snapshots.
+**Updated status:** §7.3 has been independently [KBS reviewer-tightened](SECTION7_3_KBS_REVIEWER_TIGHTENING_2026-10-10.md) in [scoped source commit e8bec689](https://github.com/mzch0210/KuaiLive-Agent/commit/e8bec68935b63b8f6c15814cf73ae9fe911ddc52) and passed the exact-source [28-page LaTeX/PDF build #38035527234](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38035527234), [PDF/log artifact 11663801503](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38035527234/artifacts/11663801503). Validity boundaries §7.4 and synthesis §7.5 remain unwritten; subsequent full-Discussion reconciliation and rendered-page visual QA remain separate tasks. Historical README notes about draft-only §§7.1–7.2 reflect earlier source snapshots.
 
 ## October 10 independent Section 7 optimization and formal Related Work update
 
