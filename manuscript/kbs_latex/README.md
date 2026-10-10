@@ -2,6 +2,14 @@
 
 This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems* manuscript.
 
+## Current Section 7 Discussion writing status (2026-10-10)
+
+**Discussion 7.1–7.2 have been drafted and independently reviewer-tightened** in the canonical [`main.tex`](main.tex) at [source commit aa1d511d](https://github.com/mzch0210/KuaiLive-Agent/commit/aa1d511df190c9ec0a7dd29ae538636bc8d646f4). These sections interpret operational Base-relative history value and the interaction of target-defined evidence states with candidate-ranking regimes, following the approved [Section 7 writing plan](SECTION7_KBS_DISCUSSION_WRITING_PLAN_2026-10-10.md). The evidence scope, causal qualifications, literature positioning and page-layout edits are documented in the [KBS 7.1–7.2 reviewer audit](SECTION7_1_7_2_KBS_REVIEWER_TIGHTENING_2026-10-10.md).
+
+**Exact-source LaTeX/PDF PASS:** [GitHub Actions #38031685746](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38031685746), [downloadable PDF and build log artifact #11662401005](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38031685746/artifacts/11662401005), 26 pages, no overfull boxes or missing references. Actual rendered PDF confirms §7.1 ends on page 21 and §7.2 occupies page 22, ahead of the provisional References. Source comparison confirms the previously approved Sections 1–6 are byte-for-byte unchanged; neither original C1–C3 claims nor S1–S9 was revised.
+
+**Remaining scope:** **7.3, 7.4, 7.5, Conclusion and Abstract have NOT been written**. This is the first staged Discussion deliverable, not a final complete KBS manuscript. Older status paragraphs below predate 7.1–7.2 and are superseded in this respect.
+
 ## Current canonical revision: four-stage argument and scholarly style audit (2026-10-10)
 
 **Latest source of record:** [`main.tex` commit a9c42b87](https://github.com/mzch0210/KuaiLive-Agent/commit/a9c42b8742a69e826b9010c112566cd1bef19e44). An author-requested four-stage rewrite **has now completed**, following [the paragraph-level scientific argument map](KBS_FULL_MANUSCRIPT_ARGUMENT_MAP_STAGE1_2026-10-10.md): (1) map the C1–C3 argument and each chapter's role; (2) remove cross-chapter duplication, improve analytical Related Work and retain Methods-specific protocols; (3) tighten all Results 6.1–6.5 with finding-first scientific language; and (4) test mathematical, numeric and bibliographic invariants and visually verify the source-matched PDF. See [the full four-stage KBS reviewer audit](KBS_FOUR_STAGE_ARGUMENT_RESTRUCTURING_REVIEW_2026-10-10.md).
