@@ -1,0 +1,82 @@
+# KBS manuscript and Supplementary S1–S9: cross-chapter submission audit
+
+**Audit scope (2026-10-10).** Scientific coherence and reproducibility of the current English main manuscript **Sections 1–6**, and the newly assembled **S1–S9** supplement. **Discussion Section 7, Conclusion Section 8 and Abstract do not yet exist** in canonical \`main.tex\`; no audit should misrepresent these missing elements as reviewed/approved. This is an internal scholarly editorial review, not proof of editorial acceptance by the journal.
+
+**Canonical references:** [main manuscript](main.tex), last scientifically approved [whole-Section-6 reviewer audit](SECTION6_FINAL_WHOLE_CHAPTER_KBS_REVIEW_2026-10-10.md), [submission-oriented outline](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md), [complete compiled-source S1–S9](SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md). The established C1–C3 originality is **frozen**; none of the supplemental materials is used to claim a new general deferral algorithm, a new sampled-ranking theorem, causal Memory component attribution or online speedup.
+
+## 1. Editorial and journal-source requirements
+
+The official [Knowledge-Based Systems aims and scope](https://shop.elsevier.com/journals/knowledge-based-systems/0950-7051) explicitly includes original AI, recommender systems and intelligent prediction/decision support, balancing scientific principles and applied systems. The manuscript's operational, Base-relative conditional-utility design is within that topic range; it still needs an original and carefully evidenced claim rather than a generic comparison of arbitrary architectures.
+
+**Official Elsevier support**, [supplementary files guidance updated 2026-06-01](https://www.elsevier.support/publishing/answer/what-are-the-requirements-for-my-supplementary-material), says journal-specific requirements **vary** and authors must check the target journal's current **Guide for Authors**. The [Editorial Manager file-preparation guidance updated 2026-06-15](https://www.elsevier.support/publishing/answer/how-do-i-prepare-my-files-for-submission-in-editorial-manager) states that journal instructions supersede general rules, recommends distinct descriptive file names, and explains anonymization-sensitive filenames, metadata and artwork. **We could not independently fetch the full live KBS Guide-for-Authors text from ScienceDirect during this audit (access restricted), so no fabricated KBS-specific file-size, figure resolution, supplement word count, naming rule or peer-review anonymity policy is asserted.** This official guide and author requirements must be checked by the submitting author before uploading to Editorial Manager.
+
+**Package format decision:** One editable UTF-8 Markdown source with headings S1–S9, **23 individually numbered extended tables**, named source paths and provenance, compiled into a **separate searchable PDF** with a TOC and readable tables. This is suitable for coauthor and peer-review examination, **subject to** final KBS file-format requirements. Do not submit a series of internal review logs or source ZIPs as if they were the scientifically edited Supplementary PDF.
+
+## 2. C1–C3: cross-section and supplement traceability
+
+| Claimed contribution | Main paper location / main evidence | Supplemental destination / protocol | Reconciliation / allowed inference |
+|---|---|---|---|
+| **C1: operational value of fixed relationship evidence relative to a fixed Base** | Introduction C1; §3 defines \`Δ_M=u(M)-u(B)\`; §4 expert composition/states; **§6.1** Twitch frozen TEST Base **0.58211**, Memory **0.53980**, mean Δ **−0.04232**; recoverable n=5,539 has **+0.22045**; **§6.4** DEV fixed-expert sensitivity | **S1** temporal/target definition, **S2** model freeze, **S4** 20 DEV component/state cells and direct Long-only−Full paired CI **+0.10592 [0.10096,0.11061]**, **S6** context/recency | **PASS** only as this Base–specialist ranking contrast. Target-relative state and future observed target are *not* serving selector inputs; no information-theoretic causal value or learned optimized Memory weight claim. |
+| **C2: candidate-regime dependence of a fixed relative-utility comparator** | §3 candidate-regime event formalization; §5 matched 2×2 score reference; **§6.3** KuaiLive 10,222 users sampled **−0.041204**, full **+0.046307**, shift **+0.087511**; three independently trained model-seed shifts | **S1** negative eligibility, **S2** exact P0/P1 checkpoint SHAs, **S5** complete P0 algebra and nine P2 draws, **S8** model seed panel and state decomposition | **PASS as already-studied TEST post-hoc evidence.** Nine P2 sampled draws remain negative; full positive for original P0. Candidate size and composition change jointly. Do not combine three model seeds + nine RNG conditions as independent test cohorts. |
+| **C3: predictive utility of choosing a fixed specialist** | §3 pre-outcome conditional \`η_r\`; §4 14 features; §5 DEV OOF freeze; **§6.2** frozen Twitch TEST n=44,221 Utility **0.58983**, Base **0.58211**, retrospective matched Difficulty **0.58340**, Oracle **0.64806** | **S2** freeze/source run IDs; **S7** original DEV 6,563-call OOF and five further 5–30% top-m score replays; **S4** Memory diagnostics | **PASS for one frozen pointwise Utility threshold** versus the compared Base and retrospective same-count Difficulty, not for universally optimal gate objectives or advance-known online m. Oracle uses target outcomes and only bounds same fixed candidates/experts at the realized count. |
+| **Implementation cost limits** | §5.5 necessary settings; **§6.5** 15.04% frozen Twitch *invocation rate*, separate KuaiLive CPU sampled Base 0.991 ms versus Selective HGB 2.007 ms | **S9** alternative pipelines, cache and memory footprint, fitted HGB 81 trees, mask-replay caveat | **PASS** as descriptive warmed CPU scoring overhead; not Twitch latency, not evidence of saving deployment cost or online business uplift. |
+
+Arithmetic independently checked against manuscript precision: Twitch state counts **24,285+5,539+14,397=44,221**, weighted Memory−Base about **−0.04231595**; frozen Utility−Base **+0.00772303**, Utility−Difficulty **+0.00643765**, Oracle recovery ratio **0.11710789** (11.71%); KuaiLive P0 **+0.08826963−0.00075883=+0.08751080**; S8 state contributions **+0.038689−0.002216+0.048603≈+0.085075**. Rounding error is expected in tables but point estimands agree.
+
+## 3. Individual supplementary section acceptance
+
+| Section | Primary evidence source | Integrated scientific coverage | Status / release concern |
+|---|---|---|---|
+| **S1** Data provenance | Official KuaiLive Zenodo/repository; official LiveRec source; original exporter; 3 file hashes | Ranked unit, study cohort vs original raw data, train/DEV/TEST eligibility, non-target negative semantics, ten-minute crawl boundary | Complete within known source. Do not invent missing raw-dataset byte hashes or redistribute data contrary to owner license. |
+| **S2** Freeze and training | Twitch DEV 35698158121/TEST 35708072303; KuaiLive factorial 37751814645; P2 38014145900 | Three evidence tiers, HGB 200 maximum iterations versus auxiliary 81 fitted, 6,563 DEV vs 6,650 TEST calls; three KuaiLive SHA model pairs | Complete scientific identity **for P0/P1/P2**; **not** all historical native policy checkpoint bytes have verified SHAs. This is an explicit archival traceability limitation, not a silent equivalence. |
+| **S3** Comparators | Original Twitch artifact 10732332430, KuaiLive artifact 10733131820 | Complete independent 4-row Twitch DEV and 6-row KuaiLive auxiliary rankings, DEV selection, training-budget limits | Complete bounded evidence. KuaiLive 0.617142 reference panel is **not** §6.3's 0.607092 P0 checkpoint; no SOTA claim. |
+| **S4** Components | DEV original 35713931454/artifact 10688746451; verified replay 37959745609 | Five specialist ranking variants × four evidence groups and five direct paired recoverable contrasts | Complete observed fixed-score analysis, descriptive post-target stratification; no causal component ablation identification. |
+| **S5** Candidate regimes | P0/P1 37751814645; P2 38014145900/artifact 11655273833 | 2×2 protocol, nine draw-level Base/Memory, conditional CIs, decomposition, source checks | Complete. Original 575 distinct from new 575 RNGs; no cherry-picking, no fresh TEST status. |
+| **S6** Context and recency | Corrected context run 35877647543/artifact 10757614400; recency 35725938757 | 3-context Base model overall and state panels, repaired Memory invariance, 2 matched transitions, 7 recurrence bins | Complete **only for corrected aggregate**; original first context aggregate failed because of drift. Independently retrained Base cannot yield pure visibility causality. |
+| **S7** Decision budgets | OOF run 35713931454 and independent replay 37959745609 | 3 feature groups × 5 budgets + original K, Difficulty comparison and paired CIs | Complete **DEV-only top-m replay**; no multiple-testing control or online fixed-call policy claim. |
+| **S8** Checkpoint seeds | Trained seed job 37751814645 and reported hashes | Three trained model seeds and per-seed paired CIs, state contributions and SHAs | Complete. Across-model SD distinct from user bootstrap; not a 3-dataset test. |
+| **S9** Resources | Formal run 35730086758, gate-compression 35571827672 | Timing, heterogeneous hosts, full pipeline caveats, conditional complexity, cached file/process memory | Complete stated panel but limited to warmed CPU with **precomputed route masks**. Non-matched Ridge/Tiny-MLP invocation and utility prevent equal-quality speedup claim. |
+
+**Table/source discipline:** The unified document numbers extended exhibits as **Table Sx.y**, with **23 tables**; the main article retains its own one state figure/four Results tables. Repeated headline numbers in the supplement are required for reproduction, while full P2 nine-draw outcomes, 7 recency bins and detailed hardware footprints are **not repeated as full tables in the main article**.
+
+## 4. Model/data/statistical ambiguity checks
+
+1. **Historical KuaiLive Base non-equivalence.** The native sampled Base **0.60784**, auxiliary competitiveness sampled Base **0.617142** and matched P0 sampled Base **0.607092** arise under different training/weight protocols and must never be substituted into each other's paired Memory comparisons. The matched P0 full Base is **0.385712**.
+2. **Original P2 negative definition.** Samples current-time eligible non-target rooms; historical interactions with the user do not automatically exclude that room. The archived original 575 lists have prior-interaction-negative overlap for **433 users**, which is not a methodology defect if declared honestly; all new sampled subsets use the same eligibility definition.
+3. **Observation time and leakage.** KuaiLive uses room session half-open intervals; Twitch start/stop capture ten-minute observations, not exact session boundaries. Training popularity source and pre-target history gates differ and must remain distinct. Target-based evidence states are post-outcome diagnostics.
+4. **Three uncertainty levels.** Bootstrap resamples **users**, P1 varies **trained model initializations**, P2 varies **negative candidate draws** while holding a checkpoint; these are not independent sampling units to pool for a stronger confidence claim.
+5. **Multiple testing and OOF.** S4/S6/S7 are exploratory panels with fixed-score conditional CIs and no simultaneous multiplicity adjustment. DEV replays are not newly acquired TEST sets. 
+6. **No numerical deployment inference.** Twitch 15.04% is a route call frequency. KuaiLive HGB benchmark has **+1.016 ms** mean overhead on cached hosted CPUs; route masks are replayed despite timing gate predictions.
+7. **Reference alignment.** The main source defines Base-relative \`Δ\` consistently before any conclusions; KuaiLive and Twitch ranking units remain room and streamer respectively. No new S1–S9 result may silently change its original model or candidate task.
+8. **Score and table formatting.** Intervals are written as signed 95% conditional paired intervals, population denominator named, event vs user distinguished, positive included in all sampled total sizes, and DEV/Twitch TEST/KuaiLive post-hoc labels are explicit.
+
+## 5. Structural, bibliographic and source checks
+
+A source-level read of the current canonical LaTeX identified **25 distinct \`\\cite\` keys present in the BibTeX source**, **43 uniquely defined \`\\label\` values**, and **zero unresolved textual \`\\ref\`/\`\\eqref\` keys**. Main Section 6 refers to **Supplementary S3, S4, S5, S6, S7 and S9**, all of which now exist within a single S1–S9 manuscript. Standalone original drafts for S4/S5/S7/S9 remain retained as immutable historical evidence inputs; the **unified** file is the one intended for compilation.
+
+The complete nine-chapter supplementary source and Table Sx.y labels must pass CI conversion/compilation and PDF render inspection before declaring the compiled deliverable technically final. Actual source and downloadable PDF/CI artifact identifiers are to be inserted **only after a successful matching compiled run**. This report deliberately does not invent an artifact status.
+
+### Missing required manuscript components (blocking full journal submission)
+
+- **Main manuscript abstract not written.** The frontmatter currently has title, anonymous author and keywords only.
+- **Section 7 Discussion not written.** Must explicitly distinguish C1 operational value vs inherent information, C2 candidate/protocol confounding vs causal size effects, C3 bounded one-shot TEST gains, and warm CPU overhead.
+- **Section 8 Conclusion not written.** Must maintain same restrictions and avoid expanding novelty.
+- **Funding/declarations/CRediT/data-availability and appropriate corresponding-author metadata not verified**. Their exact required form must follow the live KBS Guide for Authors/Editorial Manager, not an imagined generic checkbox.
+- **Complete-source archival permanence not secured.** Existing Actions artifacts have limited retention; manuscript claims must not promise durable access to byte-level checkpoints until a real deposited archive and its licensing/privacy restrictions are settled.
+- **Coauthor and file-visibility sign-off not documented.** The unified supplement includes GitHub URLs and data-provenance paths; if the journal's exact review process requires double anonymization, prepare a correctly blinded review copy without falsifying traceability.
+- **References and data-license review still required before submission.** The current published KuaiLive/LiveRec sources and sampled metrics prior art were checked, but the full final references and author contribution metadata require an independent author pass.
+
+## 6. Gate status and recommended next action
+
+| Gate | Status |
+|---|---|
+| S1–S9 scientific sections created and consolidated | **PASS — nine authored sections and 23 editable tables** |
+| Exact source-to-main claim/evidence crosswalk, no changed C1–C3 | **PASS with explicit source limitations** |
+| Independent numeric consistency from archived evidence | **PASS for highlighted primary statistics** |
+| Corrected context-length Memory invariance | **PASS (repaired source only)** |
+| Formal PDF compile + render/caption audit | **PENDING exact-source CI and visual signoff** |
+| All historical checkpoint SHA files publicly archived indefinitely | **NOT VERIFIED** |
+| Main Abstract/Sections 7–8 and declarations complete | **NOT YET** |
+| Final manuscript + supplement authorized for KBS upload | **NO — do not claim submission ready** |
+
+**Editorial recommendation:** The compilation of scientific supplementary text is substantially complete. The remaining **highest-value steps are actual PDF typesetting/QA, author source-fingerprint and data rights review, then separately authorized Discussion/Conclusion/Abstract drafting**. Extra P2 sampling, Gate model training or new Base fitting is not required for the existing bounded C1–C3 claims.
