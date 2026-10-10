@@ -3,7 +3,7 @@
 **日期：2026-10-10；编辑范围：Introduction、Experimental Results、Discussion。**  
 **第一阶段基线：** [Gate 1 验收](STAGE1_ARGUMENT_GATE1_ACCEPTANCE_2026-10-10.md)、[95 段审计](STAGE1_PARAGRAPH_ARGUMENT_MATRIX_2026-10-10.md)、[P1/P2 队列](STAGE1_P1_P2_EDIT_QUEUE_2026-10-10.md)、[冻结数据](STAGE1_FROZEN_CLAIMS_AND_BASELINE_2026-10-10.md)。  
 **本阶段主稿源代码起点：** GitHub \`main\` \`f7cd9e7f48827eaded4109684bda70ee0e84d9ee\`；\`main.tex\` 旧 blob \`5222d53e071987d651e3d5cb2f1a7a51c8323954\`。  
-**本阶段主稿最终提交：** [739748c0980775b4319686d2e72f10523a3968df](https://github.com/mzch0210/KuaiLive-Agent/commit/739748c0980775b4319686d2e72f10523a3968df)，新 blob \`663f9a7cb66a78a450ba3172a437e1940386e1f8\`。  
+**本阶段主稿最终提交：** [cfc8676d707d7525023a957f3732452d6161f3d7](https://github.com/mzch0210/KuaiLive-Agent/commit/cfc8676d707d7525023a957f3732452d6161f3d7)，新 blob \`6e04bb654f3e950205be249b34cfeb62c36b9c25\`。章节级综合改写提交为 \`739748c\`，其后仅针对 §6.3 进行一处行宽优化。
 **科学主张依据：** [权威大纲](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md)，前六章和 [S1–S9](SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md)。
 
 ## 1. 修改记录与审稿结论（实际执行，不是未来计划）
@@ -13,8 +13,9 @@
 | [81c6142](https://github.com/mzch0210/KuaiLive-Agent/commit/81c614266b26012518b65d42547797857d14de5f) | **§1 Introduction** | A01, B01 | 重写 4 段科学动机/证据主线和末尾一句范围表达；以强 Base + 历史知识条件增益为核心张力；保留 Twitch 冻结政策与 KuaiLive 事后候选分析的互补性；保留原 C1–C3贡献列表。 | **§2–§7 完全一致** |
 | [540b9d3](https://github.com/mzch0210/KuaiLive-Agent/commit/540b9d3f57764bfebebe7990f8fbc903ebabbfdc) | **§6 Results** | A03–A05, B06–B09 | 定向替换 20 个论证段落；保持 §6.1→§6.2→§6.3 的冻结大纲顺序及原有主要图表；先表达数据所说明的条件知识价值、决策增益和候选环境依赖；在 §6.4 区分 DEV feature/Memory/Base 互补性证据；§6.5 先显示**真实正向 CPU 开销**而非暗示速度收益。 | **§1–§5 和 §7 完全一致** |
 | [739748c](https://github.com/mzch0210/KuaiLive-Agent/commit/739748c0980775b4319686d2e72f10523a3968df) | **§7 Discussion** | A06–A10, A11–A12 的本阶段科学叙事部分 | 依次解释：Base-relative relationship complementarity → candidate-regime-dependent operational valuation → utility-guided specialist choice → validity tiers → knowledge-based recommendation design principle。删去与 §6 重复的种子/抽样/状态均值/开销细节，保留必要证据和正式发表的最近邻对比。 | **§1–§6 完全一致** |
+| [cfc8676](https://github.com/mzch0210/KuaiLive-Agent/commit/cfc8676d707d7525023a957f3732452d6161f3d7) | **§6.3 排版补正** | Stage 2 QA | 将连续报告三个种子数值的长句改为方向性证据句，三个完整数值仍保留在 S8，针对首次编译出现的 2.65pt 溢出；无数据或结论变化。 | **仅 §6.3 单句** |
 
-所有三个源码操作均在指定的 LaTeX \`\\section{}\` 跨节锚点内检查修改范围。依第一阶段计划，\`main.tex\` 数值、公式、文献键、图表和 S1–S9 不做任何新实验式改动。
+所有四个源码操作（含一次行宽修复）均在指定的 LaTeX \`\\section{}\` 跨节锚点内检查修改范围。依第一阶段计划，\`main.tex\` 数值、公式、文献键、图表和 S1–S9 不做任何新实验式改动。
 
 ### 章节定位变化
 
@@ -55,7 +56,7 @@
 
 ## 4. 未解决事项与下一阶段依赖
 
-**Gate 2 的范围：** §1/§6/§7 的大纲叙事修复、实证论断与跨章科学作用检查、主稿源代码与 LaTeX 构建。当前已完成源码层面的这些修订，尚须以**最终源匹配的 GitHub Actions 成功构建**确认技术关口（工作流 [38039728285](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38039728285)，source commit \`739748c\`）。
+**Gate 2 的范围：** §1/§6/§7 的大纲叙事修复、实证论断与跨章科学作用检查、主稿源代码与 LaTeX 构建。当前已完成源码层面的这些修订，尚须以**最终源匹配的 GitHub Actions 成功构建**确认技术关口（最终工作流 [38039935659](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38039935659)，source commit \`cfc8676d\`）。
 
 **阶段三仍待执行：**
 - [A02 + B02] 最近邻比较与 Research Gap 的收束（§2）；不可将已发表的 L2D/不确定性动态排序误当成本稿首创。
@@ -64,4 +65,4 @@
 - §8 Conclusion、Abstract 仍不存在，直到阶段四后续工作才有已完成的稿件内容；不可宣称稿件可直接投稿。
 - 尚未执行“整篇 PDF 全页审阅”；来源比对、CI 编译和 PDF 视觉检查是不同质量关口。
 
-**本阶段编辑结论：** 核心大纲论点在 §1、§6、§7 形成一致的知识价值研究叙事；修订来自已有证据，没有用实验追加或过强修辞代替实证。全部三项源码修改可由单独 commit 回溯。只要最终 CI 确认通过，即可将 **Gate 2** 标为通过，转入阶段三而不重复对 §§1/6/7 作无目标的单节润色。
+**本阶段编辑结论：** 核心大纲论点在 §1、§6、§7 形成一致的知识价值研究叙事；修订来自已有证据，没有用实验追加或过强修辞代替实证。全部三项章节修订及一次排版补正均可由独立 commit 回溯。只要最终 CI 确认通过，即可将 **Gate 2** 标为通过，转入阶段三而不重复对 §§1/6/7 作无目标的单节润色。
