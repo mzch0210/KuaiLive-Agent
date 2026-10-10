@@ -479,7 +479,7 @@ Combined & 14 & $\mathbf{+0.00838}$ & $[+0.00713,+0.00963]$ & \textbf{0.18990} \
 \end{tabular}
 \end{table}
 
-Seven evaluated Memory configurations on Twitch DEV, including the fixed reference, vary long-term weight, short-window length or decay without retraining Base. The represented-negative, recoverable-positive and unavailable-negative signs persist across these settings; recoverable utility ranges from $+0.13852$ at long-weight 0.30 to $+0.28231$ at 0.60. This restricted sensitivity does not establish stability across arbitrary experts or learned selectors.
+Seven local Memory-parameter configurations on Twitch DEV, including the fixed reference, vary long-term weight, short-window length or decay without retraining Base. The represented-negative, recoverable-positive and unavailable-negative signs persist across these local perturbations; recoverable utility ranges from $+0.13852$ at long-weight 0.30 to $+0.28231$ at 0.60. This restricted result does not extend to the component-removal variants examined next or to arbitrary experts and selectors.
 
 The original component-level DEV replay (Supplementary~S4) compares Short, Long, Popularity and their combinations using unchanged candidates and Base. For 5,879 retrospectively recoverable targets, Long-only achieves NDCG@10 of $0.63890$, versus $0.53298$ for frozen Full Memory and $0.30201$ for Base. The within-user Long-minus-Full contrast is $+0.10592$ (95\% paired-bootstrap CI $[+0.10096,+0.11061]$); Short+Long obtains $0.58673$. These variant-level differences change candidate ordering and ties, so they are not causal component contributions or grounds for modifying the frozen specialist.
 
