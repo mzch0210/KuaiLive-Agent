@@ -7,6 +7,10 @@
 
 ## 1. Decisions in one view
 
+**Execution closure, 2026-10-10:** The conditional Stage-3B P2 has since been **executed and scientifically verified** on the exact frozen P0 KuaiLive checkpoints: [successful hosted CPU run #38014145900](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38014145900), [source-checked full result](SECTION6_STAGE3_P2_RESULTS_2026-10-10.md), [KBS reviewer decision](SECTION6_STAGE3_P2_KBS_REVIEWER_TIGHTENING_AND_REMAINDER_DECISION_2026-10-10.md), and [complete S5 draft](SUPPLEMENTARY_S5_CANDIDATE_REGIME_P2_DRAFT_2026-10-10.md). Nine predeclared 128/256/575 candidate draws each retain negative sampled Memory−Base while the unchanged full-active mean is positive. All 10,222 original per-user P0 ranks were reproduced. The newer reviewer decision supersedes this document's earlier prospective "if executed" language **for execution status only**. Stage 3C extra gate objectives and Stage 3D retraining/deployment experiments are **not scheduled** for the bounded approved C1–C3; only their documentary S2/S3/S8 obligations remain. Formal S1–S9 packaging and author approval are still outstanding.
+
+
+
 **YES, Phase 3 priorities change.** The original three P2 options are no longer equally valuable. Repeated gate-target or stronger-Base exercises should NOT be compulsory, because Phase 2 directly addresses the formerly important uncertainty about whether combined observable features outperform the two partial feature sets only at one post-selected invocation count. More importantly, Phase 2 does **not** test the stability of Section 6.3's KuaiLive sampled/full reversal to independent negative candidate draws. If any new computational experiment is justified, that fixed-checkpoint P2 protocol is first in line, **but remains conditional and retrospective**, not an entry condition to the manuscript's originality.
 
 | Candidate item | Before Phase 2 | New status | Decision criterion |
