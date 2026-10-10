@@ -33,6 +33,14 @@ The cross-section [retrospective academic audit of Sections 1–4](SECTIONS1-4_R
 The hosted PDF compilation workflow is `.github/workflows/kbs-manuscript-latex-build.yml`. The final 2026-10-08 structural revision passed [GitHub Actions build 37755123184](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37755123184) and produced [PDF/log artifact 11539737383](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37755123184/artifacts/11539737383). No LaTeX errors or overfull lines remain in Section 5; two small overfull warnings persist in earlier chapters. This confirms successful compilation, not final publication layout approval. Dataset training scale and supplementary evidence provenance still require submission-stage completion.
 
 
+## Section 6 Stage-3 scientific checks and optional P2 (2026-10-10)
+
+- [Stage-3A evidence and P2 feasibility audit](SECTION6_STAGE3_3A_FEASIBILITY_AND_SCIENTIFIC_BOUNDARIES_2026-10-10.md) confirms that S4 Memory-component findings are *retrospective fixed-expert variant comparisons* and that S7's budget-grid evidence is *DEV-only pointwise conditional*. Neither changes C1–C3 novelty or the frozen Twitch TEST policy.
+- Original KuaiLive P0 Room/Streamer checkpoint and frozen train/dev/test file hashes have been reverified from historic artifacts 11536890439 and 11534262601; [the predeclared P2 protocol](SECTION6_STAGE3_P2_PREDECLARED_PROTOCOL_2026-10-10.md) fixes 128/256/575 candidates × 3 RNG streams before any new scoring.
+- [Original-model P2 script](../../analysis/kbs_kuailive_p2_fixed_checkpoint_sampling.py) requires **exact event-level reproduction** of all 10,222 historical P0 ranking scores before emitting new results. Executed only on a GitHub-hosted CPU, not an owner-restricted self-hosted GPU. Candidate draws are explicitly **post-hoc already-inspected TEST diagnostics**, not an independent frozen TEST study.
+- The preliminary hosted workflow failed twice **before scoring** due to GitHub artifact cross-run/subdirectory configuration; later source pinned the actual source-run IDs and artifact extraction layout. Consult the [current hosted run](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38014145900) for run-specific outcome rather than assuming P2 completed.
+- Additional objective-gate architectures, new Base training, and online throughput benchmarks remain **deferred** without a concrete unresolved paper claim or validity concern.
+
 ## Section 6 Stage-2 research integration (2026-10-10)
 
 - **Source-checked DEV-only analytical reuse completed**, using the fixed original 46,878-user Twitch DEV OOF/Memory score outputs without new model training or TEST examination: [Stage-2 provenance and academic audit](SECTION6_STAGE2_S4_S7_REPLAY_AND_REVIEW_2026-10-10.md).
