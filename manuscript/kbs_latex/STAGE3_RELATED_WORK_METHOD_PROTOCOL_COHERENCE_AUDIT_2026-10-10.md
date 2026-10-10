@@ -1,11 +1,11 @@
 # 第三阶段｜Related Work、Problem Formulation、Framework 与 Experimental Setup 投稿级协调修订及 Gate 3 审查
 
-**日期：2026-10-10。主稿范围：§§2–5。阶段：第三阶段源码工作已完成，等待最终源码匹配构建验收。**
+**日期：2026-10-10。主稿范围：§§2–5。第三阶段已完成源码、证据一致性审查；最终 Gate 3 状态以源匹配构建结果验收。**
 
 - **权威大纲：** [KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md)。
 - **任务依据：** [四阶段修订计划](KBS_OUTLINE_ALIGNED_ARGUMENT_REVISION_PLAN_2026-10-10.md)、[第一阶段 P1/P2 队列](STAGE1_P1_P2_EDIT_QUEUE_2026-10-10.md)、[科学事实冻结基线](STAGE1_FROZEN_CLAIMS_AND_BASELINE_2026-10-10.md)。
 - **第三阶段之前主稿：** 第二阶段稳定源码 commit [cfc8676d](https://github.com/mzch0210/KuaiLive-Agent/commit/cfc8676d707d7525023a957f3732452d6161f3d7)，`main.tex` blob `6e04bb654f3e950205be249b34cfeb62c36b9c25`。
-- **第三阶段实际完成源稿：** commit [4123e6e0](https://github.com/mzch0210/KuaiLive-Agent/commit/4123e6e0e7e2b0354342e5d361dc5001cc8b843e)，`main.tex` blob `bd7b1452b4686f74c9d30eaac720b55891420b3c`。
+- **第三阶段实际完成源稿：** commit [db6f9654](https://github.com/mzch0210/KuaiLive-Agent/commit/db6f96545fdbdede198f4a129a29f6db0735a92b)，`main.tex` blob `afee37b087dee507f908e0d16816cd462daf7823`。其前一个 §5 主修订为 [4123e6e0](https://github.com/mzch0210/KuaiLive-Agent/commit/4123e6e0e7e2b0354342e5d361dc5001cc8b843e)。
 - **引用和实验依据：** [kbs_references.bib](kbs_references.bib)、[正式发表版本文献审查](RELATED_WORK_PUBLICATION_AUDIT_2026-10-08.md)、[S1–S9](SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md)。
 
 ## 一、执行结果：职责归位而非再次重构中心论点
@@ -15,6 +15,8 @@
 | [f1581e0b](https://github.com/mzch0210/KuaiLive-Agent/commit/f1581e0bf87b6da5971f7d18e689874494d0013c) | **A02/B02：Related Work** | 保留原有四组文献和 Research Gap，但各组沿明确比较轴组织：historical representation vs incremental decision value；fusion/reliability vs incumbent-relative specialist effect；general learning-to-defer/uncertainty routing vs fixed relationship-memory benefit；live-streaming representation vs candidate-dependent valuation。研究缺口由科学命题收束，而不是罗列他人没有完成的工作。 | 不声称 \(\Delta_M\) 是新数学定理，不将 post-hoc expert routing、MemRec 或 sampled-metric ordering 首创归于本文；保留已有全部已引用文献 |
 | [05060c04](https://github.com/mzch0210/KuaiLive-Agent/commit/05060c046504ed15c4e4bac44ad90c6a505e9b68) | **B03/B04：§3 Problem / §4 Framework** | §3 更清楚区分 event ranking utility、relative-utility supervision、pre-outcome conditional expectation、threshold decision、regime decomposition；§4 以 Base→fixed Memory alternative→relative-utility prediction→conditional output 串起公式和 Figure 1。目标相关状态仅承担 retrospective diagnosis，强化 observable vs target-dependent 信息角色。 | 公式与编号全部保持原样；不改变 Memory 系数、Base 配方、特征数量、历史记录资格或任何目标标签定义 |
 | [4123e6e0](https://github.com/mzch0210/KuaiLive-Agent/commit/4123e6e0e7e2b0354342e5d361dc5001cc8b843e) | **B05/B10：§5 Experimental Setup** | 将 Twitch DEV-fitted/threshold-frozen TEST、Base-Difficulty 和 Oracle 的 **hindsight top-m equal-call selection** 及 DEV-only estimators 置于 comparator/protocol 小节。KuaiLive 任务候选、原 fixed-checkpoint paired analysis、两种 score standardization 参考及 paired decomposition 明确保留。Bootstrap 与复现实验细节集中；方法比较表注精确区分冻结模型/阈值与事后 event selection。 | 没有把 Difficulty top-m 描述为独立固定 serving threshold；没有把原 KuaiLive 已检查 TEST 称为一次新冻结策略验证；candidate number/composition effects 不作因果分离推断 |
+
+**§5 最后一项精度修订：** [db6f9654](https://github.com/mzch0210/KuaiLive-Agent/commit/db6f96545fdbdede198f4a129a29f6db0735a92b) 将“估计器在 DEV 重新拟合并冻结应用 TEST”的笼统说法，收紧为**Twitch 冻结门控 TEST 的确切行为**，并将 KuaiLive 候选环境分析明确定位于**已检查 TEST 同队列的配对评价**。这保护跨章证据等级，未更动模型、阈值或结果。
 
 ## 二、按章工作归位及文字浓度
 
@@ -63,4 +65,4 @@
 
 ## 五、最终构建与 Gate 3 判定
 
-**最终精修源文件：** commit `4123e6e0`。匹配的 [GitHub Actions workflow run 38040451900](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38040451900) 由此提交触发；PDF 页数、最终轮次的未解析引用、BibTeX warning、Overfull hbox 及 artifact 下载将以该 run 的实际结果记录。此处先记录**源码级 PASS / Gate 3 待最终编译确认**，不预先把 in-progress 的构建冒称 success。
+**最终精修源文件：** commit `db6f9654`。前一稳定 commit `4123e6e0` 的 [GitHub Actions #38040451900](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38040451900) 已 **success**，28 页，0 个 Overfull hbox，artifact [#11665482024](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38040451900/artifacts/11665482024)。最后又单独调整了 §5 的 DEV-frozen 说法，明确其主验证对象是 Twitch 而 KuaiLive 的候选分析是同队列事后诊断；**最终匹配构建**是 [GitHub Actions #38040591733](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38040591733)，必须依据最终该 run 的实际完成结论更新 Gate 3 状态。
