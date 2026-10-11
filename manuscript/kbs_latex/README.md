@@ -2,6 +2,14 @@
 
 This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems* manuscript.
 
+## Verified second-pass eight-chapter narrative revision plan (2026-10-11)
+
+A fresh **full-manuscript, original-source, eight-chapter** audit has been completed following user concerns about scientific narrative coherence and defensive/procedural rhetoric. The [94-paragraph original-source audit](KBS_SECOND_PASS_94_PARAGRAPH_AUDIT_2026-10-11.md) distinguishes **23 P1 editorial priorities, 35 P2 scoped changes, 36 KEEP** paragraphs. These are scholarly editing priorities, not counts of erroneous experiments.
+
+The [KBS submission-oriented second-pass revision plan](KBS_PAPER_SECOND_PASS_SUBMISSION_NARRATIVE_REVISION_PLAN_2026-10-11.md) corrects overgeneralized earlier judgments: the official outline and Section 6 order are sound, mathematical/methods subsections and scientific inference safeguards must not be mechanically removed. Highest-return improvements concern the §1 research tension, §2 formally published closest-prior-work confrontation, §6 supporting-results prioritization and §7 evidence-to-knowledge-science interpretation. The plan includes paragraph anchors, five acceptance gates, non-negotiable frozen evidence and a separate decision gate for optional new experiments.
+
+**STATUS:** Plan and audit are committed; canonical **main.tex** (pre-revision blob `fa73ba31a56edd96f6eeaca272214b98bf4a9a9d`) and S1–S9 are untouched. Execute the plan only after traceability baselining, using controlled revisions and GitHub commits. Do not mark it as a completed second full-manuscript rewrite or a submission-ready paper.
+
 ## Section 8 final KBS reviewer-style tightening — accepted (2026-10-11)
 
 **Current status: §8 Conclusion is final-review tightened and accepted.** The [dedicated scientific-argument and §7.5-duplication audit](SECTION8_FINAL_KBS_REVIEWER_TIGHTENING_2026-10-11.md) records the revised three-paragraph, **214-word** Conclusion at source [e9d07952](https://github.com/mzch0210/KuaiLive-Agent/commit/e9d07952c7d9964c67fee31f3c3a16af6b96d85f). The revision strengthens the **specialist-relative benefit versus incumbent Difficulty** inference, explicitly preserves Twitch's DEV-frozen TEST versus KuaiLive's paired candidate analysis, and removes duplicate §7.5 forward-looking design discussion. Everything in §§1–§7, S1–S9 and the bibliography remained unchanged.
