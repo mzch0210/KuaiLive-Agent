@@ -4,9 +4,9 @@
 **来源：** [G0 科学冻结及八章双向证据表](G0_FROZEN_BASELINE_CLAIM_EVIDENCE_TRACEABILITY_2026-10-11.md)、[第二轮 G0–G5 计划](KBS_PAPER_SECOND_PASS_SUBMISSION_NARRATIVE_REVISION_PLAN_2026-10-11.md)、[94 段编辑矩阵](KBS_SECOND_PASS_94_PARAGRAPH_AUDIT_2026-10-11.md)。  
 **修改范围：只改 \`main.tex\` 的 §1 Introduction 和 §2 Related Work。**  
 **源稿基线：** \`main.tex\` Git blob \`fa73ba31a56edd96f6eeaca272214b98bf4a9a9d\`。  
-**最终编辑源稿：** [commit 21fef333f97450229777c1716884b71fc0a60a2d](https://github.com/mzch0210/KuaiLive-Agent/commit/21fef333f97450229777c1716884b71fc0a60a2d)，blob \`d98353c7356ade3c9c164463fadffe1363c558de\`。  
+**最终编辑源稿：** [commit e5409c2c464915c96ce636de1153a4892608b4dc](https://github.com/mzch0210/KuaiLive-Agent/commit/e5409c2c464915c96ce636de1153a4892608b4dc)，blob `0ccd9b02874e0bd5f5fc16a025ce49d1c660fe2f`。§2 学术主修订为 `21fef333`；最终提交仅将一个造成 7.74654pt 溢出的长复合名词改为等义、自然的英语表达。
 **分节提交记录：** [§1 commit aea35485](https://github.com/mzch0210/KuaiLive-Agent/commit/aea354850e294e10b472c92b95fe6dc94e3a61ef)；[§2 commit 21fef333](https://github.com/mzch0210/KuaiLive-Agent/commit/21fef333f97450229777c1716884b71fc0a60a2d)。  
-**精确源码 PDF 工作流：** [GitHub Actions #38137569135](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137569135)；以该运行的真实状态为准，未编译成功前仅确认 *source-level scholarly review*。
+**精确源码 PDF 工作流：** [GitHub Actions #38137810182](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137810182) 与最终 `e5409c2c` 精确匹配。此前构建 [#38137569135](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137569135) 已成功生成 29 页 PDF，但日志重复报告同一处 7.74654pt Overfull；最终技术状态以新构建实际结果为准。
 
 ## 一、G1 修改及论证的独立职责
 
@@ -54,7 +54,7 @@
 
 ## 五、技术关口与 G1→G2
 
-- 最新源提交：[21fef333](https://github.com/mzch0210/KuaiLive-Agent/commit/21fef333f97450229777c1716884b71fc0a60a2d)。
-- 精确提交构建：[GitHub Actions #38137569135](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137569135)。**构建是否 PASS、页数、Overfull hbox、引用 warning 与 PDF artifact 以工作流实际结果更新，不预写成功**。
+- 最新源提交：[e5409c2c](https://github.com/mzch0210/KuaiLive-Agent/commit/e5409c2c464915c96ce636de1153a4892608b4dc)，包含单处 §2 行宽语言修复。
+- 精确提交构建：[GitHub Actions #38137810182](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137810182)，源码 `e5409c2c`。技术 Gate 以该运行的最终状态、PDF 页数、Overfull 及实际 artifact 为准。
 - G1 的完成条件：源码审稿 PASS，加上精确源码构建成功；若排版引入过宽行或图文覆盖，单独在 §1/§2 修复后重新构建。
 - G2 准入：§6.1→§6.2→§6.3 顺序严格保持，主文固定表图和冻结核心数字不变，S1–S9 证据不变；仅根据第二轮矩阵重新组织结果段落。
