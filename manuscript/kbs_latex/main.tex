@@ -540,6 +540,15 @@ Together, the results establish a decision-oriented perspective on the use of hi
 
 This perspective suggests evaluating knowledge modules against a strong, clearly specified incumbent and candidate protocol before adopting them as routine enhancements. Decisions to invoke a specialist should reflect predicted relative improvement alongside feature, routing and specialist-computation costs. Future work can independently test these rules under new candidate environments, separate candidate size from composition and hardness, and assess calibrated budget-aware policies with end-to-end latency and prospective user outcomes. Such evaluations would extend the present offline valuation principle to a broader range of knowledge-driven recommendation decisions.
 
+\section{Conclusion}
+\label{sec:conclusion}
+
+This study investigated when historical relationship evidence adds ranking value to an already trained sequential recommender. Comparing a fixed relationship-memory specialist with its designated Base reveals conditional complementarity: Memory underperforms in aggregate, yet shows a substantial mean advantage when observed target relationships are recoverable beyond the Base's visible input. The contribution of this knowledge is therefore assessed through its incremental benefit to a particular ranking decision, rather than the availability of additional history alone.
+
+On Twitch, predicting specialist-relative utility from pre-outcome information enabled a DEV-frozen selection policy to improve held-out ranking over Base and a Difficulty comparator matched retrospectively to the same invocation count. Complementary paired KuaiLive evaluations showed that changing the eligible candidate environment can reverse the relative ordering of fixed Base and Memory rankers. The reversal persisted across the examined training initializations and candidate draws; within the studied scoring protocol, a descriptive decomposition assigned most of the contrast to ranked-candidate membership.
+
+Together, these findings identify historical relationship memory as a conditional knowledge resource whose operational value depends on the incumbent and the alternatives being ranked. Predicting its expected marginal benefit offers a basis for choosing when that knowledge should affect recommendation, connecting evidence valuation with selective decisions. This conclusion is supported by the evaluated offline ranking settings and motivates independent validation of context-aware, computation-conscious knowledge use in subsequent deployments.
+
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
 
