@@ -2,6 +2,14 @@
 
 This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems* manuscript.
 
+## Section 8 Conclusion completed — source, referee and PDF first-draft acceptance (2026-10-11)
+
+**CURRENT MANUSCRIPT STATUS:** §1–§8 now exist in canonical [main.tex](main.tex). The **three-paragraph, 221-word Conclusion** was added in [commit cfb5a623](https://github.com/mzch0210/KuaiLive-Agent/commit/cfb5a623d7cdfa7a41350b97f9a6f18e3b4de21c), faithfully closing the outline's Base-relative knowledge value → DEV-frozen Twitch conditional-choice evidence → paired KuaiLive candidate-regime interpretation. The [independent §8 scholarly and source audit](SECTION8_FIRST_DRAFT_AND_REVIEW_AUDIT_2026-10-11.md) records claim/scope checks and [the approved writing plan](SECTION8_KBS_CONCLUSION_WRITING_PLAN_2026-10-10.md). All previously accepted §§1–7 and S1–S9 remain unchanged; the Conclusion adds no new references, equations or numerical results.
+
+**Matching LaTeX/PDF build PASS:** [GitHub Actions #38122165011](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38122165011) generated a **29-page PDF**, [artifact #11695698941](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38122165011/artifacts/11695698941), for the exact Section-8 source commit. No unresolved refs/citations, fatal LaTeX errors or overfull boxes. The real PDF was extracted and inspected: §8 is completely on **page 24**, and References starts on **page 25**; both pages were rendered and visually checked.
+
+**NEXT:** Write and independently reviewer-tighten **Abstract**, then complete truthful author-reviewed declarations, KBS-specific submission-guide and Highlights checks, and final complete-PDF proofing after the front matter changes. This is a Section-8 first-draft acceptance, **not** a claim that the full submission package is finished. Older status entries below are historical snapshots.
+
 ## Section 8 Conclusion — outline-aligned writing plan (2026-10-10)
 
 The [new §8 KBS Conclusion writing plan](SECTION8_KBS_CONCLUSION_WRITING_PLAN_2026-10-10.md) is now available. It preserves the authoritative outline's three conclusions **(C1 historical complementarity, C3 DEV-frozen Twitch selective decision gains, C2 paired KuaiLive candidate-regime reversal)**, recommends a three-paragraph ~180–240-word closing synthesis, and defines evidence, academic-rhetoric and exact-source acceptance gates. **This is a writing plan only:** §8 and Abstract remain absent from [main.tex](main.tex); no accepted earlier chapter or experimental evidence was edited. Draft §8, run its independent reviewer tightening and final-source build, and only then draft Abstract and submission declarations.
