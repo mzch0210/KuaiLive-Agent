@@ -1,6 +1,6 @@
 # KBS 八章投稿竞争力第二轮独立核验与“论证主线优先”精确修订计划
 
-**2026-10-11 | 状态：核验及修订计划完成；主稿、实验代码、S1–S9 尚未修改。**
+**2026-10-11 | 最新执行状态：G0 已完成并通过；G1–G5 仍未实施。** 已提交 [G0 冻结基线和八章双向主张—证据追溯表](G0_FROZEN_BASELINE_CLAIM_EVIDENCE_TRACEABILITY_2026-10-11.md)，检查八章、50 个唯一标签、28 个有效正文文献键、94 个逐段审查 ID 以及 C1/C3/C2 到 §3–§8 与 S1–S9 的证据链。原稿 `main.tex`、BibTeX、实验和 S1–S9 完全未改变；下一阶段应只对 §1/§2 执行 G1。此状态更新不表示全文修订完成。
 
 **当前科学基线：** [八章 LaTeX 正文](main.tex)，Git blob \`fa73ba31a56edd96f6eeaca272214b98bf4a9a9d\`；[权威投稿大纲](../../KBS_PAPER_OUTLINE_2026-09-23T2322+0800_SUBMISSION_ORIENTED.md)，blob \`89734dbec9f852fcb728b2ef3a767d19ebe22109\`；[集成 S1–S9](SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md)，blob \`067d4e5713eb927d8aab3dee3bf2dde512b314ed\`；前八章全文 [94 个正文文本单元第二次独立逐段审查](KBS_SECOND_PASS_94_PARAGRAPH_AUDIT_2026-10-11.md)。
 
