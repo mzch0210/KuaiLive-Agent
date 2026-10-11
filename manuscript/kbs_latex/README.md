@@ -2,6 +2,14 @@
 
 This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems* manuscript.
 
+## Section 8 final KBS reviewer-style tightening — accepted (2026-10-11)
+
+**Current status: §8 Conclusion is final-review tightened and accepted.** The [dedicated scientific-argument and §7.5-duplication audit](SECTION8_FINAL_KBS_REVIEWER_TIGHTENING_2026-10-11.md) records the revised three-paragraph, **214-word** Conclusion at source [e9d07952](https://github.com/mzch0210/KuaiLive-Agent/commit/e9d07952c7d9964c67fee31f3c3a16af6b96d85f). The revision strengthens the **specialist-relative benefit versus incumbent Difficulty** inference, explicitly preserves Twitch's DEV-frozen TEST versus KuaiLive's paired candidate analysis, and removes duplicate §7.5 forward-looking design discussion. Everything in §§1–§7, S1–S9 and the bibliography remained unchanged.
+
+**Exact-source PDF accepted:** [GitHub Actions #38123108655](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38123108655) succeeded with **29 pages**, no overfull boxes, fatal errors or undefined references; [source-matched PDF/log artifact #11696580608](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38123108655/artifacts/11696580608). §8 fully appears on page 24 and References begins on page 25; both pages were rendered and inspected.
+
+**Next:** Independently draft **Abstract** from the stable §§1–§8, then complete author-verified declarations and final submission packaging. The manuscript is not submission-ready until those tasks and the final full-PDF check are completed.
+
 ## Section 8 Conclusion completed — source, referee and PDF first-draft acceptance (2026-10-11)
 
 **CURRENT MANUSCRIPT STATUS:** §1–§8 now exist in canonical [main.tex](main.tex). The **three-paragraph, 221-word Conclusion** was added in [commit cfb5a623](https://github.com/mzch0210/KuaiLive-Agent/commit/cfb5a623d7cdfa7a41350b97f9a6f18e3b4de21c), faithfully closing the outline's Base-relative knowledge value → DEV-frozen Twitch conditional-choice evidence → paired KuaiLive candidate-regime interpretation. The [independent §8 scholarly and source audit](SECTION8_FIRST_DRAFT_AND_REVIEW_AUDIT_2026-10-11.md) records claim/scope checks and [the approved writing plan](SECTION8_KBS_CONCLUSION_WRITING_PLAN_2026-10-10.md). All previously accepted §§1–7 and S1–S9 remain unchanged; the Conclusion adds no new references, equations or numerical results.
