@@ -6,7 +6,7 @@
 **源稿基线：** \`main.tex\` Git blob \`fa73ba31a56edd96f6eeaca272214b98bf4a9a9d\`。  
 **最终编辑源稿：** [commit e5409c2c464915c96ce636de1153a4892608b4dc](https://github.com/mzch0210/KuaiLive-Agent/commit/e5409c2c464915c96ce636de1153a4892608b4dc)，blob `0ccd9b02874e0bd5f5fc16a025ce49d1c660fe2f`。§2 学术主修订为 `21fef333`；最终提交仅将一个造成 7.74654pt 溢出的长复合名词改为等义、自然的英语表达。
 **分节提交记录：** [§1 commit aea35485](https://github.com/mzch0210/KuaiLive-Agent/commit/aea354850e294e10b472c92b95fe6dc94e3a61ef)；[§2 commit 21fef333](https://github.com/mzch0210/KuaiLive-Agent/commit/21fef333f97450229777c1716884b71fc0a60a2d)。  
-**精确源码 PDF 工作流：** [GitHub Actions #38137810182](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137810182) 与最终 `e5409c2c` 精确匹配。此前构建 [#38137569135](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137569135) 已成功生成 29 页 PDF，但日志重复报告同一处 7.74654pt Overfull；最终技术状态以新构建实际结果为准。
+**最终 G1 acceptance：PASS。** 精确源码 [GitHub Actions #38137810182](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137810182) 与 commit `e5409c2c` 匹配、成功构建 **29 页 PDF**；编译、PDF 验证与 artifact 上传全部通过。整次构建 **0 Overfull hbox**、最终轮次无致命错误或未解析引用；[PDF/编译日志 artifact #11701242372](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137810182/artifacts/11701242372)。首次 [#38137569135](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137569135) 发现的 7.74654pt Overfull 已由第二次提交修复。
 
 ## 一、G1 修改及论证的独立职责
 
@@ -55,6 +55,6 @@
 ## 五、技术关口与 G1→G2
 
 - 最新源提交：[e5409c2c](https://github.com/mzch0210/KuaiLive-Agent/commit/e5409c2c464915c96ce636de1153a4892608b4dc)，包含单处 §2 行宽语言修复。
-- 精确提交构建：[GitHub Actions #38137810182](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137810182)，源码 `e5409c2c`。技术 Gate 以该运行的最终状态、PDF 页数、Overfull 及实际 artifact 为准。
-- G1 的完成条件：源码审稿 PASS，加上精确源码构建成功；若排版引入过宽行或图文覆盖，单独在 §1/§2 修复后重新构建。
+- **最终 G1 技术 Gate PASS：** [GitHub Actions #38137810182](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137810182) 成功，29 页，0 Overfull，无未解析引用；[源匹配 PDF/日志 artifact #11701242372](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38137810182/artifacts/11701242372)。真实 PDF 已从该 artifact 解包；**前六页全部渲染并视觉核查**，§1 分布于 p1–2，§2 自 p3 开始至 p5，§3 p5 开始，未见文本越界、标题孤立或公式/表格覆盖。
+- **G1 结论：PASS。** 科学论证、正式最近邻、G0 事实保护、编译与局部 PDF 可视检查均通过。此前两处审稿重点（重复 gap 和过短最近邻比较）得到有针对性的改进；此判断不等于 KBS 录用保证。
 - G2 准入：§6.1→§6.2→§6.3 顺序严格保持，主文固定表图和冻结核心数字不变，S1–S9 证据不变；仅根据第二轮矩阵重新组织结果段落。
