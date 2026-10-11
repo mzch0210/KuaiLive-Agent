@@ -1,7 +1,7 @@
 # Section 8 Conclusion — first manuscript draft and independent KBS reviewer check
 
 **Date:** 2026-10-11  
-**Status:** **The actual Conclusion is written in canonical \`main.tex\`**, with pre-compilation source and scientific-scope checks PASS. The first source-matched LaTeX build is [GitHub Actions #38122165011](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38122165011); record its final result and actual PDF QA when complete. This audit is not a submission-readiness declaration.
+**Status:** **Conclusion first draft PASS (source, scholarly-scope, CI and actual final-page rendering checks).** The actual section is written in canonical \`main.tex\`. Exact-source [GitHub Actions #38122165011](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38122165011) successfully built a **29-page PDF** from commit \`cfb5a623\` with no overfull boxes or unresolved citations/references. This is not a submission-readiness declaration.
 
 **Section 8 source commit:** [cfb5a623d7cdfa7a41350b97f9a6f18e3b4de21c](https://github.com/mzch0210/KuaiLive-Agent/commit/cfb5a623d7cdfa7a41350b97f9a6f18e3b4de21c)  
 **New source blob:** \`f8071d5f021d0766c4435edf41fd4fc31617621b\`  
@@ -38,9 +38,18 @@ The new section has precisely **three English prose paragraphs totaling 221 word
 - Integrated S1–S9 blob remains \`067d4e5713eb927d8aab3dee3bf2dde512b314ed\`; BibTeX \`358e6599711421ac609cb1956cfc9cd122cdc341\` unchanged. The locked Twitch/KuaiLive/CPU quantities are still present in the source.
 - This is manuscript **authorship/editing**, not experiment rerunning, DEV/TEST re-tuning or a new analytical result.
 
-## D. Remaining actual acceptance steps
+## D. Actual final-source technical / rendered-PDF QA (complete)
 
-1. Check [Actions #38122165011](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38122165011) completes successfully **at exactly cfb5a623**, reports PDF page count, undefined refs/cites and Overfull boxes, and publishes the actual PDF/log artifact.
-2. Download and inspect at least the **final Conclusion page and the References transition** from this exact source; ensure no orphan section title, cropped line or odd empty final page.
-3. Update the [Section 8 writing plan](SECTION8_KBS_CONCLUSION_WRITING_PLAN_2026-10-10.md) and [manuscript README](README.md) with the actual authored/accepted state, including any build or visual QA blockers.
-4. Draft Abstract **as a separate next step**, then obtain author-verified declarations and run final KBS-specific Guide for Authors + full-pagination review. No such components have been silently added here.
+**Source-matched CI PASS:** [GitHub Actions #38122165011](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38122165011) finished \`success\` for exact source commit \`cfb5a623d7cdfa7a41350b97f9a6f18e3b4de21c\`. LaTeX compile, PDF verification and artifact upload passed. Final PDF: **29 pages**. No fatal LaTeX error, missing citations or cross-references, BibTeX volume/issue conflict, or overfull \`\\hbox\` in any pass. [Official PDF and full compile logs — artifact #11695698941](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38122165011/artifacts/11695698941).
+
+**Actual PDF checked, not inferred:** GitHub source-matched artifact was downloaded into a working container, its \`main.pdf\` extracted and checked with \`pdfinfo\` and \`pdftotext -layout\`. The new **§8 appears entirely on page 24**, immediately after §7.5, and **References begins on page 25**. Both pages were rendered at high resolution and inspected: no orphan heading, clipped last paragraph, table interference, text collision or anomalous blank page. All three paragraphs are present in the actual rendered PDF.
+
+**Review disposition:** Source-accepted first draft, with its independent scholarly claim check and matching rendered page inspection complete. Additional polishing may be done if requested but is not necessary to close the current Section-8 first-draft writing task.
+
+## E. Next manuscript stage — outside the current task
+
+1. Draft and independently reviewer-tighten **Abstract** using §§1–8 and the authoritative outline. No Abstract was added during Section-8 authoring.
+2. Confirm **author/affiliation metadata** and author-reviewed publication declarations, including truthful AI-use disclosure as appropriate under Elsevier policy. Do not invent approval, CRediT, funding or conflicts.
+3. Verify the **current KBS-specific** Guide for Authors, Highlights and submission package, and re-inspect the entire final PDF after Abstract and declarations alter pagination.
+
+**Source preservation:** §§1–7, bibliography and S1–S9 are exactly unchanged by the Conclusion source commit. The single new label \`sec:conclusion\` is unique.
