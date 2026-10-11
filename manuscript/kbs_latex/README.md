@@ -2,6 +2,12 @@
 
 This directory is the canonical LaTeX workspace for the *Knowledge-Based Systems* manuscript.
 
+## Second-pass G0 evidence traceability complete (2026-10-11)
+
+**CURRENT SECOND-PASS STATUS: G0 PASS; G1–G5 not yet executed.** The [G0 frozen scientific claims and eight-chapter bidirectional traceability](G0_FROZEN_BASELINE_CLAIM_EVIDENCE_TRACEABILITY_2026-10-11.md) now connects the central argument and **C1 Twitch conditional value → C3 Twitch frozen selective use → C2 KuaiLive candidate-context diagnosis** across Introduction, published prior art, formal objectives, Framework, Experimental Setup, Results, Discussion, Conclusion and S1–S9. The [94-paragraph source audit](KBS_SECOND_PASS_94_PARAGRAPH_AUDIT_2026-10-11.md) and [G0–G5 revision plan](KBS_PAPER_SECOND_PASS_SUBMISSION_NARRATIVE_REVISION_PLAN_2026-10-11.md) define precise G1 editing anchors and approval criteria.
+
+**Preserved baseline:** `main.tex` blob **fa73ba31a56edd96f6eeaca272214b98bf4a9a9d**, outline blob **89734dbec9f852fcb728b2ef3a767d19ebe22109**, integrated S1–S9 blob **067d4e5713eb927d8aab3dee3bf2dde512b314ed**, BibTeX blob **358e6599711421ac609cb1956cfc9cd122cdc341**. Static QA found 8 sections, 50 unique labels, 28 cited bibliography keys (all present), 94 unique reviewed paragraphs and intact core research numbers. **No manuscript source, experiments, references or supplements have been modified by G0.** This is a scholarly evidence baseline, not an independent experiment rerun or editorial publication acceptance. The next scoped source revision is **G1: §1 Introduction and §2 Related Work only**.
+
 ## Verified second-pass eight-chapter narrative revision plan (2026-10-11)
 
 A fresh **full-manuscript, original-source, eight-chapter** audit has been completed following user concerns about scientific narrative coherence and defensive/procedural rhetoric. The [94-paragraph original-source audit](KBS_SECOND_PASS_94_PARAGRAPH_AUDIT_2026-10-11.md) distinguishes **23 P1 editorial priorities, 35 P2 scoped changes, 36 KEEP** paragraphs. These are scholarly editing priorities, not counts of erroneous experiments.
