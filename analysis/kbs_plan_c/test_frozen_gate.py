@@ -1,4 +1,5 @@
 import csv
+import hashlib
 import json
 import tempfile
 import unittest
@@ -37,7 +38,7 @@ class TestFrozenGate(unittest.TestCase):
             oof = root / "oof.json"
             oof.write_text(json.dumps({"phase": "DEV", "predictions_are_oof": True,
                          "user_disjoint_across_folds": True,
-                         "provenance_sha256": "e" * 64}))
+                         "provenance_sha256": hashlib.sha256(dev.read_bytes()).hexdigest()}))
             policy = root / "policy.json"
             result = freeze_dev(dev, oof, policy, 0.3)
             self.assertEqual(result["methods"]["utility"]["calls"], 3)

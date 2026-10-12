@@ -70,6 +70,8 @@ def freeze_dev(dev_file: Path, oof_file: Path, out_file: Path, max_rate=0.30):
             oof.get("user_disjoint_across_folds") is not True or
             len(oof.get("provenance_sha256", "")) != 64):
         raise ValueError("DEV-only user-disjoint OOF provenance required")
+    if oof["provenance_sha256"] != hash_file(dev_file):
+        raise ValueError("DEV OOF prediction CSV SHA256 mismatch")
     cols, rows = load_rows(dev_file)
     required = {"event_id", "split", "base_ndcg10", "memory_ndcg10"}
     required |= {"score_" + m for m in METHODS}
