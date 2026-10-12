@@ -1,0 +1,115 @@
+name: KBS Plan C G5-B one-shot heldout TEST confirmation
+on:
+  workflow_run:
+    workflows:
+      - KBS Plan C G5-A outcome-blind TEST scoring
+    types: [completed]
+permissions:
+  contents: read
+jobs:
+  hosted-register-confirm:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false, ref: main}
+      - name: Validate precommitted one-shot statistics and no TEST retuning
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/g5_confirm_test.py
+          python - <<'PY'
+          import json
+          d=json.load(open('experiments/kbs_plan_c/G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json'))
+          assert d['test_performance_seen'] is False
+          assert d['target_test_events']==47575
+          assert len(d['primary_contrasts'])==3
+          assert d['pointwise_test_threshold_no_recalibration']
+          PY
+          mkdir -p g5-b-code
+          cp analysis/kbs_plan_c/g5_confirm_test.py \
+             analysis/kbs_plan_c/test_g5_confirm_test.py \
+             g5-b-code/
+          cp experiments/kbs_plan_c/G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json \
+             g5-b-code/
+          (cd g5-b-code && sha256sum *.py *.json > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-g5-b-one-shot-locked-code-v1
+          path: g5-b-code/
+  user-host-test-confirmation:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent'
+    needs: hosted-register-confirm
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 75
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Mandatory one-shot guard for target-label reveal
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test "$GITHUB_REF" = refs/heads/main
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test -s "$ROOT/klm3_g5_unlabeled_test_v1/manifest.json"
+          test -s "$ROOT/klm3_g5_pretest_registry_audit_v1.json"
+          test ! -e "$ROOT/klm3_g5_test_one_shot_v1"
+          test ! -e "$ROOT/klm3_g5_test_one_shot_v1.incomplete"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g5-b-one-shot-locked-code-v1
+          path: g5-b-code/
+          fail-on-cache-miss: true
+      - name: Verify registered statistics code and synthetic cluster Holm tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd g5-b-code && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$PWD/g5-b-code:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=1
+          "$HOME/venvs/kuailive-gpu/bin/python" -m unittest discover \
+            -s g5-b-code -p test_g5_confirm_test.py -v
+      - name: ONE-SHOT reveal only TEST target labels, calculate frozen policy NDCG and Holm
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$PWD/g5-b-code:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=1
+          export PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          "$HOME/venvs/kuailive-gpu/bin/python" g5-b-code/g5_confirm_test.py \
+            --g1 "$ROOT/klm3_plan_c_g1_v1" \
+            --unlabeled "$ROOT/klm3_g5_unlabeled_test_v1" \
+            --index "$ROOT/klm3_g2_train_index_v1" \
+            --registry g5-b-code/G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json \
+            --out "$ROOT/klm3_g5_test_one_shot_v1" \
+            --seed 20261012
+          mkdir -p g5-test-aggregate
+          cp "$ROOT/klm3_g5_test_one_shot_v1/aggregate.json" g5-test-aggregate/aggregate.json
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          s=json.load(open('g5-test-aggregate/aggregate.json'))
+          assert s['status']=='ONE_SHOT_HELDOUT_TEST_EVALUATION_COMPLETED'
+          assert s['n_test_events']==47575
+          assert len(s['performance'])==6
+          assert s['all_models_and_thresholds_frozen']
+          assert not s['training_or_threshold_adjustments_after_TEST']
+          assert set(s['primary_tests'])==set(s['performance'])
+          assert all(len(c)==3 for c in s['primary_tests'].values())
+          print('G5 frozen heldout one-shot statistics accepted; no retuning.')
+          PY
+      - name: Upload only aggregates and inference assumptions, no TEST identifiers
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g5-one-shot-test-confirmation
+          path: g5-test-aggregate/aggregate.json
+          if-no-files-found: warn
+          retention-days: 45
