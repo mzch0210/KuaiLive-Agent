@@ -261,7 +261,7 @@ We additionally evaluate a distinct \emph{author}-level prediction task from Kua
 \toprule
 Protocol & Ranked unit & Split, candidate definition and empirical role & DEV / TEST \\
 \midrule
-Twitch/LiveRec & Streamer & Temporal crawl-step availability; frozen selective-decision TEST & 46,878 / 44,221 \\
+Twitch & Streamer & Temporal crawl-step availability; frozen selective-decision TEST & 46,878 / 44,221 \\
 KuaiLive & Live room & Per-user leave-last-two-out; paired sampled 575 rooms versus full-active rooms; retrospective regime diagnostic & 10,222 / 10,222 \\
 KuaiLive-M3 & Author & Global forward-time split; full available TRAIN-known authors; frozen selective-decision TEST & 50,049 / 47,575 \\
 \bottomrule
@@ -275,7 +275,7 @@ Each ranking compares a designated trained incumbent $B$ with the same fixed Sho
 
 The Twitch frozen selector predicts Memory-minus-Base NDCG@10 using 14 pre-outcome features. Its Base-Difficulty regression predicts $1-u_{10}(B,x)$ from the same feature family. Utility's threshold is selected on DEV and held fixed on TEST; Difficulty and the outcome-informed Oracle retrospectively choose the same number of TEST events as the frozen Utility policy, and thus are \emph{equal-count diagnostic controls}, not separately frozen pointwise TEST selectors. The old KuaiLive experiment instead compares the two fixed rankings without a second prospectively frozen routing test.
 
-For M3, the five independently DEV-frozen pointwise selectors are \emph{Utility}, \emph{Difficulty}, \emph{Specialist Quality}, \emph{Uncertainty} and \emph{History}. Three histogram gradient-boosting regressors predict respectively $u_{10}(M,x)-u_{10}(B,x)$, $-u_{10}(B,x)$ and $u_{10}(M,x)$ from the same 12 pre-outcome descriptors. These comprise five Base score summaries (margin, standard deviation, top-score standardized value, top score and score mean) and seven shared history/candidate descriptors (prior interaction count, TRAIN-known prior count, distinct prior warm authors, maximum warm-author repetition, short-history distinct count, historical support among eligible authors and log eligible-candidate count). Uncertainty ranks events by the negative Base top-score margin; History ranks by prior interaction count. The two heuristic scores do not use target-defined evidence states. These objective-specific models and thresholds are fitted separately for each frozen Base checkpoint; no trained Twitch selector is transferred to M3.
+For M3, the five independently DEV-frozen pointwise selectors are \emph{Utility}, \emph{Difficulty}, \emph{Specialist Quality}, \emph{Uncertainty} and \emph{History}. Three histogram gradient-boosting regressors predict specialist-minus-Base utility, negative Base utility, and specialist utility, respectively, using the same 12 pre-outcome descriptors. These comprise five Base score summaries (margin, standard deviation, top-score standardized value, top score and score mean) and seven shared history/candidate descriptors (prior interaction count, TRAIN-known prior count, distinct prior warm authors, maximum warm-author repetition, short-history distinct count, historical support among eligible authors and log eligible-candidate count). Uncertainty ranks events by the negative Base top-score margin; History ranks by prior interaction count. The two heuristic scores do not use target-defined evidence states. These objective-specific models and thresholds are fitted separately for each frozen Base checkpoint; no trained Twitch selector is transferred to M3.
 
 \begin{table}[t]
 \centering
