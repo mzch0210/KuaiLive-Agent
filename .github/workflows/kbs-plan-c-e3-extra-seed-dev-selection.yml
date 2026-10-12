@@ -1,0 +1,78 @@
+name: KBS Plan C E3 extra-seed DEV checkpoint selection
+on:
+  workflow_run:
+    workflows:
+      - KBS Plan C E3 two extra preregistered Base seeds
+    types: [completed]
+permissions:
+  contents: read
+jobs:
+  user-host-dev-select:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent'
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 35
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Guard previous frozen DEV screening panel and all four new TRAIN runs
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test -s "$ROOT/klm3_g2_dev_checkpoint_screen_v1/manifest.json"
+          for SEED in 20261013 20261014; do
+            for MODEL in sasrec gru4rec; do
+              test -s "$ROOT/klm3_g2_seed$(printf %s "$SEED")_epoch3_v1/$MODEL/"$MODEL"_train_report.json"
+            done
+          done
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g2-dev-frozen-paired-author-comparison-v1
+          path: g2dev-code/
+          fail-on-cache-miss: true
+      - name: Reuse same hashed DEV checkpoint evaluator and exact 4096x575 panel
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd g2dev-code && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$PWD/g2dev-code:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          export PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          mkdir -p e3-dev-reports
+          for SEED in 20261013 20261014; do
+            DEST="$ROOT/klm3_g2_seed$(printf %s "$SEED")_dev_selected_v1.json"
+            test ! -e "$DEST" || {
+              echo "Pre-existing DEV evidence: inspect to avoid overwrite" >&2; exit 12
+            }
+            "$PY" g2dev-code/g2_dev_select.py \
+              --train-root "$ROOT/klm3_g2_seed$(printf %s "$SEED")_epoch3_v1" \
+              --dev "$ROOT/klm3_g2_dev_checkpoint_screen_v1" \
+              --train-index "$ROOT/klm3_g2_train_index_v1" \
+              --out "$DEST"
+            cp "$DEST" "e3-dev-reports/seed$(printf %s "$SEED")_dev_selected.json"
+          done
+          "$PY" - <<'PY'
+          import json,pathlib
+          files=list(pathlib.Path('e3-dev-reports').glob('*.json'))
+          assert len(files)==2
+          for p in files:
+            r=json.load(open(p))
+            assert r['schema']=='kbs-plan-c-g2-checkpoint-selection-dev-only-v1'
+            assert not r['test_data_opened'] and not r['test_rankings_calculated']
+            assert set(r['family_results'])=={'sasrec','gru4rec'}
+            assert all(len(v['epochs'])==3 for v in r['family_results'].values())
+          print('E3 two seed checkpoint screens PASS: DEV-only, same candidate panel')
+          PY
+      - name: Upload only selected-checkpoint DEV metrics and SHA identities
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-e3-extra-seed-dev-checkpoint-selection
+          path: e3-dev-reports/
+          if-no-files-found: error
+          retention-days: 21
