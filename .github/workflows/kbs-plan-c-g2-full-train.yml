@@ -1,0 +1,118 @@
+name: KBS Plan C G2 full TRAIN-only SASRec and GRU4Rec
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-g2-full-train.yml']
+permissions:
+  contents: read
+jobs:
+  hosted-preflight:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G2 full TRAIN Base fitting')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Assert preregistered Base identities, test lock and epoch budget
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('experiments/kbs_plan_c/G0F_PRETEST_PROTOCOL_2026-10-12.json'))
+          assert p['status']=='SCIENTIFIC_DESIGN_PREREGISTERED_TEST_REMAINS_LOCKED'
+          assert not p['meta']['test_performance_seen']
+          assert p['models']['primary_seed']==20261012
+          assert p['models']['latent_dim']==64 and p['models']['context_length']==16
+          PY
+  user-host-train:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G2 full TRAIN Base fitting')
+    needs: hosted-preflight
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 145
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Validate owner-controlled GPU and already-computed index
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test "$(id -u)" -ne 0
+          test -s "$HOME/.cache/kuailive-agent-kbs/klm3_g2_train_index_v1/index_manifest.json"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          nvidia-smi
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g2-train-only-sasrec-gru4rec-code-v2
+          path: g2-code/
+          fail-on-cache-miss: true
+      - name: Verify immutable code and TRAIN-only source provenance
+        run: |
+          set -euo pipefail
+          (cd g2-code && sha256sum -c SHA256SUMS)
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,pathlib
+          p=pathlib.Path.home()/'.cache/kuailive-agent-kbs'
+          a=json.loads((p/'klm3_plan_c_g1_v1/manifest.json').read_text())
+          b=json.loads((p/'klm3_g2_train_index_v1/index_manifest.json').read_text())
+          assert a["protocol_sha256"]=="bf6234eb95ecb24a568b2e7556846c41c4f3e1fdcd7774397003beaf56341a3c"
+          assert b["g1_protocol_sha256"]==a["protocol_sha256"]
+          assert b["total_training_events"]==24995148
+          assert b["unique_train_authors"]==897025
+          assert b["training_only"] and not b["test_files_opened"]
+          print("G1→G2 preflight passed. TRAIN only; TEST still sealed.")
+          PY
+      - name: Full-equivalent three epochs for each Base, sequentially on single GPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$PWD/g2-code:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          G1="$HOME/.cache/kuailive-agent-kbs/klm3_plan_c_g1_v1"
+          IDX="$HOME/.cache/kuailive-agent-kbs/klm3_g2_train_index_v1"
+          OUT="$HOME/.cache/kuailive-agent-kbs/klm3_g2_seed20261012_epoch3_v1"
+          mkdir -p "$OUT" reports
+          for MODEL in sasrec gru4rec; do
+            REPORT="$OUT/$MODEL/"$MODEL"_train_report.json"
+            if [ -s "$REPORT" ]; then
+              echo "Previously completed TRAIN checkpoint report for $MODEL; skip duplicate fitting."
+            else
+              test ! -e "$OUT/$MODEL" || {
+                echo "Incomplete existing model dir: $OUT/$MODEL. Stop rather than overwrite." >&2
+                exit 12
+              }
+              "$PY" g2-code/g2_train_base.py \
+                --g1 "$G1" --index "$IDX" --out "$OUT/$MODEL" \
+                --mode train --model "$MODEL" --seed 20261012 \
+                --epochs 3 --steps-per-epoch 24410 \
+                --batch 1024 --negatives 32 --learning-rate 0.001 \
+                --log-interval 2000
+            fi
+            cp "$REPORT" reports/
+          done
+          cp "$IDX/index_manifest.json" reports/
+          "$PY" - <<'PY'
+          import json,pathlib
+          p=pathlib.Path('reports')
+          for model in ('sasrec','gru4rec'):
+              report=json.loads((p/(model+'_train_report.json')).read_text())
+              assert len(report['train_records'])==3
+              assert report['status']=='TRAIN_CHECKPOINTS_NOT_DEV_SELECTED'
+              assert not report['dev_outcomes_read'] and not report['test_outcomes_read']
+              assert all('checkpoint_sha256' in r for r in report['train_records'])
+              print(model, "TRAIN CE", report['train_records'][-1]['TRAIN_cross_entropy'])
+          print('TRAIN-only checkpoints created; DEV checkpoint selection not yet executed.')
+          PY
+      - name: Upload compact provenance only, leave large checkpoints on User-host
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g2-training-evidence
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 21
