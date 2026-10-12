@@ -5,8 +5,14 @@ on:
       - kbs-plan-c-g0-20261012
       - main
     paths:
-      - 'analysis/kbs_plan_c/**'
-      - 'experiments/kbs_plan_c/**'
+      - 'analysis/kbs_plan_c/g0_audit.py'
+      - 'analysis/kbs_plan_c/test_g0_audit.py'
+      - 'analysis/kbs_plan_c/frozen_gate.py'
+      - 'analysis/kbs_plan_c/test_frozen_gate.py'
+      - 'analysis/kbs_plan_c/m3_data_audit.py'
+      - 'analysis/kbs_plan_c/test_m3_data_audit.py'
+      - 'experiments/kbs_plan_c/protocol_draft.json'
+      - 'experiments/kbs_plan_c/G0_GPU_READONLY_APPROVAL.txt'
       - '.github/workflows/kbs-plan-c-g0-audit.yml'
   workflow_dispatch:
     inputs:
