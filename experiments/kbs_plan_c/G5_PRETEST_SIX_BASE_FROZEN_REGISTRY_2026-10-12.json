@@ -1,0 +1,119 @@
+{
+  "schema": "kbs-plan-c-g5-pretest-frozen-registry-v1",
+  "status": "SIX_DEV_POLICIES_FROZEN_TEST_UNOPENED",
+  "created": "2026-10-12",
+  "g1_protocol_sha256": "bf6234eb95ecb24a568b2e7556846c41c4f3e1fdcd7774397003beaf56341a3c",
+  "test_cohort_sha256": "e60da60672ea1921dd3a5fccfb0aa76a3a06d50834e8080a07b2465777c9bdb1",
+  "target_test_events": 47575,
+  "seeds": [
+    20261012,
+    20261013,
+    20261014
+  ],
+  "families": [
+    "sasrec",
+    "gru4rec"
+  ],
+  "checkpoint_sha256": {
+    "20261012": {
+      "sasrec": "18fb25d68970e73661a4b1418f5be05e7f8bed678d097533adf3cf1d9964d17e",
+      "gru4rec": "6c83dcb2e76f86e1018af467c0b0494f09b5d552c885700e92ea657cd9cc8d1a"
+    },
+    "20261013": {
+      "sasrec": "bb627ec2cc39313548c1eff64583aac4a010847967e595bdace01de4c8dabd32",
+      "gru4rec": "6847482a2a4722b5a324be20ffc8960030d6367942c3d0f21ef53db7f1d75128"
+    },
+    "20261014": {
+      "sasrec": "ab60a3d71cfd007b74296b5bb16bb95927d03a167c9e8d7d2fedc5995f2acd84",
+      "gru4rec": "afb11b7ae7d4fad1b60545649461992dd064b0370a72904cc4337b880f0e3ad0"
+    }
+  },
+  "policy_frozen_threshold_sha256": {
+    "20261012": {
+      "sasrec": "1aeaf5451d8dbf77dab423159f364e57911cfce286861f01c71c526d25dab2f7",
+      "gru4rec": "45f48d75d49963392c8b10f3e04b965263881f5575b54ac5a9de1ebe08168b75"
+    },
+    "20261013": {
+      "sasrec": "7f2e51c212e7fd4a049f57c36e44cc6ba73b7b0a8fe2d66e6d0f5749a578eedf",
+      "gru4rec": "68df8647912ee97147b043c3a3c6a70237fb70ca4c0f5779da45c05bdeda3708"
+    },
+    "20261014": {
+      "sasrec": "1221d45961e6c8d59a006ff92dade5ffd98f7a05ba415af5e368addac264af9d",
+      "gru4rec": "e151e39c3d5ce6c76481f0af2a88a24f2a55d6efdc4d12ddfd56351897179bdd"
+    }
+  },
+  "supervised_gate_model_sha256": {
+    "20261012": {
+      "sasrec": {
+        "utility": "01f1b95636cbf1dfa263a36bc101ea028d398f4dd37f9fab0db42f6a6d72568c",
+        "difficulty": "4a84b7e71224cbc0038a780ecaa4955cd33a77e742ccd8c8ff5b0a44c80df9fd",
+        "specialist": "bcf30aefcd1bdd46df2713b0fa8ba962998bf083245ffb6da367d79b0a92b600"
+      },
+      "gru4rec": {
+        "utility": "cba6eb3f894c9f733edaf4e4a2cc2c63f081ac14bd76b77b38f3efb7aa47253b",
+        "difficulty": "aed461eee95163a1736d293084c0c36b60e7d01e71532eb17b3baea8dcaf88a1",
+        "specialist": "0820c43586dd025a42d8397506dc9037d4bf1f79816458c5bc8b3223ed006089"
+      }
+    },
+    "20261013": {
+      "sasrec": {
+        "utility": "8843419ef6b4e914e7aa8b84e842dac8aab72972a69aedb0b58731d7d00ecf07",
+        "difficulty": "5f338fa7dd7696601ee1f280d3903c2d2eb00b48ec0e7fa4ab7895949cadd019",
+        "specialist": "7875bbb03a366128ceded5519f10e87593a4f280925a0ca5623f85a32739687b"
+      },
+      "gru4rec": {
+        "utility": "d8bfe8d45f3f4cde7327769e71f97871fe6ec8ad4659cbb861778e6dcf45df08",
+        "difficulty": "81c9aa5387cea6ffa62c1eefbd2015dd11ab0b7df1021c20d0d315a72e950e9f",
+        "specialist": "2a55d282bb3b28e44837464d4a0241fb12e4f1296539e285197027999b7feb0c"
+      }
+    },
+    "20261014": {
+      "sasrec": {
+        "utility": "a740d04dda6b521e3b146baed24a04374c46bface941d7ba3c72ad00c4f2a71e",
+        "difficulty": "245069dbdc0e6ad5348053be13e44efdeaa4376b8f24e2aaecd43d1eb65c360a",
+        "specialist": "f18b9d33f7ff43557653d21ba1b6dfb840734beb061ff6ff92de8147a0afa952"
+      },
+      "gru4rec": {
+        "utility": "02c8bb0f450be776956b2201dc36862550c3edec7182b5c380f4e81378359383",
+        "difficulty": "25a48ce3a8f0d074ab6ea7773ddc110de7e33798184953c692c83fec83f99fab",
+        "specialist": "739a1f692dcad43c3a3fb9e0103904b5437568cd5bf53b4a215741d8c3f9a70a"
+      }
+    }
+  },
+  "policy_methods": [
+    "utility",
+    "difficulty",
+    "specialist",
+    "uncertainty",
+    "history"
+  ],
+  "max_call_rate_constraint_frozen_on_dev": 0.3,
+  "pointwise_test_threshold_no_recalibration": true,
+  "history": "All strictly prior eligible interactions, including observed earlier TEST events in a prequential stream, never the current/future target",
+  "memory": "fixed 0.45 short last10 all prior historical events + 0.45 full-history normalized repeat counts + 0.10 TRAIN-normalized log popularity",
+  "candidate": "distinct currently live TRAIN-known authors in room lifecycle; no TEST-based warm-author universe expansion",
+  "primary_contrasts": [
+    "Utility minus Always Base",
+    "Utility minus Difficulty",
+    "Utility minus Specialist"
+  ],
+  "familywise_correction": "Holm on 3 preregistered one-sided primary contrasts per family/seed",
+  "sampling": "user-cluster paired bootstrap 5000 draws; compute separate confirmatory contrasts on untouched TEST",
+  "secondary": [
+    "Utility minus Uncertainty",
+    "Utility minus History",
+    "Utility minus Always Memory",
+    "Random@30 conditional expectation",
+    "Oracle@30 hindsight bound",
+    "realized TEST call fraction"
+  ],
+  "test_performance_seen": false,
+  "source_run_urls": [
+    "https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38205618676",
+    "https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38208337267",
+    "https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38214570522",
+    "https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38221813306",
+    "https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38212894692",
+    "https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38223562473"
+  ]
+}
