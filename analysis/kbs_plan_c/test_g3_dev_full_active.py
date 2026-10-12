@@ -47,9 +47,9 @@ class TestFixedMemory(unittest.TestCase):
             t=datetime(2026,3,24,12)
             path=Path(tmp)/"rooms.parquet"
             pq.write_table(pa.table({
-                "open_ts":[t-timedelta(hours=1),t-timedelta(hours=2),
+                "open_ts":[t-timedelta(hours=2),t-timedelta(hours=1),
                            t-timedelta(hours=1),t+timedelta(hours=1)],
-                "close_ts":[t+timedelta(hours=1),t+timedelta(hours=2),
+                "close_ts":[t+timedelta(hours=2),t+timedelta(hours=1),
                             t,t+timedelta(hours=2)],
                 "author_id":[10,10,11,12]}),path)
             values=list(author_availability(path,[t],
