@@ -1,0 +1,284 @@
+{
+  "schema": "kbs-plan-c-r0-evidence-ledger-v1",
+  "audit_date": "2026-10-12",
+  "scientific_evidence_frozen": true,
+  "created_for": "R0 claim–protocol–outcome traceability before updating manuscript and S1–S9",
+  "canonical_main": "manuscript/kbs_latex/main.tex",
+  "canonical_supplement": "manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md",
+  "source_artifact_kbs_g5b": "https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38226690320",
+  "r0_scope": "paper claim source identity, not rerun TEST or journal acceptance assertion",
+  "rows": [
+    {
+      "id": "C1-T1",
+      "claim": "Fixed Memory's mean event utility is negative relative to Twitch LiveRec Base",
+      "environment": "Twitch/LiveRec",
+      "scope": "FROZEN_TEST",
+      "ranked_unit": "streamer",
+      "events": 44221,
+      "users": null,
+      "base": "LiveRec 16-input-context",
+      "candidate": "crawl-step available streamers",
+      "results": {
+        "base_ndcg10": 0.58211,
+        "memory_ndcg10": 0.5398,
+        "memory_minus_base": -0.04232,
+        "paired_ci95": [
+          -0.04521,
+          -0.0395
+        ]
+      },
+      "stat": "5000 paired-user bootstrap",
+      "source": "manuscript/kbs_latex/main.tex#sec:results-utility",
+      "role": "C1"
+    },
+    {
+      "id": "C1-T2",
+      "claim": "Previously interacted but invisible-to-Base targets have positive conditional Memory gain",
+      "environment": "Twitch/LiveRec",
+      "scope": "RETROSPECTIVE_TARGET_DEFINED_SUBGROUP_ON_FROZEN_TEST",
+      "ranked_unit": "streamer",
+      "events": 5539,
+      "results": {
+        "base_ndcg10": 0.30181,
+        "memory_ndcg10": 0.52225,
+        "delta": 0.22045,
+        "paired_ci95": [
+          0.2114,
+          0.23001
+        ]
+      },
+      "source": "manuscript/kbs_latex/main.tex#tab:results-evidence",
+      "role": "C1",
+      "constraint": "Target-defined subgroup is diagnostic, never policy input"
+    },
+    {
+      "id": "C2-K1",
+      "claim": "Matched same-event sampled versus full-active room candidate regime reverses Memory-minus-Base mean",
+      "environment": "original_KuaiLive",
+      "scope": "POSTHOC_PAIRED_ALREADY_INSPECTED_TEST",
+      "ranked_unit": "room",
+      "events": 10222,
+      "base": "Dual-ID SASRec room+streamer fusion, fixed checkpoint",
+      "candidate": "575 sampled active rooms vs full active rooms",
+      "results": {
+        "sampled_base": 0.6070916,
+        "sampled_memory": 0.5658875,
+        "sampled_delta": -0.04120411,
+        "full_base": 0.3857124,
+        "full_memory": 0.4320191,
+        "full_delta": 0.04630669,
+        "paired_shift": 0.0875108,
+        "paired_shift_ci95": [
+          0.0821,
+          0.09326
+        ]
+      },
+      "source": "manuscript/kbs_latex/main.tex#sec:results-regimes",
+      "role": "C2",
+      "constraint": "Candidate count, composition and score competition not separately causally identified"
+    },
+    {
+      "id": "C2-K2",
+      "claim": "Crossed candidate membership and score-normalization reference allocation is descriptive",
+      "environment": "original_KuaiLive",
+      "scope": "POSTHOC_PAIRED_DIAGNOSTIC",
+      "ranked_unit": "room",
+      "events": 10222,
+      "results": {
+        "membership_term": 0.08826963,
+        "normalization_reference_term": -0.00075883
+      },
+      "source": "manuscript/kbs_latex/main.tex#tab:results-factorial",
+      "role": "C2"
+    },
+    {
+      "id": "C3-T1",
+      "claim": "DEV-frozen Twitch Utility surpasses Base and a retrospectively count-matched Difficulty policy",
+      "environment": "Twitch/LiveRec",
+      "scope": "FROZEN_TEST_UTILITY_VS_POSTHOC_MATCHED_DIFFICULTY",
+      "ranked_unit": "streamer",
+      "events": 44221,
+      "results": {
+        "base_ndcg10": 0.58211,
+        "utility_ndcg10": 0.58983,
+        "difficulty_ndcg10": 0.5834,
+        "oracle_ndcg10": 0.64806,
+        "utility_calls": 6650,
+        "utility_fraction": 0.1504,
+        "utility_minus_base": 0.00772,
+        "utility_minus_base_ci95": [
+          0.00641,
+          0.00903
+        ],
+        "utility_minus_difficulty": 0.00644,
+        "utility_minus_difficulty_ci95": [
+          0.00528,
+          0.00762
+        ]
+      },
+      "source": "manuscript/kbs_latex/main.tex#tab:results-twitch-policy",
+      "role": "C3",
+      "constraint": "Difficulty top-m equals realized Utility calls on TEST retrospectively; not a frozen online Difficulty invocation policy"
+    },
+    {
+      "id": "C1-M3",
+      "claim": "Fixed Memory's mean utility exceeds each six Base fits under full-active author ranking",
+      "environment": "KuaiLive-M3",
+      "scope": "ONE_SHOT_FROZEN_TEST",
+      "ranked_unit": "author",
+      "events": 47575,
+      "users": 12533,
+      "model_families": [
+        "sasrec",
+        "gru4rec"
+      ],
+      "train_seeds": [
+        20261012,
+        20261013,
+        20261014
+      ],
+      "results": {
+        "memory_ndcg10": 0.34679245908092543,
+        "base_ndcg10_range": [
+          0.2580038642721321,
+          0.260649
+        ],
+        "memory_advantage_all_positive": true
+      },
+      "source": "experiments/kbs_plan_c/G5_ONE_SHOT_TEST_RESULTS_AND_ACCEPTANCE_2026-10-12.md",
+      "source_artifact_id": 11735868084,
+      "role": "C1",
+      "constraint": "Not same room task, not person-disjoint replication, six fits share same TEST events"
+    },
+    {
+      "id": "C3-M3",
+      "claim": "DEV-frozen Utility outperforms four other DEV-frozen gate objectives under the M3 held-out protocol",
+      "environment": "KuaiLive-M3",
+      "scope": "ONE_SHOT_FROZEN_TEST",
+      "ranked_unit": "author",
+      "events": 47575,
+      "users": 12533,
+      "results": {
+        "utility_ndcg10_range": [
+          0.301766,
+          0.304004
+        ],
+        "best_other_objective": "uncertainty",
+        "utility_minus_uncertainty_range": [
+          0.013012,
+          0.014314
+        ],
+        "always_memory_ndcg10": 0.34679245908092543,
+        "dev_max_call_rate": 0.3,
+        "utility_test_call_fraction_range": [
+          0.277183,
+          0.292149
+        ]
+      },
+      "source": "experiments/kbs_plan_c/G5_ONE_SHOT_TEST_RESULTS_AND_ACCEPTANCE_2026-10-12.md",
+      "source_artifact_id": 11735868084,
+      "role": "C3",
+      "constraint": "DEV call-rate cap, not equal realized TEST calls; Uncertainty contrasts are secondary, not in predeclared three primary"
+    },
+    {
+      "id": "STAT-M3",
+      "claim": "Frozen TEST three preregistered one-sided contrasts have positive paired user-cluster estimates",
+      "environment": "KuaiLive-M3",
+      "scope": "ONE_SHOT_FROZEN_TEST",
+      "ranked_unit": "author",
+      "events": 47575,
+      "users": 12533,
+      "results": {
+        "contrasts": [
+          "utility_minus_base",
+          "utility_minus_difficulty",
+          "utility_minus_specialist"
+        ],
+        "familywise": "Holm correction across three per model/seed",
+        "n_model_seed_combinations": 6,
+        "n_tests": 18,
+        "bootstraps": 5000,
+        "signflip_resamples": 5000,
+        "all_adjusted_p": 0.0005998800239952009
+      },
+      "source": "experiments/kbs_plan_c/G5_ONE_SHOT_TEST_RESULTS_AND_ACCEPTANCE_2026-10-12.md",
+      "source_artifact_id": 11735868084,
+      "role": "C3",
+      "constraint": "Assumes sign symmetry of cluster differences; not one global FWER across all 18 tests"
+    },
+    {
+      "id": "BUD-M3",
+      "claim": "DEV-optimized pointwise thresholds show realized TEST call-rate drift",
+      "environment": "KuaiLive-M3",
+      "scope": "ONE_SHOT_FROZEN_TEST",
+      "ranked_unit": "author",
+      "events": 47575,
+      "results": {
+        "sasrec_primary_seed_test_call_fraction": {
+          "utility": 0.29214923804519183,
+          "difficulty": 0.2990436153441934,
+          "specialist": 0.29568050446663163,
+          "uncertainty": 0.30179716237519705,
+          "history": 0.354724119810825
+        }
+      },
+      "source": "actions_artifact_11735868084/aggregate.json",
+      "source_artifact_id": 11735868084,
+      "role": "BUDGET",
+      "constraint": "No strict 30%-max realized TEST enforcement, no equal TEST call count"
+    },
+    {
+      "id": "BUD-ORACLE",
+      "claim": "Budget-matched Oracle is a nondeployable retrospective upper bound",
+      "environment": "KuaiLive-M3",
+      "scope": "TEST_HINDSIGHT_REFERENCE",
+      "ranked_unit": "author",
+      "events": 47575,
+      "results": {
+        "sasrec_seed_20261012_oracle30": 0.38813465239750006,
+        "sasrec_seed_20261012_oracle_unlimited": 0.3883330755161653,
+        "random30_expectation": 0.28463950957136697
+      },
+      "source": "actions_artifact_11735868084/aggregate.json",
+      "source_artifact_id": 11735868084,
+      "role": "C3",
+      "constraint": "Outcome-using hindsight; not deployed; random baseline is conditional expectation"
+    },
+    {
+      "id": "COST-M3",
+      "claim": "Warmed replay finds selective route slower than always Memory in M3 subset",
+      "environment": "KuaiLive-M3",
+      "scope": "DEV_WARMED_OFFLINE_REPLAY",
+      "ranked_unit": "author",
+      "events": 256,
+      "results": {
+        "base_only_mean_ms": 1.4245,
+        "memory_only_mean_ms": 0.8033,
+        "utility_selective_mean_ms": 1.8018,
+        "utility_subsample_call_rate": 0.3125
+      },
+      "source": "actions_artifact_11734923392/aggregate.json",
+      "source_artifact_id": 11734923392,
+      "role": "COST",
+      "constraint": "Excludes end-to-end state building/network/batching, not production; observed Memory better absolute NDCG on full TEST"
+    },
+    {
+      "id": "FREEZE-M3",
+      "claim": "Frozen G5-A target-blind TEST predictions preceded label reveal and G5-B scoring",
+      "environment": "KuaiLive-M3",
+      "scope": "REGISTERED_PRETEST_AND_ONE_SHOT",
+      "ranked_unit": "author",
+      "events": 47575,
+      "results": {
+        "g5a_artifact": 11736962620,
+        "g5b_artifact": 11735868084,
+        "mean_candidates": 32166.63218076721,
+        "median_candidates": 31065,
+        "history": "prequential strictly prior TRAIN DEV and earlier TEST interactions"
+      },
+      "source": "experiments/kbs_plan_c/G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json",
+      "role": "INTEGRITY",
+      "constraint": "One later observation period, not verified person-disjoint; TEST label-free stage uses earlier observed TEST interactions only"
+    }
+  ]
+}
