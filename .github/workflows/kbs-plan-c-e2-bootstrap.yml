@@ -1,0 +1,87 @@
+name: KBS Plan C E2 DEV paired user bootstrap
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-e2-bootstrap.yml']
+permissions:
+  contents: read
+jobs:
+  hosted-code:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize DEV-only E2 paired user bootstrap')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Validate DEV-only statistics code and precondition
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/g3_dev_paired_bootstrap.py
+          grep -Fq 'DEV_ONLY_CONDITIONAL_UNCERTAINTY_NOT_TEST_CONFIRMATION' \
+            analysis/kbs_plan_c/g3_dev_paired_bootstrap.py
+          mkdir -p e2-bootstrap-code
+          cp analysis/kbs_plan_c/g3_dev_paired_bootstrap.py e2-bootstrap-code/
+          (cd e2-bootstrap-code && sha256sum *.py > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-e2-dev-user-bootstrap-code-v1
+          path: e2-bootstrap-code/
+  user-host-bootstrap:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize DEV-only E2 paired user bootstrap')
+    needs: hosted-code
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 35
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Check DEV-only E2 aggregate and stored OOF cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test -s "$ROOT/klm3_g3_e2_five_gate_DEV_frozen_v1/aggregate.json"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-e2-dev-user-bootstrap-code-v1
+          path: e2-bootstrap-code/
+          fail-on-cache-miss: true
+      - name: Paired user-cluster uncertainty across frozen E2 policies, no TEST scoring
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd e2-bootstrap-code && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=1
+          export PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          "$PY" e2-bootstrap-code/g3_dev_paired_bootstrap.py \
+             --e2-dir "$ROOT/klm3_g3_e2_five_gate_DEV_frozen_v1" \
+             --out "$ROOT/klm3_g3_e2_dev_bootstrap_v1.json" \
+             --reps 5000 --seed 20261012
+          mkdir -p e2-bootstrap-report
+          cp "$ROOT/klm3_g3_e2_dev_bootstrap_v1.json" e2-bootstrap-report/aggregate.json
+          "$PY" - <<'PY'
+          import json
+          x=json.load(open('e2-bootstrap-report/aggregate.json'))
+          assert x['schema']=='kbs-plan-c-dev-user-bootstrap-v1'
+          for name,v in x['families'].items():
+              assert v['n_events']==50049 and v['n_users']==12628
+              assert v['status']=='DEV_ONLY_CONDITIONAL_UNCERTAINTY_NOT_TEST_CONFIRMATION'
+              assert v['dev_threshold_optimization_bias_possible']
+              assert not v['test_files_read'] and not v['test_outcomes_inspected']
+          print('DEV-only paired bootstrap passed; not independent TEST evidence')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-e2-dev-paired-bootstrap-aggregate
+          path: e2-bootstrap-report/aggregate.json
+          if-no-files-found: error
+          retention-days: 21
