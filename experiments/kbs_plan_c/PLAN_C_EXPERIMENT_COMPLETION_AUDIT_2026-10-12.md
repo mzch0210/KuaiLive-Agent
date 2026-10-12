@@ -132,3 +132,22 @@ This update supersedes the dated E3/G4 in-progress statuses above.
 **8 of the 10 prior workstreams are fully complete**, one remains partial (production-style end-to-end cost identification, although the warmed benchmark and parity checks are completed), and one remains not started (G5 independent one-shot held-out TEST). **E1/E2/E3 are robust at the DEV phase but still only partially complete scientifically** until the frozen policies are evaluated once on the 47,575 held-out TEST events. This is a progress ledger, not an 80% scientific success claim.
 
 **Remaining research-critical path:** build and validate a strictly causal TRAIN/DEV/earlier-TEST history/feature engine on synthetic timelines, enforce the frozen six-model+gate registries, preserve pointwise DEV thresholds without TEST adjustments, compute the preregistered paired user-cluster comparisons and three-test Holm correction on a single held-out TEST run. Any claims of net compute/latency reduction must remain withheld unless backed by an appropriately counterbalanced production benchmark.
+
+---
+
+## Final G5 held-out TEST acceptance — 2026-10-12
+
+**Supersedes the dated "TEST not yet started" status above.** The independent forward-time **G5 one-shot TEST** has now completed successfully under six fully frozen Base+gate configurations with no TEST-guided retuning.
+
+- [G5 pretest full SHA audit #38225118849](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38225118849): PASS. All six Base weights, all six frozen threshold-policy files, and all 18 HGB model files matched the pre-TEST frozen registry; the 47,575-event TEST file hash matched G1; no TEST target outcome rows were read.
+- [G5-A no-target-label prediction #38225946950](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38225946950): PASS. Generated all 47,575 pretarget full-active top-10 rankings and frozen calls, average 32,166.6 / median 31,065 active author candidates, with zero current-target author labels or TEST NDCG loaded. Strictly previous TEST interactions were used as frozen **prequential history** only.
+- [G5-B one-shot target reveal and confirmation #38226690320](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38226690320): PASS. **47,575 TEST events, 12,533 users**, 6 Base checkpoints, 5 gate policies, 5,000 user-cluster bootstrap resamples, 5,000 user-cluster sign flips, Holm adjustment across each preregistered set of three contrasts. All 18 one-sided primary tests rejected under their group-specific Holm procedure; observed raw sign-flip p-value 1/5001 and Holm-adjusted p approximately 0.000600.
+- [Full accepted TEST result with six-model table, 18 paired CIs, cost caveats and reproducibility](G5_ONE_SHOT_TEST_RESULTS_AND_ACCEPTANCE_2026-10-12.md).
+
+TEST Utility NDCG@10 ranges **0.301766–0.304004** across six Bases, ahead of all four gate comparators and their Base. Fixed Always Memory NDCG@10 **0.346792** remains superior at a 100% specialist call rate. Pointwise DEV-frozen Utility gates happened to call Memory on **27.72%–29.21%** of heldout TEST events without recalibration; the DEV maximum 30% is *not* artificially enforced or adjusted on TEST.
+
+### Updated Plan C bookkeeping
+
+**9/10 originally enumerated workstreams complete; 1/10 partially complete** (actual production end-to-end cost/latency validation). This is not a scientifically meaningful 90%-progress measure. The essential frozen E1/E2/E3 TEST confirmation is now **COMPLETE**, while the real-world economics and operational necessity of the selective design remain unproven in this regime. The warmed offline replay currently shows the Utility route slower than Always Memory, despite lower invocation rate, so no real speedup claim is allowed.
+
+The empirical stage of frozen Plan C is closed. Any new post-TEST model architecture, feature, threshold, dataset cohort or data-dependent analysis is **exploratory**, not a replacement for its one-shot confirmation. Next: reconcile manuscript main line, strengthen honest paired evidence and pretarget cost reporting, update supplemental reproducibility tables, and perform independent KBS referee-style manuscript integration.
