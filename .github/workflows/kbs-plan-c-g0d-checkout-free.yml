@@ -1,0 +1,81 @@
+name: KBS Plan C G0-D checkout-free data audit fallback
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-g0d-checkout-free.yml']
+permissions:
+  contents: read
+jobs:
+  hosted-code-bundle:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize checkout-free M3 full temporal audit')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Test and hash exact source code before server handoff
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s analysis/kbs_plan_c -p test_g0d_full_audit.py -v
+          mkdir -p audit-bundle
+          cp analysis/kbs_plan_c/g0d_full_audit.py audit-bundle/
+          (cd audit-bundle && sha256sum g0d_full_audit.py > SHA256SUMS)
+          (cd audit-bundle && sha256sum -c SHA256SUMS)
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-g0d-iso-timestamp-audit-code-v2
+          path: audit-bundle/
+  user-host-checkout-free-audit:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize checkout-free M3 full temporal audit')
+    needs: hosted-code-bundle
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 55
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Validate local data and Python without contacting github.com
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          test -s "$HOME/.cache/kuailive-agent-kbs/klm3/SHA256SUMS"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g0d-iso-timestamp-audit-code-v2
+          path: audit-bundle/
+          fail-on-cache-miss: true
+      - name: Rehash exact trusted script and scan existing M3 raw records
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd audit-bundle && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=1
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          "$PY" audit-bundle/g0d_full_audit.py \
+            --root "$HOME/.cache/kuailive-agent-kbs/klm3" \
+            --out g0d_aggregates/full_source_audit_corrected.json \
+            --sample-stride 2500
+          "$PY" - <<'PY'
+          import json
+          a=json.load(open('g0d_aggregates/full_source_audit_corrected.json'))
+          b=a['streaming_interaction_audit']
+          assert a['schema']=='kbs-plan-c-g0d-full-aggregate-v2'
+          assert a['sha256_reverified'] and a['valid_room_ids'] > 1000000
+          assert b['events']['rows'] > 30000000 and b['unique_users'] > 15000
+          assert b['events']['room_id_matched'] > 0
+          assert b['utc_event_date_range']['first'] is not None
+          assert b['sampled_exact_live_room_candidates']['n'] > 100
+          assert a['no_test_ranking_metrics_computed'] and a['no_model_trained']
+          print('CORRECTED M3 AGGREGATE G0-D AUDIT PASS')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g0d-checkout-free-verified
+          path: g0d_aggregates/full_source_audit_corrected.json
+          if-no-files-found: error
+          retention-days: 14
