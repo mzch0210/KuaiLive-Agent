@@ -1,0 +1,100 @@
+name: KBS Plan C G4 warmed DEV serving-path cost validation
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-g4-latency.yml']
+permissions:
+  contents: read
+jobs:
+  hosted-source:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G4 warmed DEV serving cost replay')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Confirm scope and fingerprint the CPU/GPU replay source
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/g4_latency_dev_replay.py
+          mkdir -p g4-latency-code
+          cp analysis/kbs_plan_c/g4_latency_dev_replay.py \
+             analysis/kbs_plan_c/g2_train_base.py \
+             analysis/kbs_plan_c/g3_dev_full_active.py \
+             analysis/kbs_plan_c/g3_replay_correct_memory.py \
+             analysis/kbs_plan_c/g4_sparse_gate_features.py g4-latency-code/
+          (cd g4-latency-code && sha256sum *.py > SHA256SUMS && sha256sum -c SHA256SUMS)
+          python - <<'PY'
+          import json
+          a=json.load(open('experiments/kbs_plan_c/G0F_PRETEST_PROTOCOL_2026-10-12.json'))
+          assert a['meta']['test_performance_seen'] is False
+          PY
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-g4-dev-warmed-serving-latency-v1
+          path: g4-latency-code/
+  user-host-latency:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G4 warmed DEV serving cost replay')
+    needs: hosted-source
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 70
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Confirm private DEV datasets, models, policy and host isolation
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test "$GITHUB_REF" = refs/heads/main
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1/summary.json"
+          test -s "$ROOT/klm3_g3_e2_five_gate_DEV_frozen_v1/sasrec/frozen_thresholds.json"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          nvidia-smi
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g4-dev-warmed-serving-latency-v1
+          path: g4-latency-code/
+          fail-on-cache-miss: true
+      - name: Real DEV sparse-feature equivalence and warmed Base/gate/Memory latency
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd g4-latency-code && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$PWD/g4-latency-code:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=1
+          export PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          "$HOME/venvs/kuailive-gpu/bin/python" \
+            g4-latency-code/g4_latency_dev_replay.py \
+            --g1 "$ROOT/klm3_plan_c_g1_v1" \
+            --index "$ROOT/klm3_g2_train_index_v1" \
+            --dev "$ROOT/klm3_g2_dev_checkpoint_screen_v1" \
+            --corrected "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1" \
+            --g2-trained "$ROOT/klm3_g2_seed20261012_epoch3_v1" \
+            --selected "$ROOT/klm3_g2_checkpoint_dev_selected_v1.json" \
+            --e2 "$ROOT/klm3_g3_e2_five_gate_DEV_frozen_v1" \
+            --out "$ROOT/klm3_g4_dev_serving_replay_cost_v1.json"
+          mkdir -p g4-latency-report
+          cp "$ROOT/klm3_g4_dev_serving_replay_cost_v1.json" g4-latency-report/aggregate.json
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          x=json.load(open('g4-latency-report/aggregate.json'))
+          assert x['schema']=='kbs-plan-c-g4-warmed-dev-replay-cost-v1'
+          assert x['n_events']==256 and x['corrected_memory_feature_real_parity']
+          assert not x['test_file_opened'] and not x['test_outcomes_inspected']
+          assert x['scope']=='WARMED_OFFLINE_DEV_REPLAY_MICROBENCHMARK_NOT_PRODUCTION_LATENCY'
+          print('DEV warm-path cost study completed; no false production latency claims.')
+          PY
+      - name: Upload only aggregate timing and limitations, not IDs or traces
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g4-warmed-dev-serving-cost
+          path: g4-latency-report/aggregate.json
+          if-no-files-found: warn
+          retention-days: 21
