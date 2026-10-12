@@ -25,6 +25,12 @@ def polish(path: Path) -> dict:
         lambda m: "\\texttt{\\seqsplit{" + m.group(1) + "}}",
         source,
     )
+    # Preserve other SHA256 displays (bold provenance and plain wide-table cells).
+    source = re.sub(
+        r"\\textbf\{([a-f0-9]{64})\}",
+        lambda m: "\\textbf{\\seqsplit{" + m.group(1) + "}}",
+        source,
+    )
     # The source PDF displays exact SHA256 values, including their intact bytes,
     # but permits a line break between individual characters.
     if n_hash < 14:
@@ -40,6 +46,11 @@ def polish(path: Path) -> dict:
     def convert_table(m: re.Match[str]) -> str:
         nonlocal rotations, tables
         block = m.group()
+        block = re.sub(
+            r"(?<!\\seqsplit\{)(?<![a-f0-9])([a-f0-9]{64})(?![a-f0-9])",
+            lambda token: "\\seqsplit{" + token.group(1) + "}",
+            block,
+        )
         tables += 1
         header = block.split(r"\midrule", 1)[0]
         n_col = header.count(r"\begin{minipage}")
