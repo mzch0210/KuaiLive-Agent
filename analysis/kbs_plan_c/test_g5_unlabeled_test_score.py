@@ -10,13 +10,13 @@ class PretestControls(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp)/"stream.parquet"
             pq.write_table(pa.table({
-                "source_event_id":[1,2,3,4,5,6,7],
-                "user_id":[7]*5+[8]*2,
-                "author_id":[101,999,102,103,104,101,105],
-                "split":["TRAIN","DEV","TEST","TEST","TEST","TRAIN","TEST"]}),p)
-            snaps,processed=histories(p,np.array([3,4,7],dtype=np.int64),
+                "source_event_id":[1,2,3,4,5,6,7,8],
+                "user_id":[7]*5+[8]*3,
+                "author_id":[101,999,102,103,104,101,105,103],
+                "split":["TRAIN","DEV","TEST","TEST","TEST","TRAIN","TRAIN","TEST"]}),p)
+            snaps,processed=histories(p,np.array([3,4,8],dtype=np.int64),
                                      {101:1,102:2,103:3,104:4,105:5})
-            self.assertEqual(processed,7)
+            self.assertEqual(processed,8)
             self.assertEqual(snaps[0][0][-1],1)
             self.assertEqual(snaps[0][1],{1:1})
             self.assertEqual(snaps[0][2],(1,0))
