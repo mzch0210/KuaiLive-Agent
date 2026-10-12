@@ -259,6 +259,7 @@ def representations(models,context,device,batch=256):
     return ans
 
 
+@torch.inference_mode()
 def score_batch(models, reps, context_ids, candidates, device):
     """Same candidates, different frozen Base checkpoints; zero TEST access."""
     array=np.asarray(candidates,dtype=np.int64)
@@ -267,7 +268,7 @@ def score_batch(models, reps, context_ids, candidates, device):
     for name,model in models.items():
         vec=torch.as_tensor(reps[name][context_ids],device=device)
         emb=model.item(candidates_t)
-        pred=torch.einsum("bd,bkd->bk",vec,emb).cpu().numpy()
+        pred=torch.einsum("bd,bkd->bk",vec,emb).detach().cpu().numpy()
         if not np.isfinite(pred).all():
             raise FloatingPointError("nonfinite candidate scores")
         output[name]=pred
