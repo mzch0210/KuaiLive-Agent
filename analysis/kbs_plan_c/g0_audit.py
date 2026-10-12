@@ -102,7 +102,7 @@ def main():
                     default=Path.home() / ".cache/kuailive-agent-kbs")
     ap.add_argument("--m3-root", type=Path,
                     default=Path(os.environ.get("KLM3_DATA_ROOT") or
-                                 "/nonexistent-klm3"))
+                                 str(Path.home() / ".cache/kuailive-agent-kbs/klm3")))
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
     result = audit(args.mode, args.cache_root, args.m3_root)

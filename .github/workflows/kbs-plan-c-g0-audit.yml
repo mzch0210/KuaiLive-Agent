@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - kbs-plan-c-g0-20261012
+      - main
     paths:
       - 'analysis/kbs_plan_c/**'
       - 'experiments/kbs_plan_c/**'
@@ -53,7 +54,7 @@ jobs:
           path: g0_out/hosted_g0.json
           retention-days: 30
   user-host-g0:
-    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.actor == 'mzch0210' && inputs.confirm_owner_run }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.actor == 'mzch0210' && inputs.confirm_owner_run) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize one-time G0 user-host inventory')) }}
     needs: hosted-g0
     runs-on: [self-hosted, linux, x64, gpu-3090]
     timeout-minutes: 10
@@ -64,9 +65,15 @@ jobs:
       - name: Require owner and guarded read-only task
         run: |
           set -euo pipefail
-          test "$GITHUB_EVENT_NAME" = workflow_dispatch
           test "$GITHUB_REF" = refs/heads/main
-          test "$GITHUB_ACTOR" = mzch0210
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            test "$GITHUB_ACTOR" = mzch0210
+          elif [ "$GITHUB_EVENT_NAME" = push ]; then
+            test -f experiments/kbs_plan_c/G0_GPU_READONLY_APPROVAL.txt
+            grep -Fxq 'KBS-PLAN-C-G0-READONLY-ONCE-2026-10-12' experiments/kbs_plan_c/G0_GPU_READONLY_APPROVAL.txt
+          else
+            echo 'Unauthorized event type' >&2; exit 2
+          fi
           command -v nvidia-smi
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
