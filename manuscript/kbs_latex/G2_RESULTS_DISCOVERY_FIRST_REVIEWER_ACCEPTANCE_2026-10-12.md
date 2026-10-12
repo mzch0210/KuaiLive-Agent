@@ -36,6 +36,8 @@
 
 ## III. G2 结论与 G3 准入
 
-**G2 科学编辑和源码 gate：PASS。** [首次完整构建 #38192050763](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38192050763) 已成功生成 29 页 PDF，但 §6.2 连续置信区间存在 32.92719pt Overfull；修复后精确源码 [最终工作流 #38192207908](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38192207908) 的结果与实际 PDF 验收另行确认。此状态不预先声称最终技术通过。
+**G2 正式验收：PASS（科学论证、源文件范围、编译与局部视觉版面）。** 第一次完整内容版本的 [Actions #38192050763](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38192050763) 曾发现 §6.2 两组连续置信区间中的 32.92719pt Overfull；最终提交 `dcd95a6d` 拆分该句但不改变效应/CI。与此最终 commit 完全匹配的 [GitHub Actions #38192207908](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38192207908) 已 **success**，编译、有效 PDF 验证、artifact 上传均通过；最终 PDF **29 页**，整次构建 **0 个 Overfull hbox**，最终轮次无致命 LaTeX 错误、未解析 cross-reference/citation 或 BibTeX volume/issue 冲突。[源匹配 PDF 与编译日志 artifact #11721809086](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38192207908/artifacts/11721809086)。
+
+**真实 PDF 视觉复核：** 已下载 artifact 内实际 `main.pdf`，用 `pdfinfo`/`pdftotext -layout` 检查 29 页完整性，渲染并逐页概览第 **15–22 页**（§6 从 p15 开始，第 7 章从 p21 开始）。第六章状态图、Twitch policy 表、KuaiLive crossed reference 表、DEV 特征对照表及跨章分页没有发现文字明显越界、图表覆盖、孤立标题或异常空白。此为**受影响页面验收**；全篇分页终审仍属 G5。
 
 **G3 的边界：** 按原计划只修订 §7 Discussion，以更紧密的学术解释连接新的 §1/§2 与现有 §6 的证据，尤其与 L2D/sampled-metric/knowledge fusion 的文献对话。不得扩大为跨平台 selector validation、因果 candidate-size、净计算节省或先改掉 §8 结论。完成 G3 后才进入 G4 §3–§5 的最小协调、§8 一致性与 G5 全文 KBS reviewer audit。
