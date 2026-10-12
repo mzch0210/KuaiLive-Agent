@@ -1,0 +1,114 @@
+name: KBS Plan C G0-D full temporal and room-eligibility audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-plan-c-g0d-full-audit.yml'
+permissions:
+  contents: read
+jobs:
+  hosted-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Check G0-D on synthetic events only
+        run: |
+          python -m py_compile analysis/kbs_plan_c/g0d_full_audit.py
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_g0d_full_audit.py' -v
+
+  hosted-wheel:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize M3 full temporal source audit')
+    needs: hosted-smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Download prebuilt wheels for offline GPU-host Parquet scanning
+        run: |
+          mkdir -p audit-wheelhouse
+          python -m pip download --disable-pip-version-check \
+            --only-binary=:all: --no-deps --dest audit-wheelhouse \
+            'pyarrow==17.0.0' 'numpy==1.26.4'
+          (cd audit-wheelhouse && sha256sum *.whl > WHEEL_SHA256SUMS)
+          (cd audit-wheelhouse && sha256sum -c WHEEL_SHA256SUMS)
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-g0d-py312-linux-wheels-v1
+          path: audit-wheelhouse/
+
+  user-host-audit:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize M3 full temporal source audit')
+    needs: [hosted-smoke, hosted-wheel]
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 55
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Guard trusted revision and persistent data source
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          test -s "$HOME/.cache/kuailive-agent-kbs/klm3/SHA256SUMS"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          clean: true
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g0d-py312-linux-wheels-v1
+          path: audit-wheelhouse/
+          fail-on-cache-miss: true
+      - name: Extract isolated audited Python wheels, not modifying model virtualenv
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd audit-wheelhouse && sha256sum -c WHEEL_SHA256SUMS)
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          TOOLS="$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          mkdir -p "$TOOLS"
+          "$PY" - <<'PY'
+          import pathlib,zipfile
+          target=pathlib.Path.home()/'.cache/kuailive-agent-kbs/audit-py312-tools-v1'
+          for wheel in sorted(pathlib.Path('audit-wheelhouse').glob('*.whl')):
+              with zipfile.ZipFile(wheel) as archive:
+                  archive.extractall(target)
+          print('Extracted prebuilt wheels without replacing torch environment.')
+          PY
+          PYTHONPATH="$TOOLS" "$PY" - <<'PY'
+          import numpy,pyarrow
+          assert pyarrow.__version__=='17.0.0'
+          print('Parquet decoder ready: offline isolation passed.')
+          PY
+      - name: Full source temporal and lifecycle audit without TEST scoring
+        shell: bash
+        run: |
+          set -euo pipefail
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=1
+          "$PY" analysis/kbs_plan_c/g0d_full_audit.py \
+            --root "$HOME/.cache/kuailive-agent-kbs/klm3" \
+            --out g0d_aggregates/full_source_audit.json \
+            --sample-stride 2500
+          "$PY" - <<'PY'
+          import json
+          a=json.load(open('g0d_aggregates/full_source_audit.json'))
+          assert a['sha256_reverified']
+          assert a['no_event_level_rows_exported'] and a['no_test_ranking_metrics_computed']
+          assert a['streaming_interaction_audit']['events']['rows'] > 1000000
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g0d-full-aggregate-audit
+          path: g0d_aggregates/full_source_audit.json
+          if-no-files-found: error
+          retention-days: 14
