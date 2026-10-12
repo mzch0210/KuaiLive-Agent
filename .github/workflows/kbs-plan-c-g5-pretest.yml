@@ -1,0 +1,78 @@
+name: KBS Plan C G5 mandatory sealed-TEST hash-only preflight
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-g5-pretest.yml']
+permissions:
+  contents: read
+jobs:
+  hosted-build:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G5 pretest registry verification')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false, clean: true}
+      - name: Validate and hash immutable pretest code and frozen registry
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/g5_pretest_audit.py
+          mkdir -p g5-preflight-code
+          cp analysis/kbs_plan_c/g5_pretest_audit.py g5-preflight-code/
+          cp experiments/kbs_plan_c/G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json \
+             g5-preflight-code/
+          (cd g5-preflight-code && sha256sum *.py *.json > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-g5-pretest-registry-audit-code-v1
+          path: g5-preflight-code/
+  user-host-hash-only:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G5 pretest registry verification')
+    needs: hosted-build
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 30
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Require private immutable G1, selected six models and python
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test "$GITHUB_REF" = refs/heads/main
+          test "$(id -u)" -ne 0
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          test -s "$HOME/.cache/kuailive-agent-kbs/klm3_plan_c_g1_v1/test_cohort_sealed.parquet"
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g5-pretest-registry-audit-code-v1
+          path: g5-preflight-code/
+          fail-on-cache-miss: true
+      - name: Audit only SHA256 bytes, not TEST rows, ranks, outcomes or metrics
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd g5-preflight-code && sha256sum -c SHA256SUMS)
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          "$HOME/venvs/kuailive-gpu/bin/python" g5-preflight-code/g5_pretest_audit.py \
+            --cache "$ROOT" \
+            --registered g5-preflight-code/G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json \
+            --g1 "$ROOT/klm3_plan_c_g1_v1" \
+            --out "$ROOT/klm3_g5_pretest_registry_audit_v1.json"
+          mkdir -p g5-audit
+          cp "$ROOT/klm3_g5_pretest_registry_audit_v1.json" g5-audit/manifest.json
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          d=json.load(open('g5-audit/manifest.json'))
+          assert d["status"]=="ALL_SIX_CHECKPOINT_AND_POLICY_DIGESTS_VERIFIED"
+          assert len(d["evidence"])==6
+          assert not d["test_rows_opened"] and not d["test_labels_read"]
+          print("G5 hash-only TEST preflight accepted; all six policies unchanged")
+          PY
+      - name: Upload limited SHA metadata only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g5-hash-only-lock-proof
+          path: g5-audit/manifest.json
+          if-no-files-found: error
+          retention-days: 30
