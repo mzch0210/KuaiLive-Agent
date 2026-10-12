@@ -1,0 +1,26 @@
+name: KBS Plan C G2 DEV-only causal-history and candidate synthetic CI
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-g2-dev-smoke.yml']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Fixed CPU-only dependencies and DEV label/roster unit tests
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'numpy==1.26.4' 'pyarrow==17.0.0'
+          python -m py_compile analysis/kbs_plan_c/g2_dev_prepare.py \
+            analysis/kbs_plan_c/g2_dev_select.py
+          PYTHONPATH=analysis/kbs_plan_c python -m unittest discover \
+            -s analysis/kbs_plan_c -p 'test_g2_dev_prepare.py' -v
