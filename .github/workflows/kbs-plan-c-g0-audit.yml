@@ -1,0 +1,93 @@
+name: KBS Plan C G0 read-only infrastructure audit
+on:
+  push:
+    branches:
+      - kbs-plan-c-g0-20261012
+    paths:
+      - 'analysis/kbs_plan_c/**'
+      - 'experiments/kbs_plan_c/**'
+      - '.github/workflows/kbs-plan-c-g0-audit.yml'
+  workflow_dispatch:
+    inputs:
+      confirm_owner_run:
+        description: 'Approve read-only self-hosted GPU and cache inventory, no models or TEST'
+        required: true
+        type: boolean
+        default: false
+      m3_root:
+        description: 'Optional directory containing previously downloaded KLM3 files'
+        required: false
+        type: string
+        default: ''
+permissions:
+  contents: read
+jobs:
+  hosted-g0:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Synthetic tests and syntax
+        run: |
+          python -m py_compile analysis/kbs_plan_c/g0_audit.py analysis/kbs_plan_c/test_g0_audit.py
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_*.py' -v
+      - name: Check protocol manifest and execute read-only audit
+        run: |
+          python - <<'PY'
+          import json
+          m=json.load(open('experiments/kbs_plan_c/protocol_draft.json'))
+          assert m['status']=='G0_AUDIT_ONLY_NOT_FROZEN'
+          assert m['guards']['new_test_no_access_before_gate_freeze']
+          PY
+          python analysis/kbs_plan_c/g0_audit.py --mode hosted --out g0_out/hosted_g0.json
+          python - <<'PY'
+          import json
+          a=json.load(open('g0_out/hosted_g0.json'))
+          assert not a['test_accessed'] and not a['models_trained'] and not a['data_downloaded']
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g0-hosted-${{ github.run_id }}
+          path: g0_out/hosted_g0.json
+          retention-days: 30
+  user-host-g0:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.actor == 'mzch0210' && inputs.confirm_owner_run }}
+    needs: hosted-g0
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 10
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Require owner and guarded read-only task
+        run: |
+          set -euo pipefail
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_ACTOR" = mzch0210
+          command -v nvidia-smi
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          clean: true
+      - name: Inventory pinned GPU environment and bounded known cache roots
+        env:
+          KLM3_DATA_ROOT: ${{ inputs.m3_root }}
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" analysis/kbs_plan_c/g0_audit.py \
+            --mode user-host --out g0_out/user_host_g0.json
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          a=json.load(open('g0_out/user_host_g0.json'))
+          assert a['gpu']['gpu_ready']
+          assert not a['test_accessed'] and not a['models_trained']
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g0-user-host-${{ github.run_id }}
+          path: g0_out/user_host_g0.json
+          retention-days: 30
