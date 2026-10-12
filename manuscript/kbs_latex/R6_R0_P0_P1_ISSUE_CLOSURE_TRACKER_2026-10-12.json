@@ -1,0 +1,183 @@
+{
+  "schema": "kbs-r0-r6-issue-closure-tracker-v1",
+  "date": "2026-10-12",
+  "r2_section": "manuscript/kbs_latex/main.tex#sec:experimental-setup",
+  "policy": "An item marked PARTIAL is not closed for submission; final closure requires the target main/supplement stage and R8 evidence check",
+  "summary": {
+    "issues": 12,
+    "p0": 6,
+    "p1": 6,
+    "r6_method_and_supplement_repaired": 10,
+    "p1_followups_remaining": 2,
+    "fully_closed_after_R8": 0
+  },
+  "items": [
+    {
+      "id": "R0-P0-01",
+      "priority": "P0",
+      "issue": "Two-task framing",
+      "r2_resolution": "R2: §5 table and opening now cover Twitch, original KuaiLive and M3",
+      "remaining_stage": "R8 complete paper-wide cross-check",
+      "status": "R6_REPAIRED_FINAL_AUDIT_PENDING",
+      "r3_resolution": "§6 now explicitly distinguishes frozen Twitch, retrospectively paired original room KuaiLive and frozen M3 author ranking.",
+      "r4_resolution": "§3 and §4 scope Base-relative comparison by evaluated ranking unit/context; three-protocol §5 and §6 identities preserved. R5/R6 still required.",
+      "r5_resolution": "R5 §1 now introduces Twitch frozen streamer TEST, original KuaiLive retrospective paired room analysis and new M3 frozen author TEST; §7–8 separately interpret each evidential role. Pending R6 supplement sync and R8 global QA.",
+      "r6_resolution": "S1/S2/S3 distinguish Twitch streamer, original KuaiLive room and M3 author; both separately frozen decision TESTs now named. R8 global check still needed."
+    },
+    {
+      "id": "R0-P0-02",
+      "priority": "P0",
+      "issue": "Twitch-only prospective confirmation statement",
+      "r2_resolution": "R2: §5 separates Twitch retrospective matched controls and five M3 DEV-frozen TEST policies",
+      "remaining_stage": "R8 complete paper-wide cross-check",
+      "status": "R6_REPAIRED_FINAL_AUDIT_PENDING",
+      "r3_resolution": "§6.2 separate Twitch DEV-frozen Utility/retrospective Difficulty from M3 five DEV-frozen pointwise objectives.",
+      "r4_resolution": "§3 differentiates Twitch retrospectively TEST-count-matched controls and M3 five DEV-frozen pointwise policies; §4 methods agree. R6 supplement scope pending.",
+      "r5_resolution": "R5 Related Work and Discussion distinguish Twitch DEV-frozen Utility versus retrospective TEST equal-count Difficulty, and all five M3 DEV-frozen gate objectives; R6 S1/S7 stale scope remains.",
+      "r6_resolution": "S2.1 and S2.4 record two frozen decision TESTs; S7 differentiates Twitch retrospective comparators from 5 M3 independently frozen pointwise policies."
+    },
+    {
+      "id": "R0-P0-03",
+      "priority": "P0",
+      "issue": "DEV invocation cap mistaken for exact TEST budget",
+      "r2_resolution": "R2: §5 distinguishes DEV≤30% threshold freeze from unforced realized TEST rates",
+      "remaining_stage": "R8 complete paper-wide cross-check",
+      "status": "R6_REPAIRED_FINAL_AUDIT_PENDING",
+      "r3_resolution": "§6.2 M3 main-seed table reports all five actual TEST call rates; §6.5 notes range and 35.47% History.",
+      "r4_resolution": "§3 decision-rule equation uses protocol-specific frozen threshold tie semantics; M3 inclusive, DEV cap ≤30%, TEST realized fraction not enforced; cost and call budgets distinguished. Paperwide closure awaits R5/R6/R8.",
+      "r5_resolution": "R5 §2/§7 states common DEV selection cap does not imply equal realized TEST calls or real compute cost. R6 S7 detailed 6-model call fractions pending.",
+      "r6_resolution": "S7.5 records precise six-model five-policy actual TEST call counts and percentages, including History 35.472%; DEV cap not TEST quota."
+    },
+    {
+      "id": "R0-P0-04",
+      "priority": "P0",
+      "issue": "Always Memory and unfavorable M3 cost missing from main",
+      "r2_resolution": "R2: costs explicitly not equated to invocation frequency",
+      "remaining_stage": "R8 complete paper-wide cross-check",
+      "status": "R6_REPAIRED_FINAL_AUDIT_PENDING",
+      "r3_resolution": "§6.2 Always Memory 0.34679 exceeds selective quality; §6.5 compares Always Base 1.425 ms, Memory 0.803 ms, Utility path 1.802 ms on 256 warmed DEV replay.",
+      "r4_resolution": "§3/§4 do not equate specialist call fraction to serving latency, and §4 gates require Base+feature overhead. Always Memory adverse results in §6. R5/R6 pending.",
+      "r5_resolution": "R5 §7/§8 explicitly disclose M3 Always Memory 0.34679 NDCG vs Utility 0.30177–0.30400 and 256 DEV warm Memory 0.803 ms vs Utility 1.802 ms; state no demonstrated unconditional deployment economics. R6 S9 pending.",
+      "r6_resolution": "S8.4 reports Always Memory absolute NDCG 0.346792; S9.6 independently records 3090 M3 memory 0.8033ms vs selective 1.8018ms negative evidence."
+    },
+    {
+      "id": "R0-P0-05",
+      "priority": "P0",
+      "issue": "Ranked unit, feature dimension and candidate screening mismatch",
+      "r2_resolution": "R2: §5 defines three tasks and M3 12 features, 575-screening versus full TEST, 14 Twitch features",
+      "remaining_stage": "R8 complete paper-wide cross-check",
+      "status": "R6_REPAIRED_FINAL_AUDIT_PENDING",
+      "r3_resolution": "§6.1/§6.3/§6.4 separate Twitch streamer, KuaiLive paired rooms and M3 full-active author task, cross-model fits not extra datasets.",
+      "r4_resolution": "§4 now documents Twitch input-14 versus M3 input-12, old KuaiLive room Base versus author SASRec/GRU4Rec, M3 all-prior Memory and TRAIN-known Base sequence. §5/6 already revised; supplement pending.",
+      "r5_resolution": "R5 §1/§2/§7 correctly distinguish original room, M3 author, Twitch streamer and two frozen decision environments, without causal attribution of cross-task mean signs. R6 S1–S3 pending.",
+      "r6_resolution": "S1.3 author identity/time split/historical all-authors, S2.4 six checkpoints/gate schema, S3.4 distinguish room vs author, DEV checkpoint screen vs full TEST."
+    },
+    {
+      "id": "R0-P0-06",
+      "priority": "P0",
+      "issue": "Incorrect inferential family/correlation interpretation",
+      "r2_resolution": "R2: §5 explicitly defines user-cluster signflip, bootstrap and three-Holm per 6 models",
+      "remaining_stage": "R8 complete paper-wide cross-check",
+      "status": "R6_REPAIRED_FINAL_AUDIT_PENDING",
+      "r3_resolution": "§6.2 specifies main seed 3-Holm adjusted p, §6.4 all 18 positive within 6 per-fit 3-Holm tests, no global 18-test control.",
+      "r4_resolution": "§3 formulas avoid unjustified six independent users and global 18-test claims; full inferential scope remains §5/6. R6 S8 awaiting final closure.",
+      "r5_resolution": "R5 §7 specifies 6 fits evaluated on same user cohort, Holm adjustment per fitted model on 3 registered contrasts, with secondary uncertainty test outside family. R6 S8 full intervals pending.",
+      "r6_resolution": "S8.6 lists all 18 original pairwise user-cluster bootstrap 95% intervals and per-fit Holm(3), simulation resolution, null assumptions and same cohort."
+    },
+    {
+      "id": "R0-P1-01",
+      "priority": "P1",
+      "issue": "Pretest G0F timestamp_ms versus DuckDB typed hash variance",
+      "r2_resolution": "R2: §5 documents exact frozen implementation and pre-execution notation discrepancy",
+      "remaining_stage": "R8 complete paper-wide cross-check",
+      "status": "R6_REPAIRED_FINAL_AUDIT_PENDING",
+      "r3_resolution": "No new M3 cohort hash claim introduced in §6.",
+      "r4_resolution": "R4 preserves frozen source protocol, does not create any unsupported claim about hash implementation. Full provenance remains R6 S1.",
+      "r5_resolution": "R5 avoids manuscript-level claims of byte-identical preregistered M3 sampler; R6 S1 exact hash/provenance still pending.",
+      "r6_resolution": "S1.3 acknowledges G0F timestamp_ms notation vs locked G1 executable DuckDB typed-timestamp implementation and supplies final cohort SHA."
+    },
+    {
+      "id": "R0-P1-02",
+      "priority": "P1",
+      "issue": "Exact ties in G5 versus tolerance in earlier DEV ranker",
+      "r2_resolution": "R2: §5 flags differing numerical tie tolerances without altering code/results",
+      "remaining_stage": "R8 complete paper-wide cross-check",
+      "status": "R6_REPAIRED_FINAL_AUDIT_PENDING",
+      "r3_resolution": "R3 uses frozen original G5 evaluated rank results without modifying tie convention.",
+      "r4_resolution": "§4 specifies protocol-dependent deterministic tie convention, without resetting frozen TEST ranks. R6 S2 detail pending.",
+      "r5_resolution": "R5 does not alter frozen ranking tie definitions; R6 S2 detailed convention still pending.",
+      "r6_resolution": "S2.4 describes frozen rank-order tie exact equality in G5-A vs older tolerance handling, without post-TEST change."
+    },
+    {
+      "id": "R0-P1-03",
+      "priority": "P1",
+      "issue": "Supplementary still Twitch-only and missing M3",
+      "r2_resolution": "No R2 canonical supplementary edits, by design",
+      "remaining_stage": "R8 complete paper-wide cross-check",
+      "status": "R6_REPAIRED_FINAL_AUDIT_PENDING",
+      "r3_resolution": "No R3 supplement edits; new §6 references future updated M3 S8.",
+      "r4_resolution": "§3/4 no stale sole-Twitch-policy claims; S1-S9 still require R6.",
+      "r5_resolution": "R5 §§1/2/7/8 updated from stale Twitch-only frozen-policy framing; combined S1–S9 still needs R6 full update.",
+      "r6_resolution": "S1/S2 and S7 source-scope rewritten; no sole Twitch frozen decision narrative remains."
+    },
+    {
+      "id": "R0-P1-04",
+      "priority": "P1",
+      "issue": "Differentiation from general L2D/gating weak",
+      "r2_resolution": "R1 novelty blueprint and related-KBS original source verification",
+      "remaining_stage": "R7 independent novelty review + R8",
+      "status": "OPEN_FOLLOWUP",
+      "r3_resolution": "R3 result language avoids invention of generic deferral theory or claimed GUIDER implementation.",
+      "r4_resolution": "§3 attributes general deferral foundations to ICML2020 and NeurIPS2022 sources and does not claim a new general theorem. R5/R7 deeper novelty audit pending.",
+      "r5_resolution": "R5 §2 positions original KBS MHGFCL/KAPER/incomplete-KB gating and known ICML2020/NeurIPS2022 deferral; distinguishes M3 margin-proxy from GUIDER; R7 critical novelty reviewer audit pending.",
+      "r6_resolution": "R5 §2 related work updated, R6 retains novelty as fixed relationship marginal rank utility; R7 independent reviewer confirmation pending."
+    },
+    {
+      "id": "R0-P1-05",
+      "priority": "P1",
+      "issue": "Historical source reports contain superseded TEST-not-run status",
+      "r2_resolution": "R2: only final G5 used, dated stage history preserved",
+      "remaining_stage": "R8 complete paper-wide cross-check",
+      "status": "R6_REPAIRED_FINAL_AUDIT_PENDING",
+      "r3_resolution": "R3 cites completed G5 evidence, does not repeat historical G4 'TEST not run' status.",
+      "r4_resolution": "R4 cites frozen completed protocol rather than old G4 worklog; R6 canonical supplemental status pending.",
+      "r5_resolution": "R5 text treats final G5 one-shot TEST as completed, no historical G4 'TEST pending' citation; R6 status reconciliation pending.",
+      "r6_resolution": "S9 source hierarchy now treats completed G5 as definitive outcome source, older G4 TEST-not-yet-run logs preserved as dated stage snapshots."
+    },
+    {
+      "id": "R0-P1-06",
+      "priority": "P1",
+      "issue": "Actions artifact retention and stable reproducibility gap",
+      "r2_resolution": "R2: source conventions documented, no dataset published",
+      "remaining_stage": "R8 durable source package and author data-availability decisions",
+      "status": "OPEN_FOLLOWUP",
+      "r3_resolution": "R3 data numbers traced to official G5 TEST run; archive expiry unresolved.",
+      "r4_resolution": "No change to private data or expiring action artifact handling; R6/R8 stable archival plan still needed.",
+      "r5_resolution": "R5 avoids claiming permanent public access to private TEST files; R6/R8 reproducibility archive plan pending.",
+      "r6_resolution": "S1.6 records public upstream sources vs nonpublic derived TEST artifacts and GitHub retention limitations; permanent legal/privacy safe release/DOI not yet created, R8 author action needed."
+    }
+  ],
+  "r3_result_section": "manuscript/kbs_latex/main.tex#sec:results",
+  "r3_source_commit": "0e3789a023e2ca7b9c51f5d35f621f272f6c9cf5",
+  "notes": "R6 repair done != global R8 closure. P1-04 novelty must be referee audited in R7; P1-06 durable source release and data availability remain author/submission-dependent in R8.",
+  "r4_method_sections": [
+    "manuscript/kbs_latex/main.tex#sec:problem",
+    "manuscript/kbs_latex/main.tex#sec:framework"
+  ],
+  "r4_method_commit": "9069fc150f2bb936761d8cf07849496a52686912",
+  "r5_main_sections": [
+    "Introduction",
+    "Related Work",
+    "Discussion",
+    "Conclusion"
+  ],
+  "r5_science_commits": [
+    "b26315b080d0d58a8b0a41168f802c1885513943",
+    "13ccead461bfb35e36ecf798cbc4a96831fddddf"
+  ],
+  "r6_files": [
+    "manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md",
+    "analysis/kbs_supplement_tex_postprocess.py"
+  ],
+  "r6_main_unchanged": true
+}
