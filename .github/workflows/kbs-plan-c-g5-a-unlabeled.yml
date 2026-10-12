@@ -1,0 +1,124 @@
+name: KBS Plan C G5-A outcome-blind TEST scoring
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-g5-a-unlabeled.yml']
+permissions:
+  contents: read
+jobs:
+  hosted-frozen-code:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G5-A outcome-blind TEST inference')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false, clean: true}
+      - name: Static preflight, frozen protocol and synthetic-only bundle
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/g5_unlabeled_test_score.py \
+             analysis/kbs_plan_c/g5_confirm_test.py \
+             analysis/kbs_plan_c/test_g5_unlabeled_test_score.py \
+             analysis/kbs_plan_c/test_g5_confirm_test.py
+          python - <<'PY'
+          import json
+          d=json.load(open('experiments/kbs_plan_c/G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json'))
+          assert d['status']=='SIX_DEV_POLICIES_FROZEN_TEST_UNOPENED'
+          assert d['target_test_events']==47575
+          assert d['test_performance_seen'] is False
+          assert d['pointwise_test_threshold_no_recalibration'] is True
+          print('Model and policy registry frozen before any TEST ranks')
+          PY
+          mkdir -p g5-a-code
+          cp analysis/kbs_plan_c/g2_train_base.py \
+             analysis/kbs_plan_c/g3_dev_full_active.py \
+             analysis/kbs_plan_c/g3_replay_correct_memory.py \
+             analysis/kbs_plan_c/g4_sparse_gate_features.py \
+             analysis/kbs_plan_c/g5_unlabeled_test_score.py \
+             analysis/kbs_plan_c/g5_confirm_test.py \
+             analysis/kbs_plan_c/test_g5_unlabeled_test_score.py \
+             analysis/kbs_plan_c/test_g5_confirm_test.py \
+             g5-a-code/
+          cp experiments/kbs_plan_c/G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json \
+             g5-a-code/
+          (cd g5-a-code && sha256sum *.py *.json > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-g5-a-unlabeled-locked-code-v1
+          path: g5-a-code/
+  user-host-outcome-blind:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G5-A outcome-blind TEST inference')
+    needs: hosted-frozen-code
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 150
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Deny reruns, require completed SHA-only G5 preflight and frozen TEST
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test "$GITHUB_REF" = refs/heads/main
+          test "$(id -u)" -ne 0
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test -s "$ROOT/klm3_g5_pretest_registry_audit_v1.json"
+          test -s "$ROOT/klm3_plan_c_g1_v1/test_cohort_sealed.parquet"
+          test ! -e "$ROOT/klm3_g5_unlabeled_test_v1"
+          test ! -e "$ROOT/klm3_g5_unlabeled_test_v1.incomplete"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          nvidia-smi
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g5-a-unlabeled-locked-code-v1
+          path: g5-a-code/
+          fail-on-cache-miss: true
+      - name: Verify source SHA then test pretarget timeline, half-open roster, Holm on synthetic data only
+        run: |
+          set -euo pipefail
+          (cd g5-a-code && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$PWD/g5-a-code:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          "$PY" -m unittest discover -s g5-a-code -p test_g5_unlabeled_test_score.py -v
+          "$PY" -m unittest discover -s g5-a-code -p test_g5_confirm_test.py -v
+      - name: One-shot label-blind TEST feature/ranking-top10 inference, six Bases one roster
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$PWD/g5-a-code:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          export PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          "$HOME/venvs/kuailive-gpu/bin/python" g5-a-code/g5_unlabeled_test_score.py \
+            --cache "$ROOT" \
+            --g1 "$ROOT/klm3_plan_c_g1_v1" \
+            --index "$ROOT/klm3_g2_train_index_v1" \
+            --registry g5-a-code/G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json \
+            --preflight "$ROOT/klm3_g5_pretest_registry_audit_v1.json" \
+            --out "$ROOT/klm3_g5_unlabeled_test_v1" \
+            --block-size 16
+          mkdir -p g5-a-report
+          cp "$ROOT/klm3_g5_unlabeled_test_v1/manifest.json" g5-a-report/manifest.json
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          x=json.load(open('g5-a-report/manifest.json'))
+          assert x['status']=='FROZEN_SIX_BASE_TEST_DECISIONS_BEFORE_OUTCOME_EVALUATION'
+          assert x['n_events']==47575 and len(x['models'])==6
+          assert not x['test_target_author_labels_loaded']
+          assert not x['test_ranks_computed'] and not x['test_ndcg_computed']
+          assert x['no_TEST_model_or_threshold_fit']
+          print('Sealed TEST target-blind predictions frozen; outcomes not yet read')
+          PY
+      - name: Upload only outcome-free hashes; no identifiers or gate scores
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g5-a-target-blind-lock
+          path: g5-a-report/manifest.json
+          if-no-files-found: error
+          retention-days: 30
