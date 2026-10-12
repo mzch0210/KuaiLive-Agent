@@ -114,3 +114,21 @@ The original audit's **in-progress** statements above are dated snapshots; this 
 Three-seed selected sampled-DEV NDCG@10: SASRec **0.648236 ± 0.002250**, GRU4Rec **0.648487 ± 0.003513** (sample standard deviations). GRU4Rec seed20261013 correctly selects **epoch 2**; the other five choose epoch 3. No M3 TEST metrics have been computed.
 
 **Next scientific critical path:** full-active DEV Base ranking for the four extra-seed models while reusing the corrected Memory event ranks, train/freeze independent DEV Utility and competitor gates, validate deployed pre-gate feature cost, then execute the single authorized full-active held-out TEST. Keep the original Twitch and KuaiLive test results unchanged.
+
+---
+
+## Post-G4 independent-seed update — final DEV-only acceptance on 2026-10-12
+
+This update supersedes the dated E3/G4 in-progress statuses above.
+
+1. **All six independently fitted Bases have been evaluated at full-active DEV** on the exact same 50,049 user-events, candidate definition, and corrected fixed Memory. [G4 run #38222994275](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38222994275) **success**. Across the six fits Memory − Base NDCG@10 ranges **+0.08054 to +0.08534**, all positive.
+2. **Five competing DEV OOF gate objectives were independently fitted and frozen for all six Bases.** [G4 four new-Base routing run #38223562473](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38223562473) **success**. Utility remains the highest-DEV-NDCG policy against the strongest alternative Uncertainty for all six, by **+0.01210 to +0.01503**, at roughly 30% selected expert calls. These are *DEV* conditional findings, not independent held-out significance.
+3. **Warmed actual candidate-rank paths and real DEV sparse feature parity** have been checked. [Cost run #38223495966](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38223495966) **success**, 256 sampled DEV events; sparse support parity PASS. Warmed replay mean ms: Base **1.425**, Memory-only **0.803**, Utility selective **1.802**. This is a negative finding for a net speedup claim: saved expert calls do not imply lower actual cost in this context. The replay excludes IO, history-state maintenance, network and genuine online serving; execution-order/warm-up artifacts may also affect means. Do not present these figures as production latency.
+4. **All six model checkpoint fingerprints and all six DEV gate-policy hashes, as well as supervised policy model SHA256 digests, are frozen before accessing TEST**: [G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json](G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json). TEST panel SHA256 is recorded, and `test_performance_seen=false`.
+5. Full G4 reviewer-style scientific results and caveats: [G4_EXTRA_SEED_FULL_ACTIVE_DEV_GATE_AND_COST_RESULTS_2026-10-12.md](G4_EXTRA_SEED_FULL_ACTIVE_DEV_GATE_AND_COST_RESULTS_2026-10-12.md).
+
+### Updated bookkeeping
+
+**8 of the 10 prior workstreams are fully complete**, one remains partial (production-style end-to-end cost identification, although the warmed benchmark and parity checks are completed), and one remains not started (G5 independent one-shot held-out TEST). **E1/E2/E3 are robust at the DEV phase but still only partially complete scientifically** until the frozen policies are evaluated once on the 47,575 held-out TEST events. This is a progress ledger, not an 80% scientific success claim.
+
+**Remaining research-critical path:** build and validate a strictly causal TRAIN/DEV/earlier-TEST history/feature engine on synthetic timelines, enforce the frozen six-model+gate registries, preserve pointwise DEV thresholds without TEST adjustments, compute the preregistered paired user-cluster comparisons and three-test Holm correction on a single held-out TEST run. Any claims of net compute/latency reduction must remain withheld unless backed by an appropriately counterbalanced production benchmark.
