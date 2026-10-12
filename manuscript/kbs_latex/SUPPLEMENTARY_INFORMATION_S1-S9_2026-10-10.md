@@ -466,7 +466,7 @@ No Base context or recency result from this section changes the one-shot Twitch 
 
 ---
 
-# S7. Twitch DEV out-of-fold feature-family invocation budgets
+# S7. DEV feature-family comparisons and independently frozen M3 invocation policies
 
 ## S7.1 Existing prediction evidence and common-budget protocol
 
@@ -576,7 +576,7 @@ Reproduction source: [analysis/kbs_section6_stage2_dev_replay.py](https://github
 
 ---
 
-# S8. KuaiLive training-initialization sensitivity and evidence-state decomposition
+# S8. Distinct KuaiLive room-seed diagnostics and M3 frozen author-ranking robustness
 
 
 ### S8.1 Separate model-seed uncertainty from sampled-negative-draw uncertainty
@@ -624,7 +624,68 @@ The approximately 2% recoverable group contributes **negatively** to the aggrega
 | 20260919 | `395d1b1c881d20cbda5d24c36c30685fd1524a0ec98586c8c71ad7c245505b2a` | `9f1b11cf27e0c802f71bb8b1bef646bb392b28d560e3aabda03f36fe01e2b637` |
 | 20260920 | `84c4ef5e45592fc480096dfe4e501046ede37c1f936484ed83f3bd56e1f49191` | `7043b275b56a75fd5d7aeadfd7e69d5447128ce9f55f3bd6a0f275a24dd2d144` |
 
-### S8.5 Evidence status and incomplete generalization
+### S8.5 M3 six fitted author-ranking Bases on one frozen forward-time TEST
+
+The following **M3 author-ranking** evidence is entirely distinct from the original **KuaiLive room-ranking** P1/P2 studies in S8.1–S8.4. The designated Base families are SASRec and GRU4Rec, trained separately at seeds 20261012, 20261013 and 20261014, evaluated without TEST-based refitting on a common **47,575-event / 12,533-user** later-period cohort. All six models share the same eligibility/candidate rosters and the unchanged relationship Memory. The M3 neural models differ by fitted initialization, not by independent observed user samples. TEST full-active median candidate count is **31,065** warm eligible authors.
+
+**Table S8.4. Full M3 frozen TEST NDCG@10, six fitted incumbents and five independently DEV-frozen policy objectives.** Unconditional Memory always scores **0.346792** on the same cohort and candidate roster for each fit.
+
+| Base / training seed | Always Base | Always Memory | Utility | Difficulty | Specialist Quality | Uncertainty | History |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| SASRec 20261012 | 0.258004 | 0.346792 | **0.302866** | 0.282479 | 0.279558 | 0.289373 | 0.279789 |
+| GRU4Rec 20261012 | 0.260033 | 0.346792 | **0.304004** | 0.284321 | 0.281829 | 0.290891 | 0.281964 |
+| SASRec 20261013 | 0.258811 | 0.346792 | **0.301766** | 0.282803 | 0.281608 | 0.288136 | 0.280249 |
+| GRU4Rec 20261013 | 0.260649 | 0.346792 | **0.303016** | 0.284147 | 0.282428 | 0.290004 | 0.282095 |
+| SASRec 20261014 | 0.258673 | 0.346792 | **0.303058** | 0.283020 | 0.280272 | 0.289374 | 0.280143 |
+| GRU4Rec 20261014 | 0.258400 | 0.346792 | **0.303549** | 0.283472 | 0.280543 | 0.289235 | 0.280461 |
+
+Within each fitted Base the frozen Utility policy exceeds Always Base and all four alternative gate objectives. On the primary SASRec 20261012 fit, Always Base/Utility/Always Memory HR@10 are **0.387620 / 0.455681 / 0.533873**, confirming the same ordering under hit rate. However, **Always Memory has higher absolute NDCG@10 than Utility in every M3 condition**; Utility is a choice under a specified call constraint, not the unconstrained best-ranked policy. For complete realized call fractions see Table S7.4.
+
+### S8.6 Preregistered M3 paired inference: 18 contrasts, six conditional Holm families
+
+The G0F scientific plan predeclared exactly three one-sided primary contrasts for each designated M3 Base: Utility versus **Always Base**, **Difficulty**, and **Specialist Quality**. All three policies use pre-outcome rules fitted/frozen on DEV, except Always Base which uses no Memory. Within each of the six trained model/seed configurations, 5,000 **user-cluster paired bootstrap** resamples over 12,533 users produce pointwise percentile 95% CIs and 5,000 **user-cluster random-sign** replicates provide a one-sided test of the relevant null under an approximately sign-symmetric cluster difference assumption. The original G5-B evaluation applies Holm's correction to **the three comparisons separately within each fit**. All 18 adjusted p-values are **0.0005998800** (rounded below to 0.000600); the raw Monte Carlo floor is **1/5001 = 0.0001999600**, not zero. This does not establish one global Holm-controlled error rate across all 18 correlated tests or reflect uncertainty from retraining the Base/gate.
+
+**Table S8.5. Every prespecified M3 Utility-minus-comparator TEST contrast, paired mean NDCG@10 and 95% user-cluster CI; one-sided 5,000 sign randomizations with within-fit Holm(3) correction.**
+
+| Base / seed | Utility minus | Mean paired Δ NDCG@10 | 95% user-cluster CI | Raw one-sided p | Holm(3) adjusted p |
+|---|---|---:|---|---:|---:|
+| SASRec 20261012 | Always Base | +0.044862 | [+0.042805, +0.046915] | 0.000200 | 0.000600 |
+| SASRec 20261012 | Difficulty | +0.020387 | [+0.018370, +0.022442] | 0.000200 | 0.000600 |
+| SASRec 20261012 | Specialist Quality | +0.023308 | [+0.021177, +0.025508] | 0.000200 | 0.000600 |
+| GRU4Rec 20261012 | Always Base | +0.043971 | [+0.042001, +0.046024] | 0.000200 | 0.000600 |
+| GRU4Rec 20261012 | Difficulty | +0.019683 | [+0.017580, +0.021775] | 0.000200 | 0.000600 |
+| GRU4Rec 20261012 | Specialist Quality | +0.022175 | [+0.020009, +0.024408] | 0.000200 | 0.000600 |
+| SASRec 20261013 | Always Base | +0.042955 | [+0.041000, +0.044987] | 0.000200 | 0.000600 |
+| SASRec 20261013 | Difficulty | +0.018963 | [+0.016955, +0.021069] | 0.000200 | 0.000600 |
+| SASRec 20261013 | Specialist Quality | +0.020158 | [+0.018101, +0.022293] | 0.000200 | 0.000600 |
+| GRU4Rec 20261013 | Always Base | +0.042367 | [+0.040359, +0.044484] | 0.000200 | 0.000600 |
+| GRU4Rec 20261013 | Difficulty | +0.018868 | [+0.016771, +0.021032] | 0.000200 | 0.000600 |
+| GRU4Rec 20261013 | Specialist Quality | +0.020588 | [+0.018542, +0.022831] | 0.000200 | 0.000600 |
+| SASRec 20261014 | Always Base | +0.044385 | [+0.042441, +0.046415] | 0.000200 | 0.000600 |
+| SASRec 20261014 | Difficulty | +0.020038 | [+0.018054, +0.022055] | 0.000200 | 0.000600 |
+| SASRec 20261014 | Specialist Quality | +0.022786 | [+0.020679, +0.024965] | 0.000200 | 0.000600 |
+| GRU4Rec 20261014 | Always Base | +0.045149 | [+0.043166, +0.047204] | 0.000200 | 0.000600 |
+| GRU4Rec 20261014 | Difficulty | +0.020077 | [+0.018071, +0.022175] | 0.000200 | 0.000600 |
+| GRU4Rec 20261014 | Specialist Quality | +0.023005 | [+0.020873, +0.025251] | 0.000200 | 0.000600 |
+
+The relative advantage over the strongest non-Utility alternative, the **Base-margin Uncertainty proxy**, is consistently positive (**+0.01301 to +0.01431**) but is **secondary**. It is neither one of the three preregistered primary tests nor a direct empirical comparison with a separately implemented GUIDER system. Each contrast is paired within its fitted Base's observed users, and the six fitted model results share the same user cohort and cannot be multiplied into independent data replications.
+
+### S8.7 M3 expected random allocation and hindsight bounds
+
+**Table S8.6. M3 TEST expected Random@30 and hindsight Oracles (NDCG@10).** These are outcome-conditional reference calculations: the Random@30 value is a conditional expectation rather than a separately drawn frozen randomized policy, and both Oracles use realized target labels and are not deployable.
+
+| Base / seed | Random@30 expected | Hindsight Oracle@30 | Hindsight Oracle unbounded |
+|---|---:|---:|---:|
+| SASRec 20261012 | 0.284640 | 0.388135 | 0.388333 |
+| GRU4Rec 20261012 | 0.286060 | 0.391644 | 0.391707 |
+| SASRec 20261013 | 0.285204 | 0.388484 | 0.388652 |
+| GRU4Rec 20261013 | 0.286491 | 0.391146 | 0.391182 |
+| SASRec 20261014 | 0.285108 | 0.389147 | 0.389327 |
+| GRU4Rec 20261014 | 0.284917 | 0.391062 | 0.391227 |
+
+The G5 one-shot target-blind inference followed by label-only confirmation is documented in S2. The complete data and TEST performance source is [G5-B frozen result archive](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38226690320) artifact **11735868084** and the [accepted G5 scientific result report](https://github.com/mzch0210/KuaiLive-Agent/blob/main/experiments/kbs_plan_c/G5_ONE_SHOT_TEST_RESULTS_AND_ACCEPTANCE_2026-10-12.md). The material permits checking the frozen aggregate but does not expose user- or event-level TEST targets.
+
+### S8.8 Original KuaiLive evidence status and incomplete generalization
 
 The exact P0 model pair is byte-matched to the earlier same-checkpoint archive; the other two pairs were newly trained in original GPU job [37751814645](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37751814645), with compact result artifact [11538678848](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37751814645/artifacts/11538678848) and checkpoint artifact [11538867565](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37751814645/artifacts/11538867565). The complete original scientific ledger is [KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md](https://github.com/mzch0210/KuaiLive-Agent/blob/main/KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md).
 
