@@ -1,0 +1,147 @@
+name: KBS Plan C M3 verified cache relay
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-plan-c-m3-cache-relay.yml'
+permissions:
+  contents: read
+jobs:
+  hosted-fetch:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize KLM3 GitHub cache relay')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      SOURCE_REV: 138d213a23e261ed3094d27ed8a4b867fb9143fe
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          clean: true
+      - name: Download exactly two pinned official files and verify SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          DATA="$RUNNER_TEMP/kbs-m3-data"
+          mkdir -p "$DATA"
+          BASE="https://huggingface.co/datasets/imgkkk2004/KuaiLive-M3/resolve/$SOURCE_REV"
+          free="$(df -PB1 "$RUNNER_TEMP" | awk 'NR==2 {print $4}')"
+          test "$free" -ge 10000000000 || { echo "Hosted disk too small: $free" >&2; exit 10; }
+          fetch() {
+            file="$1"; expected="$2"; nbytes="$3"
+            echo "Fetch verified source $file"
+            curl --fail --location --silent --show-error \
+              --retry 5 --retry-delay 10 --connect-timeout 30 --max-time 3600 \
+              --continue-at - --output "$DATA/$file.partial" \
+              "$BASE/$file?download=true"
+            test "$(stat -c %s "$DATA/$file.partial")" = "$nbytes"
+            printf '%s  %s\n' "$expected" "$DATA/$file.partial" | sha256sum -c -
+            mv "$DATA/$file.partial" "$DATA/$file"
+          }
+          fetch live_interaction.csv \
+            2db0daab66ec18062d453cdbbc43cbb44f75559914ef53756dfd6635812ec653 4565993701
+          fetch live_room_meta.parquet \
+            130986065f8fff7cb1146a7c6508979cf0df60f39a7d923f35003e1f29f0599a 237756481
+          cat > "$DATA/SOURCE_AND_LICENSE.txt" <<EOF
+          KuaiLive-M3 public dataset, author imgkkk2004, official source:
+          https://huggingface.co/datasets/imgkkk2004/KuaiLive-M3
+          Source revision: $SOURCE_REV
+          Dataset license displayed: CC BY-SA 4.0
+          This is an intermediate research cache, retaining attribution and source.
+          No split, TEST target or model has been evaluated.
+          EOF
+      - name: Pack compressed verified source data for one-time cache transport
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p transfer
+          tar -C "$RUNNER_TEMP/kbs-m3-data" -cf - \
+            live_interaction.csv live_room_meta.parquet SOURCE_AND_LICENSE.txt \
+            | gzip -1 > transfer/klm3_verified.tar.gz
+          (cd transfer && sha256sum klm3_verified.tar.gz > ARCHIVE_SHA256SUMS)
+          (cd transfer && sha256sum -c ARCHIVE_SHA256SUMS)
+          bytes="$(stat -c %s transfer/klm3_verified.tar.gz)"
+          test "$bytes" -gt 1000000
+          test "$bytes" -lt 6000000000 || { echo "Archive too large $bytes" >&2; exit 12; }
+          echo "verified compressed archive bytes=$bytes"
+          rm -rf "$RUNNER_TEMP/kbs-m3-data"
+      - name: Save source archive to temporary GitHub Actions cache (not a public artifact)
+        uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-klm3-138d213a-verified-gzip-v1
+          path: transfer/
+
+  user-host-restore:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize KLM3 GitHub cache relay')
+    needs: hosted-fetch
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 90
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Guard runner, persistent storage and installed tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          mkdir -p "$HOME/.cache/kuailive-agent-kbs"
+          free="$(df -PB1 "$HOME/.cache/kuailive-agent-kbs" | awk 'NR==2 {print $4}')"
+          test "$free" -gt 14000000000
+          command -v tar
+          command -v gzip
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          clean: true
+      - name: Restore exactly identified relay archive
+        uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-klm3-138d213a-verified-gzip-v1
+          path: transfer/
+          fail-on-cache-miss: true
+      - name: Check archive SHA256 and install exact source files atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd transfer && sha256sum -c ARCHIVE_SHA256SUMS)
+          CACHE="$HOME/.cache/kuailive-agent-kbs/klm3"
+          TMP="$HOME/.cache/kuailive-agent-kbs/klm3.pending.$GITHUB_RUN_ID"
+          test ! -e "$TMP"
+          mkdir -p "$TMP"
+          tar -xzf transfer/klm3_verified.tar.gz -C "$TMP"
+          printf '%s  %s\n' \
+            2db0daab66ec18062d453cdbbc43cbb44f75559914ef53756dfd6635812ec653 \
+            "$TMP/live_interaction.csv" | sha256sum -c -
+          printf '%s  %s\n' \
+            130986065f8fff7cb1146a7c6508979cf0df60f39a7d923f35003e1f29f0599a \
+            "$TMP/live_room_meta.parquet" | sha256sum -c -
+          (cd "$TMP" && sha256sum live_interaction.csv live_room_meta.parquet > SHA256SUMS)
+          if [ -e "$CACHE" ]; then
+             (cd "$CACHE" && sha256sum -c SHA256SUMS)
+             rm -rf "$TMP"
+          else
+             chmod 700 "$TMP"
+             mv "$TMP" "$CACHE"
+          fi
+          mkdir -p reports
+          python - <<'PY'
+          import json,pathlib
+          p=pathlib.Path.home()/'.cache/kuailive-agent-kbs/klm3'
+          r={'schema':'kbs-plan-c-m3-cache-relay-v1',
+             'source_revision':'138d213a23e261ed3094d27ed8a4b867fb9143fe',
+             'source_sha_verified':True,
+             'interaction_size_bytes':(p/'live_interaction.csv').stat().st_size,
+             'room_meta_size_bytes':(p/'live_room_meta.parquet').stat().st_size,
+             'persistent_cache_ready':True,
+             'test_targets_inspected':False,'models_trained':False,
+             'raw_data_uploaded_as_public_artifact':False}
+          pathlib.Path('reports/m3_cache_relay.json').write_text(json.dumps(r,indent=2)+'\n')
+          print(json.dumps(r))
+          PY
+      - name: Upload only compact verification report (never raw events)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-m3-relay-proof
+          path: reports/m3_cache_relay.json
+          retention-days: 7
