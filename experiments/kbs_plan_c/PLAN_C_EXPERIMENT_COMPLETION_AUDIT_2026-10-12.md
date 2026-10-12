@@ -96,3 +96,21 @@ The following **10 deliverables** form an explicit, non-weighted bookkeeping dec
 7. **Further E4 candidate-regime manipulation** and **E5 runtime budget realism**, if included in the broader proposal, are extensions not yet fully executed. G2 575-candidate checkpoint screening is not an E4 full paired Memory candidate sensitivity experiment.
 
 **Next acceptance gate:** finish both preregistered seed fits and DEV checkpoint screens, then select/cache their matched full-active DEV Base-vs-Memory utilities under unchanged history/roster protocol and freeze per-Base utility policies; independently time the sparse-gate pipeline. Only after checking gate feature exact parity, candidate identity, cost disclosure, all hypotheses and fixed policy thresholds should G5 one-shot TEST be performed. No TEST-guided retry or threshold change.
+
+---
+
+## Subsequent verified update — 2026-10-12 16:12 (UTC+08)
+
+The original audit's **in-progress** statements above are dated snapshots; this appended update supersedes their E3 training status.
+
+**E3 extra-seed TRAIN and 4096 × 575 DEV checkpoint screen are now ACCEPTED.**
+
+- [TRAIN run #38214570522](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38214570522): completed successfully; both additional preregistered seeds `20261013` and `20261014`, SASRec and GRU4Rec each.
+- [DEV checkpoint selection #38221813306](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38221813306): completed successfully on the exact same 4096-event fixed candidate panel.
+- Full results with per-epoch scores and checkpoint hashes: [E3_EXTRA_SEEDS_TRAIN_AND_DEV_ACCEPTANCE_2026-10-12.md](E3_EXTRA_SEEDS_TRAIN_AND_DEV_ACCEPTANCE_2026-10-12.md).
+
+**Updated bookkeeping count: 7/10 deliverables complete; 1 partial (pre-gate feature cost), 2 unfinished (extra-seed full-active paired Utility gates and G5 one-shot TEST).** This count is not a statistical proportion of scientific readiness. Specifically, the extra-seed model rankings are **sampled-DEV checkpoint screens**, and do not establish across-seed stability of **full-active** Memory-minus-Base or Utility gate improvements.
+
+Three-seed selected sampled-DEV NDCG@10: SASRec **0.648236 ± 0.002250**, GRU4Rec **0.648487 ± 0.003513** (sample standard deviations). GRU4Rec seed20261013 correctly selects **epoch 2**; the other five choose epoch 3. No M3 TEST metrics have been computed.
+
+**Next scientific critical path:** full-active DEV Base ranking for the four extra-seed models while reusing the corrected Memory event ranks, train/freeze independent DEV Utility and competitor gates, validate deployed pre-gate feature cost, then execute the single authorized full-active held-out TEST. Keep the original Twitch and KuaiLive test results unchanged.
