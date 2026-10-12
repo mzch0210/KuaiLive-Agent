@@ -94,10 +94,11 @@ def evaluate_oof(oof, frozen, base):
 def execute(pairs_dir:Path,out_dir:Path):
     manifest=json.loads((pairs_dir/"summary.json").read_text())
     src_file=pairs_dir/"dev_full_active_pairs.csv"
-    if (manifest.get("schema")!="kbs-plan-c-full-active-dev-paired-v1"
+    if (manifest.get("schema")!="kbs-plan-c-full-active-dev-paired-v2"
         or manifest.get("scope")!="DEV_ONLY"
         or not manifest.get("all_dev_scored")
         or manifest.get("n_scored")!=50049
+        or manifest.get("memory_corrected_from_all_history") is not True
         or manifest.get("test_file_accessed") is not False
         or hash_path(src_file)!=manifest["event_csv_sha256"]):
         raise ValueError("Requires fully paired DEV-only original source, byte verified")
