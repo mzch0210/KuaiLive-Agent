@@ -426,9 +426,9 @@ Oracle (hindsight) & 0.64806 & 0.80455 & 6,650 \\
 \subsection{Candidate-Regime Dependence of Relative Utility}
 \label{sec:results-regimes}
 
-The candidate environment changes the measured incremental value of the same specialist. For 10,222 matched KuaiLive user--time--target events, sampled-active $S$ (575 rooms including the target) is nested in full-active $F$. Fixing the checkpoint pair (seed 20260918), sampled-development fusion weight ($\alpha_{\mathrm{room}}=0.125$), eligible histories, Memory rule and raw scores, Memory-minus-Base NDCG@10 reverses from $-0.04120$ under sampled scoring (Base $0.60709$, Memory $0.56589$) to $+0.04631$ under full scoring (Base $0.38571$, Memory $0.43202$). The paired shift is $+0.08751$ (95\% CI $[+0.08210,+0.09326]$; 3,000 user-paired resamples). Although absolute scores fall as candidates expand, the identity of the better ranking rule switches.
+Candidate-set composition changes which of the two fixed rankers has higher measured utility. For the same 10,222 KuaiLive user--time--target events, sampled-active $S$ (575 rooms including the target) is nested within full-active $F$. Holding the checkpoint pair (seed 20260918), sampled-development fusion weight ($\alpha_{\mathrm{room}}=0.125$), histories, Memory rule and raw scores fixed, Memory-minus-Base NDCG@10 changes from $-0.04120$ on $S$ (Base $0.60709$, Memory $0.56589$) to $+0.04631$ on $F$ (Base $0.38571$, Memory $0.43202$). The paired change is $+0.08751$ (95\% CI $[+0.08210,+0.09326]$; 3,000 user-paired resamples). The ranking environment thus reverses which alternative is superior even though both models' absolute NDCG declines.
 
-This change has two measurable components: the ranked candidates $C$ and the candidate population $R$ used for branch-specific z-score standardization. The crossed analysis in Table~\ref{tab:results-factorial} holds raw model predictions fixed; off-diagonal configurations are analytical comparisons. Under Eq.~\eqref{eq:factorial-allocations}, ranked-candidate membership receives $+0.08827$ (95\% CI $[+0.08287,+0.09397]$) and normalization reference $-0.00076$ (95\% CI $[-0.00117,-0.00036]$). They sum to the $+0.08751$ observed shift.
+The crossed evaluation separates ranked-candidate membership $C$ from the reference set $R$ used to standardize Base branch scores (Table~\ref{tab:results-factorial}). With raw predictions fixed, Eq.~\eqref{eq:factorial-allocations} descriptively allocates $+0.08827$ of the paired shift to candidate membership (95\% CI $[+0.08287,+0.09397]$) and $-0.00076$ to score reference (95\% CI $[-0.00117,-0.00036]$). The two terms sum to $+0.08751$; off-diagonal cells represent analytical ranking configurations.
 
 \begin{table}[!htbp]
 \centering
@@ -446,20 +446,18 @@ Full-active ($F$) & $+0.04761$ & $+0.04631$ \\
 \end{tabular}
 \end{table}
 
-The paired reversal shows that the ranking protocol affects the assessed value of a fixed source of historical knowledge, extending the implications of sampled-metric sensitivity \cite{krichene2020sampled} to specialist-versus-incumbent comparisons. The candidate-membership allocation combines list size, composition and ranking competition within the evaluated scoring protocol.
+The candidate-membership term accounts for most of the observed change in specialist-relative utility. It combines candidate count, composition and ranking competition within this protocol, so the allocation characterizes a change in the ranking environment rather than a separately identified candidate-count effect.
 
-All three separately trained KuaiLive checkpoint pairs exhibit the reversal on the same 10,222 events (Supplementary S8). This establishes directional stability across training initializations within the evaluated cohort.
+The reversal is directionally stable across three separately trained KuaiLive checkpoint pairs evaluated on the same 10,222 events (Supplementary S8). At the original pair, nine sampled-candidate draws across total list sizes 128, 256 and 575 likewise retain negative sampled-active and positive full-active Memory-minus-Base utility (Supplementary Table~S5.2). These checks vary training initialization and candidate sampling within the examined cohort.
 
-At the original fixed checkpoint pair, nine sampled-candidate draws spanning total sizes 128, 256 and 575 likewise retain negative Memory-minus-Base utility against positive full-active utility (Supplementary Table~S5.2). The draws assess candidate-list sensitivity in the same evaluated events; changes in list size and composition occur together.
-
-Target-history prevalence is identical across the paired candidate sets: 4,589 represented, 206 recoverable and 5,427 unavailable events. The represented and unavailable strata account for most of the across-seed shift, contributing $+0.03869$ and $+0.04860$, while recoverable contributes $-0.00222$ (Supplementary S8). Hence the observed regime dependence extends beyond the recoverable-history condition identified on Twitch.
+Candidate changes leave the retrospective target-history composition unchanged: 4,589 represented, 206 recoverable and 5,427 unavailable events. Across seeds, represented and unavailable events contribute most of the aggregate shift ($+0.03869$ and $+0.04860$), whereas recoverable events contribute $-0.00222$ (Supplementary S8). The candidate effect therefore cannot be explained by shifts in target-history-state prevalence.
 
 \subsection{Robustness and Alternative Explanations}
 \label{sec:results-robustness}
 
-The DEV analyses probe two explanations for conditional knowledge value: whether history and Base-score descriptors jointly distinguish advantageous specialist calls, and whether Memory's information overlaps with the incumbent's accessible history. These analyses complement the frozen TEST policy result without changing its fitted predictor or threshold.
+Two development analyses clarify the conditions of specialist complementarity. The first examines whether history and Base-score descriptors jointly predict relative utility; the second examines how Memory composition and the incumbent's visible history relate to that utility. The frozen TEST policy evaluation remains the independent decision evidence.
 
-History descriptors and Base-score descriptors provide complementary information for relative-utility prediction. At the 6,563-call Twitch DEV operating count, five-fold out-of-fold gains over Base are $+0.00372$ for the six history features, $+0.00160$ for the eight Base-score features and $+0.00838$ for their combination (Table~\ref{tab:results-feature-ablation}). The combined features also lead among the examined retrospectively matched DEV counts (Supplementary Table~S7.1); these are development diagnostics, while the frozen TEST comparison remains the primary policy evidence.
+History descriptors and Base-score descriptors jointly provide stronger signals of specialist-relative benefit than either family alone. With 6,563 specialist calls on five-fold out-of-fold Twitch DEV predictions, the six history features yield a $+0.00372$ NDCG@10 gain over Base, the eight Base-score features $+0.00160$, and all 14 features $+0.00838$ (Table~\ref{tab:results-feature-ablation}). The combined features also lead at the other examined retrospectively matched DEV call counts (Supplementary Table~S7.1).
 
 \begin{table}[!htbp]
 \centering
@@ -478,24 +476,24 @@ Combined & 14 & $\mathbf{+0.00838}$ & $[+0.00713,+0.00963]$ & \textbf{0.18990} \
 \end{tabular}
 \end{table}
 
-Memory's historical components also show a stable pattern in Twitch DEV: across seven local parameter settings, recoverable-history utility remains positive, while represented and unavailable state utility remains negative (Supplementary S4). This consistency supports the role of recoverable relationship history without treating a local parameter sweep as an alternative frozen specialist.
+Component variation offers a complementary explanation of the state contrast. Across seven locally examined Memory parameter settings on Twitch DEV, relative utility remains positive for recoverable targets and negative for represented and unavailable targets (Supplementary S4). The pattern is stable within this development sensitivity analysis.
 
-The DEV component comparisons clarify why recoverable evidence need not improve every event. Among 5,879 recoverable targets, Long-only Memory reaches NDCG@10 $0.63890$, compared with $0.53298$ for Full Memory and $0.30201$ for Base, a Long-minus-Full difference of $+0.10592$ (Supplementary Tables~S4.1--S4.2). Long-only trails Full by $0.03208$ on unavailable targets. This cross-state trade-off shows that historical signal composition affects incremental utility; the frozen TEST comparisons use the originally specified Full specialist.
+The composition of Memory matters even within the recoverable group. Among 5,879 Twitch DEV recoverable targets, Long-only Memory attains NDCG@10 $0.63890$, versus $0.53298$ for Full Memory and $0.30201$ for Base; Long-only exceeds Full by $+0.10592$ (Supplementary Tables~S4.1--S4.2). On unavailable targets, Long-only instead trails Full by $0.03208$. These contrasting effects relate specialist advantage to the historical signal it retains; the frozen TEST specialist remains Full Memory.
 
-Incumbent history coverage likewise conditions the specialist's relative value. Separately trained Twitch DEV Bases with input lengths $L=8,16,32$ improve from NDCG@10 $0.52619$ to $0.57185$ and $0.59663$, while fixed Memory remains at $0.52170$ (Supplementary Table~S6.1). For targets moving from recoverable to represented, Memory-minus-Base utility declines as the trained Base improves. These comparisons reflect both expanded visible history and separately optimized Base parameters.
+The incumbent's available history also changes the comparison. Separately trained Twitch DEV Bases with input lengths $L=8,16,32$ achieve NDCG@10 $0.52619$, $0.57185$ and $0.59663$, respectively, against an unchanged Memory score of $0.52170$ (Supplementary Table~S6.1). Where targets move from recoverable to represented, Memory's relative benefit declines as the corresponding trained Base improves. Because each Base is trained separately, the contrast reflects both access to history and model adaptation.
 
-Target-creator recurrence distance provides a further retrospective characterization: Memory-minus-Base utility varies nonmonotonically across the recorded interaction-distance bins (Supplementary Table~S6.4). The bins combine variation in user activity and candidate difficulty and therefore complement, rather than determine, the pre-outcome selection features.
+Target--creator recurrence distance provides an additional descriptive check: the Memory-minus-Base difference varies nonmonotonically across retrospective distance bins (Supplementary Table~S6.4), consistent with the absence of a simple monotonic relationship between elapsed interaction history and ranking benefit.
 
-Together, the DEV diagnostics indicate that the benefit of relationship history depends both on observable request descriptors and on information already represented by the incumbent. This supports treating historical evidence as a conditional ranking resource rather than an unconditional augmentation; complementary Base comparisons appear in Supplementary S3.
+Together, these DEV results support two observed sources of utility variation: the joint predictive signal in available history and Base scores, and the changing complementarity between Memory components and the incumbent's trained history representation. Additional Base competitiveness checks are reported in Supplementary S3.
 
 \subsection{Computational Considerations}
 \label{sec:results-efficiency}
 
-Conditional specialist use trades ranking improvement against the work required to estimate and realize that improvement. The frozen Twitch TEST policy invokes Memory in 6,650 of 44,221 events (15.04\%); its invocation share measures selective use, while serving efficiency depends on the full scoring path.
+Selective use incurs prediction and alternative-ranking costs alongside its observed ranking benefit. The Twitch TEST Utility policy invokes Memory in 6,650 of 44,221 events (15.04\%), characterizing the frequency of specialist use rather than the latency of an end-to-end serving system.
 
-A separate warmed KuaiLive CPU scoring study measures a positive cost for selection: Base averages $0.991$\,ms (P95 $1.276$\,ms), whereas Selective HGB averages $2.007$\,ms (P95 $2.905$\,ms), an additional $1.016$\,ms or $2.03$ times Base at 575 candidates. Its Memory invocation share is 14.25\%. With prepared inputs and cached histories, the study times gate prediction and replays archived routing masks; these measurements characterize scoring overhead under the stated replay conditions (Supplementary S9).
+In a separate warmed KuaiLive CPU scoring study, Base requires $0.991$\,ms on average (P95 $1.276$\,ms), while Selective HGB requires $2.007$\,ms (P95 $2.905$\,ms) at 575 candidates. The measured increase is $1.016$\,ms ($2.03$ times Base), with 14.25\% Memory invocation. This prepared-input, cached-history benchmark times gate inference and replays archived routing masks; it reports scoring overhead under its defined conditions (Supplementary S9).
 
-The additional scoring work includes history/Base feature preparation, gate inference and conditional Memory scoring on top of Base ranking. Their relative contributions and the $81$-tree HGB configuration are reported in Supplementary Table~S9.1. The measured CPU overhead shows why selecting fewer specialist calls is a distinct objective from reducing end-to-end serving time.
+Feature construction, gate inference and conditional Memory ranking all contribute to the additional work (Supplementary Table~S9.1, including the $81$-tree HGB configuration). The measured positive overhead distinguishes selective expert choice from a demonstrated reduction in serving cost.
 
 \section{Discussion}
 \label{sec:discussion}
