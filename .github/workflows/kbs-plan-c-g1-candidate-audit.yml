@@ -25,7 +25,7 @@ jobs:
           (cd g1-candidate-code && sha256sum -c SHA256SUMS)
       - uses: actions/cache/save@v4
         with:
-          key: kbs-plan-c-g1-dev-author-candidate-sweep-v1
+          key: kbs-plan-c-g1-dev-author-candidate-sweep-v2
           path: g1-candidate-code/
   user-host-dev-only:
     if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G1 DEV candidate universe sweep')
@@ -42,7 +42,7 @@ jobs:
           test -x "$HOME/venvs/kuailive-gpu/bin/python"
       - uses: actions/cache/restore@v4
         with:
-          key: kbs-plan-c-g1-dev-author-candidate-sweep-v1
+          key: kbs-plan-c-g1-dev-author-candidate-sweep-v2
           path: g1-candidate-code/
           fail-on-cache-miss: true
       - name: Sweep historical DEV room lifecycles, no TEST records
