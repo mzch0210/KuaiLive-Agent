@@ -75,7 +75,7 @@ def group_clustering(values,groups,seed,reps=5000):
     pv=(1+np.sum(perm>=means[None,:],axis=0))/(reps+1)
     return unique.size,means,lo,hi,pv
 
-def main(g1,unlabeled,registry,out,seed=20261012):
+def main(g1,unlabeled,registry,index,out,seed=20261012):
     if out.exists() or out.with_name(out.name+".incomplete").exists():
         raise FileExistsError("One-shot TEST output already exists: no overwrite/re-run")
     start=time.monotonic()
@@ -117,7 +117,7 @@ def main(g1,unlabeled,registry,out,seed=20261012):
     # TRAIN-index known authors: target author to token conversion from
     # read-only G1 manifest-controlled train authors; no target-based tuning.
     # Reuse original author embedding lookup only.
-    authors=np.load(Path(args.index)/"authors.npy",mmap_mode="r")
+    authors=np.load(index/"authors.npy",mmap_mode="r")
     originals=np.asarray(targets.column("author_id").to_numpy(),np.int64)
     token=np.searchsorted(authors,originals)
     if np.any(token>=len(authors)) or np.any(authors[token]!=originals):
@@ -227,4 +227,4 @@ if __name__=="__main__":
         p.add_argument("--"+opt,type=Path,required=True)
     p.add_argument("--seed",type=int,default=20261012)
     args=p.parse_args()
-    main(args.g1,args.unlabeled,args.registry,args.out,args.seed)
+    main(args.g1,args.unlabeled,args.registry,args.index,args.out,args.seed)
