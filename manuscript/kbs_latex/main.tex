@@ -72,7 +72,7 @@ Together, these literatures motivate an operational knowledge-decision perspecti
 \section{Problem Formulation}
 \label{sec:problem}
 
-An auxiliary relationship specialist is valuable for a recommendation event insofar as its ranking improves on the incumbent's result. We define this event-level contribution under a specified candidate regime, then relate its conditional expectation to selection decisions and changes in evaluation context.
+We formalize the ranking contribution of a fixed relationship specialist relative to a trained incumbent. The event-level utility difference defines the quantity to be predicted for selective invocation and to be compared across candidate regimes.
 
 \subsection{Recommendation Setting and Event-Level Ranking Utility}
 \label{sec:event-utility}
@@ -98,14 +98,14 @@ Let $B$ denote a fixed base recommender and $M$ a fixed relationship-memory spec
     \Delta_M(x)=u_K(M,x)-u_K(B,x).
     \label{eq:delta-memory}
 \end{equation}
-The sign of $\Delta_M(x)$ states whether the specialist improves, ties or worsens Base's ranking for the evaluated request. This is an \emph{operational} measure relative to a specified model pair and candidate regime: history acquires value through the improvement in the decision it enables.
+The sign of $\Delta_M(x)$ states whether the specialist improves, ties or worsens Base's ranking for the evaluated request. Thus, the measured contribution is indexed by both the Base--specialist pair and the eligible ranking candidates.
 
 The realized $\Delta_M(x)$ is an offline supervisory quantity defined using the observed target $y$ and both candidate rankings. Decision-time selection instead relies on the expected difference given observable information.
 
 \subsection{Conditional Relative Utility}
 \label{sec:conditional-utility}
 
-Let $R$ index the operating recommendation condition under which candidate construction, temporal availability, or related protocol elements are fixed, and let $Z$ denote the information available at invocation time. We condition on $R=r$ to describe a regime-specific event distribution; $R$ need not be an explicit feature of $Z$. The variable $Z$ is constructed only from pre-outcome information, such as user and history summaries, candidate-set descriptors, and confidence signals produced by the base recommender. Define the conditional specialist-minus-base utility as
+Let $R$ index the operating recommendation condition under which candidate construction, temporal availability, or related protocol elements are fixed, and let $Z$ denote the information available at invocation time. We condition on $R=r$ to describe a regime-specific event distribution; $R$ need not be an explicit feature of $Z$. The variable $Z$ contains pre-outcome history summaries and descriptors of the Base's candidate-score distribution, including score margins. These descriptors need not be calibrated uncertainty measures. Define the conditional specialist-minus-base utility as
 \begin{equation}
     \eta_r(z)
     =\mathbb{E}\!\left[\Delta_M(X)\mid Z=z,R=r\right].
@@ -120,9 +120,9 @@ Let $a(Z)\in\{0,1\}$ denote a pre-outcome selection policy, where $a(Z)=0$ uses 
     =\mathbb{E}\!\left[a(Z)\eta_r(Z)\mid R=r\right].
     \label{eq:expected-selective-gain}
 \end{align}
-Equation~\eqref{eq:expected-selective-gain} connects knowledge valuation to the selection objective: expected ranking improvement depends jointly on the chosen events and their conditional specialist-relative utility.
+Equation~\eqref{eq:expected-selective-gain} expresses the selection objective in terms of the specialist's expected incremental ranking contribution on the chosen events.
 
-Decision-time predictors use $Z$; target-defined history states, recurrence distances and realized relative utility are available only for retrospective diagnosis or supervision. Base Difficulty concerns $B$ alone, whereas $\eta_r$ evaluates the advantage of substituting $M$. A poor Base ranking therefore need not imply a profitable specialist substitution.
+The policy uses $Z$ at decision time; realized relative utility, target-defined history states and target recurrence distances serve only as supervision or retrospective diagnostics. Base Difficulty characterizes the incumbent's ranking loss, whereas $\eta_r$ measures the value of choosing $M$ instead of $B$.
 
 \subsection{Selective Invocation and Equal-Count Comparison}
 \label{sec:decision-rule}
@@ -134,7 +134,7 @@ Given $\hat{\eta}_r(z)$, a threshold selects the specialist whenever its predict
 \end{equation}
 where a selected event uses $M$ and an unselected event uses $B$. The threshold is applied to requests individually; its realized invocation rate depends on the evaluated context distribution.
 
-For a set of $n$ evaluated requests, the frozen policy produces $m=\sum_{i=1}^{n}a_{\tau_r}(z_i)$ specialist calls. Comparisons at this observed count assess the quality of event selection separately from invocation frequency; the comparator's batch-level information access is specified in Section~\ref{sec:exp-comparators}.
+For $n$ evaluated requests, the frozen pointwise rule yields $m=\sum_{i=1}^{n}a_{\tau_r}(z_i)$ specialist calls. Equal-count comparisons hold invocation frequency fixed for evaluating the selected events; Section~\ref{sec:exp-comparators} specifies the comparator's retrospective batch-level access.
 
 \subsection{Regime-Level Utility Decomposition}
 \label{sec:regime-decomposition}
@@ -146,7 +146,7 @@ A change in aggregate specialist value can reflect a changed distribution of evi
     \,\mathbb{E}\!\left[\Delta_M(X)\mid S=s,R=r\right].
     \label{eq:regime-decomposition}
 \end{equation}
-Equation~\eqref{eq:regime-decomposition} decomposes observed knowledge value into state prevalence and state-conditional ranking utility. Its interpretation remains relative to the specified incumbent and candidate environment; the paired evaluation designs distinguish these sources of variation.
+This identity separates state prevalence from state-conditional ranking contributions. The paired candidate protocols in Section~\ref{sec:exp-regimes} then examine changes in measured relative utility while holding the evaluated target-history states fixed.
 
 
 \section{Base-Relative Evidence Valuation Framework}
