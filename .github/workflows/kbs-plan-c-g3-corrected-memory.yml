@@ -11,7 +11,7 @@ permissions:
   contents: read
 jobs:
   hosted-validate-code:
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize corrected Memory-only DEV replay')) || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize corrected Memory-only DEV replay retry after unit-test correction')) || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -34,10 +34,10 @@ jobs:
           (cd memory-correction-code && sha256sum -c SHA256SUMS)
       - uses: actions/cache/save@v4
         with:
-          key: kbs-plan-c-g3-memory-allprior-corrected-bundle-v1
+          key: kbs-plan-c-g3-memory-allprior-corrected-bundle-v2
           path: memory-correction-code/
   user-host-correct-memory:
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize corrected Memory-only DEV replay')) || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize corrected Memory-only DEV replay retry after unit-test correction')) || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent')
     needs: hosted-validate-code
     runs-on: [self-hosted, linux, x64, gpu-3090]
     timeout-minutes: 95
@@ -56,7 +56,7 @@ jobs:
           test -x "$HOME/venvs/kuailive-gpu/bin/python"
       - uses: actions/cache/restore@v4
         with:
-          key: kbs-plan-c-g3-memory-allprior-corrected-bundle-v1
+          key: kbs-plan-c-g3-memory-allprior-corrected-bundle-v2
           path: memory-correction-code/
           fail-on-cache-miss: true
       - name: Check hashes and original all-history Memory formula on synthetic evidence
