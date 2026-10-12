@@ -14,7 +14,7 @@ class ActiveCandidateTests(unittest.TestCase):
                                     [t,t+timedelta(hours=1)])
         self.assertEqual(result["distinct_known_author_candidate_distribution"]["min"],2)
         self.assertEqual(result["distinct_known_author_candidate_distribution"]["max"],3)
-        self.assertEqual(result["known_author_active_room_distribution"]["min"],2)
+        self.assertEqual(result["known_author_active_room_distribution"]["min"],3)
 
 if __name__=="__main__":
     unittest.main()
