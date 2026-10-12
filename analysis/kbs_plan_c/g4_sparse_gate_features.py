@@ -38,10 +38,16 @@ def sparse_history_support_share(active_known_author_tokens, prior_warm_author_c
 
 def dense_reference_support_share(active,popularity,prior_warm,recent,all_author_max):
     """Unit-test-only reference to exactly evaluated Memory component support."""
-    try:
-        from g3_replay_correct_memory import corrected_memory_score
-    except ImportError as e:
-        raise RuntimeError("Reference is only for isolated scientific parity tests") from e
-    mem=corrected_memory_score(active,popularity,prior_warm,recent,all_author_max)
-    signal=mem-0.10*popularity[np.asarray(active,dtype=np.int32)]
+    import math
+    ids=np.asarray(active,dtype=np.int32)
+    scores=0.10*popularity[ids].astype(np.float64).copy()
+    rec=list(recent)[-10:]
+    for j,token in enumerate(ids):
+        if prior_warm:
+            scores[j]+=0.45*prior_warm.get(int(token),0)/all_author_max
+        short=max((math.exp(-distance/3.0)
+                   for distance,item in enumerate(reversed(rec))
+                   if int(item)==int(token)),default=0.0)
+        scores[j]+=0.45*short
+    signal=scores-0.10*popularity[ids]
     return float(np.mean(signal>1e-12))
