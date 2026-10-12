@@ -1,0 +1,69 @@
+name: KBS Plan C M3 finalize already-verified local staging
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-plan-c-m3-finalize-local.yml'
+permissions:
+  contents: read
+jobs:
+  finalize-m3:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize local M3 staged-data finalize')
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 20
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Read-only validation of already-staged original files and quarantine old empty cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          CACHE="$HOME/.cache/kuailive-agent-kbs/klm3"
+          TMP="$HOME/.cache/kuailive-agent-kbs/klm3.pending.38201166805"
+          test -d "$TMP" || { echo "Verified pending stage missing; do not redownload in this workflow" >&2; exit 14; }
+          test -s "$TMP/SHA256SUMS"
+          (cd "$TMP" && sha256sum -c SHA256SUMS)
+          test "$(stat -c %s "$TMP/live_interaction.csv")" = 4565993701
+          test "$(stat -c %s "$TMP/live_room_meta.parquet")" = 237756481
+          if [ -d "$CACHE" ]; then
+            if [ -s "$CACHE/SHA256SUMS" ] && (cd "$CACHE" && sha256sum -c SHA256SUMS); then
+              echo "Persistent M3 cache already fully verified; preserved."
+              rm -rf "$TMP"
+            else
+              QUARANTINE="$CACHE.quarantine.$GITHUB_RUN_ID"
+              test ! -e "$QUARANTINE"
+              mv "$CACHE" "$QUARANTINE"
+              echo "Moved previous incomplete directory to quarantine; no existing data deleted."
+              chmod 700 "$TMP"
+              mv "$TMP" "$CACHE"
+            fi
+          else
+            chmod 700 "$TMP"
+            mv "$TMP" "$CACHE"
+          fi
+          test -s "$CACHE/SHA256SUMS"
+          (cd "$CACHE" && sha256sum -c SHA256SUMS)
+          mkdir -p reports
+          python - <<'PY'
+          import json,pathlib
+          cache=pathlib.Path.home()/'.cache/kuailive-agent-kbs/klm3'
+          report={'schema':'kbs-plan-c-m3-local-finalized-v1',
+                  'source_revision':'138d213a23e261ed3094d27ed8a4b867fb9143fe',
+                  'download_transport':'GitHub-host official HF -> Actions cache -> User-host',
+                  'source_exact_sha256_verified_on_both_hosts':True,
+                  'source_files':{p:(cache/p).stat().st_size for p in
+                    ['live_interaction.csv','live_room_meta.parquet']},
+                  'persistent_cache_ready':True,
+                  'test_targets_inspected':False,
+                  'models_trained':False,
+                  'cohort_independence_audit_complete':False}
+          pathlib.Path('reports/m3_verified_transfer.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-m3-finalized-report
+          path: reports/m3_verified_transfer.json
+          retention-days: 7
