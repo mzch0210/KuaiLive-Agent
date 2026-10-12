@@ -1,0 +1,45 @@
+{
+  "schema": "kbs-plan-c-g2-dev-checkpoint-select-v1",
+  "status": "PREDECLARED_BEFORE_DEV_CHECKPOINT_METRICS",
+  "date": "2026-10-12",
+  "dataset": "KuaiLive-M3",
+  "g1_manifest_source": "experiments/kbs_plan_c/G1_FIXED_DATA_BUNDLE_ACCEPTANCE_2026-10-12.md",
+  "g1_protocol_sha256": "bf6234eb95ecb24a568b2e7556846c41c4f3e1fdcd7774397003beaf56341a3c",
+  "train_only_source": "train_author_events.parquet;train_known_authors.parquet",
+  "dev_history_rule": "DEV targets receive only prior chronological TRAIN and earlier DEV interactions, with unknown-to-TRAIN authors omitted from Base input; no TEST events allowed",
+  "model_families": [
+    "sasrec",
+    "gru4rec"
+  ],
+  "train": {
+    "seed": 20261012,
+    "epochs": 3,
+    "samples_per_epoch": 24995840,
+    "batch": 1024,
+    "uniform_negative_share": 0.5,
+    "popularity_power": 0.75,
+    "n_negatives": 32,
+    "context": 16,
+    "dim": 64,
+    "learning_rate": 0.001
+  },
+  "checkpoint_selection": {
+    "cohort": "4096 fixed order-statistic sampled from 50049 frozen DEV events only",
+    "candidate_count": 575,
+    "positive_count": 1,
+    "negative_count": 574,
+    "negative_rule": "uniform without replacement among concurrently active distinct warm TRAIN authors at event timestamp, exclude target",
+    "seed": 20261012,
+    "primary_metric": "DEV sampled-active NDCG@10",
+    "tie_rule": "lower numeric author ID wins",
+    "choose": "maximize sampled-active DEV NDCG@10, earliest epoch wins ties",
+    "same_protocol_both_base_models": true
+  },
+  "zero_warm_history": {
+    "rule": "fallback to TRAIN-only popularity ranking, report count and share, no learned cold embedding"
+  },
+  "followup": "After checkpoint selection score frozen full-active DEV cohort; TEST remains locked until all gates frozen",
+  "dev_only": true,
+  "test_outcomes_inspected": false,
+  "dev_checkpoint_result_seen": false
+}
