@@ -1,0 +1,120 @@
+name: KBS Plan C G1 reproducible M3 temporal event preparation
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-g1-real-prep.yml']
+permissions:
+  contents: read
+jobs:
+  hosted-code-and-wheel:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize Plan C G1 fixed-source preparation')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          clean: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify exact G1 synthetic forward-split behavior
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check duckdb==1.4.1
+          python -m unittest discover -s analysis/kbs_plan_c -p test_g1_prepare_m3.py -v
+          python - <<'PY'
+          import json
+          a=json.load(open("experiments/kbs_plan_c/G0F_PRETEST_PROTOCOL_2026-10-12.json"))
+          assert a["status"]=="SCIENTIFIC_DESIGN_PREREGISTERED_TEST_REMAINS_LOCKED"
+          assert a["meta"]["test_performance_seen"] is False
+          PY
+      - name: Package version-locked Python code, source protocol and binary wheel
+        run: |
+          set -euo pipefail
+          mkdir -p g1-bundle/wheels
+          cp analysis/kbs_plan_c/g1_prepare_m3.py g1-bundle/
+          cp experiments/kbs_plan_c/G0F_PRETEST_PROTOCOL_2026-10-12.json g1-bundle/
+          python -m pip download --no-deps --only-binary=:all: \
+            --dest g1-bundle/wheels duckdb==1.4.1
+          (cd g1-bundle && sha256sum g1_prepare_m3.py \
+            G0F_PRETEST_PROTOCOL_2026-10-12.json wheels/*.whl > SHA256SUMS)
+          (cd g1-bundle && sha256sum -c SHA256SUMS)
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-g1-preregistered-author-chronology-duckdb141-v1
+          path: g1-bundle/
+
+  user-host-g1:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize Plan C G1 fixed-source preparation')
+    needs: hosted-code-and-wheel
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 90
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Guard trusted main branch, source SHA manifests and free storage
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          test -s "$HOME/.cache/kuailive-agent-kbs/klm3/SHA256SUMS"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          free="$(df -PB1 "$HOME/.cache/kuailive-agent-kbs" | awk 'NR==2{print $4}')"
+          test "$free" -gt 50000000000
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g1-preregistered-author-chronology-duckdb141-v1
+          path: g1-bundle/
+          fail-on-cache-miss: true
+      - name: Restore verified offline tooling isolated from original GPU-model environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd g1-bundle && sha256sum -c SHA256SUMS)
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          TOOLS="$HOME/.cache/kuailive-agent-kbs/g1-py312-tools-v1"
+          mkdir -p "$TOOLS"
+          "$PY" - <<'PY'
+          import zipfile,pathlib
+          root=pathlib.Path.home()/'.cache/kuailive-agent-kbs/g1-py312-tools-v1'
+          for path in pathlib.Path("g1-bundle/wheels").glob("*.whl"):
+              with zipfile.ZipFile(path) as z:z.extractall(root)
+          PY
+          PYTHONPATH="$TOOLS" "$PY" - <<'PY'
+          import duckdb
+          assert duckdb.__version__=="1.4.1"
+          print("G1 isolated DuckDB",duckdb.__version__)
+          PY
+      - name: Single-pass raw validation, temporal history sorting, and DEV/TEST sealing
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/g1-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          export OMP_NUM_THREADS=4
+          "$HOME/venvs/kuailive-gpu/bin/python" g1-bundle/g1_prepare_m3.py \
+            --source "$HOME/.cache/kuailive-agent-kbs/klm3" \
+            --protocol g1-bundle/G0F_PRETEST_PROTOCOL_2026-10-12.json \
+            --output "$HOME/.cache/kuailive-agent-kbs/klm3_plan_c_g1_v1"
+          mkdir -p g1-reports
+          cp "$HOME/.cache/kuailive-agent-kbs/klm3_plan_c_g1_v1/manifest.json" \
+             g1-reports/manifest.json
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          x=json.load(open("g1-reports/manifest.json"))
+          assert x["test_outcomes_inspected"] is False
+          assert x["test_ranking_metrics_computed"] is False
+          assert x["models_trained"] is False
+          assert x["selected_cohort_counts"]["DEV"] > 1000
+          assert x["selected_cohort_counts"]["TEST"] > 1000
+          assert len(x["generated_files_sha256"]) == 6
+          print("G1 PRETEST DATA BUNDLE VERIFIED, TEST INFERENCE REMAINS BLOCKED")
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g1-data-provenance
+          path: g1-reports/manifest.json
+          if-no-files-found: error
+          retention-days: 14
