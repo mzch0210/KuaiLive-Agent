@@ -1,0 +1,18 @@
+{
+  "schema": "kbs-plan-c-r7-closure-v1",
+  "date": "2026-10-12",
+  "basis": "R6_R0_P0_P1_ISSUE_CLOSURE_TRACKER_2026-10-12.json",
+  "status": "R7_NOVELTY_PASS_R8_SUBMISSION_HOLD",
+  "r7_completed": [
+    "R0-P1-04 literature challenge, deferral/KBS gating differentiation and CKLF published-source reference"
+  ],
+  "r0_items_already_repaired_in_r2_r6": 10,
+  "all_issue_paper_level_final_closure": false,
+  "r8_unresolved": [
+    "R0-P0-01..06 and R0-P1-01..03/05: final source/PDF and true protocol cross-check",
+    "R0-P1-04: author final novelty signoff",
+    "R0-P1-06: permission-aware durable release and accurate data/code policy",
+    "Abstract, highlights as applicable, authors/affiliations, declarations, KBS Guide compliance"
+  ],
+  "test_artifacts_and_supplement": "not changed in R7"
+}
