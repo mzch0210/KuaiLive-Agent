@@ -1,0 +1,93 @@
+name: KBS Plan C G0-D targeted KuaiLive-M3 live-data preparation
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/kbs_plan_c/m3_data_audit.py'
+      - 'analysis/kbs_plan_c/test_m3_data_audit.py'
+      - '.github/workflows/kbs-plan-c-g0d-m3-data.yml'
+permissions:
+  contents: read
+jobs:
+  hosted-synthetic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Test data-header auditor without downloading KLM3
+        run: |
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_*.py' -v
+          python -m py_compile analysis/kbs_plan_c/m3_data_audit.py
+
+  user-host-source:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize targeted KLM3 G0-D source audit') }}
+    needs: hosted-synthetic
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 180
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Guard trusted main branch and identify source tool
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          command -v curl
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          clean: true
+      - name: Targeted pinned download with persistent cache (no TEST scoring)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$HOME/.cache/kuailive-agent-kbs/klm3"
+          mkdir -p "$ROOT"
+          test "$(df -PB1 "$ROOT" | awk 'NR==2 {print $4}')" -gt 12000000000
+          BASE='https://huggingface.co/datasets/imgkkk2004/KuaiLive-M3/resolve/138d213a23e261ed3094d27ed8a4b867fb9143fe'
+          fetch_verify() {
+            local file="$1" expected="$2" bytes="$3" target="$ROOT/$1"
+            if [ -f "$target" ] && [ "$(stat -c %s "$target")" = "$bytes" ] &&
+                echo "$expected  $target" | sha256sum -c --status; then
+              echo "verified cached input: $file"
+              return
+            fi
+            if [ -f "$target" ]; then
+              echo "Existing file has mismatched source checksum, refusing to overwrite: $file" >&2
+              exit 8
+            fi
+            echo "Download pinned $file to persistent cache (never upload raw data)"
+            curl --fail --location --show-error --retry 5 --retry-delay 10 \
+              --connect-timeout 30 --continue-at - \
+              --output "$target.partial" "$BASE/$file?download=true"
+            test "$(stat -c %s "$target.partial")" = "$bytes"
+            echo "$expected  $target.partial" | sha256sum -c --status
+            mv "$target.partial" "$target"
+            echo "verified newly downloaded: $file"
+          }
+          fetch_verify live_interaction.csv \
+            2db0daab66ec18062d453cdbbc43cbb44f75559914ef53756dfd6635812ec653 \
+            4565993701
+          fetch_verify live_room_meta.parquet \
+            130986065f8fff7cb1146a7c6508979cf0df60f39a7d923f35003e1f29f0599a \
+            237756481
+      - name: Audit first event rows and Parquet metadata only
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" analysis/kbs_plan_c/m3_data_audit.py \
+            --root "$HOME/.cache/kuailive-agent-kbs/klm3" --out g0d_out/m3_schema.json
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          a=json.load(open("g0d_out/m3_schema.json"))
+          assert not a["test_metrics_computed"] and not a["models_trained"]
+          assert a["interaction"]["expected_fields_present"]
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g0d-fields-${{ github.run_id }}
+          path: g0d_out/m3_schema.json
+          retention-days: 30
