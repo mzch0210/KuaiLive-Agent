@@ -6,8 +6,8 @@
 ## 0. 冻结基线、科学来源和任务队列
 
 - **G1 验收主稿：** commit [e5409c2c](https://github.com/mzch0210/KuaiLive-Agent/commit/e5409c2c464915c96ce636de1153a4892608b4dc)，Git blob \`0ccd9b02874e0bd5f5fc16a025ce49d1c660fe2f\`。
-- **G2 完整修订主稿：** 最终 commit [ed0c5aa1](https://github.com/mzch0210/KuaiLive-Agent/commit/ed0c5aa1952dfff2d9a152037bf7d116084a96e3)，Git blob \`54cea921e2d231574483913e16f9f859d5bd7888\`。
-- **实施提交：** [5e59cd4e](https://github.com/mzch0210/KuaiLive-Agent/commit/5e59cd4ec674d7b4652673f58b751a302bd32cd0)（§6 概述、§6.1、§6.2）；[1801bc76](https://github.com/mzch0210/KuaiLive-Agent/commit/1801bc76ee4c4ab9c7b785b5a8464aa31c4800af)（§6.3–6.5）；[ed0c5aa1](https://github.com/mzch0210/KuaiLive-Agent/commit/ed0c5aa1952dfff2d9a152037bf7d116084a96e3)（候选组成与总体环境的因果措辞收紧）。
+- **G2 完整修订主稿：** 最终提交 [dcd95a6d](https://github.com/mzch0210/KuaiLive-Agent/commit/dcd95a6d0d2b06adf1eaf51794a0528771b6ef6a)，Git blob `76b100a846c99f98ccca8e93249d7fcc166c7d66`。此前 §6 全部内容修订为 [ed0c5aa1](https://github.com/mzch0210/KuaiLive-Agent/commit/ed0c5aa1952dfff2d9a152037bf7d116084a96e3)；最终提交仅拆分 §6.2 一句置信区间长句。
+- **实施提交：** [5e59cd4e](https://github.com/mzch0210/KuaiLive-Agent/commit/5e59cd4ec674d7b4652673f58b751a302bd32cd0)（§6.1/§6.2）；[1801bc76](https://github.com/mzch0210/KuaiLive-Agent/commit/1801bc76ee4c4ab9c7b785b5a8464aa31c4800af)（§6.3–6.5）；[ed0c5aa1](https://github.com/mzch0210/KuaiLive-Agent/commit/ed0c5aa1952dfff2d9a152037bf7d116084a96e3)（候选环境非单因素的表述）；[dcd95a6d](https://github.com/mzch0210/KuaiLive-Agent/commit/dcd95a6d0d2b06adf1eaf51794a0528771b6ef6a)（针对日志 32.92719pt overfull 的 §6.2 排版修复，所有结果数值原样保留）。
 - **写作/期刊依据：** [G0 双向主张证据矩阵](G0_FROZEN_BASELINE_CLAIM_EVIDENCE_TRACEABILITY_2026-10-11.md)、[G0–G5 第二轮计划](KBS_PAPER_SECOND_PASS_SUBMISSION_NARRATIVE_REVISION_PLAN_2026-10-11.md)、[94 段编辑清单](KBS_SECOND_PASS_94_PARAGRAPH_AUDIT_2026-10-11.md)；[Elsevier Results 正式写作建议](https://scientific-publishing.webshop.elsevier.com/manuscript-preparation/how-to-write-the-results-section-of-a-research-paper/)（客观、主要发现优先、图表与正文互补、保留负结果；此为通用出版指导而非 KBS 特定字数要求）。
 - **科学资产冻结：** [S1–S9](SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md) Git blob \`067d4e5713eb927d8aab3dee3bf2dde512b314ed\`；[\`kbs_references.bib\`](kbs_references.bib) Git blob \`358e6599711421ac609cb1956cfc9cd122cdc341\`。
 
@@ -36,6 +36,6 @@
 
 ## III. G2 结论与 G3 准入
 
-**G2 科学编辑和源码 gate：PASS。** 但本文件在生成时，最终精确源码 [Actions #38192050763](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38192050763) 仍需以实际状态验收，包括 LaTeX build、PDF 完整性、Overfull 与文献警告、受影响 §6 页面渲染。仅当最终运行完成且检查通过后，才能标记 G2 **正式 PASS**。
+**G2 科学编辑和源码 gate：PASS。** [首次完整构建 #38192050763](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38192050763) 已成功生成 29 页 PDF，但 §6.2 连续置信区间存在 32.92719pt Overfull；修复后精确源码 [最终工作流 #38192207908](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38192207908) 的结果与实际 PDF 验收另行确认。此状态不预先声称最终技术通过。
 
 **G3 的边界：** 按原计划只修订 §7 Discussion，以更紧密的学术解释连接新的 §1/§2 与现有 §6 的证据，尤其与 L2D/sampled-metric/knowledge fusion 的文献对话。不得扩大为跨平台 selector validation、因果 candidate-size、净计算节省或先改掉 §8 结论。完成 G3 后才进入 G4 §3–§5 的最小协调、§8 一致性与 G5 全文 KBS reviewer audit。
