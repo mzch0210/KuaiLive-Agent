@@ -6,13 +6,25 @@ from pathlib import Path
 from datetime import datetime,timedelta
 
 import numpy as np
+import torch
+from g2_train_base import Encoder
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from g3_dev_full_active import score_history,memory_rank,author_availability,build_dev_histories,ndcg
+from g3_dev_full_active import score_history,memory_rank,author_availability,build_dev_histories,ndcg,score_batch
 
 
 class TestFixedMemory(unittest.TestCase):
+    def test_base_batched_inference_detaches_tensors(self):
+        model=Encoder(16,"gru4rec")
+        model.eval()
+        reps={"gru4rec":np.ones((2,64),dtype=np.float32)}
+        candidates=np.array([[2,3,4],[4,5,6]],dtype=np.int32)
+        scores=score_batch({"gru4rec":model},reps,[0,1],candidates,"cpu")
+        self.assertIsInstance(scores["gru4rec"],np.ndarray)
+        self.assertEqual(scores["gru4rec"].shape,(2,3))
+        self.assertTrue(np.isfinite(scores["gru4rec"]).all())
+
     def test_component_weights_and_ties(self):
         pop=np.array([0.0,.2,.5,.1,.8])
         roster=np.array([1,2,3,4],dtype=np.int32)
