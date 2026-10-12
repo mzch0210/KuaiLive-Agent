@@ -634,7 +634,7 @@ The approximately 2% recoverable group contributes **negatively** to the aggrega
 
 The following **M3 author-ranking** evidence is entirely distinct from the original **KuaiLive room-ranking** P1/P2 studies in S8.1–S8.4. The designated Base families are SASRec and GRU4Rec, trained separately at seeds 20261012, 20261013 and 20261014, evaluated without TEST-based refitting on a common **47,575-event / 12,533-user** later-period cohort. All six models share the same eligibility/candidate rosters and the unchanged relationship Memory. The M3 neural models differ by fitted initialization, not by independent observed user samples. TEST full-active median candidate count is **31,065** warm eligible authors.
 
-**Table S8.4. Full M3 frozen TEST NDCG@10, six fitted incumbents and five independently DEV-frozen policy objectives.** Unconditional Memory always scores **0.346792** on the same cohort and candidate roster for each fit.
+**Table S8.4. Six-incumbent M3 TEST NDCG@10.**
 
 | Base / training seed | Always Base | Always Memory | Utility | Difficulty | Specialist Quality | Uncertainty | History |
 |---|---:|---:|---:|---:|---:|---:|---:|
