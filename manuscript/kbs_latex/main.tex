@@ -156,7 +156,7 @@ This identity separates state prevalence from state-conditional ranking contribu
 \section{Base-Relative Evidence Valuation Framework}
 \label{sec:framework}
 
-Figure~\ref{fig:framework} links the three components needed for a selective knowledge decision: a trained Base produces the incumbent ranking, a fixed Memory specialist defines an alternative ranking, and a pre-outcome estimator predicts their relative utility. Its prediction determines whether the alternative is invoked; realized target outcomes supply offline supervision and diagnosis.
+Figure~\ref{fig:framework} links the three components needed for a selective knowledge decision: a trained Base produces the incumbent ranking, a fixed Memory specialist defines an alternative ranking, and a pre-outcome estimator predicts their relative utility. Its DEV-frozen invocation rule determines whether the alternative is used; realized outcomes are reserved for offline supervision and diagnosis.
 
 \begin{figure}[t]
 \centering
@@ -168,7 +168,7 @@ Figure~\ref{fig:framework} links the three components needed for a selective kno
 ]
 \node[box,text width=11.7cm] (context) {Pre-outcome context: user history and eligible candidates};
 \node[box,text width=11.7cm,below=5mm of context] (base) {Fixed base $B$: default ranking and candidate-score descriptors};
-\node[box,text width=11.7cm,below=5mm of base] (gate) {Features $Z$ predict $\hat{\eta}_r(Z)$; invoke if $\hat{\eta}_r(Z)>\tau_r$};
+\node[box,text width=11.7cm,below=5mm of base] (gate) {Features $Z$ predict relative utility; apply DEV-frozen selection rule};
 \node[box,text width=4.7cm,below=10mm of gate,xshift=-3.15cm] (keep) {Return base ranking};
 \node[box,text width=4.7cm,below=10mm of gate,xshift=3.15cm] (invoke) {Invoke $M$:\\ persistent relationships:\\ Short / Long / Popularity\\ return specialist ranking};
 \draw[arr] (context) -- (base);
@@ -187,14 +187,14 @@ Figure~\ref{fig:framework} links the three components needed for a selective kno
 \subsection{Strong Sequential Base Recommenders}
 \label{sec:framework-base}
 
-KuaiLive uses a Dual-ID sequential Base with room-level and streamer-level SASRec branches. The room branch represents individual live sessions; the streamer branch connects sessions involving one creator. Both score the eligible \emph{rooms}, and their within-candidate standardized scores are fused by development-selected coefficients. This preserves next-room ranking while exploiting persistent streamer identity as part of the incumbent's own representation. Fusion coefficients are selected separately for the experimental candidate protocols.
+KuaiLive uses a Dual-ID sequential Base with room-level and streamer-level SASRec branches. The room branch represents individual live sessions; the streamer branch connects sessions involving one creator. Both score the eligible \emph{rooms}, and their within-candidate standardized scores are fused by development-selected coefficients. This preserves next-room ranking while exploiting persistent streamer identity as part of the incumbent's own representation. Fusion coefficients are selected separately for the experimental candidate protocols. This room-specific within-candidate normalization is distinct from the author-level M3 scoring protocol.
 
-For Twitch/LiveRec, Base is the availability-aware LiveRec recommender \cite{rappaz2021liverec}, including context and repeat-consumption components (input length 16). These platform-specific incumbent architectures define distinct, fixed reference rankings for their respective Base-relative utility comparisons.
+For Twitch/LiveRec, Base is the availability-aware LiveRec recommender \cite{rappaz2021liverec}, including context and repeat-consumption components (input length 16). KuaiLive-M3 instead ranks active TRAIN-known authors using separately trained SASRec and GRU4Rec author encoders, each with three fitted seeds and input length 16. M3 checkpoint screening uses a sampled DEV author panel, but its final DEV and TEST utilities are measured on the full available author roster. These distinct incumbents define the respective Base-relative utility comparisons; neither the trained encoders nor the fitted selection gates are transferred across ranking tasks.
 
 \subsection{Transparent Relationship-Memory Specialist}
 \label{sec:framework-memory}
 
-The specialist $M$ scores eligible candidates from historical user--creator interactions available before the target time. Let $i$ denote a candidate creator, let $n_{u,i}(t)$ be its count in the eligible pre-target history, and let $n_{u,\max}(t)$ be the largest such creator-specific count for user $u$. Define a long-term relationship strength as $\mathrm{Long}(u,i,t)=n_{u,i}(t)/\max\{1,n_{u,\max}(t)\}$. For the ordered last $K_s=10$ eligible user--creator interactions, let $d$ be the reverse interaction index ($d=0$ for the most recent). The short-term component is $\mathrm{Short}(u,i,t)=\max_{\{d:i_d=i\}}\exp(-d/3)$, with a maximum over an empty set defined as zero. Hence repeated appearances contribute their most recent decayed strength rather than an unbounded sum.
+The specialist $M$ scores eligible candidates from user--creator interactions observed before the current decision. Let $i$ denote a candidate creator, let $n_{u,i}(t)$ be its count in the prior history, and let $n_{u,\max}(t)$ be the largest prior creator-specific count for user $u$. In M3, this denominator includes historical creators not present in the TRAIN-known ranking vocabulary. Define a long-term relationship strength as $\mathrm{Long}(u,i,t)=n_{u,i}(t)/\max\{1,n_{u,\max}(t)\}$. For the ordered last $K_s=10$ observed user--creator interactions, let $d$ be the reverse interaction index ($d=0$ for the most recent). In M3, past TRAIN-unseen creators also occupy recency positions despite being ineligible as ranking candidates. The short-term component is $\mathrm{Short}(u,i,t)=\max_{\{d:i_d=i\}}\exp(-d/3)$, with a maximum over an empty set defined as zero. Hence repeated appearances contribute their most recent decayed strength rather than an unbounded sum.
 
 The popularity component $\mathrm{Pop}(i)$ is derived from eligible training-split creator counts by applying $\log(1+n_i)$ and min--max scaling over observed creators; unseen creators receive zero. The fixed specialist score is
 \begin{equation}
@@ -205,7 +205,7 @@ s_M(u,i,t)=
 \label{eq:memory-scoring}
 \end{equation}
 
-The same scoring coefficients, short-history horizon and decay are used on both platforms; a candidate without prior interaction may still receive a nonzero popularity score. Candidates are ordered by score with deterministic identifier-based tie-breaking. In KuaiLive, distinct rooms mapped to one creator can consequently share a Memory score; Twitch candidates are streamers directly. The eligibility of pre-target records and platform-specific timing conventions are given in Section~\ref{sec:exp-data}. This construction provides a transparent, separately scored ranking from persistent creator relationships.
+The fixed scoring coefficients, short-history horizon and decay define a transparent specialist, while eligible history and ranking identity depend on the protocol. In original KuaiLive, distinct live rooms associated with one creator can share a Memory score; Twitch ranks streamers directly, and M3 ranks currently available TRAIN-known persistent authors. In M3 the last ten positions reflect \emph{all} earlier author events, and the Long normalization denominator includes the most frequently observed prior author even if unseen in TRAIN. Previously observed TEST events can update later M3 prequential histories without exposing the current or future target. A candidate lacking previous interactions may still receive a nonzero TRAIN-derived popularity score. Ranking ties follow the respective frozen deterministic conventions. Memory and the incumbent score precisely the same eligible candidates, though the incumbent's fixed input sequence need not cover the specialist's complete historical evidence (Section~\ref{sec:exp-data}).
 
 \subsection{Base-Relative Relationship-Evidence States}
 \label{sec:framework-states}
@@ -226,17 +226,18 @@ These target-relative states describe input visibility for retrospective evaluat
 \subsection{Observable Features and Conditional Relative-Utility Estimation}
 \label{sec:framework-estimation}
 
-The Utility estimator $\hat{\eta}_r(z)$ is fitted on development-event $\Delta_M(x)$ labels using pre-outcome user-history features and Base candidate-score descriptors. Six history features summarize log history length, creator repeat rate, normalized preference entropy, old-versus-recent Jensen--Shannon drift, circular temporal regularity, and composite history complexity. On Twitch, regularity uses phases modulo $144$ ten-minute steps, representing a daily cycle. Eight Base-score features comprise score standard deviation and range, top-1/top-2, top-1/top-5 and top-10/top-11 margins, the top score's standardized value, normalized score entropy, and top-ten softmax mass. These quantities summarize candidate ranking patterns; entropy and softmax mass are not assumed to be calibrated uncertainty estimates.
+On Twitch, the Utility estimator $\hat{\eta}_r(z)$ is fitted on development-event $\Delta_M(x)$ labels using pre-outcome user-history features and Base candidate-score descriptors. Six history features summarize log history length, creator repeat rate, normalized preference entropy, old-versus-recent Jensen--Shannon drift, circular temporal regularity, and composite history complexity. On Twitch, regularity uses phases modulo $144$ ten-minute steps, representing a daily cycle. Eight Base-score features comprise score standard deviation and range, top-1/top-2, top-1/top-5 and top-10/top-11 margins, the top score's standardized value, normalized score entropy, and top-ten softmax mass. These quantities summarize candidate ranking patterns; entropy and softmax mass are not assumed to be calibrated uncertainty estimates.
 
-The composite history-complexity descriptor weights percentiles of entropy, preference drift and log history length by $0.4$, $0.4$ and $0.2$. The transformations use pre-outcome features and preserve the target-independent decision context. Reference-pool construction and estimator fitting follow the split-specific protocol in Section~\ref{sec:exp-freeze}.
+The composite Twitch history-complexity descriptor weights percentiles of entropy, preference drift and log history length by $0.4$, $0.4$ and $0.2$.
 
-\subsection{Specialist Selection and Matched-Budget Controls}
+The separate M3 estimators use 12 pre-outcome descriptors: five Base-score summaries (the top-two margin, score standard deviation, standardized top score, top score and score mean) and seven history/candidate descriptors (total earlier interaction count, earlier TRAIN-known interaction count, distinct TRAIN-known earlier authors, maximum known-author repetition, short-history distinct known authors, fraction of eligible authors with historical relationship support, and log eligible-candidate count). The support fraction is obtainable from earlier interactions and the available candidate set without evaluating the specialist's full ranking or observing the current target. This source of information is therefore permissible before the call decision. The three supervised M3 regression objectives respectively model specialist-minus-Base ranking utility, negative Base utility and standalone specialist utility; Uncertainty instead uses the negative Base score margin, while History uses total preceding interaction count. Each M3 policy is fitted and frozen on its own DEV protocol. The Twitch 14-feature and M3 12-feature vectors, as well as their trained selectors, are not asserted to be interchangeable (Section~\ref{sec:exp-freeze}).
+
+\subsection{Specialist Selection and Comparator Policies}
 \label{sec:framework-controls}
 
-At invocation time, the Base supplies the default ranking and score-based descriptors in $Z$. The selector combines these with history descriptors and applies Eq.~\eqref{eq:utility-threshold}; Memory is scored only for selected requests, and the corresponding ranking is returned.
+At request time, the Base supplies the default ranking and candidate-score descriptors; the selector combines them with prior-history features before applying the frozen pointwise rule in Eq.~\eqref{eq:utility-threshold}. When the policy selects Memory, its alternative ranking is computed for the same available candidates. Base and gate computations remain necessary even for requests that do not use the specialist.
 
-Base Difficulty predicts $1-u_K(B,x)$ from the same observable feature family but does not model Memory's ranking advantage. Section~\ref{sec:exp-comparators} specifies the evaluation of both targets and the equal-count and Oracle controls.
-
+Base Difficulty models incumbent ranking loss instead of the incremental benefit of using a particular specialist. The M3 comparison additionally includes Specialist Quality (standalone Memory utility), Uncertainty (negative Base margin) and History (prior interaction count), each with a separately DEV-frozen pointwise threshold. Twitch instead retains the retrospective TEST-count matching of its Difficulty and hindsight Oracle controls. Section~\ref{sec:exp-comparators} defines the different comparison designs. The reduced frequency of calling Memory is an experimentally specified decision constraint, not a measured saving in overall serving time.
 
 \section{Experimental Setup}
 \label{sec:experimental-setup}
