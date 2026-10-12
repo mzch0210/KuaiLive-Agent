@@ -1,0 +1,118 @@
+name: KBS Plan C G2 GPU SASRec GRU4Rec TRAIN-only pilot
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-g2-gpu-pilot.yml']
+permissions:
+  contents: read
+jobs:
+  hosted-bundle:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G2 GPU architecture pilot')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Check frozen protocol and package audited TRAIN-only code
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/g2_train_base.py analysis/kbs_plan_c/test_g2_train_base.py
+          python - <<'PY'
+          import json
+          p=json.load(open("experiments/kbs_plan_c/G0F_PRETEST_PROTOCOL_2026-10-12.json"))
+          assert p["meta"]["test_performance_seen"] is False
+          assert p["models"]["latent_dim"]==64 and p["models"]["context_length"]==16
+          PY
+          mkdir -p g2-code
+          cp analysis/kbs_plan_c/g2_train_base.py analysis/kbs_plan_c/test_g2_train_base.py g2-code/
+          cp experiments/kbs_plan_c/G0F_PRETEST_PROTOCOL_2026-10-12.json g2-code/
+          (cd g2-code && sha256sum *.py *.json > SHA256SUMS)
+          (cd g2-code && sha256sum -c SHA256SUMS)
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-g2-train-only-sasrec-gru4rec-code-v1
+          path: g2-code/
+  user-host-pilot:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G2 GPU architecture pilot')
+    needs: hosted-bundle
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 90
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Guard trusted GPU user and TRAIN cache
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test "$(id -u)" -ne 0
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          test -s "$HOME/.cache/kuailive-agent-kbs/klm3_plan_c_g1_v1/manifest.json"
+          nvidia-smi
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g2-train-only-sasrec-gru4rec-code-v1
+          path: g2-code/
+          fail-on-cache-miss: true
+      - name: SHA check, pretrained protocol check and synthetic smoke
+        run: |
+          set -euo pipefail
+          (cd g2-code && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$PWD/g2-code:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          "$PY" - <<'PY'
+          import json,torch,pyarrow,numpy
+          from pathlib import Path
+          g=json.load(open(Path.home()/'.cache/kuailive-agent-kbs/klm3_plan_c_g1_v1/manifest.json'))
+          assert g["protocol_sha256"]=="bf6234eb95ecb24a568b2e7556846c41c4f3e1fdcd7774397003beaf56341a3c"
+          assert g["split_event_counts"]["TRAIN"]>20000000
+          assert g["known_train_author_count"]>800000
+          assert torch.cuda.is_available() and "3090" in torch.cuda.get_device_name(0)
+          print('CUDA',torch.__version__,torch.cuda.get_device_name(0))
+          PY
+          "$PY" -m unittest discover -s g2-code -p test_g2_train_base.py -v
+      - name: Train-only real 3090 pilot with one shared sequence index
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$PWD/g2-code:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          G1="$HOME/.cache/kuailive-agent-kbs/klm3_plan_c_g1_v1"
+          IDX="$HOME/.cache/kuailive-agent-kbs/klm3_g2_train_index_v1"
+          OUT="$HOME/.cache/kuailive-agent-kbs/klm3_g2_pilot_$GITHUB_RUN_ID"
+          mkdir -p "$OUT"
+          for MODEL in sasrec gru4rec; do
+            "$PY" g2-code/g2_train_base.py \
+              --g1 "$G1" --index "$IDX" --out "$OUT/$MODEL" \
+              --mode pilot --model "$MODEL" --seed 20261012 \
+              --epochs 1 --steps-per-epoch 120 --batch 512 --negatives 32 \
+              --learning-rate 0.001 --log-interval 40
+          done
+          mkdir -p g2-reports
+          cp "$OUT/sasrec/sasrec_pilot_report.json" \
+             "$OUT/gru4rec/gru4rec_pilot_report.json" \
+             "$IDX/index_manifest.json" g2-reports/
+          "$PY" - <<'PY'
+          import json,pathlib
+          p=pathlib.Path('g2-reports')
+          for m in ('sasrec','gru4rec'):
+              r=json.loads((p/(m+'_pilot_report.json')).read_text())
+              assert r["mode"]=="pilot" and r["runtime"]["device"]=="cuda"
+              assert not r["dev_outcomes_read"] and not r["test_outcomes_read"]
+          print('G2 3090 TRAIN-only dual pilot PASS; DEV model selection NOT performed')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g2-pilot
+          path: g2-reports/
+          if-no-files-found: error
+          retention-days: 14
