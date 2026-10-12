@@ -30,7 +30,7 @@ The very first real pilot [#38205344760](https://github.com/mzch0210/KuaiLive-Ag
 
 - Model families: SASRec and GRU4Rec, each independently fitted on the same 3090, never concurrently.
 - Main seed: **20261012**; context length **16**; item embedding **64**.
-- Each family: batch size **1,024**, **24,410** updates per epoch, **3** epochs; **75,005,?** sampled windows overall (correction: exact total = `24,410 × 1,024 × 3 = 74,987,520`). Draws are **with replacement** from eligible TRAIN events; these are approximately three full-TRAIN-size *sample-equivalent* epochs, **not** three independent complete deterministic passes.
+- Each family: batch size **1,024**, **24,410** updates per epoch, **3** epochs; **74,987,520** sampled windows overall (`24,410 × 1,024 × 3`). Draws are **with replacement** from eligible TRAIN events; these are approximately three full-TRAIN-size *sample-equivalent* epochs, **not** three independent complete deterministic passes.
 - Learning rate **0.001**; 32 train-only negatives per window; finite-loss checks, gradient norm clipping.
 - Every epoch checkpoint is retained on User-host in `~/.cache/kuailive-agent-kbs/klm3_g2_seed20261012_epoch3_v1/{sasrec,gru4rec}/`; log/checkpoint hashes reported to GitHub artifact after successful completion.
 - No extra-model hyperparameter exploration, adaptation or seed stopping based on TEST.
