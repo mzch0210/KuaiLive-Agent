@@ -396,7 +396,7 @@ Unavailable & 14,397 & 0.21948 & 0.03734 & $-0.18215$ & $[-0.18681,-0.17715]$ \\
 
 Predicting specialist-relative utility provides a decision rule for the heterogeneous value identified above. The Utility regressor and pointwise threshold were fitted and selected on Twitch DEV out-of-fold predictions, then fixed before the 44,221 TEST events. The resulting policy invokes Memory on 6,650 events (15.04\%).
 
-The DEV-frozen Utility policy improves Twitch TEST NDCG@10 from $0.58211$ for Base to $0.58983$ (Table~\ref{tab:results-twitch-policy}), a paired gain of $+0.00772$ (95\% CI $[+0.00641,+0.00903]$). HR@10 improves by $+0.00945$ (95\% CI $[+0.00776,+0.01117]$). Both intervals use 5,000 user-paired bootstrap resamples with the policy decisions held fixed.
+The DEV-frozen Utility policy increases Twitch TEST NDCG@10 from $0.58211$ for Base to $0.58983$ (Table~\ref{tab:results-twitch-policy}). The paired gain is $+0.00772$, with 95\% CI $[+0.00641,+0.00903]$. HR@10 increases by $+0.00945$, with 95\% CI $[+0.00776,+0.01117]$. Both intervals use 5,000 user-paired bootstrap resamples with the policy decisions held fixed.
 
 Relative-utility prediction also distinguishes profitable specialist calls from difficult Base requests. At the Utility policy's realized count of 6,650 calls, the DEV-trained Difficulty score yields NDCG@10 $0.58340$, leaving a Utility advantage of $+0.00644$ (paired 95\% CI $[+0.00528,+0.00762]$); the corresponding HR@10 difference is $+0.01196$ (95\% CI $[+0.01033,+0.01364]$). Difficulty chooses its top-$m$ events retrospectively over the TEST batch, whereas Utility applies the threshold fixed on DEV; the matched count compares the value of the selected events.
 
