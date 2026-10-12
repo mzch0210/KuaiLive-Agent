@@ -31,7 +31,7 @@ jobs:
           (cd g2-code && sha256sum -c SHA256SUMS)
       - uses: actions/cache/save@v4
         with:
-          key: kbs-plan-c-g2-train-only-sasrec-gru4rec-code-v1
+          key: kbs-plan-c-g2-train-only-sasrec-gru4rec-code-v2
           path: g2-code/
   user-host-pilot:
     if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G2 GPU architecture pilot')
@@ -54,7 +54,7 @@ jobs:
           nvidia-smi
       - uses: actions/cache/restore@v4
         with:
-          key: kbs-plan-c-g2-train-only-sasrec-gru4rec-code-v1
+          key: kbs-plan-c-g2-train-only-sasrec-gru4rec-code-v2
           path: g2-code/
           fail-on-cache-miss: true
       - name: SHA check, pretrained protocol check and synthetic smoke
