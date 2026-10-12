@@ -1,0 +1,70 @@
+name: KBS Plan C G1 DEV-only active author candidate feasibility
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-g1-candidate-audit.yml']
+permissions:
+  contents: read
+jobs:
+  hosted-validate:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G1 DEV candidate universe sweep')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Synthetic half-open interval and author deduplication tests
+        run: |
+          python -m py_compile analysis/kbs_plan_c/g1_candidate_feasibility.py
+          python -m unittest discover -s analysis/kbs_plan_c \
+            -p test_g1_candidate_feasibility.py -v
+          mkdir -p g1-candidate-code
+          cp analysis/kbs_plan_c/g1_candidate_feasibility.py g1-candidate-code/
+          (cd g1-candidate-code && sha256sum g1_candidate_feasibility.py > SHA256SUMS)
+          (cd g1-candidate-code && sha256sum -c SHA256SUMS)
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-g1-dev-author-candidate-sweep-v1
+          path: g1-candidate-code/
+  user-host-dev-only:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G1 DEV candidate universe sweep')
+    needs: hosted-validate
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 40
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Verify sealed G1 bundle and existing isolated parquet reader
+        run: |
+          test -s "$HOME/.cache/kuailive-agent-kbs/klm3_plan_c_g1_v1/manifest.json"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g1-dev-author-candidate-sweep-v1
+          path: g1-candidate-code/
+          fail-on-cache-miss: true
+      - name: Sweep historical DEV room lifecycles, no TEST records
+        run: |
+          set -euo pipefail
+          (cd g1-candidate-code && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          "$HOME/venvs/kuailive-gpu/bin/python" \
+            g1-candidate-code/g1_candidate_feasibility.py \
+            --g1 "$HOME/.cache/kuailive-agent-kbs/klm3_plan_c_g1_v1" \
+            --out g1_candidate_results/availability.json
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          d=json.load(open('g1_candidate_results/availability.json'))
+          assert d['schema']=='kbs-plan-c-g1-known-author-availability-v1'
+          assert d['distribution']['sampled_dev_clock_instants']>=100
+          assert d['distribution']['distinct_known_author_candidate_distribution']['median']>575
+          assert d['test_file_opened'] is False and d['test_rankings_evaluated'] is False
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g1-dev-author-eligibility
+          path: g1_candidate_results/availability.json
+          retention-days: 14
