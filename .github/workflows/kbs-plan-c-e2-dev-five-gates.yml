@@ -1,0 +1,140 @@
+name: KBS Plan C E2 DEV-only five gate policies
+on:
+  workflow_run:
+    workflows:
+      - KBS Plan C G3 full-active DEV paired Base Memory
+    types: [completed]
+permissions:
+  contents: read
+jobs:
+  hosted-code-and-wheels:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Check E2 target isolation and pin source and binary wheel hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/g3_fit_dev_gates.py \
+            analysis/kbs_plan_c/train_gate_oof.py analysis/kbs_plan_c/frozen_gate.py \
+            analysis/kbs_plan_c/test_g3_fit_dev_gates.py
+          mkdir -p e2-bundle/wheels
+          cp analysis/kbs_plan_c/g3_fit_dev_gates.py \
+             analysis/kbs_plan_c/test_g3_fit_dev_gates.py \
+             analysis/kbs_plan_c/train_gate_oof.py \
+             analysis/kbs_plan_c/frozen_gate.py \
+             e2-bundle/
+          python -m pip download --disable-pip-version-check --no-deps \
+            --only-binary=:all: --dest e2-bundle/wheels \
+            'scikit-learn==1.5.2' \
+            'scipy==1.14.1' \
+            'pandas==2.2.3' \
+            'joblib==1.4.2' \
+            'threadpoolctl==3.5.0' \
+            'python-dateutil==2.9.0.post0' \
+            'pytz==2024.2' \
+            'tzdata==2024.2' \
+            'six==1.16.0'
+          (cd e2-bundle && sha256sum *.py wheels/*.whl > SHA256SUMS)
+          (cd e2-bundle && sha256sum -c SHA256SUMS)
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-e2-dev-five-gates-cpu-bundle-v1
+          path: e2-bundle/
+
+  user-host-gates:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent'
+    needs: hosted-code-and-wheels
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 115
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Guard fixed DEV-only full-active pairs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_v2/summary.json"
+          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_v2/dev_full_active_pairs.csv"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-e2-dev-five-gates-cpu-bundle-v1
+          path: e2-bundle/
+          fail-on-cache-miss: true
+      - name: Verify signed-by-hash model-independent OOF code, offline wheels
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd e2-bundle && sha256sum -c SHA256SUMS)
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          TOOLS="$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1"
+          mkdir -p "$TOOLS"
+          "$PY" - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          target=Path.home()/'.cache/kuailive-agent-kbs/e2-py312-sklearn-v1'
+          for path in Path('e2-bundle/wheels').glob('*.whl'):
+              with ZipFile(path) as z:z.extractall(target)
+          PY
+          export PYTHONPATH="$PWD/e2-bundle:$TOOLS:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=2
+          export OMP_NUM_THREADS=2
+          "$PY" - <<'PY'
+          import numpy,scipy,pandas,sklearn,joblib
+          assert sklearn.__version__=='1.5.2'
+          assert pandas.__version__=='2.2.3'
+          assert scipy.__version__=='1.14.1'
+          print('Pinned DEV OOF stack imported without network or GPU retraining.')
+          PY
+          "$PY" -m unittest discover -s e2-bundle -p test_g3_fit_dev_gates.py -v
+      - name: Group-disjoint fivefold DEV OOF and fixed policies for both Base families
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$PWD/e2-bundle:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=2
+          export OMP_NUM_THREADS=2
+          export PYTHONUNBUFFERED=1
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          "$PY" e2-bundle/g3_fit_dev_gates.py \
+            --paired "$ROOT/klm3_g3_dev_fullactive_base_memory_v2" \
+            --out "$ROOT/klm3_g3_e2_five_gate_DEV_frozen_v1"
+          mkdir -p e2-report
+          cp "$ROOT/klm3_g3_e2_five_gate_DEV_frozen_v1/aggregate.json" \
+             e2-report/aggregate.json
+          "$PY" - <<'PY'
+          import json
+          r=json.load(open('e2-report/aggregate.json'))
+          assert r['schema']=='kbs-plan-c-g3-five-gates-dev-only-v1'
+          assert r['evaluation_scope']=='DEV_OOF_POLICY_OPTIMIZATION'
+          assert not r['test_file_opened'] and not r['test_labels_inspected']
+          assert set(r['family'])=={'sasrec','gru4rec'}
+          for family in r['family'].values():
+              assert family['n_events']==50049
+              assert set(family['metrics']['methods'])=={'utility','difficulty','specialist','uncertainty','history'}
+              assert max(x['dev_oof_call_rate'] for x in family['metrics']['methods'].values())<=.30+1e-12
+          print('Two Base families, five DEV OOF comparator policies frozen; TEST untouched.')
+          PY
+      - name: Upload aggregated DEV gains and model checksums only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-e2-dev-gate-aggregate
+          path: e2-report/aggregate.json
+          if-no-files-found: warn
+          retention-days: 21
