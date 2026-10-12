@@ -63,9 +63,9 @@ def room_rows(path):
     import pyarrow.parquet as pq
     file = pq.ParquetFile(path)
     for batch in file.iter_batches(batch_size=131072,
-                                   columns=["start_ts", "end_ts", "author_id"]):
+                                   columns=["open_ts", "close_ts", "author_id"]):
         data = batch.to_pydict()
-        yield from zip(data["start_ts"], data["end_ts"], data["author_id"])
+        yield from zip(data["open_ts"], data["close_ts"], data["author_id"])
 
 
 def main():
