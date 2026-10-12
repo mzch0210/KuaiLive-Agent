@@ -1,0 +1,29 @@
+name: KBS Plan C transport route preflight
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-plan-c-transport-probe.yml'
+      - 'analysis/kbs_plan_c/transport_probe.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  hosted-egress:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Test remote source route without downloading large files
+        run: |
+          python analysis/kbs_plan_c/transport_probe.py --out g0_transport/hosted.json
+      - name: Publish bounded network report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-transport-probe-${{ github.run_id }}
+          path: g0_transport/hosted.json
+          if-no-files-found: error
+          retention-days: 2
