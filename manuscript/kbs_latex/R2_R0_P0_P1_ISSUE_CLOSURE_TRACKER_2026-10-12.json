@@ -1,0 +1,111 @@
+{
+  "schema": "kbs-r0-r2-issue-closure-tracker-v1",
+  "date": "2026-10-12",
+  "r2_section": "manuscript/kbs_latex/main.tex#sec:experimental-setup",
+  "policy": "An item marked PARTIAL is not closed for submission; final closure requires the target main/supplement stage and R8 evidence check",
+  "summary": {
+    "issues": 12,
+    "p0": 6,
+    "p1": 6,
+    "r2_touched": 7,
+    "fully_closed": 0
+  },
+  "items": [
+    {
+      "id": "R0-P0-01",
+      "priority": "P0",
+      "issue": "Two-task framing",
+      "r2_resolution": "R2: §5 table and opening now cover Twitch, original KuaiLive and M3",
+      "remaining_stage": "R5: §1/§7/§8 and R8 audit",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "R0-P0-02",
+      "priority": "P0",
+      "issue": "Twitch-only prospective confirmation statement",
+      "r2_resolution": "R2: §5 separates Twitch retrospective matched controls and five M3 DEV-frozen TEST policies",
+      "remaining_stage": "R3: §6; R6: S1–S9; R8 check",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "R0-P0-03",
+      "priority": "P0",
+      "issue": "DEV invocation cap mistaken for exact TEST budget",
+      "r2_resolution": "R2: §5 distinguishes DEV≤30% threshold freeze from unforced realized TEST rates",
+      "remaining_stage": "R3: actual TEST rate table; R4: §3; R8 audit",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "R0-P0-04",
+      "priority": "P0",
+      "issue": "Always Memory and unfavorable M3 cost missing from main",
+      "r2_resolution": "R2: costs explicitly not equated to invocation frequency",
+      "remaining_stage": "R3: §6.5 include actual quality/cost; R5: §7 discussion; R6 S9",
+      "status": "OPEN_PRIMARY_RESULTS"
+    },
+    {
+      "id": "R0-P0-05",
+      "priority": "P0",
+      "issue": "Ranked unit, feature dimension and candidate screening mismatch",
+      "r2_resolution": "R2: §5 defines three tasks and M3 12 features, 575-screening versus full TEST, 14 Twitch features",
+      "remaining_stage": "R4: §4 implementation; R6: S1–S3; R8 check",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "R0-P0-06",
+      "priority": "P0",
+      "issue": "Incorrect inferential family/correlation interpretation",
+      "r2_resolution": "R2: §5 explicitly defines user-cluster signflip, bootstrap and three-Holm per 6 models",
+      "remaining_stage": "R3: §6 CI reporting; R6: S8; R8 check",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "R0-P1-01",
+      "priority": "P1",
+      "issue": "Pretest G0F timestamp_ms versus DuckDB typed hash variance",
+      "r2_resolution": "R2: §5 documents exact frozen implementation and pre-execution notation discrepancy",
+      "remaining_stage": "R6: S1 provenance / detailed source; R8 check",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "R0-P1-02",
+      "priority": "P1",
+      "issue": "Exact ties in G5 versus tolerance in earlier DEV ranker",
+      "r2_resolution": "R2: §5 flags differing numerical tie tolerances without altering code/results",
+      "remaining_stage": "R6: S2 tie proof; R8 consistency",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "R0-P1-03",
+      "priority": "P1",
+      "issue": "Supplementary still Twitch-only and missing M3",
+      "r2_resolution": "No R2 canonical supplementary edits, by design",
+      "remaining_stage": "R6: S1–S3/S7–S9; R8 check",
+      "status": "OPEN"
+    },
+    {
+      "id": "R0-P1-04",
+      "priority": "P1",
+      "issue": "Differentiation from general L2D/gating weak",
+      "r2_resolution": "R1 novelty blueprint and related-KBS original source verification",
+      "remaining_stage": "R5: §2/§7; R7 independent novelty referee audit",
+      "status": "R1_BLUEPRINT_ONLY"
+    },
+    {
+      "id": "R0-P1-05",
+      "priority": "P1",
+      "issue": "Historical source reports contain superseded TEST-not-run status",
+      "r2_resolution": "R2: only final G5 used, dated stage history preserved",
+      "remaining_stage": "R6: S1–S9 current citation index / final G5 source of truth",
+      "status": "OPEN"
+    },
+    {
+      "id": "R0-P1-06",
+      "priority": "P1",
+      "issue": "Actions artifact retention and stable reproducibility gap",
+      "r2_resolution": "R2: source conventions documented, no dataset published",
+      "remaining_stage": "R6: archival design; R8 release accessibility and hashes",
+      "status": "OPEN"
+    }
+  ]
+}
