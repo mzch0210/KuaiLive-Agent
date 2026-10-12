@@ -140,13 +140,17 @@ def main(g1,unlabeled,registry,index,out,seed=20261012):
         methods={name:base+calls[:,k,j]*gain for j,name in enumerate(METHODS)}
         methods["base"]=base
         methods["memory"]=memory
-        means={name:{"NDCG@10":float(vec.mean()),
-                      "HR@10":float(np.mean(
-                          hits[:,k]+(calls[:,k,METHODS.index(name)] *
-                            (hits[:,6].astype(int)-hits[:,k].astype(int)))
-                          if name in METHODS else
-                          (hits[:,k] if name=="base" else hits[:,6]))}
-                for name,vec in methods.items()}
+        means={}
+        for name,vec in methods.items():
+            if name in METHODS:
+                mask=calls[:,k,METHODS.index(name)]
+                hit=np.where(mask,hits[:,6],hits[:,k])
+            elif name=="base":
+                hit=hits[:,k]
+            else:
+                hit=hits[:,6]
+            means[name]={"NDCG@10":float(vec.mean()),
+                         "HR@10":float(np.mean(hit))}
         for name in METHODS:
             means[name]["call_count"]=int(calls[:,k,METHODS.index(name)].sum())
             means[name]["test_realized_call_fraction"]=float(
