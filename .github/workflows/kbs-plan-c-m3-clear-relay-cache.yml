@@ -1,0 +1,25 @@
+name: KBS Plan C remove temporary M3 relay cache
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-plan-c-m3-clear-relay-cache.yml'
+permissions:
+  contents: read
+  actions: write
+jobs:
+  clear-transient-relay:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize clearing verified temporary M3 relay cache')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Delete only one exact intermediate cache key after successful local proof
+        env:
+          GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          KEY='kbs-plan-c-klm3-138d213a-verified-gzip-v1'
+          gh cache delete "$KEY" --ref refs/heads/main --repo "$GITHUB_REPOSITORY"
+          echo "Temporary M3 relay cache deleted: $KEY"
