@@ -1,0 +1,24 @@
+name: KBS Plan C E2 CPU gate feature isolation smoke
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-e2-smoke.yml']
+permissions:
+  contents: read
+jobs:
+  synthetic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - name: Install fixed CPU gate environment and synthetic comparison tests
+        run: |
+          python -m pip install --disable-pip-version-check \
+            'numpy==1.26.4' 'pandas==2.2.3' 'scikit-learn==1.5.2' \
+            'scipy==1.14.1' 'joblib==1.4.2'
+          python -m py_compile analysis/kbs_plan_c/g3_fit_dev_gates.py
+          PYTHONPATH=analysis/kbs_plan_c python -m unittest discover \
+            -s analysis/kbs_plan_c -p test_g3_fit_dev_gates.py -v
