@@ -330,16 +330,16 @@ KuaiLive Dual-ID uses ReChorus SASRec encoders (64-dimensional embeddings, one a
 \section{Experimental Results}
 \label{sec:results}
 
-The results address the value of relationship evidence in three connected steps: its heterogeneous contribution relative to Base, the ranking gains obtained by predicting that contribution before an outcome, and its dependence on the eligible candidate environment. Development-only diagnostics probe the sources of this variation, while a separate computation study measures the cost of conditional use.
+We examine three empirical aspects of relationship-memory value: its conditional contribution relative to Base, the decision gain from anticipating specialist advantage, and the effect of the ranked candidate environment. Development analyses further characterize sources of complementarity, followed by measured scoring costs.
 
 \subsection{Heterogeneous Utility of Relationship Memory}
 \label{sec:results-heterogeneity}
 
-Historical relationship evidence provides strongly heterogeneous incremental ranking value. Across 44,221 frozen Twitch TEST events, always using Memory gives NDCG@10 $0.53980$ against Base's $0.58211$, a paired difference of $-0.04232$ (95\% CI $[-0.04521,-0.03950]$). The target-history states in Section~\ref{sec:framework-states} reveal how favorable and unfavorable event-level contributions coexist for the same fixed rankers and eligible candidates.
+Relationship Memory is less effective than Base in aggregate, but its incremental value varies sharply across historical contexts. Across 44,221 frozen Twitch TEST events, always using Memory yields NDCG@10 $0.53980$, compared with $0.58211$ for Base, a paired difference of $-0.04232$ (95\% CI $[-0.04521,-0.03950]$). The retrospective states defined in Section~\ref{sec:framework-states} distinguish where the same fixed specialist improves or degrades the ranking.
 
-Figure~\ref{fig:results-evidence-states} shows a consistent state-wise direction across Twitch DEV and frozen TEST. The \emph{recoverable-but-unrepresented} TEST group gains $+0.22045$ NDCG@10 from Memory over 5,539 events, while represented and unavailable groups lose $-0.01935$ and $-0.18215$, respectively (Table~\ref{tab:results-evidence-states}). The large gain for eligible relationships beyond the Base's visible input explains how useful historical evidence can coexist with a negative average specialist effect.
+Figure~\ref{fig:results-evidence-states} shows consistent state-wise directions on Twitch DEV and frozen TEST. For 5,539 \emph{recoverable-but-unrepresented} TEST targets, Memory exceeds Base by $+0.22045$ NDCG@10 on average; the represented and unavailable groups instead show differences of $-0.01935$ and $-0.18215$ (Table~\ref{tab:results-evidence-states}). The contrast identifies a substantial source of complementarity beyond the Base's input window despite the specialist's negative aggregate effect.
 
-The positive recoverable-history effect identifies a source of ranking complementarity, but its target-defined diagnostic labels cannot guide a decision before the outcome is observed. We therefore test whether observable event descriptors can anticipate specialist benefit.
+Because these evidence states are defined by the observed target, they diagnose conditional utility retrospectively. Whether that utility can guide an actual ranking choice depends on its predictability from pre-outcome event information.
 
 \begin{figure}[!htbp]
 \centering
@@ -394,17 +394,15 @@ Unavailable & 14,397 & 0.21948 & 0.03734 & $-0.18215$ & $[-0.18681,-0.17715]$ \\
 \subsection{Decision Value of Predicting Relative Utility}
 \label{sec:results-decision}
 
-Predicting Memory's advantage over Base turns heterogeneous historical value into an actionable ranking choice. The Utility regressor and its threshold were selected from Twitch DEV out-of-fold predictions and fixed before evaluating the 44,221 TEST events. The resulting policy invoked Memory on 6,650 events (15.04\%).
+Predicting specialist-relative utility provides a decision rule for the heterogeneous value identified above. The Utility regressor and pointwise threshold were fitted and selected on Twitch DEV out-of-fold predictions, then fixed before the 44,221 TEST events. The resulting policy invokes Memory on 6,650 events (15.04\%).
 
-Utility raises frozen Twitch TEST NDCG@10 from the Base's $0.58211$ to $0.58983$ (Table~\ref{tab:results-twitch-policy}), a paired gain of $+0.00772$ (95\% CI $[+0.00641,+0.00903]$). Its HR@10 gain is $+0.00945$ (95\% CI $[+0.00776,+0.01117]$). The 5,000 user-paired bootstrap resamples retain fitted predictions, threshold and selection decisions, measuring uncertainty in the observed ranking gain.
+The DEV-frozen Utility policy improves Twitch TEST NDCG@10 from $0.58211$ for Base to $0.58983$ (Table~\ref{tab:results-twitch-policy}), a paired gain of $+0.00772$ (95\% CI $[+0.00641,+0.00903]$). HR@10 improves by $+0.00945$ (95\% CI $[+0.00776,+0.01117]$). Both intervals use 5,000 user-paired bootstrap resamples with the policy decisions held fixed.
 
-Predicting specialist benefit produces better choices than merely predicting Base difficulty. At the Utility policy's observed 6,650 calls, the DEV-trained Difficulty score selects its highest-ranked TEST events and reaches NDCG@10 $0.58340$; Utility exceeds it by $+0.00644$ (paired 95\% CI $[+0.00528,+0.00762]$), with HR@10 difference $+0.01196$ (95\% CI $[+0.01033,+0.01364]$). This equal-count comparison isolates event selection: Difficulty uses retrospective TEST-batch top-$m$, whereas Utility uses its previously fixed pointwise threshold.
+Relative-utility prediction also distinguishes profitable specialist calls from difficult Base requests. At the Utility policy's realized count of 6,650 calls, the DEV-trained Difficulty score yields NDCG@10 $0.58340$, leaving a Utility advantage of $+0.00644$ (paired 95\% CI $[+0.00528,+0.00762]$); the corresponding HR@10 difference is $+0.01196$ (95\% CI $[+0.01033,+0.01364]$). Difficulty chooses its top-$m$ events retrospectively over the TEST batch, whereas Utility applies the threshold fixed on DEV; the matched count compares the value of the selected events.
 
-The realized selection masks reveal the difference between identifying Base difficulty and locating specialist advantage. Memory-minus-Base NDCG@10 averages $+0.05136$ on the 6,650 Utility-selected events, versus $-0.05890$ on its 37,571 unselected events; Difficulty-selected events average $+0.00855$ at the same count. These conditional means describe the allocation achieved in the frozen TEST evaluation.
+The realized TEST selection masks support this distinction: Memory-minus-Base NDCG@10 averages $+0.05136$ on the 6,650 Utility-selected events and $-0.05890$ on the remaining 37,571, compared with $+0.00855$ for Difficulty's equal-count selections. Complementary DEV out-of-fold diagnostics show recoverable-history enrichment of $2.72$ for Utility versus $1.67$ for Difficulty; Difficulty more strongly enriches unavailable histories ($1.91$ versus $1.03$; Supplementary S7). These target-defined states describe the resulting selections retrospectively.
 
-DEV out-of-fold diagnostics also distinguish the selection patterns: Utility enriches recoverable-history events by $2.72$ times their prevalence, compared with $1.67$ for Difficulty, whereas Difficulty concentrates more strongly on unavailable histories ($1.91$ versus $1.03$). These target-defined groups characterize the selections retrospectively (Supplementary S7).
-
-The same-count hindsight Oracle reaches NDCG@10 $0.64806$ by ranking events according to realized Memory-minus-Base utility. The frozen Utility policy recovers about 11.7\% of this Oracle's $+0.06595$ improvement over Base, and predicted versus realized event utility has Spearman correlation $0.173$. The policy therefore captures useful but incomplete ranking opportunities; the Oracle ceiling pertains specifically to these two fixed rankers and 6,650 decisions.
+The same-count hindsight Oracle reaches NDCG@10 $0.64806$ by selecting events using realized Memory-minus-Base utility, an improvement of $+0.06595$ over Base. Utility captures approximately 11.7\% of this available Oracle gain, with a predicted-versus-realized event-utility Spearman correlation of $0.173$. These results establish a positive selective-ranking benefit while quantifying the remaining predictive headroom for the fixed Base--Memory pair.
 
 \begin{table}[!h]
 \centering
