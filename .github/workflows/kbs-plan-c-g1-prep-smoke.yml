@@ -1,0 +1,22 @@
+name: KBS Plan C G1 source-bundle preparation synthetic CI
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-g1-prep-smoke.yml']
+permissions:
+  contents: read
+jobs:
+  hosted-synthetic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install pinned binary DuckDB and test forward-time source-bundle generation
+        run: |
+          python -m pip install --disable-pip-version-check duckdb==1.4.1
+          python -m py_compile analysis/kbs_plan_c/g1_prepare_m3.py
+          python -m unittest discover -s analysis/kbs_plan_c -p test_g1_prepare_m3.py -v
