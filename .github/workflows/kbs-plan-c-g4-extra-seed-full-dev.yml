@@ -1,0 +1,117 @@
+name: KBS Plan C G4 four extra-seed full-active DEV Base ranks
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-g4-extra-seed-full-dev.yml']
+permissions:
+  contents: read
+jobs:
+  hosted-lock:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G4 four-seed Base full-active DEV scoring')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false, clean: true}
+      - name: Require all extra DEV checkpoints selected and scientific TEST lock
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/g4_extra_seed_full_dev.py \
+            analysis/kbs_plan_c/test_g4_extra_seed_full_dev.py
+          python - <<'PY'
+          import json
+          p=json.load(open('experiments/kbs_plan_c/G0F_PRETEST_PROTOCOL_2026-10-12.json'))
+          assert p['models']['additional_seeds']==[20261013,20261014]
+          assert p['meta']['test_performance_seen'] is False
+          PY
+          mkdir -p g4-extraseed-code
+          cp analysis/kbs_plan_c/g4_extra_seed_full_dev.py \
+             analysis/kbs_plan_c/test_g4_extra_seed_full_dev.py \
+             analysis/kbs_plan_c/g3_dev_full_active.py \
+             analysis/kbs_plan_c/g2_train_base.py g4-extraseed-code/
+          (cd g4-extraseed-code && sha256sum *.py > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-g4-extra-seed-dev-four-checkpoints-v1
+          path: g4-extraseed-code/
+  user-host-g4:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G4 four-seed Base full-active DEV scoring')
+    needs: hosted-lock
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 75
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Protect user host, TEST, and existing immutable source/checkpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test "$GITHUB_REF" = refs/heads/main
+          test "$(id -u)" -ne 0
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1/summary.json"
+          test -s "$ROOT/klm3_g2_dev_checkpoint_screen_v1/manifest.json"
+          for S in 20261013 20261014; do
+            test -s "$ROOT/klm3_g2_seed$(printf %s "$S")_dev_selected_v1.json"
+          done
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          nvidia-smi
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g4-extra-seed-dev-four-checkpoints-v1
+          path: g4-extraseed-code/
+          fail-on-cache-miss: true
+      - name: Verify code hash and isolate 3090 synthetic checks
+        run: |
+          set -euo pipefail
+          (cd g4-extraseed-code && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$PWD/g4-extraseed-code:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2
+          "$HOME/venvs/kuailive-gpu/bin/python" -m unittest discover \
+            -s g4-extraseed-code -p test_g4_extra_seed_full_dev.py -v
+      - name: Re-score four independently trained Base checkpoints, one active roster, reuse old Memory
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$PWD/g4-extraseed-code:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          export PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          "$HOME/venvs/kuailive-gpu/bin/python" \
+            g4-extraseed-code/g4_extra_seed_full_dev.py \
+            --g1 "$ROOT/klm3_plan_c_g1_v1" \
+            --index "$ROOT/klm3_g2_train_index_v1" \
+            --dev "$ROOT/klm3_g2_dev_checkpoint_screen_v1" \
+            --corrected "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1" \
+            --root "$ROOT" \
+            --out-root "$ROOT/klm3_g4_extra_seed_full_dev_v1" \
+            --block-size 16
+          mkdir -p g4-extraseed-aggregate
+          for SEED in 20261013 20261014; do
+            cp "$ROOT/klm3_g4_extra_seed_full_dev_v1/seed$(printf %s "$SEED")/summary.json" \
+               "g4-extraseed-aggregate/seed$(printf %s "$SEED")_summary.json"
+          done
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          for seed in (20261013,20261014):
+              s=json.load(open(f'g4-extraseed-aggregate/seed{seed}_summary.json'))
+              assert s['scope']=='DEV_ONLY' and s['seed']==seed and s['n_scored']==50049
+              assert s['schema']=='kbs-plan-c-full-active-dev-paired-v2'
+              assert s['memory_reused_not_retrained_or_recomputed']
+              assert s['memory_corrected_from_all_history']
+              assert not s['test_file_accessed'] and not s['gates_fit']
+              print(seed,s['aggregate'])
+          PY
+      - name: Upload aggregate and hashes only; user identities and candidate rows stay private
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g4-extra-seed-four-base-full-dev
+          path: g4-extraseed-aggregate/
+          if-no-files-found: warn
+          retention-days: 21
