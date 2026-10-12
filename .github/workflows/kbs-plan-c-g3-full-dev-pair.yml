@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   hosted-lock:
-    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize Plan C G3 full-active DEV paired scoring')
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize corrected Plan C G3 full-active DEV paired scoring')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -35,10 +35,10 @@ jobs:
           (cd g3-code && sha256sum *.py > SHA256SUMS && sha256sum -c SHA256SUMS)
       - uses: actions/cache/save@v4
         with:
-          key: kbs-plan-c-g3-dev-full-active-paired-v1
+          key: kbs-plan-c-g3-dev-full-active-paired-v2
           path: g3-code/
   user-host-g3:
-    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize Plan C G3 full-active DEV paired scoring')
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize corrected Plan C G3 full-active DEV paired scoring')
     needs: hosted-lock
     runs-on: [self-hosted, linux, x64, gpu-3090]
     timeout-minutes: 155
@@ -61,7 +61,7 @@ jobs:
           nvidia-smi
       - uses: actions/cache/restore@v4
         with:
-          key: kbs-plan-c-g3-dev-full-active-paired-v1
+          key: kbs-plan-c-g3-dev-full-active-paired-v2
           path: g3-code/
           fail-on-cache-miss: true
       - name: Unit-test fixed Memory, pretarget histories and roster before reading full DEV
@@ -90,10 +90,10 @@ jobs:
             --dev "$ROOT/klm3_g2_dev_checkpoint_screen_v1" \
             --selected "$ROOT/klm3_g2_checkpoint_dev_selected_v1.json" \
             --train-root "$ROOT/klm3_g2_seed20261012_epoch3_v1" \
-            --out "$ROOT/klm3_g3_dev_fullactive_base_memory_v1" \
+            --out "$ROOT/klm3_g3_dev_fullactive_base_memory_v2" \
             --block 12
           mkdir -p g3-report
-          cp "$ROOT/klm3_g3_dev_fullactive_base_memory_v1/summary.json" \
+          cp "$ROOT/klm3_g3_dev_fullactive_base_memory_v2/summary.json" \
              g3-report/summary.json
           "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
           import json
