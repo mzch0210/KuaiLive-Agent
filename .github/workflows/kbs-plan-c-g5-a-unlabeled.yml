@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   hosted-frozen-code:
-    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G5-A outcome-blind TEST inference')
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize corrected G5-A outcome-blind TEST inference')
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -44,10 +44,10 @@ jobs:
           (cd g5-a-code && sha256sum *.py *.json > SHA256SUMS && sha256sum -c SHA256SUMS)
       - uses: actions/cache/save@v4
         with:
-          key: kbs-plan-c-g5-a-unlabeled-locked-code-v1
+          key: kbs-plan-c-g5-a-unlabeled-locked-code-v2
           path: g5-a-code/
   user-host-outcome-blind:
-    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize G5-A outcome-blind TEST inference')
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize corrected G5-A outcome-blind TEST inference')
     needs: hosted-frozen-code
     runs-on: [self-hosted, linux, x64, gpu-3090]
     timeout-minutes: 150
@@ -72,7 +72,7 @@ jobs:
           nvidia-smi
       - uses: actions/cache/restore@v4
         with:
-          key: kbs-plan-c-g5-a-unlabeled-locked-code-v1
+          key: kbs-plan-c-g5-a-unlabeled-locked-code-v2
           path: g5-a-code/
           fail-on-cache-miss: true
       - name: Verify source SHA then test pretarget timeline, half-open roster, Holm on synthetic data only
