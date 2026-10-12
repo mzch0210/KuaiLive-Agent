@@ -37,6 +37,33 @@ def number(v):
     except (TypeError, ValueError):
         return None
 
+def timestamp_ms(v):
+    """Decode real KLM3 ISO-8601 CSV and Arrow datetime[us] values as epoch ms.
+
+    Original timestamps have no timezone suffix; assign UTC for consistent
+    within-dataset comparisons. This is an analytical ordering convention,
+    not a claim of documented physical UTC timezone.
+    """
+    if v is None or v == "":
+        return None
+    if isinstance(v, datetime):
+        dt = v
+    elif isinstance(v, (int, float)):
+        return int(v)
+    elif isinstance(v, str):
+        clean = v.strip()
+        if clean.isdigit():
+            return int(clean)
+        try:
+            dt = datetime.fromisoformat(clean.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    else:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return int(dt.timestamp() * 1000)
+
 
 def sample_distribution(values):
     if not values:
@@ -88,8 +115,8 @@ def room_inventory(parquet_path, batch_size=200000):
             counts["rows"] += 1
             room = number(raw_room)
             author = number(raw_author)
-            start = number(raw_start)
-            end = number(raw_end)
+            start = timestamp_ms(raw_start)
+            end = timestamp_ms(raw_end)
             if None in (room, author, start, end):
                 counts["missing_identity_or_time"] += 1
                 continue
@@ -143,8 +170,8 @@ def audit_events(csv_path, room_map, starts, ends, report_stride=1000000,
             user = number(line[idx["user_id"]])
             author = number(line[idx["author_id"]])
             room = number(line[idx["live_id"]])
-            stamp = number(line[idx["live_play_start_timestamp"]])
-            end_stamp = number(line[idx["live_play_end_timestamp"]])
+            stamp = timestamp_ms(line[idx["live_play_start_timestamp"]])
+            end_stamp = timestamp_ms(line[idx["live_play_end_timestamp"]])
             if None in (user, author, room, stamp):
                 count["missing_required_values"] += 1
                 continue
@@ -254,8 +281,13 @@ def main():
                       "room_rows":rows,"valid_room_ids":len(rooms)}),flush=True)
     events = audit_events(a.root / "live_interaction.csv", rooms, starts, ends,
                           sample_stride=a.sample_stride)
+    if not rooms or not events["unique_users"]:
+        raise ValueError("G0-D INVALID: no valid room or user identities parsed")
+    if events["events"].get("missing_required_values", 0) > 0.05 * events["events"]["rows"]:
+        raise ValueError("G0-D INVALID: over 5% of events have missing required values")
     report = {
-        "schema":"kbs-plan-c-g0d-full-aggregate-v1",
+        "schema":"kbs-plan-c-g0d-full-aggregate-v2",
+        "timestamp_parse_protocol":"ISO CSV and Arrow datetime[us] normalized to epoch ms; naive wall clock treated as UTC ordering convention",
         "source_revision":"138d213a23e261ed3094d27ed8a4b867fb9143fe",
         "source_sha256":SOURCE_SHA256,
         "sha256_reverified":not a.skip_digest,
