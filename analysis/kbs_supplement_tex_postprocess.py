@@ -54,8 +54,13 @@ def polish(path: Path) -> dict:
         r"\\begin\{longtable\}.*?\\end\{longtable\}",
         convert_table, source, flags=re.S,
     )
-    if tables != 23:
-        raise ValueError(f"Supplement must have exactly 23 source tables; found {tables}")
+    markdown_path = path.with_name("SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md")
+    markdown = markdown_path.read_text(encoding="utf-8")
+    expected_tables = len(re.findall(r"\*\*Table S[1-9]\.\d+\.", markdown))
+    if tables != expected_tables or expected_tables < 23:
+        raise ValueError(
+            f"Source/TeX supplementary table-count mismatch: markdown {expected_tables}, TeX {tables}"
+        )
     if rotations < 3:
         raise ValueError(f"Expected several publication-width tables; found {rotations}")
     # Pandoc emits the supplementary caption as a bold paragraph preceding
