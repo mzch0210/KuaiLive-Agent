@@ -747,7 +747,27 @@ The qualitative accounting identity is Base score computation + feature extracti
 
 The resident-set probe loaded checkpoint weights, gate artifacts, train/dev files and cached user state. The memory mapping does **not** imply those allocations remain resident identically in production, nor may serialized sizes be summed to reconstruct peak RSS. The test used a distinct measurement phase from latency; results are runtime/environment-specific.
 
-## S9.6 Reproducibility audit and critical exclusions
+## S9.6 KuaiLive-M3 warmed RTX 3090 DEV author-ranking replay
+
+This measurement is distinct from the original 575-room CPU replay in S9.1–S9.5. It used **256 predetermined DEV author-ranking requests**, an RTX 3090 (24 GB), the frozen primary SASRec Base (seed 20261012), fixed relationship Memory and frozen Utility gate. Memory was selected on **80/256 = 31.25%** of replay requests. The source analysis verified the sparse pre-gate history-support feature against the frozen M3 computation. The replay reconstructed historical state before timing; the prepared-input path excludes that work.
+
+**Table S9.3. M3 warmed offline DEV replay, ms/event; each path has 256 observations.**
+
+| Execution path | Mean | Median | P90 | P95 |
+|---|---:|---:|---:|---:|
+| Always Base | 1.4245 | 0.8317 | 1.0875 | 1.1797 |
+| Always Memory | **0.8033** | **0.7744** | 1.1019 | 1.2505 |
+| Utility selective total | **1.8018** | 1.6778 | 2.3888 | 2.7046 |
+| Base within selected path | 0.7284 | 0.7209 | 0.8711 | 0.8987 |
+| Sparse feature computation | 0.2395 | 0.2380 | 0.3307 | 0.3572 |
+| Frozen gate inference | 0.6207 | 0.6201 | 0.6511 | 0.6597 |
+| Memory branch, zero if unused | 0.2132 | 0.0000 | 0.7872 | 0.9188 |
+
+In these measured warmed DEV conditions, Always Memory is faster than Utility routing (0.8033 versus 1.8018 ms/event mean). The separate M3 frozen TEST also shows higher unconditional ranking quality for Memory (NDCG@10 0.346792) than for Utility (0.301766–0.304004). Therefore no unconditional deployment or net speed advantage is established. The 256-event offline timing excludes earlier history-state reconstruction, incremental state updates, active-room interval maintenance, input loading, scheduling, network effects, GPU contention and optimized batch serving. The standalone Base mean differs from the Base component mean within selective execution; one should not add the measured components to infer unobserved service latency.
+
+Original cost source: [Action #38223495966](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38223495966), artifact **11734923392**, aggregate.json; frozen Base checksum 18fb25d68970e73661a4b1418f5be05e7f8bed678d097533adf3cf1d9964d17e. No TEST target evaluation occurred in this DEV measurement.
+
+## S9.7 Reproducibility audit and critical exclusions
 
 - Formal run: [35730086758](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35730086758), complete [artifact 10694941935](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35730086758/artifacts/10694941935).
 - Gate compression: [35571827672](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35571827672), 3 successful replicas and pooled final artifacts.
