@@ -2,7 +2,7 @@
 title: "Supplementary Information"
 subtitle: "When Does Relationship Memory Help? Base-Relative Evidence Valuation for Live-Streaming Recommendation"
 author: "Anonymous manuscript — Knowledge-Based Systems"
-date: "10 October 2026"
+date: "12 October 2026"
 fontsize: 9pt
 geometry: margin=0.76in
 colorlinks: true
@@ -16,11 +16,11 @@ header-includes:
   - \sloppy
 ---
 
-**Scope.** This manuscript-specific supplement reports the public data protocols, model freezing, conditional uncertainty, full numerical experiments and source provenance for C1–C3. Main text conclusions do not change. Retrospective KuaiLive TEST and exploratory Twitch DEV are **not** independent confirmation of the one-shot frozen Twitch TEST Utility selector.
+**Scope.** This manuscript-specific supplement supports claims C1–C3 across three distinct protocols: Twitch/LiveRec streamer ranking (44,221 frozen TEST events), original KuaiLive room ranking (10,222 previously examined paired target events), and KuaiLive-M3 full-active author ranking (47,575 forward-time frozen TEST events from 12,533 users). Twitch and M3 offer **two separately fitted and frozen specialist-selection TEST evaluations**; the original KuaiLive room study supports retrospective candidate-regime diagnostics, not a third independent selection TEST. All observations are conditional on the declared Base, target unit, candidate universe and time protocol.
 
-**Statistical convention.** Unless noted, percentile bootstrap intervals condition on observed users, trained checkpoints, exact candidate draws and policies. Three fitted checkpoint seeds, three negative-list random seeds and user-bootstrap replicates are distinct uncertainties. None represents independent data replications or multiplicity-adjusted simultaneous inference.
+**Statistical convention.** Unless stated otherwise, percentile bootstrap intervals condition on the evaluated user cohort, fitted model, candidate set and frozen policy. Twitch and original KuaiLive retain their original resampling and retrospective scopes. New M3 TEST evidence includes 5,000 user-cluster paired bootstrap resamples and 5,000 user-cluster sign randomizations under an approximate sign-symmetry null; three predeclared comparisons are Holm-adjusted **within each of six fitted Base/seed conditions**, not in one global family of 18 tests. Training seeds, sampled candidate draws and user-cluster replicates must not be mistaken for independent population replications. M3 thresholds share a maximum-30%-on-DEV selection rule; TEST invocation fractions are not necessarily equal or capped.
 
-**Access.** The public [KuaiLive dataset](https://zenodo.org/records/16565801) and [LiveRec/Twitch repository](https://github.com/JRappaz/liverec) have separate licenses; archived GitHub Actions artifacts may expire and cannot be represented as permanent public DOIs. [Companion research code](https://github.com/mzch0210/KuaiLive-Agent).
+**Access.** The public [KuaiLive dataset](https://zenodo.org/records/16565801) and [LiveRec/Twitch repository](https://github.com/JRappaz/liverec) are governed by their own use and redistribution terms. Plan C M3 processed event bundles, checkpoint weights and private event-level TEST predictions currently reside on User-host and are **not represented as public downloadable records**. The [companion research-code repository](https://github.com/mzch0210/KuaiLive-Agent) includes protocol, model and aggregate provenance; GitHub Actions artifacts may expire and are not permanent DOIs. A deposit and precise data-availability statement remain R8 author/submission decisions.
 
 ---
 
@@ -45,13 +45,25 @@ For a user u and step t, the event's observed relevant creator/room y is used **
 
 The diagnostic evidence states are computed **after** y is observed: *represented* if target creator occurs in the Base's input window; *recoverable-but-unrepresented* if only older eligible history contains the creator; *unavailable* otherwise. They are mutually exclusive, exhaustive, target-relative analysis groups—not deployable selector inputs, and “represented” is not evidence that an internal embedding encoded the relationship.
 
-### S1.3 Candidate and identity validation
+### S1.3 KuaiLive-M3 global forward-time author protocol
+
+The M3 study is **not** another room-level evaluation of the original 10,222 KuaiLive targets. Its ranked unit is the persistent author_id, while room activity determines availability; source room-session identities are not equated with the old release's internal creator identifiers. The locked global temporal boundaries are **TRAIN before 2026-03-23 12:00:00**, **DEV from this point until 2026-03-27 14:00:00**, and **TEST from 2026-03-27 14:00:00 onward**, using the dataset's timezone-naive recorded clock consistently without claiming a UTC offset. The indexed TRAIN pool contains **24,995,148** interactions, with deterministic, outcome-independent post-eligibility selection yielding **50,049 DEV** and **47,575 TEST** requests, of which TEST represents **12,533 users**.
+
+M3 requires at least two earlier observations and a TRAIN-known target author. At event time, candidates comprise distinct TRAIN-known authors currently represented by at least one active live room; this is an **author-level full-active roster** (TEST mean **32,166.632**, median **31,065**), not 575 sampled candidates. A **4,096-event × 575-author DEV** panel is separately used for neural checkpoint selection, not for final TEST scoring or a replicated old-room candidate-regime intervention. M3 uses global time-forward split and does **not** assert disjoint users across TRAIN/DEV/TEST.
+
+History is processed prequentially in observed time and source-order ties: strictly earlier TRAIN/DEV and already observed earlier TEST-period events can update subsequent target-free user histories, including earlier TEST observations outside the sampled evaluation cohort. Neither the current selected target nor any future target is available to Base, Memory or the gate before its prediction. The author Base uses its frozen input representation of previous eligible TRAIN-known authors (context length 16). Fixed Memory uses the latest ten **all-author** prior interactions for Short and all historical author occurrences for Long, including earlier authors unseen during TRAIN, which occupy recency positions and contribute to the maximum historical normalization count even though they cannot be ranked as current candidates. Memory weights remain **Short 0.45, Long 0.45, TRAIN-only popularity 0.10**.
+
+The scientific G0F intent lock describes a DuckDB hash over user, author, room, timestamp-in-milliseconds, source event identifier and seed. The final G1 executable deterministic cohort used DuckDB's **typed-timestamp** hash input rather than a literal timestamp_ms transformation. This implementation difference is a provenance qualification, not proof of byte-identical conformance with the initial expression. The locked final G1 protocol SHA256 is **bf6234eb95ecb24a568b2e7556846c41c4f3e1fdcd7774397003beaf56341a3c** and TEST cohort SHA256 is **e60da60672ea1921dd3a5fccfb0aa76a3a06d50834e8080a07b2465777c9bdb1**. The resulting cohort and hashes were frozen before TEST outcomes were evaluated, with no target-based changes.
+
+Source: [G0F lock](https://github.com/mzch0210/KuaiLive-Agent/blob/main/experiments/kbs_plan_c/G0F_PRETEST_PROTOCOL_2026-10-12.json), [six-fit G5 frozen registry](https://github.com/mzch0210/KuaiLive-Agent/blob/main/experiments/kbs_plan_c/G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json) and [G5 chronological held-out procedure](https://github.com/mzch0210/KuaiLive-Agent/blob/main/experiments/kbs_plan_c/G5_ONE_SHOT_HELDOUT_EXECUTION_PROTOCOL_2026-10-12.md).
+
+### S1.4 Candidate and identity validation
 
 KuaiLive predicts rooms, but relationship Memory aggregates prior events by the mapped streamer; several candidate rooms can therefore share a specialist score. Twitch ranks streamers directly. Deterministic item identifiers break score ties. Source-file train/DEV/TEST byte hashes, matched cohort identity, historical model mappings, and session eligibility guards are pinned in **S2/S5**. Raw public data and derived processed candidate lists should not be treated as the same downloadable artifact; the derived lists are reconstructable only with the documented code, preprocessing and fixed RNG choices.
 
 For the original KuaiLive P0 files, SHA256: **train** `ad91413537175b9f6e9013c525a552b6004cc00e029b41360f08519e0735b5b4`; **DEV** `46dd3081688468c89acf6366d36d87c122fa45850ddb69320c05da9de94a9f54`; **TEST** `3491862df4de5cfb487fbd21c2f62c2d1d62acac110f852cc83c019dfcc6e956`. These fingerprints identify the **P0 processed Room files**, not checksums for the original Zenodo dataset archive or all platform variants. They were checked from [source artifact 11534262601](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/37741843252/artifacts/11534262601).
 
-### S1.4 Evidence and access statement
+### S1.5 Evidence and access statement
 
 Data-provenance evidence: [KuaiLive official dataset repository](https://github.com/imgkkk574/KuaiLive), [KuaiLive Zenodo record](https://zenodo.org/records/16565801), [LiveRec original repository](https://github.com/JRappaz/liverec), [KuaiLive active-room exporter](https://github.com/mzch0210/KuaiLive-Agent/blob/main/manuscript/kbs_latex/src/kuailive_agent/export_rechorus_room.py), and the [P2 source-pinned eligibility audit](https://github.com/mzch0210/KuaiLive-Agent/blob/main/manuscript/kbs_latex/SECTION6_STAGE3_3A_FEASIBILITY_AND_SCIENTIFIC_BOUNDARIES_2026-10-10.md). The original datasets' access and license conditions govern further distribution. This supplement references public repositories and **does not redistribute proprietary or anonymized raw interaction files**. Preserve the precise derivation pipeline rather than infer fields or raw source SHA values not available in the evidence records.
 
@@ -75,6 +87,8 @@ This supplement records **what was fixed, when it was scored, and which comparis
 | Original/native and fixed P0/P1 candidate comparison | KuaiLive previously studied TEST, 10,222 users | Regime-native trained models or explicitly frozen seed-20260918 checkpoint pair; frozen candidate lists | **Post-hoc matched diagnostic** | Candidate-protocol dependence, descriptive 2x2 score allocation |
 | Additional P2 negative draws | Same KuaiLive TEST users | Frozen original P0 checkpoints and Memory, 3 prespecified RNG streams × 3 sizes | **Retrospective sampling sensitivity** | Directional stability over the 9 inspected lists |
 | Efficiency replay | Separate KuaiLive cached sampled-active CPU workload | Warm cached histories and archived event-level route masks | **Controlled component timing only** | Measured scoring overhead, not production latency |
+| Independent frozen M3 policy TEST | M3 author ranking, 47,575 later-period TEST events / 12,533 users | SASRec + GRU4Rec × three trained seeds; five pointwise objective-specific policies and thresholds DEV-frozen before label-blind TEST | **One-shot frozen TEST** after outcome-blind G5-A ranking | Relative-utility decision gains, actual TEST call fractions and within-fit three-Holm tests |
+| M3 RTX 3090 warmed DEV replay | 256 prespecified M3 DEV author-ranking requests | Frozen primary SASRec, fixed Memory and DEV Utility gate | **Controlled offline component/path timing** | Unconditional Memory is faster in this measured path; not production end-to-end cost |
 
 No Twitch TEST labels enter the fitted Utility threshold, ranking features or its pointwise decision. The observed frozen TEST invocation count (**6,650 of 44,221; 15.04%**) is a *post-selection statistic*. Difficulty orders its scores retrospectively across the same TEST batch to match that count. The hindsight Oracle alone uses observed TEST utility labels. Neither comparator supplies an independently frozen online fixed-budget guarantee.
 
@@ -111,7 +125,26 @@ The first model pair and processed train/DEV/TEST inputs were independently reha
 
 **Completeness limitation:** A matched SHA256 for **every historical native-policy Twitch/KuaiLive Base checkpoint** is not established by the source files examined in the project ledger. The exact checkpoint identities listed above apply to P0/P1/P2, not all historical native-policy baselines. Missing upstream hash entries are **unverified**, not assumed equal to any existing model.
 
-### S2.4 Statistical freeze checklist
+### S2.4 KuaiLive-M3 source, training and prospective policy freeze
+
+Six independent author-encoder fits use **SASRec** and **GRU4Rec** with three prespecified training seeds each (20261012, 20261013, 20261014), 64-dimensional author representations and context length 16. Each checkpoint was selected from the 4,096-request, 575-author DEV screening panel; a separate **50,049-event full-active DEV** panel supplies group-disjoint five-fold OOF gate fitting and threshold selection. Three supervised histogram gradient-boosting models predict respectively specialist-minus-Base event NDCG@10, negative Base event NDCG@10 and standalone specialist event NDCG@10. Two deterministic objectives use the negative Base top-score margin (Uncertainty) and prior interaction count (History). All use the same **12 pre-outcome features** when appropriate: five Base-score summaries and seven history/candidate summaries; the specialist-support share can be determined from prior histories and eligible authors without first executing the full Memory scorer.
+
+For each of the five objectives, a pointwise score threshold is frozen after maximizing DEV OOF selection gain under **at most 30% DEV Memory invocations**, selecting all tied threshold scores together. Actual TEST invocations are not constrained to the same percentage. G5-A [action 38225946950](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38225946950), private event-level outputs retained on User-host, scored all six frozen Bases and the same fixed Memory into seven **target-blind Top-10** lists per event; no current target label, event-level TEST NDCG or model/threshold tuning was available to this step. Its output manifest recorded frozen prediction/checkpoint digests (artifact **11736962620**). The subsequent G5-B [action 38226690320](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38226690320) read target labels once, verified frozen input digests and computed the full TEST metric/inference aggregate (artifact **11735868084**). The original G5-A registry SHA256 is **39217c59f54f133fea8c7c0e1691ebc32c7082a53a7452c10f16a25fd48ad29c**. No TEST-based threshold changes, omitted user requests or favorable seed selection occurred.
+
+**Table S2.3. M3 independent Base checkpoint and policy-threshold file SHA256s.** These fingerprints denote source bytes of six checkpoint files and six DEV-frozen threshold JSON files, respectively; three supervised gate-model SHA256s per fit are individually retained in the [complete frozen registry](https://github.com/mzch0210/KuaiLive-Agent/blob/main/experiments/kbs_plan_c/G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json).
+
+| Model / training seed | Base checkpoint SHA256 | Five-policy threshold JSON SHA256 |
+|---|---|---|
+| SASRec 20261012 | 18fb25d68970e73661a4b1418f5be05e7f8bed678d097533adf3cf1d9964d17e | 1aeaf5451d8dbf77dab423159f364e57911cfce286861f01c71c526d25dab2f7 |
+| GRU4Rec 20261012 | 6c83dcb2e76f86e1018af467c0b0494f09b5d552c885700e92ea657cd9cc8d1a | 45f48d75d49963392c8b10f3e04b965263881f5575b54ac5a9de1ebe08168b75 |
+| SASRec 20261013 | bb627ec2cc39313548c1eff64583aac4a010847967e595bdace01de4c8dabd32 | 7f2e51c212e7fd4a049f57c36e44cc6ba73b7b0a8fe2d66e6d0f5749a578eedf |
+| GRU4Rec 20261013 | 6847482a2a4722b5a324be20ffc8960030d6367942c3d0f21ef53db7f1d75128 | 68df8647912ee97147b043c3a3c6a70237fb70ca4c0f5779da45c05bdeda3708 |
+| SASRec 20261014 | ab60a3d71cfd007b74296b5bb16bb95927d03a167c9e8d7d2fedc5995f2acd84 | 1221d45961e6c8d59a006ff92dade5ffd98f7a05ba415af5e368addac264af9d |
+| GRU4Rec 20261014 | afb11b7ae7d4fad1b60545649461992dd064b0370a72904cc4337b880f0e3ad0 | e151e39c3d5ce6c76481f0af2a88a24f2a55d6efdc4d12ddfd56351897179bdd |
+
+The G5-A full-roster ranking resolves numerical score ties by exact score equality and ascending author identity among tied authors. Earlier DEV/other ranking implementations used a tolerance on near-equal scores in some checks. These are protocol-specific frozen conventions, not retroactively normalized after TEST outcomes. Target-defined relationship states and hindsight Oracles never enter the prospective policy's features or decisions.
+
+### S2.5 Statistical freeze checklist
 
 All performance results are NDCG@10 computed over one positive target per evaluated event, with HR@10 secondary where shown. Mean *paired* differences are calculated on the **same** users within a protocol. Twitch TEST intervals: 5,000 paired-user bootstrap resamples. KuaiLive P0/P2: 3,000. One user-target per protocol row permits user bootstrap; if global-time panels contain repeated users, user-cluster resampling is required. The S4/S7 DEV intervals condition on observed target-defined group membership, OOF scores, the event-ranking masks and their selected budgets. No reported pointwise CI is a multiple-comparison-adjusted simultaneous confidence region.
 
@@ -158,7 +191,13 @@ The comparison below is an **independent KuaiLive strong-reference panel** evalu
 
 The full-precision original metrics are archived, and displayed values are rounded to avoid false numerical precision for parsed trainer logs. Source: [comparison result 35820514662](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35820514662), [artifact 10733131820](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35820514662/artifacts/10733131820), files `kuailive_strong_base_benchmark.csv`, `.json`, and `RECOVERY_PROVENANCE.json`. The GPU training occurred in [run 35814173574](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/35814173574); the later result recovery parsed immutable logs after the first controller's metric parser failed on a punctuation detail. It **did not retrain models**. Full rerunnable training commands and original logs should accompany any separately deposited reproduction archive.
 
-### S3.4 Preventing cross-protocol baseline misidentification
+### S3.4 M3 six-fit designated author-incumbent reference
+
+The M3 study uses two author-level Base model families, **SASRec and GRU4Rec**, trained independently with the same three stated seeds. Both output rankings over the exact same full-active TRAIN-known author roster as fixed Memory, and all five gate policies select among these matched rankings. They are **designated reference incumbents**, not an exhaustive globally optimized benchmark. They are also distinct from the old original KuaiLive Dual-ID *room* Base (whose 575-candidate P0 sampled TEST NDCG is 0.6070916) and from the auxiliary KuaiLive 575-room baseline panel in Table S3.2.
+
+M3 frozen TEST Always Base NDCG@10 across the six fits is **0.258004, 0.260033, 0.258811, 0.260649, 0.258673 and 0.258400** (ordered by training seed and model family as in Table S8.4). The same fixed author-Memory NDCG@10 is **0.346792** in all six cases. This stronger unconditional Memory reference must be shown alongside the budget-calibrated Utility results; it is not evidence of state-of-the-art absolute recommendation performance. The 4,096 × 575-author DEV checkpoint panel does not establish full-active M3 TEST comparability with the old 575-room benchmarks.
+
+### S3.5 Preventing cross-protocol baseline misidentification
 
 **Table S3.3. Non-equivalent KuaiLive Base checkpoints.**
 
