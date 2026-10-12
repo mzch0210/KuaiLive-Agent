@@ -22,6 +22,10 @@
 
 \author{Anonymous Authors}
 
+\begin{abstract}
+Whether persistent relationship history improves live-streaming recommendations depends on what a trained incumbent already captures and which candidates are eligible for ranking. We define the value of a fixed Short--Long--Popularity relationship-memory specialist as its event-level NDCG@10 gain over the incumbent on identical candidates, and examine that value in three complementary protocols. On 44,221 held-out Twitch streamer-ranking events, a development-frozen relative-utility selector raises NDCG@10 from 0.58211 to 0.58983 using Memory on 15.04\% of requests, outperforming a retrospectively equal-call difficulty control. In a paired analysis of 10,222 original KuaiLive room-ranking events, mean Memory-minus-Base utility reverses from -0.04120 with 575 sampled active rooms to +0.04631 with the full active-room set. A separately frozen, forward-time KuaiLive-M3 author-ranking evaluation covers 47,575 TEST events and two incumbent architectures with three trained seeds each. Under a common development-set specialist-call constraint, relative-utility selection outperforms four alternative frozen objectives across all six fitted incumbents; for the primary SASRec fit, NDCG@10 increases from 0.25800 to 0.30287. Unconditional Memory nevertheless reaches 0.34679 and has lower measured warmed scoring time than selective routing in a limited development replay. These findings establish incumbent- and candidate-relative historical-knowledge value and the quality of invocation-constrained selection, without implying unconditional deployment or latency benefits.
+\end{abstract}
+
 \begin{keyword}
 live-streaming recommendation \sep sequential recommendation \sep relationship memory \sep evidence valuation \sep selective prediction
 \end{keyword}

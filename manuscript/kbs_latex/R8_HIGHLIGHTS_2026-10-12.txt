@@ -1,0 +1,4 @@
+- Relationship memory has incumbent- and candidate-dependent ranking value.
+- Frozen utility-based selection improves Twitch and KuaiLive-M3 rankings.
+- Paired room evaluations reverse Memory's advantage across candidate sets.
+- Always Memory can beat selective routing in ranking and warmed scoring time.
