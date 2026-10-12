@@ -33,7 +33,9 @@ jobs:
       - name: Synthetic tests and syntax
         run: |
           python -m py_compile analysis/kbs_plan_c/g0_audit.py analysis/kbs_plan_c/test_g0_audit.py
-          python -m unittest discover -s analysis/kbs_plan_c -p 'test_*.py' -v
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_g0_audit.py' -v
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_frozen_gate.py' -v
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_m3_data_audit.py' -v
       - name: Check protocol manifest and execute read-only audit
         run: |
           python - <<'PY'
