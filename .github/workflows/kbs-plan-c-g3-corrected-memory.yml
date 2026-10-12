@@ -1,0 +1,105 @@
+name: KBS Plan C G3 corrected Memory DEV replay
+on:
+  workflow_run:
+    workflows:
+      - KBS Plan C G3 full-active DEV paired Base Memory
+    types: [completed]
+permissions:
+  contents: read
+jobs:
+  hosted-validate-code:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Validate original Memory semantics and prepare read-only code bundle
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/g3_replay_correct_memory.py \
+             analysis/kbs_plan_c/test_g3_replay_correct_memory.py
+          mkdir -p memory-correction-code
+          cp analysis/kbs_plan_c/g2_train_base.py \
+             analysis/kbs_plan_c/g3_dev_full_active.py \
+             analysis/kbs_plan_c/g3_replay_correct_memory.py \
+             analysis/kbs_plan_c/test_g3_replay_correct_memory.py \
+             memory-correction-code/
+          (cd memory-correction-code && sha256sum *.py > SHA256SUMS)
+          (cd memory-correction-code && sha256sum -c SHA256SUMS)
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-g3-memory-allprior-corrected-bundle-v1
+          path: memory-correction-code/
+  user-host-correct-memory:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent'
+    needs: hosted-validate-code
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 95
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Verify existing Base ranking cache and G1 original chronology
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_v2/summary.json"
+          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_v2/dev_full_active_pairs.csv"
+          test -s "$ROOT/klm3_plan_c_g1_v1/manifest.json"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g3-memory-allprior-corrected-bundle-v1
+          path: memory-correction-code/
+          fail-on-cache-miss: true
+      - name: Check hashes and original all-history Memory formula on synthetic evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd memory-correction-code && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$PWD/memory-correction-code:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=1
+          "$HOME/venvs/kuailive-gpu/bin/python" -m unittest discover \
+            -s memory-correction-code -p test_g3_replay_correct_memory.py -v
+      - name: Replay only Memory on all strictly prior interactions, preserve two Base scores
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$PWD/memory-correction-code:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=1
+          export PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          "$HOME/venvs/kuailive-gpu/bin/python" memory-correction-code/g3_replay_correct_memory.py \
+            --g1 "$ROOT/klm3_plan_c_g1_v1" \
+            --train-index "$ROOT/klm3_g2_train_index_v1" \
+            --dev "$ROOT/klm3_g2_dev_checkpoint_screen_v1" \
+            --provisional "$ROOT/klm3_g3_dev_fullactive_base_memory_v2" \
+            --out "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1"
+          mkdir -p corrected-report
+          cp "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1/summary.json" \
+             corrected-report/summary.json
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          s=json.load(open('corrected-report/summary.json'))
+          assert s['schema']=='kbs-plan-c-full-active-dev-paired-v2'
+          assert s['memory_corrected_from_all_history'] is True
+          assert s['n_scored']==50049
+          assert not s['test_file_accessed'] and not s['source_test_outcomes_inspected']
+          assert not s['gates_fit']
+          print('G3 corrected DEV-only Memory accepted, Base ranks retained.')
+          PY
+      - name: Upload no raw events or identifiers; aggregate-only corrected DEV evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g3-memory-corrected-dev-summary
+          path: corrected-report/summary.json
+          if-no-files-found: warn
+          retention-days: 21
