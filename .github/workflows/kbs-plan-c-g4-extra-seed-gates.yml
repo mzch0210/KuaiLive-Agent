@@ -1,0 +1,97 @@
+name: KBS Plan C G4 extra-seed five DEV OOF gates
+on:
+  workflow_run:
+    workflows:
+      - KBS Plan C G4 four extra-seed full-active DEV Base ranks
+    types: [completed]
+permissions:
+  contents: read
+jobs:
+  user-host-freeze-four-gates:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent'
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 120
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Verify canonical paired DEV extra-seed results and TEST lock
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          for SEED in 20261013 20261014; do
+            test -s "$ROOT/klm3_g4_extra_seed_full_dev_v1/seed$(printf %s "$SEED")/summary.json"
+          done
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-e2-dev-five-gates-cpu-bundle-v1
+          path: e2-bundle/
+          fail-on-cache-miss: true
+      - name: Verify exact original DEV gate code and isolated offline CPU packages
+        run: |
+          set -euo pipefail
+          (cd e2-bundle && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$PWD/e2-bundle:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=2
+          export OMP_NUM_THREADS=2
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,sklearn,pathlib
+          assert sklearn.__version__=='1.5.2'
+          for seed in (20261013,20261014):
+              p=pathlib.Path.home()/'.cache/kuailive-agent-kbs'/f'klm3_g4_extra_seed_full_dev_v1/seed{seed}/summary.json'
+              s=json.load(open(p))
+              assert s['schema']=='kbs-plan-c-full-active-dev-paired-v2'
+              assert s['n_scored']==50049 and s['seed']==seed
+              assert s['memory_corrected_from_all_history'] is True
+              assert not s['test_file_accessed']
+          PY
+          "$HOME/venvs/kuailive-gpu/bin/python" -m unittest discover \
+             -s e2-bundle -p test_g3_fit_dev_gates.py -v
+      - name: Same per-user OOF and budgeted policy freeze for all extra-seed Bases
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$PWD/e2-bundle:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=2
+          export OMP_NUM_THREADS=2
+          export PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          mkdir -p e3-gates-report
+          for SEED in 20261013 20261014; do
+            SRC="$ROOT/klm3_g4_extra_seed_full_dev_v1/seed$(printf %s "$SEED")"
+            OUT="$ROOT/klm3_g4_extra_seed$(printf %s "$SEED")_five_gate_DEV_frozen_v1"
+            test ! -e "$OUT" || {
+              echo "Existing fitted DEV gates; inspect rather than overwrite" >&2
+              exit 15
+            }
+            "$PY" e2-bundle/g3_fit_dev_gates.py --paired "$SRC" --out "$OUT"
+            cp "$OUT/aggregate.json" "e3-gates-report/seed$(printf %s "$SEED")_aggregate.json"
+          done
+          "$PY" - <<'PY'
+          import json
+          for seed in (20261013,20261014):
+              x=json.load(open(f'e3-gates-report/seed{seed}_aggregate.json'))
+              assert x['schema']=='kbs-plan-c-g3-five-gates-dev-only-v1'
+              assert x['evaluation_scope']=='DEV_OOF_POLICY_OPTIMIZATION'
+              assert not x['test_file_opened'] and not x['test_labels_inspected']
+              assert set(x['family'])=={'sasrec','gru4rec'}
+              for d in x['family'].values():
+                  assert d['n_events']==50049 and d['n_users']==12628
+                  assert set(d['metrics']['methods'])=={
+                      'utility','difficulty','specialist','uncertainty','history'}
+                  assert max(m['dev_oof_call_rate'] for m in d['metrics']['methods'].values()) <= .3+1e-12
+          print('All extra-seed DEV OOF policies frozen; TEST remains unopened')
+          PY
+      - name: Upload aggregate DEV-only metrics; raw rows remain private
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-g4-extra-seed-five-gates-dev-aggregates
+          path: e3-gates-report/
+          if-no-files-found: warn
+          retention-days: 21
