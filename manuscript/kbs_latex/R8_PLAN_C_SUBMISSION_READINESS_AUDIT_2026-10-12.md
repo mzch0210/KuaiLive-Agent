@@ -1,6 +1,6 @@
 # R8 — initial abstract, highlights and submission-readiness audit (not final acceptance)
 
-**Date:** 2026-10-12. **Gate state:** R8 **IN PROGRESS; SUBMISSION HOLD**. This is a source preparation and explicit author handoff, not an assertion that the paper can be submitted.
+**Date:** 2026-10-12. **Gate state:** R8 **TECHNICAL PDF PASS; AUTHOR/SUBMISSION HOLD**. The [37-page original workflow PDF QA](R8_PLAN_C_PDF_AND_SOURCE_QA_2026-10-12.md) passed on run 38271581420; this remains a working draft rather than author-approved KBS submission. This is a source preparation and explicit author handoff, not an assertion that the paper can be submitted.
 
 ## 1. Work now implemented
 
@@ -31,7 +31,7 @@
 
 ## 4. Remaining executable R8 verification before PASS
 
-- Check new exact-source LaTeX CI, inspect full generated PDF and bibliography and contrast tables for wrapping and legibility, and document artifact run, page count and overfull/undefined-reference status.
+- **COMPLETE for this draft only:** exact-source LaTeX workflow, all-page layout overview and detailed key-table checks. Repeat after author/declaration changes; see the PDF/source QA report.
 - Compare every main-text quantitative result and the Abstract against the accepted G5 TEST/source matrix and R6 S1–S9; confirm there is no stale Twitch-only frozen claim or TEST-not-run statement in current canonical sources.
 - Mark all 12 R0 issue IDs *closed* only after the combined end-to-end paper/source/permissions signoff. R7 novelty resolution is **not** sufficient for submission-wide issue closure.
 - Collect and insert authors' real frontmatter and declarations, validate publisher policies, obtain copyright/data rights approval, then recompile and re-review PDF. Preserve frozen experiment chain unchanged.
