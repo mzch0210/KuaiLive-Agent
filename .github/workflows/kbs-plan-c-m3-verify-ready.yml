@@ -1,0 +1,59 @@
+name: KBS Plan C M3 persistent cache final verification
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-plan-c-m3-verify-ready.yml'
+permissions:
+  contents: read
+jobs:
+  user-host-verify:
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize M3 cache post-transfer verification')
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 15
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          clean: true
+      - name: Revalidate exact cached source and audit structure, never score TEST
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          DATA="$HOME/.cache/kuailive-agent-kbs/klm3"
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          test -x "$PY"
+          test -s "$DATA/SHA256SUMS"
+          test "$(stat -c %s "$DATA/live_interaction.csv")" = 4565993701
+          test "$(stat -c %s "$DATA/live_room_meta.parquet")" = 237756481
+          (cd "$DATA" && sha256sum -c SHA256SUMS)
+          "$PY" analysis/kbs_plan_c/m3_data_audit.py \
+            --root "$DATA" --out reports/m3_fields_post_transfer.json
+          "$PY" - <<'PY'
+          import json,pathlib
+          report=json.load(open('reports/m3_fields_post_transfer.json'))
+          assert report['interaction']['expected_fields_present']
+          assert report['interaction']['audited_sample_rows'] > 0
+          assert report['test_metrics_computed'] is False
+          assert report['models_trained'] is False
+          receipt={'schema':'kbs-plan-c-m3-transfer-confirmed-v1',
+             'source':'imgkkk2004/KuaiLive-M3',
+             'commit':'138d213a23e261ed3094d27ed8a4b867fb9143fe',
+             'files_verified':['live_interaction.csv','live_room_meta.parquet'],
+             'end_to_end_sha256_match':True,
+             'local_persistent_cache':'~/.cache/kuailive-agent-kbs/klm3',
+             'data_gate':'SOURCE_READY; TIME_SPLIT_AND_OVERLAP_AUDIT_PENDING',
+             'test_outcomes_used':False,'models_trained':False}
+          pathlib.Path('reports/m3_transfer_receipt.json').write_text(
+              json.dumps(receipt,indent=2)+'\n')
+          print(json.dumps(receipt))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-plan-c-m3-source-verified
+          path: reports/*.json
+          retention-days: 7
