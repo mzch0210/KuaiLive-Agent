@@ -58,13 +58,24 @@ class Encoder(nn.Module):
 
     def forward(self, history):
         # Histories are left-padded and nonempty; latest event is rightmost.
-        x = self.item(history)
         if self.kind == "sasrec":
-            x = self.dropout(x + self.pos(torch.arange(
-                history.shape[1], device=history.device)))
+            # IMPORTANT: left padding plus a causal mask can leave an all-masked
+            # query row (NaNs in SDPA). Shift valid ids to the LEFT so the
+            # earliest query always has a legal self-attention key. Padding is
+            # now on the RIGHT and the last valid state is gathered explicitly.
+            count = history.ne(0).sum(1)
+            if torch.any(count == 0):
+                raise ValueError("SASRec requires a nonempty causal history")
+            steps = torch.arange(history.shape[1], device=history.device)
+            gather_idx = (steps[None, :] + history.shape[1] - count[:, None]) % history.shape[1]
+            right = history.gather(1, gather_idx)
+            x = self.item(right)
+            x = self.dropout(x + self.pos(steps))
             x = self.encoder(x, mask=self.causal[:history.shape[1], :history.shape[1]],
-                             src_key_padding_mask=history.eq(0))
-            return self.norm(x[:, -1])
+                             src_key_padding_mask=right.eq(0))
+            last=x[torch.arange(history.shape[0],device=history.device), count-1]
+            return self.norm(last)
+        x = self.item(history)
         # Right-aligned sequences; a single GRU applied to all positions
         # handles left padding consistently across train and DEV.
         x, _ = self.encoder(x)
