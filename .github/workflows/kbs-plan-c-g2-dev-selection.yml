@@ -1,0 +1,135 @@
+name: KBS Plan C G2 DEV-only Base checkpoint selection
+on:
+  workflow_run:
+    workflows:
+      - KBS Plan C G2 full TRAIN-only SASRec and GRU4Rec
+    types: [completed]
+permissions:
+  contents: read
+jobs:
+  hosted-lock-dev-scoring-code:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: main
+      - name: Validate DEV selector preregistration and syntax
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/g2_dev_prepare.py \
+            analysis/kbs_plan_c/g2_dev_select.py \
+            analysis/kbs_plan_c/g2_train_base.py \
+            analysis/kbs_plan_c/test_g2_dev_prepare.py
+          python - <<'PY'
+          import json
+          x=json.load(open('experiments/kbs_plan_c/G2_DEV_CHECKPOINT_SELECTION_PREDECLARED_2026-10-12.json'))
+          assert x['status']=='PREDECLARED_BEFORE_DEV_CHECKPOINT_METRICS'
+          assert x['checkpoint_selection']['cohort'].startswith('4096')
+          assert x['checkpoint_selection']['candidate_count']==575
+          assert not x['test_outcomes_inspected'] and not x['dev_checkpoint_result_seen']
+          print('DEV-only checkpoint screen was preregistered')
+          PY
+          mkdir -p g2dev-code
+          cp analysis/kbs_plan_c/g2_train_base.py \
+             analysis/kbs_plan_c/g2_dev_prepare.py \
+             analysis/kbs_plan_c/g2_dev_select.py \
+             g2dev-code/
+          cp experiments/kbs_plan_c/G2_DEV_CHECKPOINT_SELECTION_PREDECLARED_2026-10-12.json \
+             g2dev-code/
+          (cd g2dev-code && sha256sum *.py *.json > SHA256SUMS)
+          (cd g2dev-code && sha256sum -c SHA256SUMS)
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Hosted synthetic causal context and roster tests, no datasets
+        run: |
+          python -m pip install --disable-pip-version-check \
+            'pyarrow==17.0.0' 'numpy==1.26.4'
+          PYTHONPATH=analysis/kbs_plan_c python -m unittest discover \
+            -s analysis/kbs_plan_c -p test_g2_dev_prepare.py -v
+      - uses: actions/cache/save@v4
+        with:
+          key: kbs-plan-c-g2-dev-frozen-paired-author-comparison-v1
+          path: g2dev-code/
+  user-host-dev-select:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == 'mzch0210/KuaiLive-Agent'
+    needs: hosted-lock-dev-scoring-code
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 90
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Guard source cache and complete full TRAIN output
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          test -s "$HOME/.cache/kuailive-agent-kbs/klm3_g2_seed20261012_epoch3_v1/sasrec/sasrec_train_report.json"
+          test -s "$HOME/.cache/kuailive-agent-kbs/klm3_g2_seed20261012_epoch3_v1/gru4rec/gru4rec_train_report.json"
+      - uses: actions/cache/restore@v4
+        with:
+          key: kbs-plan-c-g2-dev-frozen-paired-author-comparison-v1
+          path: g2dev-code/
+          fail-on-cache-miss: true
+      - name: Verify code bundle SHA and prepare pre-target DEV histories only once
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd g2dev-code && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$PWD/g2dev-code:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          export OMP_NUM_THREADS=2
+          export OPENBLAS_NUM_THREADS=1
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          CACHE="$HOME/.cache/kuailive-agent-kbs"
+          G1="$CACHE/klm3_plan_c_g1_v1"
+          IDX="$CACHE/klm3_g2_train_index_v1"
+          DEV="$CACHE/klm3_g2_dev_checkpoint_screen_v1"
+          if [ ! -s "$DEV/manifest.json" ]; then
+            test ! -e "$DEV" || {
+              echo 'Partial DEV snapshot present; inspect rather than overwrite' >&2; exit 15;
+            }
+            "$PY" g2dev-code/g2_dev_prepare.py \
+              --g1 "$G1" --index "$IDX" \
+              --protocol g2dev-code/G2_DEV_CHECKPOINT_SELECTION_PREDECLARED_2026-10-12.json \
+              --out "$DEV"
+          fi
+          mkdir -p g2dev-reports
+          cp "$DEV/manifest.json" g2dev-reports/dev_screen_manifest.json
+      - name: Select each Base best epoch from the same fixed 4096-event DEV active-author panel
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PYTHONPATH="$PWD/g2dev-code:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          export OMP_NUM_THREADS=2
+          export OPENBLAS_NUM_THREADS=1
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          CACHE="$HOME/.cache/kuailive-agent-kbs"
+          "$PY" g2dev-code/g2_dev_select.py \
+            --train-root "$CACHE/klm3_g2_seed20261012_epoch3_v1" \
+            --dev "$CACHE/klm3_g2_dev_checkpoint_screen_v1" \
+            --train-index "$CACHE/klm3_g2_train_index_v1" \
+            --out "$CACHE/klm3_g2_checkpoint_dev_selected_v1.json"
+          cp "$CACHE/klm3_g2_checkpoint_dev_selected_v1.json" \
+             g2dev-reports/dev_selection.json
+          "$PY" - <<'PY'
+          import json
+          r=json.load(open('g2dev-reports/dev_selection.json'))
+          assert r['schema']=='kbs-plan-c-g2-checkpoint-selection-dev-only-v1'
+          assert not r['test_data_opened'] and not r['test_rankings_calculated']
+          assert set(r['family_results'])=={'sasrec','gru4rec'}
+          print('DEV-only checkpoint selection accepted; TEST remains locked.')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: kbs-plan-c-g2-dev-selection-provenance
+          path: g2dev-reports/
+          if-no-files-found: warn
+          retention-days: 21
