@@ -152,7 +152,7 @@ This identity separates state prevalence from state-conditional ranking contribu
 \section{Base-Relative Evidence Valuation Framework}
 \label{sec:framework}
 
-The framework implements relative-utility valuation through three complementary components (Figure~\ref{fig:framework}): a trained Base that supplies the default ranking, a fixed relationship-memory specialist that supplies the alternative, and a predictor of their expected utility difference constructed from decision-time information. Observed targets provide learning and diagnostic evidence only in offline analysis.
+Figure~\ref{fig:framework} links the three components needed for a selective knowledge decision: a trained Base produces the incumbent ranking, a fixed Memory specialist defines an alternative ranking, and a pre-outcome estimator predicts their relative utility. Its prediction determines whether the alternative is invoked; realized target outcomes supply offline supervision and diagnosis.
 
 \begin{figure}[t]
 \centering
@@ -185,7 +185,7 @@ The framework implements relative-utility valuation through three complementary 
 
 KuaiLive uses a Dual-ID sequential Base with room-level and streamer-level SASRec branches. The room branch represents individual live sessions; the streamer branch connects sessions involving one creator. Both score the eligible \emph{rooms}, and their within-candidate standardized scores are fused by development-selected coefficients. This preserves next-room ranking while exploiting persistent streamer identity as part of the incumbent's own representation. Fusion coefficients are selected separately for the experimental candidate protocols.
 
-For Twitch/LiveRec, Base is the availability-aware LiveRec recommender \cite{rappaz2021liverec}, including context and repeat-consumption components (input length 16). The two platforms instantiate the same Base-relative utility criterion with distinct ranking units and incumbent architectures, making the role of the designated Base explicit in each comparison.
+For Twitch/LiveRec, Base is the availability-aware LiveRec recommender \cite{rappaz2021liverec}, including context and repeat-consumption components (input length 16). These platform-specific incumbent architectures define distinct, fixed reference rankings for their respective Base-relative utility comparisons.
 
 \subsection{Transparent Relationship-Memory Specialist}
 \label{sec:framework-memory}
@@ -201,7 +201,7 @@ s_M(u,i,t)=
 \label{eq:memory-scoring}
 \end{equation}
 
-The same scoring coefficients, short-history horizon and decay are used on both platforms; a candidate without prior interaction may still receive a nonzero popularity score. Candidates are ordered by score with deterministic identifier-based tie-breaking. In KuaiLive, distinct rooms mapped to one creator can consequently share a Memory score; Twitch candidates are streamers directly. The eligibility of pre-target records and platform-specific timing conventions are given in Section~\ref{sec:exp-data}. The fixed specialist defines an interpretable alternative ranking against which the incremental value of relationship evidence can be measured.
+The same scoring coefficients, short-history horizon and decay are used on both platforms; a candidate without prior interaction may still receive a nonzero popularity score. Candidates are ordered by score with deterministic identifier-based tie-breaking. In KuaiLive, distinct rooms mapped to one creator can consequently share a Memory score; Twitch candidates are streamers directly. The eligibility of pre-target records and platform-specific timing conventions are given in Section~\ref{sec:exp-data}. This construction provides a transparent, separately scored ranking from persistent creator relationships.
 
 \subsection{Base-Relative Relationship-Evidence States}
 \label{sec:framework-states}
@@ -222,16 +222,16 @@ These target-relative states describe input visibility for retrospective evaluat
 \subsection{Observable Features and Conditional Relative-Utility Estimation}
 \label{sec:framework-estimation}
 
-The estimator $\hat{\eta}_r(z)$ predicts the development-event utility difference $\Delta_M(x)$ from pre-outcome history and Base-score descriptors. Six history features summarize log history length, creator repeat rate, normalized preference entropy, old-versus-recent Jensen--Shannon drift, circular temporal regularity, and composite history complexity. On Twitch, regularity uses phases modulo $144$ ten-minute steps, representing a daily cycle. Eight Base-score features comprise score standard deviation and range, top-1/top-2, top-1/top-5 and top-10/top-11 margins, the top score's standardized value, normalized score entropy, and top-ten softmax mass. These quantities summarize candidate ranking patterns; entropy and softmax mass are not assumed to be calibrated uncertainty estimates.
+The Utility estimator $\hat{\eta}_r(z)$ is fitted on development-event $\Delta_M(x)$ labels using pre-outcome user-history features and Base candidate-score descriptors. Six history features summarize log history length, creator repeat rate, normalized preference entropy, old-versus-recent Jensen--Shannon drift, circular temporal regularity, and composite history complexity. On Twitch, regularity uses phases modulo $144$ ten-minute steps, representing a daily cycle. Eight Base-score features comprise score standard deviation and range, top-1/top-2, top-1/top-5 and top-10/top-11 margins, the top score's standardized value, normalized score entropy, and top-ten softmax mass. These quantities summarize candidate ranking patterns; entropy and softmax mass are not assumed to be calibrated uncertainty estimates.
 
 The composite history-complexity descriptor weights percentiles of entropy, preference drift and log history length by $0.4$, $0.4$ and $0.2$. The transformations use pre-outcome features and preserve the target-independent decision context. Reference-pool construction and estimator fitting follow the split-specific protocol in Section~\ref{sec:exp-freeze}.
 
 \subsection{Specialist Selection and Matched-Budget Controls}
 \label{sec:framework-controls}
 
-For each request, Base scores form part of $Z$, and the utility estimator predicts whether the separately scored Memory ranking is expected to improve the decision. Equation~\eqref{eq:utility-threshold} then returns either the incumbent or specialist ranking, making historical knowledge use conditional on predicted relative benefit.
+At invocation time, the Base supplies the default ranking and score-based descriptors in $Z$. The selector combines these with history descriptors and applies Eq.~\eqref{eq:utility-threshold}; Memory is scored only for selected requests, and the corresponding ranking is returned.
 
-The competing Base-Difficulty objective predicts $1-u_K(B,x)$ from the same pre-outcome feature family, thereby separating incumbent difficulty from specialist-relative benefit. Their evaluation, including the retrospective matched-count comparator and hindsight Oracle, is defined in Section~\ref{sec:exp-comparators}.
+Base Difficulty predicts $1-u_K(B,x)$ from the same observable feature family but does not model Memory's ranking advantage. Section~\ref{sec:exp-comparators} specifies the evaluation of both targets and the equal-count and Oracle controls.
 
 
 \section{Experimental Setup}
