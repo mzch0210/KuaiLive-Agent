@@ -17,7 +17,7 @@ class TestMemoryCorrected(unittest.TestCase):
         pop=np.array([0.,0.,0.])
         s=corrected_memory_score(np.array([1,2],dtype=np.int32),pop,
                {1:1},(1,0),1)
-        self.assertAlmostEqual(float(s[0]),.45*.5+.45*math.exp(-1/3))
+        self.assertAlmostEqual(float(s[0]),.45+.45*math.exp(-1/3))
         self.assertAlmostEqual(float(s[1]),0.)
         self.assertEqual(rank(np.array([1,2],dtype=np.int32),s,1),1)
 
