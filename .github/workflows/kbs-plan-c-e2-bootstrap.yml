@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   hosted-code:
-    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize DEV-only E2 paired user bootstrap')
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize DEV-only E2 paired user bootstrap corrected provenance')
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
@@ -25,10 +25,10 @@ jobs:
           (cd e2-bootstrap-code && sha256sum *.py > SHA256SUMS && sha256sum -c SHA256SUMS)
       - uses: actions/cache/save@v4
         with:
-          key: kbs-plan-c-e2-dev-user-bootstrap-code-v1
+          key: kbs-plan-c-e2-dev-user-bootstrap-code-v2
           path: e2-bootstrap-code/
   user-host-bootstrap:
-    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize DEV-only E2 paired user bootstrap')
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'authorize DEV-only E2 paired user bootstrap corrected provenance')
     needs: hosted-code
     runs-on: [self-hosted, linux, x64, gpu-3090]
     timeout-minutes: 35
@@ -47,7 +47,7 @@ jobs:
           test -x "$HOME/venvs/kuailive-gpu/bin/python"
       - uses: actions/cache/restore@v4
         with:
-          key: kbs-plan-c-e2-dev-user-bootstrap-code-v1
+          key: kbs-plan-c-e2-dev-user-bootstrap-code-v2
           path: e2-bootstrap-code/
           fail-on-cache-miss: true
       - name: Paired user-cluster uncertainty across frozen E2 policies, no TEST scoring
