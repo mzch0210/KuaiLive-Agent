@@ -1,0 +1,2 @@
+KBS-PLAN-C-G0-READONLY-ONCE-2026-10-12
+# Owner request 2026-10-12: execute Plan C. This file authorizes only read-only resource/cache audit (no downloads, training, or TEST).
