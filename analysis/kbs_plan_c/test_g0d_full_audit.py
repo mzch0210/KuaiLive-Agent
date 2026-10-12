@@ -3,9 +3,19 @@ import csv
 import tempfile
 import unittest
 from pathlib import Path
-from g0d_full_audit import audit_events, time_quantiles
+from datetime import datetime, timezone
+from g0d_full_audit import audit_events, time_quantiles, timestamp_ms
 
 class Tests(unittest.TestCase):
+    def test_native_m3_datetime_timestamp_encodings(self):
+        stamp="2026-03-26 01:02:03.123"
+        micro=datetime(2026,3,26,1,2,3,123456)
+        self.assertEqual(timestamp_ms(stamp), timestamp_ms(micro))
+        self.assertEqual(timestamp_ms("2026-03-26T01:02:03.123+00:00"),
+                         timestamp_ms(micro))
+        self.assertEqual(timestamp_ms("1774486923123"), 1774486923123)
+        self.assertIsNone(timestamp_ms("not-a-time"))
+
     def test_event_matching_and_repeat_indicators(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp)/"interactions.csv"
