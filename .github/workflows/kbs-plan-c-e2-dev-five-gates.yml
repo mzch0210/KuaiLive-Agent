@@ -2,7 +2,7 @@ name: KBS Plan C E2 DEV-only five gate policies
 on:
   workflow_run:
     workflows:
-      - KBS Plan C G3 full-active DEV paired Base Memory
+      - KBS Plan C G3 corrected Memory DEV replay
     types: [completed]
 permissions:
   contents: read
@@ -65,8 +65,8 @@ jobs:
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
           ROOT="$HOME/.cache/kuailive-agent-kbs"
-          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_v2/summary.json"
-          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_v2/dev_full_active_pairs.csv"
+          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1/summary.json"
+          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1/dev_full_active_pairs.csv"
           test -x "$HOME/venvs/kuailive-gpu/bin/python"
       - uses: actions/cache/restore@v4
         with:
@@ -112,7 +112,7 @@ jobs:
           PY="$HOME/venvs/kuailive-gpu/bin/python"
           ROOT="$HOME/.cache/kuailive-agent-kbs"
           "$PY" e2-bundle/g3_fit_dev_gates.py \
-            --paired "$ROOT/klm3_g3_dev_fullactive_base_memory_v2" \
+            --paired "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1" \
             --out "$ROOT/klm3_g3_e2_five_gate_DEV_frozen_v1"
           mkdir -p e2-report
           cp "$ROOT/klm3_g3_e2_five_gate_DEV_frozen_v1/aggregate.json" \
