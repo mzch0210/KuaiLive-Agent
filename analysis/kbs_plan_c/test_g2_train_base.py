@@ -21,6 +21,28 @@ def write_table(path, data):
 
 
 class G2UnitTest(unittest.TestCase):
+    def test_sasrec_short_history_causal_mask_no_nans(self):
+        model=Encoder(50,"sasrec")
+        model.train()
+        histories=torch.tensor([[0]*14+[2,3],
+                                [0]*13+[3,4,5],
+                                [0]*15+[7],
+                                list(range(1,17))],dtype=torch.long)
+        targets=torch.tensor([[4,6,8],[6,8,10],[9,11,13],[17,19,21]],
+                             dtype=torch.long)
+        optimizer=torch.optim.AdamW(model.parameters(),lr=1e-3)
+        for _ in range(3):
+            scores=model.score(histories,targets)
+            self.assertTrue(torch.isfinite(scores).all())
+            loss=torch.nn.functional.cross_entropy(scores,torch.zeros(4,dtype=torch.long))
+            self.assertTrue(torch.isfinite(loss))
+            optimizer.zero_grad()
+            loss.backward()
+            for name,param in model.named_parameters():
+                if param.grad is not None:
+                    self.assertTrue(torch.isfinite(param.grad).all(),name)
+            optimizer.step()
+
     def test_train_index_and_both_model_updates(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
