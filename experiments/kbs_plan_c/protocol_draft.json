@@ -1,0 +1,57 @@
+{
+  "schema": "kbs-plan-c-protocol-draft-v1",
+  "date": "2026-10-12",
+  "status": "G0_AUDIT_ONLY_NOT_FROZEN",
+  "current_main_commit": "256952414745a44715974e0917678b0cdd5ce6b3",
+  "evidence": {
+    "twitch": {
+      "test_events": 44221,
+      "role": "existing frozen C1/C3 evidence, no retuning"
+    },
+    "original_kuailive": {
+      "test_events": 10222,
+      "source": "https://zenodo.org/records/16565801",
+      "role": "existing inspected C2 comparison"
+    },
+    "klm3": {
+      "source": "https://github.com/imgkkk574/KuaiLive-M3",
+      "data": "https://huggingface.co/datasets/imgkkk2004/KuaiLive-M3",
+      "role": "candidate independent confirmation; data/license/overlap NOT audited",
+      "status": "BLOCKED"
+    }
+  },
+  "scientific_work_packages": [
+    {
+      "id": "E1",
+      "name": "independent frozen Utility policy replication",
+      "status": "WAIT_G0"
+    },
+    {
+      "id": "E2",
+      "name": "DEV-frozen competing relative/absolute/difficulty/uncertainty/history gates",
+      "status": "WAIT_G0"
+    },
+    {
+      "id": "E3",
+      "name": "same-event matched alternate Base and independent DEV-frozen gate",
+      "status": "WAIT_G0"
+    }
+  ],
+  "guards": {
+    "old_test_no_retuning": true,
+    "new_test_no_access_before_gate_freeze": true,
+    "reject_reclassification_of_old_test": true,
+    "no_large_dataset_download_at_g0": true,
+    "record_all_comparators_and_negative_results": true
+  },
+  "data_protocol_proposals": {
+    "split": "globally chronological TRAIN/DEV/TEST to be chosen after unlabeled time audit",
+    "official_comparator": "KLM3 benchmark author CDR uses per-user 80/10/10; different question and protocol",
+    "candidate_universe": "time-eligible author-level candidates; audit room->author identity"
+  },
+  "resources": {
+    "github_host": "CPU synthetic tests, gates, pair bootstrap and reporting",
+    "user_host": "RTX3090 model fitting/scoring; content-addressed data/checkpoint cache",
+    "gpu_lock": "kuailive-gpu-3090"
+  }
+}
