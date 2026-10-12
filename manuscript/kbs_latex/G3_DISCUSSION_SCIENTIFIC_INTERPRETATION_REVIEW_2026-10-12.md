@@ -1,7 +1,7 @@
 # G3 — KBS Discussion Scientific Interpretation and Cross-Chapter Reviewer Audit
 
 **Date:** 2026-10-12  
-**Status:** G3 §7 scholarly revision and source-level reviewer check **PASS**; matching GitHub Actions/PDF technical acceptance to be appended when complete. G4–G5 remain pending.
+**Status: G3 formally PASS** — §7 scholarly reviewer audit, source-integrity checks, exact-source GitHub Actions build and affected-page PDF visual QA all completed. G4–G5 remain pending.
 
 ## 1. Source baseline, provenance and permitted scope
 
@@ -52,9 +52,10 @@ The following formally published nearest work was checked against its responsibl
 
 **Potential reviewer reservation retained:** KBS reviewers may expect further prospective transfer experiments or more optimized incumbent comparisons. The current §7 now stakes a bounded empirical argument that supports the approved C1/C3/C2 scope, while not pretending these additional demonstrations exist.
 
-## 5. Final technical/PDF acceptance (to be updated from exact G3 run)
+## 5. Final technical/PDF acceptance — PASS
 
 - **Final compiled source commit:** \`02067047cb1b9d5165a254080030ade86a399701\`.
 - **GitHub Actions:** [#38193023110](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38193023110).
-- Do not mark technical gate PASS until this exact run finishes successfully, PDF page count / unresolved citations / Overfull warnings are reviewed, artifact is downloaded and actual §7 pages checked.
-- After **G3 scientific AND PDF PASS**, update the G0–G5 plan and README to queue **G4**: minimal definition/protocol coordination in §§3–5 and §8 consistency. G5 remains comprehensive submission-level source/PDF reviewer audit; Abstract and author declarations remain unfinished.
+- **Exact-source build PASS:** [Actions #38193023110](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38193023110) completed **success** at commit `02067047cb1b9d5165a254080030ade86a399701`. Compile, nonempty PDF verification and artifact upload each passed; final **29-page PDF** (446,072 bytes); **0 Overfull hbox** throughout all LaTeX passes, and no final unresolved citations/references or fatal errors. [PDF + compilation logs artifact #11722451936](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38193023110/artifacts/11722451936).
+- **Actual PDF rendered and checked:** the exact artifact was downloaded; `pdfinfo` reports 29 pages, while PDF text extraction confirms **§7 Discussion p21–p24**, **§8 Conclusion p24**, References starting **p25**. Pages **20–25** were rendered and visually reviewed, with no orphaned heading, missing paragraph, clipped text, collapsed reference area or anomalous blank page; a programmatic text-block boundary check found no out-of-page text blocks on these pages. A separate final full-paper visual review remains for G5.
+- **G3 independent disposition:** **PASS.** Formal nearest-neighbor interpretation, bounded evidence hierarchy, separation from §8, static source preservation and exact-source visual/compile gate are all accepted. Update the main G0–G5 plan and README to queue **G4**: minimal definition/protocol coordination in §§3–5 and §8 consistency. G5 remains the comprehensive final-source/PDF reviewer audit; Abstract and author declarations are still incomplete.
