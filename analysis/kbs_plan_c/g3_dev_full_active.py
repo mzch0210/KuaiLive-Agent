@@ -89,6 +89,7 @@ def build_dev_histories(stream_path, dev_event_ids, known_to_index, stride=20000
     warm_hist_total=0
     all_hist_total=0
     processed=0
+    captured=0
     reader=pq.ParquetFile(stream_path)
     for block in reader.iter_batches(batch_size=262144,
               columns=["source_event_id","user_id","author_id","split"]):
@@ -110,6 +111,7 @@ def build_dev_histories(stream_path, dev_event_ids, known_to_index, stride=20000
                     raise ValueError("non-DEV history match or duplicate id")
                 # Freeze counts and short horizon strictly before this event.
                 histories[j]=(dict(count), tuple(recent))
+                captured+=1
                 features[j]={"hist_events_all":all_hist_total,
                              "hist_events_warm":warm_hist_total,
                              "hist_distinct_warm":len(count),
@@ -123,7 +125,7 @@ def build_dev_histories(stream_path, dev_event_ids, known_to_index, stride=20000
                 warm_hist_total+=1
             if stride and processed % stride==0:
                 print(json.dumps({"phase":"memory_history_scan","events":processed,
-                                  "dev_captured":sum(x is not None for x in histories)}),flush=True)
+                                  "dev_captured":captured}),flush=True)
     if any(x is None for x in histories):
         raise ValueError("Unable to capture all DEV target histories")
     return histories,features,processed
@@ -249,8 +251,6 @@ def representations(models,context,device,batch=256):
         for offset in range(0,len(context),batch):
             inp=torch.as_tensor(np.asarray(context[offset:offset+batch]),
                                 dtype=torch.long,device=device)
-            if not inp.ne(0).all(axis=1).any():
-                pass
             r=model(inp).detach().cpu().numpy().astype(np.float32)
             if not np.isfinite(r).all():
                 raise FloatingPointError("invalid Base representation")
@@ -363,7 +363,7 @@ def score_work_block(block, models, reps, state, selected, device):
            "x_hist_distinct":float(state["features"][ix]["hist_distinct_warm"]),
            "x_hist_repeat_max":float(state["features"][ix]["hist_max_repeat"]),
            "x_hist_short_unique":float(state["features"][ix]["hist_short_unique"]),
-           "x_memory_nonzero_share":float(np.mean(mem>0.100000000000001)),
+           "x_memory_history_supported_share":float(np.mean((mem-0.10*state["popularity"][candidate])>1e-12)),
            "x_candidate_log_count":float(math.log1p(len(candidate)))}
         for model in ("sasrec","gru4rec"):
             scores=raw[model][j,:len(candidate)]
