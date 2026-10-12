@@ -1,0 +1,32 @@
+name: KBS Plan C G4 sparse pre-gate history feature parity
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-plan-c-g4-sparse-feature-ci.yml']
+permissions:
+  contents: read
+jobs:
+  hosted-math-parity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify dense Memory supported-share equals sparse pre-gate share
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'numpy==1.26.4'
+          python -m py_compile analysis/kbs_plan_c/g4_sparse_gate_features.py
+          PYTHONPATH=analysis/kbs_plan_c python -m unittest discover \
+            -s analysis/kbs_plan_c -p test_g4_sparse_gate_features.py -v
+          python - <<'PY'
+          import json
+          p=json.load(open('experiments/kbs_plan_c/G0F_PRETEST_PROTOCOL_2026-10-12.json'))
+          assert p['meta']['test_performance_seen'] is False
+          print('Mathematical parity audit only; no DEV or TEST ranking data read.')
+          PY
