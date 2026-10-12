@@ -6,6 +6,7 @@ import json
 import socket
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,7 +26,7 @@ def probe_url(label: str, url: str) -> dict:
         with urllib.request.urlopen(req, timeout=12) as resp:
             data = resp.read(128)  # bounded; close even if server ignores Range
             return {"label": label, "ok": True, "http_status": resp.status,
-                    "final_hostname": urllib.request.urlparse(resp.url).hostname,
+                    "final_hostname": urllib.parse.urlparse(resp.url).hostname,
                     "received_probe_bytes": len(data),
                     "elapsed_s": round(time.monotonic() - t, 3),
                     "no_raw_data_saved": True}
