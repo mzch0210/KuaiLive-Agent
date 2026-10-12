@@ -543,7 +543,28 @@ This analysis uses precomputed cross-fitted OOF prediction vectors, so the score
 
 The bounded conclusion is that **the original combined history + Base-score feature family supports positive relative-utility selection gains across this finite DEV operating grid**, with direct paired comparisons versus the restricted feature families and a Base-Difficulty objective. This is relevant to C3 but **not a new test of the frozen selector**.
 
-## S7.5 Reproducibility
+## S7.5 M3 independently DEV-frozen gates and realized TEST invocation
+
+The M3 design differs from S7.1–S7.4, which analyze \emph{Twitch DEV only} through retrospective exact top-m batches. In M3, five independent pointwise operating rules per trained Base are frozen from **50,049 full-active DEV requests** under a **maximum 30% DEV call constraint**. Utility predicts Memory-minus-Base NDCG@10; Difficulty predicts negative Base NDCG@10; Specialist predicts standalone Memory NDCG@10. These three objectives use their own DEV-group-OOF-fitted histogram gradient-boosting models on the common **12 observable pre-outcome features**. The two deterministic alternatives rank by negative Base top-two-score margin (Uncertainty) and total earlier user activity (History), respectively. All methods use inclusive frozen score-threshold comparisons, calling all threshold-tied events together.
+
+The **47,575-event later-period M3 TEST** was scored once with fixed thresholds. The realized invocation count of a frozen pointwise rule depends on the new event distribution: 30% calibrated on DEV does not guarantee 30% on TEST. Table S7.4 provides the exact number and rate for every policy, preserving unequal TEST calls rather than retrospectively matching them. These are not system wall-clock cost fractions. The source is the original G5-B **aggregate.json**, [action #38226690320](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38226690320), artifact **11735868084**, with the frozen scientific and implementation registry in S2.
+
+**Table S7.4. Actual frozen M3 TEST specialist calls, count and percent of 47,575 events.**
+
+| Base / training seed | Utility | Difficulty | Specialist Quality | Uncertainty | History |
+|---|---:|---:|---:|---:|---:|
+| SASRec 20261012 | 13,899 (29.215%) | 14,227 (29.904%) | 14,067 (29.568%) | 14,358 (30.180%) | 16,876 (35.472%) |
+| GRU4Rec 20261012 | 13,736 (28.872%) | 14,431 (30.333%) | 14,233 (29.917%) | 14,192 (29.831%) | 16,876 (35.472%) |
+| SASRec 20261013 | 13,187 (27.718%) | 14,426 (30.323%) | 14,257 (29.967%) | 13,990 (29.406%) | 16,876 (35.472%) |
+| GRU4Rec 20261013 | 13,628 (28.645%) | 14,311 (30.081%) | 14,242 (29.936%) | 14,170 (29.785%) | 16,876 (35.472%) |
+| SASRec 20261014 | 13,423 (28.214%) | 14,106 (29.650%) | 14,168 (29.780%) | 14,397 (30.262%) | 16,876 (35.472%) |
+| GRU4Rec 20261014 | 13,842 (29.095%) | 14,327 (30.115%) | 14,181 (29.808%) | 14,323 (30.106%) | 16,876 (35.472%) |
+
+Always Base uses **zero** Memory calls and Always Memory uses **47,575 (100%)** in each fixed model condition. The History policy's common 35.472% TEST rate does not invalidate its frozen DEV calibration but establishes that a strict online 30% cap **was not implemented**. The pointwise Utility rules invoke Memory on **27.718%–29.215%** of TEST requests. Comparisons among the five policies therefore share a DEV selection protocol, not the same realized TEST number of calls; neither matching TEST calls after revealing outcomes nor modifying thresholds is part of the frozen experiment.
+
+A resource-aware evaluation would additionally measure the Base's execution, candidate and history preparation, gate prediction and conditional Memory cost under the intended workload. S9 reports only the available bounded warmed scoring evidence and does not infer a production efficiency improvement.
+
+## S7.6 Reproducibility
 
 Original archive member SHA256s:
 
