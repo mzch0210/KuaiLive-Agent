@@ -49,7 +49,8 @@ def compare_one_family(base,aggregate,seed=20261012,repetitions=5000):
     assert oof.split.eq("DEV").all()
     p=json.loads(policy_path.read_text())
     assert p["schema"]=="kbs-plan-c-gates-v1" and p["state"]=="DEV_FROZEN_POINTWISE"
-    assert p["oof_source_sha256"]==sha(oof_path)
+    assert p["oof_source_sha256"]==sha(base/"models"/"oof_manifest.json")
+    assert p["dev_source_sha256"]==sha(oof_path)
     labels={
       "base":oof.base_ndcg10.to_numpy(np.float64),
       "memory":oof.memory_ndcg10.to_numpy(np.float64)
