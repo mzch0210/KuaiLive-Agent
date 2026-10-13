@@ -60,7 +60,10 @@
     "N8_THREE_CORE_SCIENTIFIC_RISKS_INTEGRATED_REMEDIATION_2026-10-13.md",
     "../../../experiments/kbs_plan_c/B1_FULL_DEV_REGIME_TRANSFER_RESULTS_AND_R3_IMPACT_2026-10-13.md",
     "../../experiments/kbs_plan_c/B2_COMPLETE_DEV_KNOWLEDGE_SOURCE_SELECTOR_ANALYSIS_2026-10-13.md",
-    "../../experiments/kbs_plan_c/B2_NESTED_DEV_SOURCE_SPECIFICITY_AGGREGATE_2026-10-13.json"
+    "../../experiments/kbs_plan_c/B2_NESTED_DEV_SOURCE_SPECIFICITY_AGGREGATE_2026-10-13.json",
+    "N8_POST_B2_THESIS_AND_NEW_TEST_DECISION_2026-10-13.md",
+    "N8_POST_B2_MANUSCRIPT_INTEGRATION_CONTRACT_2026-10-13.md",
+    "../../experiments/kbs_plan_c/N8_FRESH_HOLDOUT_ELIGIBILITY_AND_CONFIRMATION_GATE_2026-10-13.json"
   ],
   "final_submission_status": "HOLD",
   "risk_extension": {
@@ -126,5 +129,26 @@
       },
       "scientific_scope": "Post-G5 exploratory DEV; not new G5 TEST; no user-level data shared; observational comparisons partly affected by invocation drift; strict relation placebo and independent holdout unresolved."
     }
+  },
+  "post_B2_independent_test_adjudication": {
+    "date": "2026-10-13",
+    "study_status": "B1_B2_EXPLORATORY_DEV_COMPLETE",
+    "central_thesis": "Fixed relationship-memory specialist value is incumbent-and-candidate-regime-relative; matched candidate-supervision alignment matters for decision quality in live author ranking",
+    "conclusion": "FRESH_INDEPENDENT_TEST_CONDITIONALLY_RECOMMENDED_FOR_STRONGER_KBS_MECHANISM_CLAIM",
+    "approved_new_TEST_execution": false,
+    "source_of_absent_approval": "No verified unused licensed, unexposed new chronological outcome cohort; cannot reuse G5 TEST or 50049 examined DEV",
+    "fresh_holdout_data_status": "NOT_VERIFIED",
+    "experiment_design_allowed": true,
+    "retest_old_G5_labels_allowed": false,
+    "requires_data_rights_and_strict_blind_metadata_gate": true,
+    "risk_R1": "ORIGINALITY_OPEN",
+    "risk_R2": "ALWAYS_MEMORY_ACTUAL_RESOURCE_SCARCITY_OPEN",
+    "risk_R3": "PARTIALLY_MITIGATED_B1_B2_NO_NEW_INDEPENDENT_CONFIRMATION",
+    "submission_status_unchanged": "HOLD",
+    "documents": [
+      "manuscript/kbs_latex/N8_POST_B2_THESIS_AND_NEW_TEST_DECISION_2026-10-13.md",
+      "manuscript/kbs_latex/N8_POST_B2_MANUSCRIPT_INTEGRATION_CONTRACT_2026-10-13.md",
+      "experiments/kbs_plan_c/N8_FRESH_HOLDOUT_ELIGIBILITY_AND_CONFIRMATION_GATE_2026-10-13.json"
+    ]
   }
 }
