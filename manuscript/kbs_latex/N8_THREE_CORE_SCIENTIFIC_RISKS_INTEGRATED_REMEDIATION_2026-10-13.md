@@ -161,3 +161,15 @@ Twitch Utility DEV-frozen TEST 同时胜过 Always Base/Memory；Difficulty TEST
 **GO to stronger KBS thesis:** 至少有受控的同制度 decision-performance bridge，以及不被 trivial evidence placebo 复制的关系知识增量；没有前述证据时只能给出相对克制的经验发现。
 
 **决策：R3 = P0 OPEN，建议以 G1/G2 先行投入，G3 条件衔接。论文目前并非无价值，而是有实证基础、尚未完全证明组合贡献必要性与重要性。**
+
+## B1 experimental closure — post-G5 exploratory DEV (2026-10-13)
+
+The recommendation to run B0→B1 has now been implemented. **B0 PASS**, **B1-1 exact corrected scoring parity PASS**, **B1-2 all 50,049 corrected DEV paired labels PASS**, and **B1-3 nested user-disjoint transfer and adaptation PASS**. This paragraph supersedes only the *execution status*, not the initial preregistered-science limits or G5 TEST freeze.
+
+- [B1 full result and scientific-scope report](../../experiments/kbs_plan_c/B1_FULL_DEV_REGIME_TRANSFER_RESULTS_AND_R3_IMPACT_2026-10-13.md).
+- Core result on identical held-out full-active F DEV author events: **F→F − S→F NDCG@10 = +0.006159** (SASRec; 95% paired user-cluster CI [+0.004835,+0.007543]) and **+0.004970** (GRU4Rec; CI [+0.003550,+0.006369]). The effect has the same sign in all five outer user folds for both Base families. Outer observed Memory-call rates differ modestly (SASRec 29.95% vs 30.00%; GRU4Rec 29.97% vs 29.50%), **not exact same-call quotas**.
+- Regime-adapted→F also exceeds S→F by +0.005349 SASRec and +0.004877 GRU4Rec. It **does not exceed F→F** and explicitly uses available F outer-training DEV labels; this demonstrates conditional in-domain supervision alignment, not a superior novel algorithm or pure target-domain-free transfer.
+- All results are **newly designed post-G5 DEV exploration** based on **target-retained sampled offline ranking labels**. They do not establish a real online candidate generator, a pure candidate-count effect, or independent confirmatory data replication. Unconditional Always Memory continues to have higher M3 DEV NDCG; R2 economic deployment problem remains.
+- **R3 status is now PARTIALLY MITIGATED**: the formerly missing RQ2→RQ3 decision-quality link has been examined and supported on a single shared M3 DEV cohort. The remaining major test is **B2 knowledge-origin specificity** (Short/Long/popularity/relationship placebo) and, conditional on its outcome, a truly new unseen independent TEST. R1 novelty remains an editorial substantive question; R2 actual cost remains open.
+
+**No main article, supplemental paper package, G5 original TEST or R0 registered claim was altered by B1.**
