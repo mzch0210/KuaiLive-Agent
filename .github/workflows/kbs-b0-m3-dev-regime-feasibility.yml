@@ -1,0 +1,88 @@
+name: KBS B0 DEV-only candidate regime source feasibility
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-b0-m3-dev-regime-feasibility.yml'
+      - 'analysis/kbs_plan_c/b0_candidate_regime_dev_feasibility.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b0-m3-dev-feasibility
+  cancel-in-progress: false
+jobs:
+  hosted-source-safety:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax and explicit DEV-only source audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/b0_candidate_regime_dev_feasibility.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('analysis/kbs_plan_c/b0_candidate_regime_dev_feasibility.py').read_text()
+          assert 'test_labels_accessed": False' in s
+          assert 'klm3_g3_dev_fullactive_base_memory_corrected_v1' in s
+          assert 'dev_full_active_pairs.csv' in s
+          assert '--roster-probe' in s
+          assert 'torch.load' not in s
+          print('B0 source is DEV-only and contains no training or TEST-reader logic')
+          PY
+  private-dev-cache-gate:
+    needs: hosted-source-safety
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect verified canonical DEV-only G1/G2/G3 files and 8 live rosters
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$PWD/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          test -x "$PY"
+          "$PY" analysis/kbs_plan_c/b0_candidate_regime_dev_feasibility.py \
+            --root "$HOME/.cache/kuailive-agent-kbs" \
+            --out "$RUNNER_TEMP/kbs_b0_candidate_regime_dev_aggregate.json" \
+            --roster-probe
+      - name: Publish only aggregates with explicit secrecy guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,os,pathlib,shutil
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'kbs_b0_candidate_regime_dev_aggregate.json'
+          x=json.loads(p.read_text())
+          assert x['test_labels_accessed'] is False
+          assert x['new_training_executed'] is False
+          assert x['raw_event_or_candidate_ids_exported'] is False
+          assert x['B0_source_gate'].startswith('PASS_')
+          safe={'schema','evidence_tier','test_labels_accessed',
+                'new_training_executed','raw_event_or_candidate_ids_exported',
+                'per_candidate_base_scores_stored_in_canonical_dev_csv',
+                'full_candidate_scores_require_frozen_base_inference',
+                'knowledge_memory_requires_corrected_all_prior_history',
+                'sampled_checkpoint_candidates_are_4096_dev_screen_only',
+                'sources','checkpoints','corrected_paired','availability_reconstruction',
+                'B0_source_gate','B1_preconditions'}
+          assert set(x)==safe
+          dest=pathlib.Path('b0-private-aggregate')
+          dest.mkdir(exist_ok=True)
+          (dest/'summary.json').write_text(json.dumps(x,indent=2,sort_keys=True)+'\n')
+          print('DEV-only B0 public aggregate validated; no private rows exported')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b0-m3-candidate-regime-dev-aggregate
+          path: b0-private-aggregate/summary.json
+          retention-days: 30
