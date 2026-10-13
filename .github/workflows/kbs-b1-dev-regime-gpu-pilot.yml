@@ -1,0 +1,123 @@
+name: KBS B1 DEV sampled/full GPU parity pilot
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-b1-dev-regime-gpu-pilot.yml'
+      - 'analysis/kbs_plan_c/b1_dev_regime_pilot.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b1-dev-regime-pilot
+  cancel-in-progress: false
+jobs:
+  hosted-code-validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax and frozen-science checks
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/b1_dev_regime_pilot.py \
+            analysis/kbs_plan_c/g3_dev_full_active.py \
+            analysis/kbs_plan_c/g3_replay_correct_memory.py \
+            analysis/kbs_plan_c/g2_train_base.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('analysis/kbs_plan_c/b1_dev_regime_pilot.py').read_text()
+          for expected in ('replay_all_history','corrected_memory_score',
+              'full_rank_disagreements_with_original_corrected_DEV',
+              'torch.backends.cuda.matmul.allow_tf32 = False',
+              'dense_scores','candidate_sample_retains_revealed_target_offline_only',
+              'B1_nested_policy_fit_executed'):
+              assert expected in s, expected
+          assert 'test_cohort.parquet' not in s
+          assert 'torch.optim' not in s
+          print('B1 DEV-only scientific source safety validated')
+          PY
+      - name: Package B1 and exact frozen scorer dependencies
+        run: |
+          set -euo pipefail
+          mkdir -p b1-code/analysis/kbs_plan_c
+          cp analysis/kbs_plan_c/{b1_dev_regime_pilot.py,g3_dev_full_active.py,g3_replay_correct_memory.py,g2_train_base.py} b1-code/analysis/kbs_plan_c/
+          (cd b1-code && sha256sum analysis/kbs_plan_c/*.py > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b1-dev-pilot-code-source
+          path: b1-code/
+          if-no-files-found: error
+          retention-days: 7
+  selfhost-frozen-dev-gpu-pilot:
+    needs: hosted-code-validation
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 35
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kbs-b1-dev-pilot-code-source
+          path: ${{ runner.temp }}/b1-code
+      - name: Verify code bundle without reaching github.com
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/b1-code"
+          sha256sum -c SHA256SUMS
+          test -s analysis/kbs_plan_c/b1_dev_regime_pilot.py
+      - name: Run bounded frozen DEV-only paired candidate GPU experiment
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$RUNNER_TEMP/b1-code/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          test -x "$PY"
+          "$PY" "$RUNNER_TEMP/b1-code/analysis/kbs_plan_c/b1_dev_regime_pilot.py" \
+            --root "$HOME/.cache/kuailive-agent-kbs" \
+            --out "$RUNNER_TEMP/kbs_b1_dev_gpu_pilot_private.json" \
+            --limit 128 --score-batch 128
+      - name: Validate public aggregate schema and exclude private row identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,os,pathlib
+          path=pathlib.Path(os.environ['RUNNER_TEMP'])/'kbs_b1_dev_gpu_pilot_private.json'
+          x=json.loads(path.read_text())
+          assert x['schema']=='kbs-b1-stage1-frozen-dev-regime-pilot-v1'
+          assert x['status']=='PASS'
+          assert x['test_opened'] is False
+          assert x['new_training_performed'] is False
+          assert x['ids_exported'] is False
+          assert x['B1_nested_policy_fit_executed'] is False
+          assert x['n_events']==128 and x['sampled_candidates']==575
+          assert all(n==0 for n in x['full_rank_disagreements_with_original_corrected_DEV'].values())
+          assert len(x['gpu_benchmark'])==2
+          safe={'schema','status','evidence_tier','test_opened','new_training_performed',
+             'ids_exported','n_events','full_candidates_min','full_candidates_max',
+             'sampled_candidates','candidate_sample_retains_revealed_target_offline_only',
+             'gate_features_from_target_informed_samples',
+             'full_rank_disagreements_with_original_corrected_DEV','means_full',
+             'means_sampled','mean_base_relative_Memory','gpu_benchmark',
+             'gpu_peak_allocated_MiB','timings_seconds','gpu_batches_evaluated',
+             'chosen_gpu_scoring_batch','causal_prior_events_scanned',
+             'reference_sha256_verified','checkpoint_family_count',
+             'B1_nested_policy_fit_executed','B1_full_cohort_scoring_executed'}
+          assert set(x)==safe
+          out=pathlib.Path('b1-pilot-aggregate')
+          out.mkdir(exist_ok=True)
+          (out/'summary.json').write_text(json.dumps(x,sort_keys=True,indent=2)+'\n')
+          print('B1 GPU pilot accepted: DEV only, matched corrected full-active ranks')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b1-frozen-dev-regime-gpu-pilot-aggregate
+          path: b1-pilot-aggregate/summary.json
+          retention-days: 30
+          if-no-files-found: error
