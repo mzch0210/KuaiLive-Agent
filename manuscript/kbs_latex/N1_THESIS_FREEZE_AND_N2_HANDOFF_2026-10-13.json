@@ -1,0 +1,134 @@
+{
+  "schema": "kbs-n1-scientific-thesis-freeze-v1",
+  "date": "2026-10-13",
+  "status": {
+    "n1": "PASS_POSITIONING_ONLY",
+    "journal_readiness": "HOLD",
+    "scientific_novelty": "RESIDUAL_RISK",
+    "operational_cost_premise": "P0_N2_REQUIRED"
+  },
+  "source_context": {
+    "parent_commit": "02bde346e28af465358c239f58407dac2096bfab",
+    "main_tex_blob": "f46540dce8b076e08937e8f5912048eeff994ad1",
+    "supp_s1_s9_blob": "3f9413f8ffe2a2ff1ef70640a3820d81b281055f",
+    "n0_immutable_ledger_blob": "0c71ccb2ba0988582ee0d5ecca3b6af17ff1cf51",
+    "manuscript_not_changed": true
+  },
+  "paper_frame": {
+    "accepted_position": "Fixed relationship-memory incumbent-relative candidate-conditioned event ranking evidence valuation and constrained decision-quality under specific protocols",
+    "rejected_positions": [
+      "new generic learning-to-defer theorem",
+      "novel general slow-fast budget gating",
+      "general first knowledge gate",
+      "new proof sampled metric inversion",
+      "overall live-room / all-architectures SOTA",
+      "production net speedup or unconditional deployment improvement",
+      "six independent M3 cohorts",
+      "candidate-count-only causal mechanism"
+    ],
+    "central_question": "When does an independently fixed relationship-memory ranker improve the incumbent's NDCG@10 on the available candidates, and can pre-outcome prediction of its marginal value support specialist selection under a stipulated call constraint?",
+    "thesis": "The marginal ranking utility of a fixed relationship-memory specialist depends on the incumbent and candidate context; estimating it can improve specialist choice relative to the specified baseline objectives under a declared call constraint.",
+    "research_questions": [
+      {
+        "id": "RQ1",
+        "role": "conditional_knowledge_value",
+        "primary": [
+          "C1-T1",
+          "C1-T2",
+          "C1-M3"
+        ],
+        "causal_claim": false
+      },
+      {
+        "id": "RQ2",
+        "role": "candidate_conditioned_label_meaning",
+        "primary": [
+          "C2-K1",
+          "C2-K2"
+        ],
+        "prospective": false
+      },
+      {
+        "id": "RQ3",
+        "role": "decision_quality_under_specific_invocation_protocols",
+        "primary": [
+          "C3-T1",
+          "C3-M3",
+          "STAT-M3",
+          "BUD-M3"
+        ],
+        "general_routing_optimality": false
+      }
+    ],
+    "presentation_order": [
+      "RQ1",
+      "RQ3",
+      "RQ2",
+      "robustness",
+      "resource_cost"
+    ],
+    "primary_novelty_unit": "Empirical conjunction of fixed-expert relative utility, conditional evidence states, candidate-indexed rank labels, and frozen policy evaluation; not standalone new gate mathematics."
+  },
+  "collision": {
+    "high": [
+      "DS-Frame 2026 budgeted fast-slow seq rec",
+      "Narasimhan 2022 posthoc deferral",
+      "Mao 2025 fixed-expert routing"
+    ],
+    "medium": [
+      "MHGFCL 2026 KBS multi-head knowledge gating",
+      "KAPER 2026 evidence selection",
+      "GUIDER 2026 LLM uncertainty dynamic reranking",
+      "MemRec 2026 memory recommendation"
+    ],
+    "established_sampling": [
+      "Krichene and Rendle 2020"
+    ],
+    "nearest_work_count": 16
+  },
+  "n2_open_decisions": [
+    {
+      "id": "N2-E1",
+      "priority": "P0",
+      "question": "Does measured specialist invocation have an actual scarce/costly resource basis?",
+      "decision_required": true
+    },
+    {
+      "id": "N2-E2",
+      "priority": "P0",
+      "question": "Is new independent fair two-stage-L2D / DS-Frame-style comparator required for publishable scientific novelty?",
+      "decision_required": true
+    },
+    {
+      "id": "N2-E3",
+      "priority": "P1",
+      "question": "Is a newly independent exactly matched invocation/cost protocol feasible?",
+      "decision_required": true
+    },
+    {
+      "id": "N2-E4",
+      "priority": "P1",
+      "question": "Would new candidate/task replication materially elevate C2 beyond retrospective diagnosis?",
+      "decision_required": true
+    },
+    {
+      "id": "N2-E5",
+      "priority": "P1",
+      "question": "What data/model source materials can legally be published and durably archived?",
+      "decision_required": true
+    }
+  ],
+  "experimental_integrity": {
+    "keep_g5_frozen": true,
+    "no_rerun_existing_test_thresholds": true,
+    "no_new_confirmation_from_examined_test": true,
+    "clustered_inference": "six fits shared users; Holm within fit over 3 preregistered contrasts",
+    "runtime": "warmed offline DEV not production cost"
+  },
+  "editorial_stage_requirements": {
+    "N3": "discovery_first_and_policy_joint_NDCG_calls",
+    "N4": "methods_protocol_ownership",
+    "N5": "intro_literature_reconstruction_and_DSF_frame_verified_citation",
+    "N6": "theory_interpretation_and_cost_paradox"
+  }
+}
