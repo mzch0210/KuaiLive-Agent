@@ -1,0 +1,89 @@
+name: KBS N9 supplementary S1-S10 integrated PDF QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md'
+      - '.github/workflows/kbs-n9-s1-s10-supplement-build.yml'
+permissions:
+  contents: read
+jobs:
+  build-s1-s10:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Install Pandoc and validate exact ten-section scholarly structure
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq pandoc
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          f=Path('manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md')
+          src=f.read_text()
+          ids=[int(x) for x in re.findall(r'^# S(10|[1-9])\.',src,re.M)]
+          assert ids==list(range(1,11)),ids
+          assert src.count('## S7.7 Nested-DEV')==1
+          assert src.count('**Table S7.5.')==1
+          assert '## S10.6 Decision value across specialist-invocation constraints' in src
+          assert '## S10.7 Matched decision-target controls' in src
+          assert 'post-G5' in src
+          assert '50,049' in src and '12,628' in src
+          assert 'target-retained' in src
+          assert 'unrestricted' in src
+          print('N9 supplementary academic structure PASS',len(src))
+          PY
+      - name: Convert and check mathematical LaTeX source
+        run: |
+          set -euo pipefail
+          cd manuscript/kbs_latex
+          pandoc SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md \
+            -f markdown+pipe_tables+raw_tex+tex_math_dollars+yaml_metadata_block \
+            -t latex -s --toc --toc-depth=1 \
+            -V documentclass=article -V fontsize=10pt \
+            -V mainfont='DejaVu Serif' -V sansfont='DejaVu Sans' -V monofont='DejaVu Sans Mono' \
+            -V geometry:margin=0.75in -V colorlinks=true -V urlcolor=blue \
+            --pdf-engine=xelatex -o supplementary_information_n9.tex
+          test -s supplementary_information_n9.tex
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('supplementary_information_n9.tex').read_text()
+          assert r'\Delta' in s
+          assert r'\mathrm{membership}' in s
+          print('N9 math/symbol guard PASS')
+          PY
+          cd ../..
+          python analysis/kbs_supplement_tex_postprocess.py manuscript/kbs_latex/supplementary_information_n9.tex
+      - name: Compile supplementary PDF
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: supplementary_information_n9.tex
+          working_directory: manuscript/kbs_latex
+          args: -pdfxe -file-line-error -halt-on-error -interaction=nonstopmode
+      - name: Scientific PDF sanity
+        run: |
+          set -euo pipefail
+          test -s manuscript/kbs_latex/supplementary_information_n9.pdf
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('manuscript/kbs_latex/supplementary_information_n9.log').read_text(errors='replace')
+          for x in ('! LaTeX Error:','! Undefined control sequence.','Missing $ inserted.','Emergency stop','Fatal error occurred'):
+              assert x not in s,x
+          print('S1-S10 PDF error guard PASS')
+          PY
+      - name: Archive submission-preview source and PDF
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-n9-s1-s10-pdf-${{ github.run_id }}
+          path: |
+            manuscript/kbs_latex/supplementary_information_n9.pdf
+            manuscript/kbs_latex/supplementary_information_n9.tex
+            manuscript/kbs_latex/supplementary_information_n9.log
+            manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md
+          if-no-files-found: warn
+          retention-days: 60
