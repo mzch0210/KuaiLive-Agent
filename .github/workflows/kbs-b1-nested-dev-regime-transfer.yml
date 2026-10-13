@@ -65,10 +65,12 @@ jobs:
           set -euo pipefail
           umask 077
           (cd "$RUNNER_TEMP/b1-policy" && sha256sum -c SHA256SUMS)
-          export PYTHONPATH="$RUNNER_TEMP/b1-policy/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONPATH="$RUNNER_TEMP/b1-policy/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
           export PYTHONUNBUFFERED=1
           export OPENBLAS_NUM_THREADS=1
           export OMP_NUM_THREADS=2
+          test -d "$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1/sklearn"
+          "$HOME/venvs/kuailive-gpu/bin/python" -c 'import sklearn; assert sklearn.__version__.startswith("1.5.")'
           "$HOME/venvs/kuailive-gpu/bin/python" \
             "$RUNNER_TEMP/b1-policy/analysis/kbs_plan_c/b1_nested_regime_transfer_dev.py" \
             --source "$HOME/.cache/kuailive-agent-kbs/klm3_b1_full_dev_candidate_labels_seed20261012_v1" \
