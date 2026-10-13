@@ -1,27 +1,47 @@
 {
   "date": "2026-10-13",
-  "status": "PLAN_ONLY",
+  "status": "IN_PROGRESS_R0_PASS_P0_PUBLIC_PASS_A0_STATIC_PASS_PRIVATE_GATE_HOLD",
   "stages": {
-    "A0": "READY",
-    "A1": "AFTER_A0",
-    "A2": "AFTER_A0",
-    "A3": "AFTER_A1_A2",
-    "P0": "READY",
-    "P1": "PARALLEL_A",
-    "P2": "AFTER_A3",
+    "R0": "PASS_DECISION_SUPPORT_RISK_GATE",
+    "A0": "PUBLIC_SOURCE_STATIC_AUDIT_COMPLETE_PRIVATE_SOURCE_SHA_PENDING",
+    "A1": "HOLD_UNTIL_A0_PRIVATE_EVENT_REHASH",
+    "A2": "PARTIAL_DIRECT_TWO_STAGE_FEASIBLE_IF_PRIVATE_SOURCE_PASS_FUSION_SCORE_CACHE_UNVERIFIED",
+    "A3": "AFTER_A1_A2_DECISION_SUPPORT_CLAIM_GATE",
+    "P0": "PUBLIC_SOURCE_CLAIM_REGISTER_COMPLETE_PRIVATE_ROW_VERIFY_PENDING",
+    "P1": "READY_TO_DRAFT_EXPLORATORY_B1B2_TABLES",
+    "P2": "AFTER_A3_EVIDENCE_VERDICT",
     "P3": "AFTER_P2",
-    "T0": "METADATA_ONLY",
-    "T1": "HOLD",
+    "T0": "METADATA_ONLY_NOT_EXECUTED",
+    "T1": "HOLD_NO_NEW_TEST_AUTHORIZATION",
     "T2": "AUTHOR_SIGNOFF_OPEN"
   },
   "risks": {
-    "R1": "OPEN",
-    "R2": "OPEN",
-    "R3": "PARTIALLY_MITIGATED"
+    "R1": "DECISION_SUPPORT_DISTINCTION_BOUNDED_OPEN",
+    "R2": "DECISION_RELEVANCE_SUPPORTED_OPERATIONAL_SCARCITY_OPEN",
+    "R3": "PARTIALLY_MITIGATED_POST_G5_DEV"
   },
-  "B1_B2": "EXPLORATORY_DEV_COMPLETE_NOT_YET_IN_PAPER",
+  "B1_B2": "EXPLORATORY_DEV_COMPLETE_PUBLIC_CLAIM_REGISTERED_NOT_YET_IN_MAIN_MANUSCRIPT",
   "old_TEST_modified": false,
   "new_TEST_authorized": false,
   "main_tex_modified": false,
-  "submission": "HOLD"
+  "submission": "HOLD",
+  "revision_scope": "N9_R0 scientific gates corrected to fixed N1 decision-support thesis; no method-first branch",
+  "audit_reports": [
+    "manuscript/kbs_latex/N9_R0_DECISION_SUPPORT_RISK_GATE_2026-10-13.md",
+    "manuscript/kbs_latex/N9_P0_B1B2_CLAIM_SOURCE_COHORT_REGISTER_2026-10-13.csv",
+    "manuscript/kbs_latex/N9_P0_EVIDENCE_FREEZE_AND_CLAIM_AUDIT_2026-10-13.md",
+    "manuscript/kbs_latex/N9_A0_PUBLIC_SOURCE_FEASIBILITY_AUDIT_2026-10-13.md"
+  ],
+  "verified_public_sources": {
+    "B1_report_blob": "796739db77ccd5cc1436f904b54c803796e679e8",
+    "B2_report_blob": "32bd9f19b3754f2d93744b5227694234a47508aa",
+    "B2_public_aggregate_blob": "5cb1463668108219753dae88f52d6301f8c20ae0",
+    "original_main_blob": "40be249de52c0ae423b793c0dd4c55f2fdd69f46"
+  },
+  "dependency_blocks": [
+    "Original private corrected M3 DEV source and B1/B2 source CSV must be rehashed on authorized self-host runner",
+    "Per-candidate Base/Memory score arrays and candidate IDs needed for A2 score/rank fusion not publicly established",
+    "Do not treat B1/B2 paired user intervals as new G5 confirmatory tests",
+    "No authorized fresh unexposed lawful cohort for new TEST"
+  ]
 }
