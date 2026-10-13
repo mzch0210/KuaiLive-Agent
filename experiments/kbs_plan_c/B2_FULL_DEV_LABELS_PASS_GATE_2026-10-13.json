@@ -1,0 +1,22 @@
+{
+  "schema": "kbs-b2-full-dev-source-attestation-for-nested-start-v1",
+  "date": "2026-10-13",
+  "status": "B2_FULL_DEV_SOURCE_PASS",
+  "all_DEV_rows": 50049,
+  "n_users": 12628,
+  "full_memory_F_rank_differences": 0,
+  "full_memory_S_ndcg_differences": 0,
+  "B2_test_accessed": false,
+  "B2_models_retrained": false,
+  "B2_private_manifest_fields_verified_in_original_run": true,
+  "B2_source_original_run": 38367721633,
+  "B2_source_original_commit": "dd1ecab0512174814fe754f692153e61394591f4",
+  "B2_original_scoring_status": "PASS_IN_CONSOLE_AND_PRIVATE_SAVED_MANIFEST",
+  "B2_public_upload_status": "ECONNRESET_DELIVERY_ONLY",
+  "private_event_csv_sha256_provenance": "validated_on_private_runner_before_fit",
+  "private_rows_not_exported": true,
+  "original_B1_dev_pair_sha256": "37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea",
+  "need_private_rehash_before_fit": true,
+  "evidence_tier": "POST_G5_EXPLORATORY_DEV_ONLY",
+  "caveat": "The source SHA256 value is not fabricated or copied from unverified output. The B2 nested script itself must rehash the private CSV and compare to the original private B2 manifest before fitting. Original score-generation logs verified the aggregate record; upload-artifact failed after source validation."
+}
