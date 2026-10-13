@@ -831,7 +831,7 @@ The analysis used **five outer GroupKFold splits by user** and **four inner Grou
 
 The pure S→F arm fits to Delta_S and calibrates only with S supervision, then evaluates on outer F. The F→F arm fits and calibrates on F labels from outer-training users. The regime-adapted→F arm includes S and F labels and regime descriptors during outer-training, calibrates on F inner labels, and **has access to F supervision**; it is neither label-free adaptation nor an improvement beyond native F→F.
 
-Descriptive 95% confidence intervals were constructed from 2,000 paired user-cluster percentile bootstrap draws. Five outer folds on this one cohort are not five independent prospective TEST cohorts. All B1/B2 arm choices were devised after original G5 outcome review; these confidence intervals do not enter the frozen G5 registered Holm testing family. Original G5 TEST remains unopened for these analyses.
+Descriptive 95% confidence intervals were constructed from 2,000 paired user-cluster percentile bootstrap draws. The user-disjoint outer folds characterize generalization to held-out users within the existing DEV period, not an independently chronological TEST; five folds on one cohort are not five independent prospective test cohorts. All B1/B2 arm choices were devised after original G5 outcome review; these confidence intervals do not enter the frozen G5 registered Holm testing family. Original G5 TEST remains unopened for these analyses.
 
 ## S10.3 Candidate supervision, full-ranking policy utility
 
