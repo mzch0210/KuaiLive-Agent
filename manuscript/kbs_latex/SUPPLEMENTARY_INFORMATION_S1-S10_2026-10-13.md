@@ -910,3 +910,54 @@ At the 30% inner limit, Direct minus Two-stage yields +0.001310 SASRec (95% pair
 B1 paired candidate sources and nested transfer correspond to GitHub Actions runs `38364829652` and `38365477972`; the private paired DEV source digest is `37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea`. The B2 nested ablation was completed in run `38369503457` and its public aggregates are archived in `B2_NESTED_DEV_SOURCE_SPECIFICITY_AGGREGATE_2026-10-13.json`. A separate read-only audit (run `38382393789`) rehashed the B1/B2 private sources, confirmed the corrected full-candidate source lineage, and verified 50,049 unique DEV event IDs and 12,628 users without exporting identifiable event rows. The N9-P0 claim-source register links each result to its public evidence artifact.
 
 The original Twitch/M3 frozen TEST results remain the independent decision evaluations; the 10,222-room sampled/full comparison is retrospective; B1/B2/A1/A2 are post-G5 exploratory analyses of the **same M3 DEV cohort**. Their uncertainty intervals do not extend the frozen G5 multiple-testing family. The study makes no production serving-cost or target-aware online sampling claim. The sampled-metric non-preservation precedent is Krichene and Rendle (KDD 2020).
+
+
+## S10.9 Supervision-induced knowledge-use decisions
+
+The B1 F- and S-supervised policies were refitted with the original 12 pre-outcome features, 120-iteration HGB, five outer by four inner user-disjoint folds and at most 30% inner OOF Memory calls. Their original full-active NDCG and natural outer Memory-call totals reproduced exactly. On the same 50,049 full-active outer-held-out DEV author requests, we compute the policy disagreement probability $D_{S,F}=P(\pi_S(Z)\neq\pi_F(Z))$ and the identity
+\[
+V_F(\pi_F)-V_F(\pi_S)
+=\mathbb E[(\pi_F(Z)-\pi_S(Z))\Delta_F(X)].
+\]
+The identity is an accounting decomposition, not a novel decision theorem. Both policies have similar realized total invocations but can allocate them to different requests.
+
+**Table S10.5. F-aligned versus S-supervised choice changes and relative utility, post-G5 M3 DEV.**
+
+| Base | Different decisions | F-only Memory calls | S-only Memory calls | Mean $\Delta_F$ on F-only requests | Mean $\Delta_F$ on S-only requests |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| SASRec | 10,672 (21.32%) | 5,350 | 5,322 | 0.133417 | 0.076194 |
+| GRU4Rec | 11,517 (23.01%) | 5,639 | 5,878 | 0.126600 | 0.079135 |
+
+For SASRec, the added-call contributions average $+0.014262$ full-ranking NDCG across all 50,049 events, offset by $-0.008102$ from calls removed, for an exact net $+0.006159$ (paired user 95% CI [0.004835, 0.007543]). The corresponding GRU4Rec contributions are $+0.014264$ and $-0.009294$, yielding $+0.004970$ (CI [0.003550, 0.006369]). These are naturally realized calls, not strictly equal-budget causal treatments. Corrected-S was not fitted: the target-retained 574-negative-without-replacement construction is documented, but the existing scalar sampled top-10 labels do not by themselves establish a justified ranking-utility correction estimator with the necessary rank/score information and assumptions. In particular, it would be incorrect to relabel supervision that uses full-active outer-training outcomes as S-only correction.
+
+## S10.10 Paired historical-source by candidate-regime interaction
+
+The same matched DEV events permit estimation of a *fixed knowledge-source utility* interaction, distinct from the nested *decision-regret* interactions presented above. Define $d_{F,i}=u_F(M_{\mathrm{Full}},i)-u_F(M_{\mathrm{Long}},i)$ and $d_{S,i}=u_S(M_{\mathrm{Full}},i)-u_S(M_{\mathrm{Long}},i)$, where Full retains the original 0.10/0.45/0.45 mixture and Long-only the original long component. The paired interaction $I_i=d_{F,i}-d_{S,i}$ is averaged across 50,049 identical ranked targets; 95% percentile intervals resample **12,628 users**, with 2,000 user-cluster draws.
+
+**Table S10.6. Fixed-source knowledge utility and candidate-regime dependence on matched author requests.**
+
+| Estimand | Mean event NDCG@10 | 95% user-cluster interval |
+| --- | ---: | --- |
+| Full minus Long-only, full-active F | +0.010278 | [+0.007906, +0.012668] |
+| Full minus Long-only, target-retained sampled S | −0.105104 | [−0.108326, −0.101683] |
+| Source × regime interaction, F minus S gap | +0.115382 | [+0.111724, +0.119065] |
+
+The interaction is heterogeneous across pre-outcome user history strata: the mean across quartiles of distinct historical creators is approximately 0.048267, 0.106528, 0.130050 and 0.176801. These are descriptive subdivisions of the **same** DEV sample, not independent experiments or identified causal moderators. The top-10 event metric has substantial exact-zero mass: 46,462 events have a zero Full-minus-Long difference in at least one regime, 27,800 have a three-way sign-category difference including zero, and only 66 have strictly opposite **nonzero** source-gap signs. The mean source ordering reversal must therefore not be interpreted as widespread event-level positive-to-negative switches.
+
+## S10.11 Conditional net decision value under hypothetical use costs
+
+The empirical A1 quality--call curve was evaluated against all alternative A1 invocation-limit policies and the fixed Always Base/Always Memory endpoints, using the **actual outer-call rate** $q(\pi)$:
+\[
+J_{\lambda}(\pi)=V_F(\pi)-\lambda q(\pi).
+\]
+Here $\lambda\geq0$ is an assumed shadow price in units of expected ranking NDCG per additional Memory call. This analysis sets incremental full-path gate overhead to **zero only for the hypothetical envelope calculation**, and does not measure monetary, energy or production-latency costs.
+
+Over the observed-policy upper envelope, the 30%-inner-limit policy is optimal for $\lambda\in[0.084516,0.111321]$ on SASRec and $\lambda\in[0.083119,0.104379]$ on GRU4Rec. At zero shadow cost, Always Memory maximizes the observed M3 DEV ranking quality. Other budget-limited policies dominate at other assumed shadow-price intervals; the complete machine-readable policy envelope is archived in \`N9_G1_E2_SHADOW_PRICE_ENVELOPE_PUBLIC_AGGREGATE_2026-10-13.json\`. These thresholds are point estimates from the existing 50,049 DEV events. The public A1 per-arm aggregates do not preserve the joint user-level score covariance needed to bootstrap uncertainty around frontier switch points; no confidence interval for $\lambda$ is inferred.
+
+## S10.12 Time- and activity-preserving relation-null feasibility
+
+To examine whether a credible historical-identity placebo could avoid the near-zero utility of the B2 score-placement shift, a separate exploratory pilot selected 128 late-period DEV requests involving 126 users **by their pre-outcome timestamps**. It used 547,992 earlier historical events for those users. Within hourly bins completed before the earliest selected request, pairs of viewer--creator interaction author labels were exchanged only when the two viewers differed, the two authors differed, and both authors were active at *both* original interaction times according to the sealed room-availability intervals. This preserves each user's event timestamps/count and exact per-hour author event marginals within the selected prefix. The deterministic pilot rewired 63,619 pairs (127,238 events, 23.22% of the pilot histories). Original Full and Long-only Memory F/S scores reproduced the fixed B1/B2 event scores before manipulation.
+
+For these **pilot events only**, Full Memory under full-active F yielded 0.396585 NDCG@10 before the relation-identity intervention and 0.384386 afterward. Under retrospective sampled S the corresponding values were 0.661360 and 0.669835. The latter comparison reverses direction and is not evidence of a uniform identity-specific advantage. The placebo remained far above the F popularity-only 0.037155 baseline, with positive full-ranking NDCG on 68 of 128 null-scored requests (72 of 128 original). Thus the predeclared non-floor feasibility gate passed.
+
+The intervention is restricted to an historical prefix of selected users, and these 128 late-period DEV requests have no independent inferential interval or independent TEST status. A full 50,049-event relation-identity study would need to prevent same-hour future-history swaps from affecting earlier requests; such a temporally valid full-cohort analysis was **not performed**. The pilot confirms control feasibility, not causal historical relation-identity specificity. These scope restrictions are essential when interpreting the aggregate source interaction above.
