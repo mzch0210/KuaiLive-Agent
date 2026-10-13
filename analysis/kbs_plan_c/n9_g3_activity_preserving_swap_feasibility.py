@@ -66,20 +66,19 @@ def main():
  if len(intervals)==0:raise RuntimeError("No matched roster intervals")
  by_author={}
  for author,sub in intervals.groupby('author_id'):
-  s=np.sort(sub[['start','finish']].to_numpy(),axis=0)
   # Sort by starts and allow overlapping active intervals.
-  starts=sub.start.astype('int64').to_numpy()
-  closes=sub.finish.astype('int64').to_numpy()
+  starts=sub.start.dt.as_unit('ns').astype('int64').to_numpy()
+  closes=sub.finish.dt.as_unit('ns').astype('int64').to_numpy()
   order=np.argsort(starts)
   ss=starts[order];max_end=np.maximum.accumulate(closes[order])
   by_author[author]=(ss,max_end)
- stamp=df.ts.astype('int64').to_numpy()
+ stamp=df.ts.dt.as_unit('ns').astype('int64').to_numpy()
  def available(author,at):
   u=by_author.get(author)
   if u is None:return False
   starts,ends=u
   k=int(np.searchsorted(starts,at,side='right'))-1
-  return k>=0 and ends[k]>=at
+  return k>=0 and ends[k]>at
  hour=(stamp//(3600*10**9)).astype(np.int64)
  slots=defaultdict(list)
  for i,key in enumerate(hour):slots[int(key)].append(i)
