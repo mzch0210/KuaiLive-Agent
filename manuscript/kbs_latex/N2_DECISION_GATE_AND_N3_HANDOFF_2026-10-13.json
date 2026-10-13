@@ -1,0 +1,97 @@
+{
+  "schema": "kuailive-kbs-n2-experiment-decision-v1",
+  "date": "2026-10-13",
+  "status": {
+    "N2": "PASS_DECISION_ONLY",
+    "manuscript_submission": "HOLD",
+    "can_start_N3": true,
+    "original_G5_unchanged": true,
+    "experiments_run_in_N2": false,
+    "new_independent_holdout_verified": false
+  },
+  "source_lock": {
+    "repository": "mzch0210/KuaiLive-Agent",
+    "parent_commit": "06a6ffaac8720840c75cdfc7f9fcd761908ac535",
+    "main_tex_blob": "f46540dce8b076e08937e8f5912048eeff994ad1",
+    "combined_S1_S9_blob": "3f9413f8ffe2a2ff1ef70640a3820d81b281055f",
+    "G4_blob": "dc3d345e5142592d07f35bc69afb6d107fd15306",
+    "G5_blob": "114a2f1fbeda904578e799d48ece410f7ff765dc"
+  },
+  "main_scientific_position": "Plan A: fixed external Memory marginal top-K value under specified Base and candidate context, decision quality under stipulated call constraints",
+  "hard_claim_exclusions": [
+    "general new learning-to-defer theorem",
+    "production serving speedup",
+    "always memory worse than utility in M3",
+    "exactly matched M3 TEST calls",
+    "superiority to full DS-Frame or full GUIDER",
+    "same 6 M3 fitted bases as independent TEST cohorts",
+    "new confirmatory on previously inspected G5 TEST"
+  ],
+  "decisions": [
+    {
+      "id": "N2-D1",
+      "decision": "GO_DEV_EXPLORATORY",
+      "priority": "P0 scientific comparison",
+      "blocks_N3": false
+    },
+    {
+      "id": "N2-D2",
+      "decision": "NO_GO_FOR_DEPLOYMENT_CLAIM",
+      "priority": "P0 deployment premise",
+      "blocks_N3": false
+    },
+    {
+      "id": "N2-D3",
+      "decision": "CONDITIONAL_GO",
+      "priority": "P1",
+      "blocks_N3": false
+    },
+    {
+      "id": "N2-D4",
+      "decision": "GO_PROTOCOL_ONLY",
+      "priority": "P1",
+      "blocks_N3": false
+    },
+    {
+      "id": "N2-D5",
+      "decision": "NO_GO_IMMEDIATE",
+      "priority": "P2",
+      "blocks_N3": false
+    },
+    {
+      "id": "N2-D6",
+      "decision": "NO_GO_MAIN",
+      "priority": "P2",
+      "blocks_N3": false
+    },
+    {
+      "id": "N2-D7",
+      "decision": "MANDATORY_BY_N8",
+      "priority": "P1 governance",
+      "blocks_N3": false
+    }
+  ],
+  "go_dev_exploratory_requires": [
+    "private DEV cache SHA confirmation",
+    "nested user-disjoint evaluation",
+    "same fixed B/M and pre-outcome features",
+    "no G5 TEST reads",
+    "no alteration to G5 original inference family",
+    "new source code/protocol acceptance",
+    "artifact provenance",
+    "user authorization for new experimental execution"
+  ],
+  "future_claim_upgrade_requires": [
+    "new lawful independently unexamined ranking cohort or task",
+    "design and policies frozen before outcome reveal",
+    "same event/candidate policy and separately justified call constraint",
+    "independent peer/author review"
+  ],
+  "needs_human_author_decisions": [
+    "real Memory call/permission price if any",
+    "rights to publish host model and event-level data",
+    "new time-period or new dataset access",
+    "paper methodological contribution strength risk tolerance"
+  ],
+  "stage_handoff": "N3 existing evidence discovery-first Results rewrite may start now; optional DEV D1 does not automatically enter primary results."
+}
