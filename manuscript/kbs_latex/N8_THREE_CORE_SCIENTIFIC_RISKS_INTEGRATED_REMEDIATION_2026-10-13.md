@@ -173,3 +173,11 @@ The recommendation to run B0→B1 has now been implemented. **B0 PASS**, **B1-1 
 - **R3 status is now PARTIALLY MITIGATED**: the formerly missing RQ2→RQ3 decision-quality link has been examined and supported on a single shared M3 DEV cohort. The remaining major test is **B2 knowledge-origin specificity** (Short/Long/popularity/relationship placebo) and, conditional on its outcome, a truly new unseen independent TEST. R1 novelty remains an editorial substantive question; R2 actual cost remains open.
 
 **No main article, supplemental paper package, G5 original TEST or R0 registered claim was altered by B1.**
+
+## B2 progress and evidence-tier safeguard — 2026-10-13
+
+**B2-1 128-event DEV full/sampled exact score parity: PASS. B2-2 all 50,049 DEV five-memory-source rankings: COMPUTED AND INTERNALLY VERIFIED** in 161.97 s, with zero Full-Memory F and S differences from original G3/B1 frozen DEV caches. Source/log evidence and the remaining artifact-delivery issue are documented in [B2 full DEV ablation audit](../../experiments/kbs_plan_c/B2_FULL_DEV_FIVE_SOURCE_ABLATION_RESULTS_AND_PENDING_GATE_2026-10-13.md).
+
+F ranking quality is Full 0.343509, Long-only 0.333231, Short-only 0.273839, Popularity-only 0.022215, history-placement placebo 0.007576. On target-retained sampled S: Full 0.668498, Long-only 0.773602, Short-only 0.407506, Popularity-only 0.197796, placebo 0.189571. **Long-only versus Full changes order by candidate regime**; but this is a ranker-score result, **not yet** a source-specific downstream selector-regret finding.
+
+The self-host source and schema verification both passed, but GitHub Actions `upload-artifact` subsequently failed with `ECONNRESET`. A recovery-only workflow was created that uses the already generated cached source without re-scoring. **B2-3 nested actual selection-quality and relationship-specific interaction testing has NOT run until its SHA-verified full source gate is published.** Do not upgrade this B2 partial evidence to independent confirmatory TEST or close R3 yet. Current R3 remains **PARTIALLY MITIGATED** from B1, B2-specific policy evidence pending. Original G5 TEST, N8 manuscript and supplement remain unchanged.
