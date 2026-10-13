@@ -1,0 +1,49 @@
+{
+  "schema": "kbs-n9-g0-source-eligibility-v1",
+  "date": "2026-10-13",
+  "phase": "POST_G5_EXPLORATORY_DEV_ONLY",
+  "baseline": {
+    "main_tex_blob": "774cece1e35951c2d50af12ac398eb9f3bd3ff74",
+    "supp_s1_s10_blob": "60d6ccb319f0229218d91b656408505df2630e70",
+    "G5_TEST_locked": true
+  },
+  "cohort": {
+    "ranking_unit": "author",
+    "events": 50049,
+    "unique_users": 12628,
+    "base_primary_seed": 20261012,
+    "outer_user_folds": 5,
+    "inner_user_folds": 4
+  },
+  "sources": {
+    "B1": {
+      "path": "$HOME/.cache/kuailive-agent-kbs/klm3_b1_full_dev_candidate_labels_seed20261012_v1/dev_pair_candidate_labels.csv",
+      "sha256": "37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea",
+      "prior_readonly_A0": "PASS"
+    },
+    "B2": {
+      "path": "$HOME/.cache/kuailive-agent-kbs/klm3_b2_full_dev_memory_source_ablation_seed20261013_v1/dev_memory_source_ablation_pairs.csv",
+      "digest_source": "local summary.json private_event_source_csv_sha256",
+      "prior_readonly_A0": "PASS"
+    },
+    "A1": {
+      "path": "experiments/kbs_plan_c/N9_A1_DECISION_FRONTIER_PUBLIC_AGGREGATE_2026-10-13.json",
+      "github_blob": "a40aed41a4217220db9024aa667107ba1ff8eb66"
+    }
+  },
+  "analysis": {
+    "E3a": "ELIGIBLE_PRIVATE_SOURCE_REHASH_REQUIRED_PER_RUN",
+    "E2": "ELIGIBLE_FROM_PUBLIC_A1_AGGREGATES",
+    "E1": "ELIGIBLE_ORIGINAL_B1_PARITY_REQUIRED_CORRECTION_CONDITIONAL",
+    "E3b": "PILOT_AND_RIGHTS_CONDITIONAL_NOT_AUTHORIZED"
+  },
+  "inferential_constraints": [
+    "same_50049_M3_DEV_no_new_TEST",
+    "paired_user_bootstrap_2000_seed_20261013",
+    "no_new_G5_Holm_family",
+    "outer_user_disjoint_not_future_chronological_TEST",
+    "actual_outer_calls_not_hard_equal"
+  ],
+  "status": "G0_PROTOCOL_FROZEN_PUBLIC_CONTRACT_PRIVATE_SOURCE_REHASH_ON_EXECUTION",
+  "submission": "HOLD"
+}
