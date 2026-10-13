@@ -1,0 +1,443 @@
+{
+  "schema": "kbs-b2-nested-dev-source-specificity-public-v1",
+  "created": "2026-10-13",
+  "evidence_tier": "POST_G5_EXPLORATORY_DEV_ONLY",
+  "run_id": 38369503457,
+  "source_run_head": "65ad160f47a4fa718e710eface07650d5f8279d9",
+  "report_sha256": "80aaa58e194a3e39188dc5807f2c3b913e1e5378df7dce254dbe3ca1d65e7d74",
+  "private_csv_rehashed_vs_private_source_manifest": true,
+  "n_events": 50049,
+  "n_users": 12628,
+  "outer_user_disjoint_folds": 5,
+  "inner_user_disjoint_folds": 4,
+  "no_G5_TEST_access": true,
+  "new_base_training": false,
+  "source_historical_variant_count": 5,
+  "result_panels": {
+    "all12_sasrec": {
+      "arms": {
+        "full": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.006159445485776394,
+            "user_bootstrap_CI95": [
+              0.004835203927918851,
+              0.0075427277029243775
+            ]
+          },
+          "F_to_F_NDCG": 0.3026580312702608,
+          "F_to_F_calls": 15016,
+          "S_to_F_NDCG": 0.2964985857844844,
+          "S_to_F_calls": 14988,
+          "always_memory_F": 0.34350918072958464
+        },
+        "long_only": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.010604519144594546,
+            "user_bootstrap_CI95": [
+              0.008745826754091602,
+              0.012487937850350893
+            ]
+          },
+          "F_to_F_NDCG": 0.29856169284909445,
+          "F_to_F_calls": 14782,
+          "S_to_F_NDCG": 0.2879571737044999,
+          "S_to_F_calls": 14992,
+          "always_memory_F": 0.3332313796946974
+        },
+        "popularity_only": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0,
+            "user_bootstrap_CI95": [
+              0,
+              0
+            ]
+          },
+          "F_to_F_NDCG": 0.2581674380731401,
+          "F_to_F_calls": 0,
+          "S_to_F_NDCG": 0.2581674380731401,
+          "S_to_F_calls": 1,
+          "always_memory_F": 0.022214897074988048
+        },
+        "relationship_shifted": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.000019625116170033384,
+            "user_bootstrap_CI95": [
+              0,
+              0.00005442448987506208
+            ]
+          },
+          "F_to_F_NDCG": 0.2581674380731401,
+          "F_to_F_calls": 0,
+          "S_to_F_NDCG": 0.25814781295697004,
+          "S_to_F_calls": 5,
+          "always_memory_F": 0.007576111282951383
+        },
+        "short_only": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.020693614064244213,
+            "user_bootstrap_CI95": [
+              0.01918894604950999,
+              0.022249110867670525
+            ]
+          },
+          "F_to_F_NDCG": 0.27942394279544597,
+          "F_to_F_calls": 14766,
+          "S_to_F_NDCG": 0.2587303287312018,
+          "S_to_F_calls": 171,
+          "always_memory_F": 0.27383922931160093
+        }
+      },
+      "base": "sasrec",
+      "feature_set": "all12",
+      "paired_source_regret_interactions": {
+        "full_regret_minus_long_only_regret": {
+          "paired_mean": -0.004445073658818152,
+          "user_bootstrap_CI95": [
+            -0.006390063994528214,
+            -0.002560769789751635
+          ]
+        },
+        "full_regret_minus_popularity_only_regret": {
+          "paired_mean": 0.006159445485776394,
+          "user_bootstrap_CI95": [
+            0.004835203927918851,
+            0.0075427277029243775
+          ]
+        },
+        "full_regret_minus_relationship_shifted_regret": {
+          "paired_mean": 0.006139820369606361,
+          "user_bootstrap_CI95": [
+            0.004820125903856594,
+            0.007529578522125452
+          ]
+        },
+        "full_regret_minus_short_only_regret": {
+          "paired_mean": -0.014534168578467817,
+          "user_bootstrap_CI95": [
+            -0.0163901522908926,
+            -0.012693311579197746
+          ]
+        }
+      }
+    },
+    "all12_gru4rec": {
+      "arms": {
+        "full": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.004969910358806818,
+            "user_bootstrap_CI95": [
+              0.003550090790878693,
+              0.006368715906666234
+            ]
+          },
+          "F_to_F_NDCG": 0.3030931582511879,
+          "F_to_F_calls": 14762,
+          "S_to_F_NDCG": 0.298123247892381,
+          "S_to_F_calls": 15001,
+          "always_memory_F": 0.34350918072958464
+        },
+        "long_only": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.010262061767934776,
+            "user_bootstrap_CI95": [
+              0.008508228452038122,
+              0.011887020098434644
+            ]
+          },
+          "F_to_F_NDCG": 0.3003739054847102,
+          "F_to_F_calls": 14944,
+          "S_to_F_NDCG": 0.2901118437167754,
+          "S_to_F_calls": 14913,
+          "always_memory_F": 0.3332313796946974
+        },
+        "popularity_only": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.000009990209594597294,
+            "user_bootstrap_CI95": [
+              0,
+              0.000030238417157965277
+            ]
+          },
+          "F_to_F_NDCG": 0.25897147127518616,
+          "F_to_F_calls": 0,
+          "S_to_F_NDCG": 0.2589614810655916,
+          "S_to_F_calls": 4,
+          "always_memory_F": 0.022214897074988048
+        },
+        "relationship_shifted": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.000013965713687306814,
+            "user_bootstrap_CI95": [
+              0,
+              0.00004232727279168805
+            ]
+          },
+          "F_to_F_NDCG": 0.25897147127518616,
+          "F_to_F_calls": 0,
+          "S_to_F_NDCG": 0.2589575055614988,
+          "S_to_F_calls": 2,
+          "always_memory_F": 0.007576111282951383
+        },
+        "short_only": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.020291201985727224,
+            "user_bootstrap_CI95": [
+              0.018616397686702472,
+              0.021905970391529365
+            ]
+          },
+          "F_to_F_NDCG": 0.2795851996681608,
+          "F_to_F_calls": 14851,
+          "S_to_F_NDCG": 0.2592939976824336,
+          "S_to_F_calls": 141,
+          "always_memory_F": 0.27383922931160093
+        }
+      },
+      "base": "gru4rec",
+      "feature_set": "all12",
+      "paired_source_regret_interactions": {
+        "full_regret_minus_long_only_regret": {
+          "paired_mean": -0.005292151409127956,
+          "user_bootstrap_CI95": [
+            -0.0070735303916022955,
+            -0.003480648578947491
+          ]
+        },
+        "full_regret_minus_popularity_only_regret": {
+          "paired_mean": 0.00495992014921222,
+          "user_bootstrap_CI95": [
+            0.0035470055159891275,
+            0.006359423626043356
+          ]
+        },
+        "full_regret_minus_relationship_shifted_regret": {
+          "paired_mean": 0.004955944645119511,
+          "user_bootstrap_CI95": [
+            0.0035351302240467764,
+            0.006355098631462969
+          ]
+        },
+        "full_regret_minus_short_only_regret": {
+          "paired_mean": -0.015321291626920407,
+          "user_bootstrap_CI95": [
+            -0.0172608836592439,
+            -0.013347526729956611
+          ]
+        }
+      }
+    },
+    "candidate_base_only_sasrec": {
+      "arms": {
+        "full": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.0018135504376842158,
+            "user_bootstrap_CI95": [
+              0.0007144017963555026,
+              0.0028914536992174777
+            ]
+          },
+          "F_to_F_NDCG": 0.296409678720036,
+          "F_to_F_calls": 14908,
+          "S_to_F_NDCG": 0.29459612828235177,
+          "S_to_F_calls": 14931,
+          "always_memory_F": 0.34350918072958464
+        },
+        "long_only": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": -0.00020996596329059874,
+            "user_bootstrap_CI95": [
+              -0.0013072024532784254,
+              0.0009018252855862808
+            ]
+          },
+          "F_to_F_NDCG": 0.2909672146393192,
+          "F_to_F_calls": 14842,
+          "S_to_F_NDCG": 0.2911771806026098,
+          "S_to_F_calls": 15054,
+          "always_memory_F": 0.3332313796946974
+        },
+        "popularity_only": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.000032059176069524194,
+            "user_bootstrap_CI95": [
+              0,
+              0.00008398059168229693
+            ]
+          },
+          "F_to_F_NDCG": 0.2581795168300204,
+          "F_to_F_calls": 30,
+          "S_to_F_NDCG": 0.2581474576539509,
+          "S_to_F_calls": 9,
+          "always_memory_F": 0.022214897074988048
+        },
+        "relationship_shifted": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0,
+            "user_bootstrap_CI95": [
+              0,
+              0
+            ]
+          },
+          "F_to_F_NDCG": 0.2581674380731401,
+          "F_to_F_calls": 9,
+          "S_to_F_NDCG": 0.2581674380731401,
+          "S_to_F_calls": 7,
+          "always_memory_F": 0.007576111282951383
+        },
+        "short_only": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.018902929115161626,
+            "user_bootstrap_CI95": [
+              0.01740383202470555,
+              0.02043931483138943
+            ]
+          },
+          "F_to_F_NDCG": 0.2772195661459567,
+          "F_to_F_calls": 14981,
+          "S_to_F_NDCG": 0.2583166370307952,
+          "S_to_F_calls": 58,
+          "always_memory_F": 0.27383922931160093
+        }
+      },
+      "base": "sasrec",
+      "feature_set": "candidate_base_only",
+      "paired_source_regret_interactions": {
+        "full_regret_minus_long_only_regret": {
+          "paired_mean": 0.0020235164009748154,
+          "user_bootstrap_CI95": [
+            0.0005424541634447789,
+            0.0034253022257846304
+          ]
+        },
+        "full_regret_minus_popularity_only_regret": {
+          "paired_mean": 0.0017814912616146918,
+          "user_bootstrap_CI95": [
+            0.0006767948385083572,
+            0.0028522143980461183
+          ]
+        },
+        "full_regret_minus_relationship_shifted_regret": {
+          "paired_mean": 0.0018135504376842158,
+          "user_bootstrap_CI95": [
+            0.0007144017963555026,
+            0.0028914536992174777
+          ]
+        },
+        "full_regret_minus_short_only_regret": {
+          "paired_mean": -0.01708937867747741,
+          "user_bootstrap_CI95": [
+            -0.01881733018716808,
+            -0.015480628499122502
+          ]
+        }
+      }
+    },
+    "candidate_base_only_gru4rec": {
+      "arms": {
+        "full": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.0016067363983028773,
+            "user_bootstrap_CI95": [
+              0.00046761183066323816,
+              0.002785831507295611
+            ]
+          },
+          "F_to_F_NDCG": 0.2986874354477111,
+          "F_to_F_calls": 15112,
+          "S_to_F_NDCG": 0.29708069904940826,
+          "S_to_F_calls": 14749,
+          "always_memory_F": 0.34350918072958464
+        },
+        "long_only": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.0014519760712331813,
+            "user_bootstrap_CI95": [
+              0.0003618359952186783,
+              0.0025357103227767962
+            ]
+          },
+          "F_to_F_NDCG": 0.29558214445057557,
+          "F_to_F_calls": 15030,
+          "S_to_F_NDCG": 0.29413016837934236,
+          "S_to_F_calls": 14997,
+          "always_memory_F": 0.3332313796946974
+        },
+        "popularity_only": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": -0.000002616031360695669,
+            "user_bootstrap_CI95": [
+              -0.000007986954978754091,
+              0
+            ]
+          },
+          "F_to_F_NDCG": 0.25896885524382546,
+          "F_to_F_calls": 20,
+          "S_to_F_NDCG": 0.25897147127518616,
+          "S_to_F_calls": 0,
+          "always_memory_F": 0.022214897074988048
+        },
+        "relationship_shifted": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0,
+            "user_bootstrap_CI95": [
+              0,
+              0
+            ]
+          },
+          "F_to_F_NDCG": 0.25897147127518616,
+          "F_to_F_calls": 2,
+          "S_to_F_NDCG": 0.25897147127518616,
+          "S_to_F_calls": 0,
+          "always_memory_F": 0.007576111282951383
+        },
+        "short_only": {
+          "F_minus_S_regret": {
+            "mean_F_NDCG10": 0.01777755312916869,
+            "user_bootstrap_CI95": [
+              0.016187453375860666,
+              0.01931084955480049
+            ]
+          },
+          "F_to_F_NDCG": 0.27691662055542005,
+          "F_to_F_calls": 15050,
+          "S_to_F_NDCG": 0.2591390674262514,
+          "S_to_F_calls": 173,
+          "always_memory_F": 0.27383922931160093
+        }
+      },
+      "base": "gru4rec",
+      "feature_set": "candidate_base_only",
+      "paired_source_regret_interactions": {
+        "full_regret_minus_long_only_regret": {
+          "paired_mean": 0.0001547603270696961,
+          "user_bootstrap_CI95": [
+            -0.00124857719144884,
+            0.0015206531547734701
+          ]
+        },
+        "full_regret_minus_popularity_only_regret": {
+          "paired_mean": 0.0016093524296635728,
+          "user_bootstrap_CI95": [
+            0.0004726405482276812,
+            0.002788450871370956
+          ]
+        },
+        "full_regret_minus_relationship_shifted_regret": {
+          "paired_mean": 0.0016067363983028773,
+          "user_bootstrap_CI95": [
+            0.00046761183066323816,
+            0.002785831507295611
+          ]
+        },
+        "full_regret_minus_short_only_regret": {
+          "paired_mean": -0.016170816730865813,
+          "user_bootstrap_CI95": [
+            -0.017941079252242913,
+            -0.014465691514622223
+          ]
+        }
+      }
+    }
+  },
+  "methodological_guard": "Full-memory label parity, one original B1 F/S cohort and same Base fits; 12 feature panel versus 6 feature candidate+Base-only panel; selective calls not exactly matched among arms. Strong estimates are exploratory user-bootstrap intervals; effects must not be treated as prospective online randomized intervention."
+}
