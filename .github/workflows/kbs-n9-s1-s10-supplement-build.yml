@@ -35,7 +35,7 @@ jobs:
           assert '50,049' in src and '12,628' in src
           assert 'target-retained' in src
           assert 'unrestricted' in src
-          assert len(re.findall(r'\*\*Table S10\\.[1-4]\\.',src))==4
+          assert sum(src.count('**Table S10.'+str(n)+'.') for n in range(1,5))==4
           print('N9 supplementary academic structure PASS',len(src))
           PY
       - name: Convert and check mathematical LaTeX source
