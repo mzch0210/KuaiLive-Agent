@@ -1,0 +1,125 @@
+name: KBS B2 nested DEV knowledge specificity and paired source contrasts
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/kbs_plan_c/B2_FULL_DEV_LABELS_PASS_GATE_2026-10-13.json'
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b2-knowledge-specificity
+  cancel-in-progress: false
+jobs:
+  hosted-protocol-and-frozen-input-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify full F and S parity precondition and B2 estimator code
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/{b2_nested_knowledge_specificity_dev.py,b1_nested_regime_transfer_dev.py,frozen_gate.py}
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          gate=json.loads(Path('experiments/kbs_plan_c/B2_FULL_DEV_LABELS_PASS_GATE_2026-10-13.json').read_text())
+          assert gate['status']=='B2_FULL_DEV_SOURCE_PASS'
+          assert gate['all_DEV_rows']==50049
+          assert gate['full_memory_F_rank_differences']==0
+          assert gate['full_memory_S_ndcg_differences']==0
+          assert gate['B2_test_accessed'] is False
+          assert len(gate['private_event_csv_SHA256'])==64
+          script=Path('analysis/kbs_plan_c/b2_nested_knowledge_specificity_dev.py').read_text()
+          for required in ('GroupKFold','full_regret_minus_','cluster_ci',
+                    'candidate_base_only','relationship_shifted','S_to_F','F_to_F',
+                    'new_TEST_opened' if False else 'test_accessed'):
+              assert required in script
+          assert 'test_cohort.parquet' not in script
+          print('B2 source parity proven before nested DEV selector fitting')
+          PY
+      - name: Verified source artifact to avoid self-host Git fetch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p b2-nested-source/analysis/kbs_plan_c
+          cp analysis/kbs_plan_c/{b2_nested_knowledge_specificity_dev.py,b1_nested_regime_transfer_dev.py,frozen_gate.py} b2-nested-source/analysis/kbs_plan_c/
+          (cd b2-nested-source && sha256sum analysis/kbs_plan_c/*.py > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b2-nested-verified-dev-source
+          path: b2-nested-source/
+          retention-days: 7
+          if-no-files-found: error
+  selfhost-nested-knowledge-selector-study:
+    needs: hosted-protocol-and-frozen-input-gate
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 120
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kbs-b2-nested-verified-dev-source
+          path: ${{ runner.temp }}/b2-nested-source
+      - name: Fit 5x4 DEV nested gates for five evidence variants and two predictor feature panels
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd "$RUNNER_TEMP/b2-nested-source" && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$RUNNER_TEMP/b2-nested-source/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          "$PY" -c 'import sklearn; assert sklearn.__version__.startswith("1.5.")'
+          "$PY" "$RUNNER_TEMP/b2-nested-source/analysis/kbs_plan_c/b2_nested_knowledge_specificity_dev.py" \
+            --source "$HOME/.cache/kuailive-agent-kbs/klm3_b2_full_dev_memory_source_ablation_seed20261013_v1" \
+            --out "$HOME/.cache/kuailive-agent-kbs/klm3_b2_nested_knowledge_specificity_seed20261013_v1"
+      - name: Check nested user-split, non-confirmatory scope and upload only public aggregate
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,pathlib
+          root=pathlib.Path.home()/'.cache/kuailive-agent-kbs'
+          p=root/'klm3_b2_nested_knowledge_specificity_seed20261013_v1/summary.json'
+          x=json.loads(p.read_text())
+          assert x['schema']=='kbs-b2-nested-user-group-knowledge-specificity-dev-v1'
+          assert x['scope']=='POST_G5_EXPLORATORY_DEV_ONLY'
+          assert x['n_events']==50049 and x['n_users']==12628
+          assert x['n_outer_folds']==5 and x['n_inner_folds']==4
+          assert not x['test_accessed'] and not x['base_retrained']
+          assert not x['any_claim_confirmatory'] and x['original_G5_test_unchanged']
+          assert set(x['outcomes'])=={'all12','candidate_base_only'}
+          for features in x['outcomes'].values():
+              assert set(features)=={'sasrec','gru4rec'}
+              for family in features.values():
+                  assert set(family)=={'full','long_only','short_only',
+                     'popularity_only','relationship_shifted',
+                     '_paired_source_specificity_regret_interactions'}
+                  for k,v in family.items():
+                      if k.startswith('_'): continue
+                      assert len(v['folds'])==5
+                      assert v['n_user_groups']==12628
+          approved={'schema','scope','n_events','n_users','n_outer_folds',
+            'n_inner_folds','max_inner_memory_calls','source_b2_private_SHA256',
+            'src_B1_F_and_S_locked','F_features_pretarget',
+            'history_free_featureset_has_only_candidate_count_and_base_score_descriptors',
+            'test_accessed','base_retrained','original_G5_test_unchanged',
+            'any_claim_confirmatory','fixed_hgb_max_iter',
+            'bootstrap_user_cluster_draws','outcomes'}
+          assert set(x)==approved
+          destination=pathlib.Path('b2-nested-public-aggregate')
+          destination.mkdir(exist_ok=True)
+          (destination/'summary.json').write_text(json.dumps(x,indent=2,sort_keys=True)+'\n')
+          print('Completed exploratory nested B2 knowledge specificity comparisons')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b2-nested-dev-knowledge-specificity-results
+          path: b2-nested-public-aggregate/summary.json
+          retention-days: 30
+          if-no-files-found: error
