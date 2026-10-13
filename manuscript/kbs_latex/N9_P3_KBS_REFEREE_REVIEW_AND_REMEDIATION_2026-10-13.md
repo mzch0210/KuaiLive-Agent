@@ -77,3 +77,11 @@ Journal and literature sources:
 - P3 may be **TECHNICAL QA PASS** after latest builds; **SUBMISSION READY** requires all human approvals and an acceptable bounded contribution statement.
 
 **Review recommendation:** continue with targeted, claim-bounded revision and author approvals; do not launch an algorithm-novelty project or claim the three academic risks have disappeared.
+
+## 6. Final 2026-10-13 post-edit automated verification
+
+The final eight-section main manuscript compiles successfully in [Actions #38385740136](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38385740136), PDF artifact **11805083249**. The final combined supplementary S1–S10 compiles in [Actions #38385758028](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38385758028), PDF artifact **11805871234**. Inspection of the latter PDF established **37 letter-size pages**, one page fewer than the earlier S10 preview after tightening duplicated source text. The paper's final main Git blob is `774cece1e35951c2d50af12ac398eb9f3bd3ff74`; final combined supplement Git blob is `60d6ccb319f0229218d91b656408505df2630e70`; bibliography blob is `30adb848df85cc1cb2e7a2d884afee376baf7841`.
+
+The final source scan confirmed eight main sections, **11 tables and two figures**, **56 unique labels** with zero dangling `ref/eqref` keys, zero missing citation keys relative to the current BibTeX, ten supplemental sections, four S10 captions, and unchanged S1–S9 text prefix. The bibliography now records Abbas–Hazen in the correct 2025 volume issue. The after-edit `GroupKFold` versus forward-time-TEST distinction and the 120-versus-200-iteration estimator clarification are present in the main manuscript.
+
+**Gate verdict: P3 TECHNICAL EDITORIAL QA PASS; scientific risk tier remains BOUNDED; publisher submission remains HOLD until accountable author declarations, rights checks and final human approval.**
