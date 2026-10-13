@@ -1,0 +1,57 @@
+name: KBS N9 G3 source-placebo data eligibility (metadata only)
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-n9-g3-relation-placebo-metadata-only.yml']
+permissions:
+  contents: read
+jobs:
+  metadata-only:
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 12
+    steps:
+      - name: Check sealed causal history and roster schema without reading outcome rows
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          from pathlib import Path
+          import json
+          import pyarrow.parquet as pq
+          root=Path.home()/'.cache/kuailive-agent-kbs'
+          g1=root/'klm3_plan_c_g1_v1'
+          idx=root/'klm3_g2_train_index_v1'
+          dev=root/'klm3_g2_dev_checkpoint_screen_v1'
+          source={
+              'causal_history':g1/'causal_stream_sealed.parquet',
+              'cohort_clock':g1/'dev_cohort.parquet',
+              'availability_intervals':g1/'available_room_intervals.parquet',
+              'author_index':idx/'authors.npy',
+              'dev_event_index':dev/'dev_source_event_ids.npy',
+          }
+          status={}
+          expected={
+             'causal_history':{'source_event_id','user_id','author_id','split'},
+             'cohort_clock':{'source_event_id','observed_at'}
+          }
+          for kind,path in source.items():
+              exists=path.is_file()
+              item={'present':exists}
+              if exists and path.suffix=='.parquet':
+                  pf=pq.ParquetFile(path)
+                  names=set(pf.schema_arrow.names)
+                  item['column_schema']=sorted(names)
+                  item['row_count']=pf.metadata.num_rows
+                  if kind in expected: item['expected_columns_present']=expected[kind].issubset(names)
+              status[kind]=item
+          ready=all(p['present'] for p in status.values()) and all(
+              status[k].get('expected_columns_present',False) for k in expected)
+          print(json.dumps({'G3_metadata_source_status':'STRUCTURE_ELIGIBLE' if ready else 'BLOCKED',
+            'source_types':status,
+            'not_verified':['dataset redistribution rights','time-bin degree-preserving edge swaps',
+              'non-floor memory scoring','full eligible candidate identities'],
+            'no_test_rows_or_outcomes_read':True,'no_model_training':True,'no_private_rows_exported':True,
+            'no_G3_pilot_executed':True},sort_keys=True))
+          PY
