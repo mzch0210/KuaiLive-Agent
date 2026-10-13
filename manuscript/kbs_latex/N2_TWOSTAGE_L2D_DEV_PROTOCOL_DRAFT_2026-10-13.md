@@ -14,6 +14,10 @@ Given a trained fixed recommender `B`, a transparent and fixed Memory ranker `M`
 - Gate action `a=1` selects Memory, `a=0` selects Base; when serving the two-stage learner requires inference of two regressors versus one, so **report gate latency if runtime advantages are even mentioned**.
 - Public references: Narasimhan et al. (NeurIPS 2022) https://proceedings.neurips.cc/paper_files/paper/2022/hash/bc8f76d9caadd48f77025b1c889d2e2d-Abstract.html ; Mozannar & Sontag (ICML 2020) https://proceedings.mlr.press/v119/mozannar20b.html . **This is an operational two-stage deferral-inspired comparator, not necessarily an implementation of every published algorithm or theorem.**
 
+## Estimand equivalence (scientific constraint)
+
+Conditional expectation is linear: `E[y_memory - y_base | Z] = E[y_memory | Z] - E[y_base | Z]`. The direct and separate-regression scores aim at the **same population estimand** and differ only in finite-data estimation, model-class fit, calibration and evaluation noise. A win for Direct is **not** a new general expert-selection theorem or a demonstration of superiority over published full L2D surrogate algorithms. The D1 claim remains a *bounded implementation comparison*; the distinctive manuscript science remains the fixed memory evidence-value and ranking-context analysis.
+
 ## Immutable input eligibility and leak guards
 
 1. Per-Base DEV file is the accepted G3/G4 `dev_full_active_pairs.csv` verified against source aggregate manifest SHA. Exactly **50,049** full-active author ranking events; `split == DEV`, valid unique `event_id`, valid `user_id`; same `memory_ndcg10`, family-specific `sasrec_ndcg10` or `gru4rec_ndcg10`.
