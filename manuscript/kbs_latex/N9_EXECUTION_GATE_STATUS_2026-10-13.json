@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-13",
+  "status": "PLAN_ONLY",
+  "stages": {
+    "A0": "READY",
+    "A1": "AFTER_A0",
+    "A2": "AFTER_A0",
+    "A3": "AFTER_A1_A2",
+    "P0": "READY",
+    "P1": "PARALLEL_A",
+    "P2": "AFTER_A3",
+    "P3": "AFTER_P2",
+    "T0": "METADATA_ONLY",
+    "T1": "HOLD",
+    "T2": "AUTHOR_SIGNOFF_OPEN"
+  },
+  "risks": {
+    "R1": "OPEN",
+    "R2": "OPEN",
+    "R3": "PARTIALLY_MITIGATED"
+  },
+  "B1_B2": "EXPLORATORY_DEV_COMPLETE_NOT_YET_IN_PAPER",
+  "old_TEST_modified": false,
+  "new_TEST_authorized": false,
+  "main_tex_modified": false,
+  "submission": "HOLD"
+}
