@@ -1,0 +1,393 @@
+{
+  "schema": "kbs-n9-g1-e3a-public-safe-aggregate-v1",
+  "run_id": 38388691201,
+  "evidence": "POST_G5_EXPLORATORY_DEV_ONLY",
+  "n_events": 50049,
+  "n_users": 12628,
+  "source_identity": "SHA_PASS",
+  "full_SOURCE_and_LONG_F_S_raw_event_comparison": true,
+  "global": {
+    "F_full_minus_long": {
+      "mean": 0.010277801034887233,
+      "paired_user_bootstrap_CI95": [
+        0.007906475877318095,
+        0.012667592125536791
+      ]
+    },
+    "S_full_minus_long": {
+      "mean": -0.10510406687540529,
+      "paired_user_bootstrap_CI95": [
+        -0.10832594559688022,
+        -0.10168294519411325
+      ]
+    },
+    "interaction_FminusS": {
+      "mean": 0.11538186791029255,
+      "paired_user_bootstrap_CI95": [
+        0.11172397451931325,
+        0.11906450562138284
+      ]
+    }
+  },
+  "sign_categories": {
+    "all_sign_category_differences_including_zero": 27800,
+    "negative_to_positive": 41,
+    "opposite_nonzero": 66,
+    "positive_to_negative": 25,
+    "zero_in_either": 46462
+  },
+  "strata": {
+    "x_candidate_log_count": [
+      {
+        "F_gap": 0.00894482709963463,
+        "S_gap": -0.10736787178635263,
+        "interval": "(9.547, 10.357]",
+        "n_events": 12518,
+        "n_users": 5800,
+        "quartile_index": 1,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.10969758744863412,
+            0.12279613344373405
+          ],
+          "events": 12518,
+          "mean": 0.11631269888598725,
+          "users": 5800
+        }
+      },
+      {
+        "F_gap": 0.00912511274474556,
+        "S_gap": -0.11643972672320028,
+        "interval": "(10.357, 10.427]",
+        "n_events": 12507,
+        "n_users": 6044,
+        "quartile_index": 2,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.11861978379502273,
+            0.13232138919118164
+          ],
+          "events": 12507,
+          "mean": 0.12556483946794583,
+          "users": 6044
+        }
+      },
+      {
+        "F_gap": 0.011389087577096677,
+        "S_gap": -0.09905938271547252,
+        "interval": "(10.427, 10.76]",
+        "n_events": 12512,
+        "n_users": 6414,
+        "quartile_index": 3,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.10354055746237256,
+            0.11743432231508534
+          ],
+          "events": 12512,
+          "mean": 0.11044847029256918,
+          "users": 6414
+        }
+      },
+      {
+        "F_gap": 0.011652355298807428,
+        "S_gap": -0.09755273060761989,
+        "interval": "(10.76, 10.892]",
+        "n_events": 12512,
+        "n_users": 6455,
+        "quartile_index": 4,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.10288683660440506,
+            0.11600004915730848
+          ],
+          "events": 12512,
+          "mean": 0.10920508590642733,
+          "users": 6455
+        }
+      }
+    ],
+    "x_hist_distinct": [
+      {
+        "F_gap": -0.005972450395392493,
+        "S_gap": -0.054239237845910136,
+        "interval": "(1.999, 225.0]",
+        "n_events": 12519,
+        "n_users": 5955,
+        "quartile_index": 1,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.042245280130464774,
+            0.054230624836240145
+          ],
+          "events": 12519,
+          "mean": 0.04826678745051764,
+          "users": 5955
+        }
+      },
+      {
+        "F_gap": 0.009259310066248394,
+        "S_gap": -0.09726865677806824,
+        "interval": "(225.0, 484.0]",
+        "n_events": 12533,
+        "n_users": 3687,
+        "quartile_index": 2,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.09953349368514466,
+            0.11393924244956793
+          ],
+          "events": 12533,
+          "mean": 0.10652796684431663,
+          "users": 3687
+        }
+      },
+      {
+        "F_gap": 0.012912590886809348,
+        "S_gap": -0.1171369379434135,
+        "interval": "(484.0, 1017.0]",
+        "n_events": 12494,
+        "n_users": 2422,
+        "quartile_index": 3,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.12305772757270414,
+            0.1373718220588055
+          ],
+          "events": 12494,
+          "mean": 0.13004952883022286,
+          "users": 2422
+        }
+      },
+      {
+        "F_gap": 0.024936889298160656,
+        "S_gap": -0.15186398835396894,
+        "interval": "(1017.0, 17570.0]",
+        "n_events": 12503,
+        "n_users": 1242,
+        "quartile_index": 4,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.16833576034879555,
+            0.18487071191686802
+          ],
+          "events": 12503,
+          "mean": 0.1768008776521296,
+          "users": 1242
+        }
+      }
+    ],
+    "x_hist_event_count": [
+      {
+        "F_gap": 0.0046094773055956086,
+        "S_gap": -0.07271445976210276,
+        "interval": "(9.999, 1228.0]",
+        "n_events": 12518,
+        "n_users": 6959,
+        "quartile_index": 1,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.07130127686786662,
+            0.08334929348378513
+          ],
+          "events": 12518,
+          "mean": 0.07732393706769838,
+          "users": 6959
+        }
+      },
+      {
+        "F_gap": 0.010314257921565708,
+        "S_gap": -0.09926147957320872,
+        "interval": "(1228.0, 2694.0]",
+        "n_events": 12517,
+        "n_users": 3768,
+        "quartile_index": 2,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.10262767724330282,
+            0.11630216944106547
+          ],
+          "events": 12517,
+          "mean": 0.10957573749477442,
+          "users": 3768
+        }
+      },
+      {
+        "F_gap": 0.012620104200186739,
+        "S_gap": -0.11705184596604565,
+        "interval": "(2694.0, 5523.0]",
+        "n_events": 12502,
+        "n_users": 2093,
+        "quartile_index": 3,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.12232955130926203,
+            0.1373775769120025
+          ],
+          "events": 12502,
+          "mean": 0.1296719501662324,
+          "users": 2093
+        }
+      },
+      {
+        "F_gap": 0.013571940374732475,
+        "S_gap": -0.13141589815055957,
+        "interval": "(5523.0, 58226.0]",
+        "n_events": 12512,
+        "n_users": 877,
+        "quartile_index": 4,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.1362142295771385,
+            0.15376056165072985
+          ],
+          "events": 12512,
+          "mean": 0.14498783852529204,
+          "users": 877
+        }
+      }
+    ],
+    "x_hist_repeat_max": [
+      {
+        "F_gap": 0.023043861210833457,
+        "S_gap": -0.08484392384373456,
+        "interval": "(0.999, 78.0]",
+        "n_events": 12677,
+        "n_users": 5655,
+        "quartile_index": 1,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.10123786556827126,
+            0.11444188266509346
+          ],
+          "events": 12677,
+          "mean": 0.10788778505456802,
+          "users": 5655
+        }
+      },
+      {
+        "F_gap": 0.014373339774989153,
+        "S_gap": -0.10769220731283558,
+        "interval": "(78.0, 152.0]",
+        "n_events": 12383,
+        "n_users": 3760,
+        "quartile_index": 2,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.11531742425796553,
+            0.12953010284025654
+          ],
+          "events": 12383,
+          "mean": 0.12206554708782472,
+          "users": 3760
+        }
+      },
+      {
+        "F_gap": 0.008212489841520534,
+        "S_gap": -0.11676563736223779,
+        "interval": "(152.0, 310.0]",
+        "n_events": 12488,
+        "n_users": 2740,
+        "quartile_index": 3,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.11772519622069176,
+            0.13168558624630186
+          ],
+          "events": 12488,
+          "mean": 0.12497812720375834,
+          "users": 2740
+        }
+      },
+      {
+        "F_gap": -0.004661707395349466,
+        "S_gap": -0.11143629613196293,
+        "interval": "(310.0, 4727.0]",
+        "n_events": 12501,
+        "n_users": 1515,
+        "quartile_index": 4,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.09788081548096768,
+            0.11580695800506942
+          ],
+          "events": 12501,
+          "mean": 0.10677458873661347,
+          "users": 1515
+        }
+      }
+    ],
+    "x_sasrec_base_std": [
+      {
+        "F_gap": 0.009832352956935419,
+        "S_gap": -0.06768527026715022,
+        "interval": "(1.7080000000000002, 2.53]",
+        "n_events": 12513,
+        "n_users": 4626,
+        "quartile_index": 1,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.07114350120728442,
+            0.08392935756560733
+          ],
+          "events": 12513,
+          "mean": 0.07751762322408565,
+          "users": 4626
+        }
+      },
+      {
+        "F_gap": 0.015204683349127984,
+        "S_gap": -0.0992291994855388,
+        "interval": "(2.53, 2.692]",
+        "n_events": 12512,
+        "n_users": 5901,
+        "quartile_index": 2,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.1078564559778561,
+            0.12100115871857528
+          ],
+          "events": 12512,
+          "mean": 0.11443388283466678,
+          "users": 5901
+        }
+      },
+      {
+        "F_gap": 0.012580295011748285,
+        "S_gap": -0.1264817332873551,
+        "interval": "(2.692, 2.835]",
+        "n_events": 12512,
+        "n_users": 5945,
+        "quartile_index": 3,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.13167745663287764,
+            0.14584048829979804
+          ],
+          "events": 12512,
+          "mean": 0.13906202829910339,
+          "users": 5945
+        }
+      },
+      {
+        "F_gap": 0.003493908423405885,
+        "S_gap": -0.12702305509429831,
+        "interval": "(2.835, 3.476]",
+        "n_events": 12512,
+        "n_users": 4808,
+        "quartile_index": 4,
+        "source_candidate_interaction": {
+          "CI95": [
+            0.12333854768093447,
+            0.13793677377624636
+          ],
+          "events": 12512,
+          "mean": 0.13051696351770423,
+          "users": 4808
+        }
+      }
+    ]
+  },
+  "runtime_seconds": 0.85,
+  "no_TEST": true
+}
