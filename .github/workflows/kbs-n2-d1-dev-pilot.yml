@@ -1,0 +1,102 @@
+name: KBS N2 D1 nested DEV two-stage pilot (two Base families)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/kbs_plan_c/n2_d1_nested_dev_pilot.py'
+      - 'analysis/kbs_plan_c/test_n2_d1_nested_dev_pilot.py'
+      - '.github/workflows/kbs-n2-d1-dev-pilot.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-n2-d1-dev-pilot
+  cancel-in-progress: false
+jobs:
+  hosted-synthetic:
+    if: github.repository == 'mzch0210/KuaiLive-Agent'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install CPU-only gate dependencies and perform synthetic nested DEV checks
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --quiet 'numpy>=1.26,<3' 'pandas>=2.0,<3' 'scikit-learn>=1.5,<1.7'
+          PYTHONPATH=analysis/kbs_plan_c python -m unittest analysis/kbs_plan_c/test_n2_d1_nested_dev_pilot.py -v
+          python -m py_compile analysis/kbs_plan_c/n2_d1_nested_dev_pilot.py
+  private-user-host-dev-pilot:
+    needs: hosted-synthetic
+    if: github.repository == 'mzch0210/KuaiLive-Agent' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 175
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify private corrected 50,049-event DEV source and Python packages
+        run: |
+          set -euo pipefail
+          umask 077
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1/dev_full_active_pairs.csv"
+          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1/summary.json"
+          "$HOME/venvs/kuailive-gpu/bin/python" -c 'import pandas, numpy, sklearn; assert sklearn.__version__.startswith("1.5.")'
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,pathlib
+          root=pathlib.Path.home()/'.cache/kuailive-agent-kbs/klm3_g3_dev_fullactive_base_memory_corrected_v1'
+          m=json.loads((root/'summary.json').read_text())
+          assert m['schema']=='kbs-plan-c-full-active-dev-paired-v2'
+          assert m['n_scored']==50049
+          assert m['memory_corrected_from_all_history'] is True
+          assert m['test_file_accessed'] is False
+          print("Corrected DEV-only pilot source present; TEST not opened")
+          PY
+      - name: Independent synthetic guard on isolated User-host interpreter
+        run: |
+          set -euo pipefail
+          export PYTHONPATH=analysis/kbs_plan_c
+          export OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2
+          "$HOME/venvs/kuailive-gpu/bin/python" -m unittest analysis/kbs_plan_c/test_n2_d1_nested_dev_pilot.py -v
+      - name: Run only primary-seed SASRec and GRU4Rec nested DEV exploratory pilot
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH=analysis/kbs_plan_c
+          export OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
+          export PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          "$HOME/venvs/kuailive-gpu/bin/python" analysis/kbs_plan_c/n2_d1_nested_dev_pilot.py \
+            --source "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1" \
+            --out "$ROOT/klm3_n2_d1_nested_dev_primaryseed_v1"
+      - name: Export aggregates only; keep event rows and identities on private host
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p n2-d1-report
+          ROOT="$HOME/.cache/kuailive-agent-kbs/klm3_n2_d1_nested_dev_primaryseed_v1"
+          test -s "$ROOT/summary.json"
+          cp "$ROOT/summary.json" n2-d1-report/summary.json
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          x=json.load(open('n2-d1-report/summary.json'))
+          assert x['training_data_scope']=='DEV_ONLY'
+          assert x['scientific_status']=='EXPLORATORY_AFTER_G5'
+          assert x['G5_TEST_opened'] is False and not x['G5_policy_changed']
+          assert set(x['families'])=={'sasrec','gru4rec'}
+          for f in x['families'].values():
+              assert f['n_events']==50049 and f['outer_folds']==5 and f['inner_folds']==4
+          print('N2-D1 exploratory result verified (aggregates only)')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: kbs-n2-d1-primaryseed-two-stage-nested-dev-aggregate
+          path: n2-d1-report/summary.json
+          retention-days: 21
+          if-no-files-found: error
