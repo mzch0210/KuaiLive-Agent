@@ -1,6 +1,6 @@
 # N9–G5/G6 | Targeted decision-support scientific revision and submission QA
 
-**Date: 2026-10-13.** Scope: eight-section main article and integrated S1–S10. Scientific stance: *R1/R2/R3 BOUNDED, do not call them solved*. Main manuscript post-revision compile **PASS** ([Actions #38391955348](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38391955348)); supplementary compiled output to be confirmed after the latest Pandoc math correction. Submission remains HOLD.
+**Date: 2026-10-13.** Scope: eight-section main article and integrated S1–S10. Scientific stance: *R1/R2/R3 BOUNDED, do not call them solved*. Main manuscript post-revision compile **PASS** ([Actions #38391955348](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38391955348)); supplementary final 39-page XeLaTeX build **PASS** ([Actions #38392829047](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38392829047)). Submission remains HOLD.
 
 ## Evidence-first G5 article update
 
@@ -25,7 +25,7 @@ The new S1–S10 source `SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md` (blob `
 - Original Twitch TEST (44,221 events), original frozen M3 TEST (47,575 author events), their multiplicity family and old author's supplementary S1–S9 have not been re-executed, retuned or overwritten.
 - Retrospective offline target-retained S rankings are not passed as a deployable online candidate generator; five-by-four user-disjoint nested DEV is not a new forward-time TEST.
 - Original `G5` manuscript QA artifact remains historically preserved. New builds are separately versioned.
-- Initial S1–S10 Pandoc-to-LaTeX attempt failed because a newly introduced raw `\\[...\\]` math block was parsed incorrectly by the frozen Markdown configuration, leaving `\\mathbb` outside math mode. Source was corrected to Pandoc-supported `$$...$$` display math, with successful updated build confirmation pending.
+- Initial S1–S10 Pandoc-to-LaTeX attempt failed because a newly introduced raw `\\[...\\]` math block was parsed incorrectly by the frozen Markdown configuration, leaving `\\mathbb` outside math mode. Source was corrected to Pandoc-supported `$$...$$` display math, with final 39-page PDF build and fatal-error guard **PASS** after an explicit inline-math correction. Earlier failed builds are archived as debug attempts, not accepted evidence.
 
 ## Scientific and ethical HOLDs
 
@@ -35,3 +35,11 @@ The new S1–S10 source `SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md` (blob `
 4. **Submission HOLD:** publisher-specific AI-assisted scientific code/writing disclosures require human verification; data license and privacy release rights, named authorship/CRediT, conflicts, funding, ethics and author sign-off remain open.
 
 **Outcome:** proceed to G6 final PDF and academic claim check; preserve scientifically bounded decision-support contribution regardless of journal submission timing.
+
+## G6 verified final PDF artifacts and current technical status
+
+- **Main article:** GitHub Actions [#38391955348](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38391955348), SUCCESS; 36-page final PDF in [artifact 11809810243](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38391955348/artifacts/11809810243).
+- **S1–S10 integrated supplementary:** GitHub Actions [#38392829047](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38392829047), SUCCESS; 39-page final PDF in [artifact 11810671665](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38392829047/artifacts/11810671665). Structure, mathematical symbol, 36-caption table and fatal-error checks PASS.
+- Both artifacts are publisher-style previews, not evidence of author submissions or acceptance by KBS. Original frozen TEST, experimental sources, privacy restrictions and bounded scientific claims unchanged.
+
+**G6 TECHNICAL QA PASS; SUBMISSION HOLD for accountable human author rights, statements, journal checklist, and any author-chosen further confirmatory/temporal experiment.**
