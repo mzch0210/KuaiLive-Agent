@@ -1,0 +1,162 @@
+{
+  "schema": "kbs-n9-g2-e1-public-decision-switches-v1",
+  "run_id": 38389150075,
+  "evidence": "POST_G5_EXPLORATORY_DEV_ONLY",
+  "events": 50049,
+  "users": 12628,
+  "original_B1_arm_parity": true,
+  "corrected_S_branch": "NOT_RUN_REQUIRES_VALIDATED_ESTIMATOR",
+  "no_TEST": true,
+  "families": {
+    "gru4rec": {
+      "F_to_F": {
+        "Memory_calls": 14762,
+        "NDCG": 0.3030931582511879,
+        "actual_rate": 0.2949509480708905
+      },
+      "S_to_F": {
+        "Memory_calls": 15001,
+        "NDCG": 0.298123247892381,
+        "actual_rate": 0.299726268257108
+      },
+      "family": "gru4rec",
+      "n_events": 50049,
+      "n_users": 12628,
+      "original_B1_30pct_S_F_parity": true,
+      "outer_fold_metadata": [
+        {
+          "F_calls": 3015,
+          "S_calls": 2925,
+          "events": 10010,
+          "outer_fold": 1,
+          "users": 2525
+        },
+        {
+          "F_calls": 2967,
+          "S_calls": 3002,
+          "events": 10010,
+          "outer_fold": 2,
+          "users": 2526
+        },
+        {
+          "F_calls": 2890,
+          "S_calls": 2947,
+          "events": 10010,
+          "outer_fold": 3,
+          "users": 2526
+        },
+        {
+          "F_calls": 2974,
+          "S_calls": 3149,
+          "events": 10010,
+          "outer_fold": 4,
+          "users": 2526
+        },
+        {
+          "F_calls": 2916,
+          "S_calls": 2978,
+          "events": 10009,
+          "outer_fold": 5,
+          "users": 2525
+        }
+      ],
+      "policy_disagreement": {
+        "F_delta_on_switch_off": 0.07913538828850322,
+        "F_delta_on_switch_on": 0.12659990351263423,
+        "disagreement_event_quality_impact": 0.021597555226875266,
+        "events": 11517,
+        "gain_cluster_user_CI95": [
+          0.003550090790878693,
+          0.006368715906666234
+        ],
+        "net_gain_from_switch_off_event_avg": -0.009294048080077963,
+        "net_gain_on_switch_on_event_avg": 0.014263958438884781,
+        "rate": 0.2301144878019541,
+        "switch_off_F": 5878,
+        "switch_off_nonzero_utility": 2142,
+        "switch_on_F": 5639,
+        "switch_on_nonzero_utility": 2670,
+        "total_exact_F_policy_gain": 0.004969910358806818
+      },
+      "supervision_label_sign": {
+        "strict_nonzero_opposite": 145,
+        "three_class_difference_including_zero": 26937
+      }
+    },
+    "sasrec": {
+      "F_to_F": {
+        "Memory_calls": 15016,
+        "NDCG": 0.3026580312702608,
+        "actual_rate": 0.30002597454494595
+      },
+      "S_to_F": {
+        "Memory_calls": 14988,
+        "NDCG": 0.2964985857844844,
+        "actual_rate": 0.2994665228076485
+      },
+      "family": "sasrec",
+      "n_events": 50049,
+      "n_users": 12628,
+      "original_B1_30pct_S_F_parity": true,
+      "outer_fold_metadata": [
+        {
+          "F_calls": 3030,
+          "S_calls": 2999,
+          "events": 10010,
+          "outer_fold": 1,
+          "users": 2525
+        },
+        {
+          "F_calls": 3024,
+          "S_calls": 2915,
+          "events": 10010,
+          "outer_fold": 2,
+          "users": 2526
+        },
+        {
+          "F_calls": 3019,
+          "S_calls": 2976,
+          "events": 10010,
+          "outer_fold": 3,
+          "users": 2526
+        },
+        {
+          "F_calls": 3002,
+          "S_calls": 3202,
+          "events": 10010,
+          "outer_fold": 4,
+          "users": 2526
+        },
+        {
+          "F_calls": 2941,
+          "S_calls": 2896,
+          "events": 10009,
+          "outer_fold": 5,
+          "users": 2525
+        }
+      ],
+      "policy_disagreement": {
+        "F_delta_on_switch_off": 0.07619404772888617,
+        "F_delta_on_switch_on": 0.13341659983752427,
+        "disagreement_event_quality_impact": 0.028886252541006633,
+        "events": 10672,
+        "gain_cluster_user_CI95": [
+          0.004835203927918851,
+          0.0075427277029243775
+        ],
+        "net_gain_from_switch_off_event_avg": -0.008102154329020204,
+        "net_gain_on_switch_on_event_avg": 0.014261599814796598,
+        "rate": 0.21323103358708465,
+        "switch_off_F": 5322,
+        "switch_off_nonzero_utility": 1771,
+        "switch_on_F": 5350,
+        "switch_on_nonzero_utility": 2631,
+        "total_exact_F_policy_gain": 0.006159445485776395
+      },
+      "supervision_label_sign": {
+        "strict_nonzero_opposite": 157,
+        "three_class_difference_including_zero": 26941
+      }
+    }
+  }
+}
