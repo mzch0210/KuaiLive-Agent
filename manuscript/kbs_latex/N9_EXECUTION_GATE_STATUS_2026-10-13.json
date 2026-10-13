@@ -1,6 +1,6 @@
 {
   "date": "2026-10-13",
-  "status": "R0_A0_A1_A2_DECISION_ARMS_A3_BOUNDED_P0_P1_P2_TECHNICAL_PASS_P3_HOLD",
+  "status": "R0_A0_A1_A2_DECISION_A3_P0_P1_P2_P3_TECHNICAL_QA_PASS_SUBMISSION_HOLD",
   "stages": {
     "R0": "PASS",
     "A0": "PASS_PRIVATE_SHA_50049_DEV_12628_USERS",
@@ -10,15 +10,15 @@
     "P0": "PASS_SOURCE_REGISTER_AND_PRIVATE_SHA",
     "P1": "PASS_B1B2_MAIN_TEX_AND_S10_DRAFT_CREATED",
     "P2": "PASS_CANONICAL_MAIN_AND_NEW_S1_S10_SOURCE_BUILDS",
-    "P3": "INDEPENDENT_JOURNAL_REVIEW_AUTHOR_SIGNOFF_AND_FINAL_QA_HOLD",
+    "P3": "PASS_SCIENTIFIC_REFEREE_STYLE_REVIEW_AND_SOURCE_BUILD_QA_AUTHOR_ATTESTATION_HOLD",
     "T0": "NOT_AUTHORIZED_NEW_TEST_METADATA_ONLY",
     "T1": "HOLD_NO_ELIGIBLE_NEW_TEST",
-    "T2": "AUTHOR_SIGNOFF_OPEN"
+    "T2": "AUTHOR_OWNED_DECLARATIONS_AND_RIGHTS_NOT_SIGNED"
   },
   "risks": {
-    "R1": "BOUNDED_DECISION_SUPPORT_DIFFERENTIAL_PRIOR_ART_AND_FUSION_GAP",
-    "R2": "BOUNDED_DECISION_VALIDITY_OPERATIONAL_COST_HOLD",
-    "R3": "BOUNDED_PARTIAL_MITIGATION_SAME_POST_G5_DEV"
+    "R1": "BOUNDED_SCIENTIFIC_DIFFERENTIATION_NOT_ALGORITHM_NOVELTY",
+    "R2": "BOUNDED_WITHOUT_VALIDATED_PRODUCTION_RESOURCE_PREMISE",
+    "R3": "BOUNDED_SAME_COHORT_MECHANISM_NO_INDEPENDENT_NEW_TEST"
   },
   "B1_B2": "EXPLORATORY_DEV_RESULTS_IN_MAIN_TEX_AND_NEW_S1_S10_COMBINED_SUPPLEMENT",
   "old_TEST_modified": false,
@@ -39,48 +39,54 @@
     "original_main_blob": "40be249de52c0ae423b793c0dd4c55f2fdd69f46"
   },
   "dependency_blocks": [
-    "Original private corrected M3 DEV source and B1/B2 source CSV must be rehashed on authorized self-host runner",
-    "Per-candidate Base/Memory score arrays and candidate IDs needed for A2 score/rank fusion not publicly established",
-    "Do not treat B1/B2 paired user intervals as new G5 confirmatory tests",
-    "No authorized fresh unexposed lawful cohort for new TEST"
+    "A2 full raw score/rank fusion not executed; no verified per-candidate score and candidate roster parity",
+    "No new independently unexposed lawful TEST cohort or author-approved protocol",
+    "R3 source-specific causal placebo remains incomplete; no strict equal-call inference on large-drift arms",
+    "Real-world Memory-call scarcity, permission price and production latency advantage unverified",
+    "Human-authored and validated Elsevier AI disclosure and AI-supported code Methods description pending",
+    "Dataset version/license, data/privacy redistribution, CRediT, funding, conflicts and responsible authorship signoff pending"
   ],
   "P1_drafts": [
     "manuscript/kbs_latex/N9_P1_B1B2_MAIN_TABLES_AND_TEXT_DRAFT_2026-10-13.tex",
     "manuscript/kbs_latex/SUPPLEMENTARY_S10_B1B2_EXPLORATORY_DEV_DRAFT_2026-10-13.md"
   ],
   "current_sources": {
-    "main_tex_blob": "2d99f068dc6fc9dcb5085c0f398a71f46f1b6ffd",
+    "main_tex_blob": "774cece1e35951c2d50af12ac398eb9f3bd3ff74",
     "original_main_blob": "40be249de52c0ae423b793c0dd4c55f2fdd69f46",
     "supplement_new_path": "manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md",
     "original_s1_s9_blob": "f5575d29ac3de222a04f78b48698cae119eac0bf",
-    "supplement_new_blob": "4856be8aa2e92886922f9f1a0065e18fb13dbf9e"
+    "supplement_new_blob": "60d6ccb319f0229218d91b656408505df2630e70",
+    "bibliography_blob": "30adb848df85cc1cb2e7a2d884afee376baf7841"
   },
   "scientific_runs": {
     "A0": 38382393789,
     "A1": 38382693869,
     "A2": 38383262381,
-    "main_compile": 38383802641,
-    "supplement_pdf_qa": 38384252296
+    "main_compile": 38385740136,
+    "supplement_pdf_qa": 38385758028
   },
   "next_qa": [
-    "Confirm latest S1-S10 PDF build and inspect warnings/layout",
-    "One full cross-chapter source-to-claim and user-cluster statistical-scope review",
-    "Revisit no-full-score-fusion limitation without inventing data",
-    "Human-author data-rights, CRediT, AI disclosure, KBS submission portal sign-off"
+    "Human author audit final PDF text and author data/copyright approvals",
+    "Approve and insert accurate 2026 Elsevier AI-use declaration and where relevant Methods code-use statement",
+    "Confirm rights to release underlying datasets, derived artifacts, source, and anonymized reproducibility materials",
+    "Decide if targeted strong source placebo or independent holdout is justified and lawful; otherwise retain bounded thesis",
+    "Complete KBS-specific cover letter, highlights, graphical submissions and author approval"
   ],
   "verified_pdfs": {
     "main": {
-      "run_id": 38383802641,
-      "artifact_id": 11804004496,
+      "run_id": 38385740136,
+      "artifact_id": 11805083249,
       "build": "SUCCESS",
       "pages": 35
     },
     "supplement": {
-      "run_id": 38384252296,
-      "artifact_id": 11804803346,
+      "run_id": 38385758028,
+      "artifact_id": 11805871234,
       "build": "SUCCESS",
-      "tables": 34
+      "pages": 37
     }
   },
-  "p2_qa": "manuscript/kbs_latex/N9_P2_MANUSCRIPT_INTEGRATION_AND_BUILD_QA_2026-10-13.md"
+  "p2_qa": "manuscript/kbs_latex/N9_P2_MANUSCRIPT_INTEGRATION_AND_BUILD_QA_2026-10-13.md",
+  "p3_qa": "manuscript/kbs_latex/N9_P3_KBS_REFEREE_REVIEW_AND_REMEDIATION_2026-10-13.md",
+  "p3_author_gate": "manuscript/kbs_latex/N9_P3_AUTHOR_CONFIRMATIONS_AND_DISCLOSURE_DRAFT_2026-10-13.md"
 }
