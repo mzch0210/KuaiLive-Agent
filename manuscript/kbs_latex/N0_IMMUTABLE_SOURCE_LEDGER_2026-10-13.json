@@ -1,0 +1,244 @@
+{
+  "schema": "kbs-n0-immutable-scientific-source-ledger-v1",
+  "date": "2026-10-13",
+  "audit": "structural/evidence-map, not independent raw-event replay",
+  "baseline": {
+    "head_commit": "447362d60fe64da62509323319a7d156a40766d8",
+    "main_tex_sha": "f46540dce8b076e08937e8f5912048eeff994ad1",
+    "main_tex_lines": 646,
+    "supplement_combined_sha": "3f9413f8ffe2a2ff1ef70640a3820d81b281055f",
+    "supplement_sections": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
+    "main_bibliography_sha": "a33cb506fc2d08b422232a10e91a9d06c44044f5",
+    "main_sections": 8,
+    "main_figures": 2,
+    "main_tables": 9,
+    "text_units": 117,
+    "latex_unique_labels": 53,
+    "unresolved_crossref_names": 0
+  },
+  "sources": [
+    {
+      "path": "experiments/kbs_plan_c/G0F_PRETEST_PROTOCOL_2026-10-12.json",
+      "sha": "3c9abbd67e22a7096ac709acb257b568a7ca718a",
+      "priority": "registered-before-test"
+    },
+    {
+      "path": "experiments/kbs_plan_c/G5_PRETEST_SIX_BASE_FROZEN_REGISTRY_2026-10-12.json",
+      "sha": "f851aee3d364b5531771efbd1bef3cec122afde7",
+      "priority": "frozen-checkpoint-and-policy"
+    },
+    {
+      "path": "experiments/kbs_plan_c/G5_ONE_SHOT_TEST_RESULTS_AND_ACCEPTANCE_2026-10-12.md",
+      "sha": "114a2f1fbeda904578e799d48ece410f7ff765dc",
+      "priority": "original-test-aggregate-source"
+    },
+    {
+      "path": "experiments/kbs_plan_c/G4_EXTRA_SEED_FULL_ACTIVE_DEV_GATE_AND_COST_RESULTS_2026-10-12.md",
+      "sha": "dc3d345e5142592d07f35bc69afb6d107fd15306",
+      "priority": "warmed-offline-dev-cost"
+    },
+    {
+      "path": "manuscript/kbs_latex/R0_PLAN_C_CLAIM_PROTOCOL_EVIDENCE_MATRIX_2026-10-12.json",
+      "sha": "584276fa97c44ad12bd48cf1926b25b634452df1",
+      "priority": "accepted-12-row-claim-map"
+    },
+    {
+      "path": "KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md",
+      "sha": "3a8693c66f709d4dc7ce46962c7777a5d9cae079",
+      "priority": "original-room-retrospective"
+    },
+    {
+      "path": "manuscript/kbs_latex/SECTION6_STAGE3_P2_RESULTS_2026-10-10.md",
+      "sha": "d6c6086bc82c780c143b8d4104f539b9f2a7d535",
+      "priority": "original-room-posthoc-draw-sensitivity"
+    },
+    {
+      "path": "manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md",
+      "sha": "3f9413f8ffe2a2ff1ef70640a3820d81b281055f",
+      "priority": "canonical-combined-supplement"
+    },
+    {
+      "path": "manuscript/kbs_latex/R6_R0_P0_P1_ISSUE_CLOSURE_TRACKER_2026-10-12.json",
+      "sha": "e0d55204f7a894709d0073a229c378312233cdbc",
+      "priority": "historic-repair-audit-not-final-close"
+    },
+    {
+      "path": "manuscript/kbs_latex/R7_KBS_NOVELTY_REFEREE_ACCEPTANCE_2026-10-12.md",
+      "sha": "ac191dcc795f52fc1e5df2252ea9deeb18b86f2e",
+      "priority": "literature-novelty-internal-audit"
+    }
+  ],
+  "source_order_rule": "For conflicting scientific observations use frozen original G5/G0F artifacts and final accepted R0+R6, then canonical manuscript and supplement; historical G0–G4 reports are dated snapshots, not current TEST authority.",
+  "claim_rows": [
+    {
+      "id": "C1-T1",
+      "claim": "Fixed Memory's mean event utility is negative relative to Twitch LiveRec Base",
+      "source_role": "C1",
+      "source_environment": "Twitch/LiveRec",
+      "required_printed_markers": [
+        "0.58211",
+        "0.53980",
+        "-0.04232"
+      ],
+      "missing_main_markers": []
+    },
+    {
+      "id": "C1-T2",
+      "claim": "Previously interacted but invisible-to-Base targets have positive conditional Memory gain",
+      "source_role": "C1",
+      "source_environment": "Twitch/LiveRec",
+      "required_printed_markers": [
+        "5,539",
+        "+0.22045"
+      ],
+      "missing_main_markers": []
+    },
+    {
+      "id": "C2-K1",
+      "claim": "Matched same-event sampled versus full-active room candidate regime reverses Memory-minus-Base mean",
+      "source_role": "C2",
+      "source_environment": "original_KuaiLive",
+      "required_printed_markers": [
+        "10,222",
+        "-0.04120",
+        "+0.04631",
+        "+0.08751"
+      ],
+      "missing_main_markers": []
+    },
+    {
+      "id": "C2-K2",
+      "claim": "Crossed candidate membership and score-normalization reference allocation is descriptive",
+      "source_role": "C2",
+      "source_environment": "original_KuaiLive",
+      "required_printed_markers": [
+        "+0.08827",
+        "-0.00076"
+      ],
+      "missing_main_markers": []
+    },
+    {
+      "id": "C3-T1",
+      "claim": "DEV-frozen Twitch Utility surpasses Base and a retrospectively count-matched Difficulty policy",
+      "source_role": "C3",
+      "source_environment": "Twitch/LiveRec",
+      "required_printed_markers": [
+        "0.58983",
+        "0.58340",
+        "6,650",
+        "+0.00772"
+      ],
+      "missing_main_markers": []
+    },
+    {
+      "id": "C1-M3",
+      "claim": "Fixed Memory's mean utility exceeds each six Base fits under full-active author ranking",
+      "source_role": "C1",
+      "source_environment": "KuaiLive-M3",
+      "required_printed_markers": [
+        "0.34679",
+        "0.25800",
+        "0.26065"
+      ],
+      "missing_main_markers": []
+    },
+    {
+      "id": "C3-M3",
+      "claim": "DEV-frozen Utility outperforms four other DEV-frozen gate objectives under the M3 held-out protocol",
+      "source_role": "C3",
+      "source_environment": "KuaiLive-M3",
+      "required_printed_markers": [
+        "0.30287",
+        "0.28937",
+        "0.30177",
+        "0.30400"
+      ],
+      "missing_main_markers": []
+    },
+    {
+      "id": "STAT-M3",
+      "claim": "Frozen TEST three preregistered one-sided contrasts have positive paired user-cluster estimates",
+      "source_role": "C3",
+      "source_environment": "KuaiLive-M3",
+      "required_printed_markers": [
+        "5,000",
+        "Holm",
+        "12,533"
+      ],
+      "missing_main_markers": []
+    },
+    {
+      "id": "BUD-M3",
+      "claim": "DEV-optimized pointwise thresholds show realized TEST call-rate drift",
+      "source_role": "BUDGET",
+      "source_environment": "KuaiLive-M3",
+      "required_printed_markers": [
+        "35.47",
+        "29.21"
+      ],
+      "missing_main_markers": []
+    },
+    {
+      "id": "BUD-ORACLE",
+      "claim": "Budget-matched Oracle is a nondeployable retrospective upper bound",
+      "source_role": "C3",
+      "source_environment": "KuaiLive-M3",
+      "required_printed_markers": [
+        "0.38813",
+        "0.28464"
+      ],
+      "missing_main_markers": []
+    },
+    {
+      "id": "COST-M3",
+      "claim": "Warmed replay finds selective route slower than always Memory in M3 subset",
+      "source_role": "COST",
+      "source_environment": "KuaiLive-M3",
+      "required_printed_markers": [
+        "0.803",
+        "1.802",
+        "256"
+      ],
+      "missing_main_markers": []
+    },
+    {
+      "id": "FREEZE-M3",
+      "claim": "Frozen G5-A target-blind TEST predictions preceded label reveal and G5-B scoring",
+      "source_role": "INTEGRITY",
+      "source_environment": "KuaiLive-M3",
+      "required_printed_markers": [
+        "47,575",
+        "12,533",
+        "prequential"
+      ],
+      "missing_main_markers": []
+    }
+  ],
+  "claim_source_identity_coverage": {
+    "total": 12,
+    "with_source_ids": 12,
+    "with_display_marker_checks": 12,
+    "display_marker_check_missing": []
+  },
+  "immutable_rules": [
+    "no TEST-informed threshold refit",
+    "no change to original G5/A label blind ordering",
+    "no rebrand retrospective room sampled-vs-full analysis as independent frozen TEST",
+    "no global Holm 18 family assertion",
+    "no assertion that DEV <=30% enforces TEST <=30%",
+    "do not omit always Memory higher M3 accuracy and faster warmed DEV path",
+    "no new stable archive/DOI without author permission",
+    "no reinterpretation of old 94-paragraph audit as current-line source"
+  ],
+  "r0_issue_handoff": "All historical 12 issues remain pending final global article/source/audience audit; structural N0 does not mark any all-paper closed."
+}
