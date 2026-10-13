@@ -2,3 +2,11 @@
 
 Status: PLAN ONLY; frozen paper and G5 TEST unchanged.
 
+## P0 — Evidence freeze and claim-to-source map
+
+Audit every B1/B2 numeric result against source SHA, actual event/user counts, ranking unit and candidate regime. Separate original frozen Twitch/M3 TEST, retrospectively examined KuaiLive rooms, and **post-G5 exploratory M3 DEV**. B1 and B2 use the *same* 50,049 DEV events/12,628 users and are not independent replication. Deliver a claim–source–candidate–cohort–section register before changing the main text.
+
+## P1 — Academic tables and supplementary draft, parallel with A0–A2
+
+Prepare one compact B1 table: S→F, F→F and regime-adapted→F in SASRec and GRU4Rec, outer full-active NDCG, natural calls and paired user CIs. Adapted training uses full-active outer-training DEV labels and does not exceed F→F. Prepare one B2 source table: Full/Long/Short/Popularity/history-shifted under F and 575 target-retained sampled S; show Full/Long order reversal and selected source-policy comparisons. Short-only call-rate drift and weak-control floor effects cannot be hidden. Supplement needs nested 5×4 folds, corrected-history parity, 2000 bootstrap, 12/6 feature panels, and source/placebo caveats. Deliver TeX tables plus independent supplement draft. Do not call this new independent TEST.
+
