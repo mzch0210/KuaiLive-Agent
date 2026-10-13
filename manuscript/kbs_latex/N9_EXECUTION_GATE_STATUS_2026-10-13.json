@@ -1,6 +1,6 @@
 {
   "date": "2026-10-13",
-  "status": "R0_A0_A1_A2_DECISION_A3_P0_P1_P2_P3_TECHNICAL_QA_PASS_SUBMISSION_HOLD",
+  "status": "N9_POST_P3_G0_G6_TECHNICAL_PASS_THREE_SCIENTIFIC_RISKS_BOUNDED_SUBMISSION_HOLD",
   "stages": {
     "R0": "PASS",
     "A0": "PASS_PRIVATE_SHA_50049_DEV_12628_USERS",
@@ -55,7 +55,7 @@
     "original_main_blob": "40be249de52c0ae423b793c0dd4c55f2fdd69f46",
     "supplement_new_path": "manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md",
     "original_s1_s9_blob": "f5575d29ac3de222a04f78b48698cae119eac0bf",
-    "supplement_new_blob": "9577203f26d260fc778e20be8fcd1ca22142dd40",
+    "supplement_new_blob": "183971e05aa4341dee13a4a8237cc54b0553ae0c",
     "bibliography_blob": "30adb848df85cc1cb2e7a2d884afee376baf7841"
   },
   "scientific_runs": {
@@ -96,9 +96,9 @@
     "G2_E1": "PASS_EXACT_B1_PARITY_WITH_21_TO_23_PERCENT_DECISION_DISAGREEMENT_CORRECTED_S_HOLD",
     "G3_E3b": "PASS_128_DEV_TIME_AND_ACTIVITY_PRESERVED_NONFLOOR_PILOT_FULL_COHORT_NOT_PERFORMED",
     "G4": "PASS_BOUNDED_THREE_RISK_DECISION_SUPPORT_VERDICT",
-    "G5_G6": "MAIN_TEX_COMPILE_PASS_SUPPLEMENTARY_PANDOC_MATH_FIX_REBUILD_IN_PROGRESS"
+    "G5_G6": "PASS_MAIN_36_PAGES_SUPPLEMENT_39_PAGES_SCIENTIFIC_SOURCE_QA_AUTHOR_APPROVAL_HOLD"
   },
-  "next_plan_note": "Post-P3 targeted science G0-G4 completed, G3 nonfloor 128-event pilot not full causality; G5 main rebuilt and supplementary format fix under validation. No new original G5 TEST opened.",
+  "next_plan_note": "G0-G6 targeted research package complete: G3 128-event historical null passed nonfloor but full causality not run; G4 bounded risk verdict and G5/G6 paper builds passed. Submission HOLD due bounded science, ethical/AI/license and authorship approvals.",
   "next_research_runs": {
     "E3a": 38388691201,
     "E1": 38389150075,
@@ -108,7 +108,7 @@
     "G3_private_snapshot": 38391152867,
     "G3_null_ranking_pilot": 38391389532,
     "G5_main_compile": 38391955348,
-    "G5_supplement_rebuild": 38392398908
+    "G5_supplement_rebuild": 38392829047
   },
   "next_research_outputs": {
     "G0": "manuscript/kbs_latex/N9_G0_FROZEN_E1_E2_E3_CONTRAST_CONTRACT_2026-10-13.md",
@@ -123,5 +123,19 @@
     "R1": "BOUNDED_BUT_IMPROVED_REQUEST_SPECIFIC_DECISION_REALLOCATION_NOT_NEW_DEFER_THEORY",
     "R2": "BOUNDED_HYPOTHETICAL_SHADOW_PRICE_ONLY_ALWAYS_MEMORY_BETTER_AT_ZERO_COST",
     "R3": "BOUNDED_PAIRED_FIXED_SOURCE_CANDIDATE_INTERACTION_AND_NONFLOOR_128_DEV_HISTORICAL_ID_PILOT_FULL_TEST_NOT_DONE"
+  },
+  "next_research_pdfs": {
+    "main": {
+      "run": 38391955348,
+      "artifact": 11809810243,
+      "pages": 36,
+      "status": "SUCCESS"
+    },
+    "supplement": {
+      "run": 38392829047,
+      "artifact": 11810671665,
+      "pages": 39,
+      "status": "SUCCESS"
+    }
   }
 }
