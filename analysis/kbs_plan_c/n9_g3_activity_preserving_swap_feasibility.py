@@ -84,7 +84,15 @@ def main():
  slots=defaultdict(list)
  for i,key in enumerate(hour):slots[int(key)].append(i)
  bins=[np.asarray(v,dtype=np.int64) for v in slots.values() if len(v)>=2]
- if len(bins)<2:raise RuntimeError("Insufficient time bins")
+ print(json.dumps({'timestamp_debug':True,
+   'DEV_observed_dtype':str(source.observed_at.dtype),
+   'history_timestamp_dtype':str(df.ts.dtype),
+   'start_time_coarse':str(df.ts.min().date()),
+   'end_time_coarse':str(df.ts.max().date()),
+   'closed_prefix_history_rows':len(df),'unique_hour_slots':len(slots),
+   'num_multirow_hour_bins':len(bins),
+   'timestamp_null_count':int(df.ts.isna().sum())},sort_keys=True),flush=True)
+ if len(bins)<2:raise RuntimeError("Insufficient time bins; see timestamp debug aggregate")
  weights=np.asarray([len(x) for x in bins],dtype=float);weights/=weights.sum()
  original=df.author_id.to_numpy(copy=True);after=original.copy()
  uid=df.user_id.to_numpy()
