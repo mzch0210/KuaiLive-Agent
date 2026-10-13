@@ -100,6 +100,8 @@ Twitch Utility DEV-frozen TEST 同时胜过 Always Base/Memory；Difficulty TEST
 3. Calibration and context-ablation：candidate-context feature removal、support share、number vs composition；
 4. Negative results (when S→F matches or exceeds F→F) 必须完整报告。
 
+**跨制度预算公平的防泄漏约定：** 必须区分两类问题：（i）**纯 S→F 迁移**只能在 S 标签/样本上完成训练和阈值校准，F outer outcomes 和 F inner utility labels 均不可用于该迁移策略；报告其在 F 上自然实现的 calls 和 decision quality，不能谎称已经公平相同调用率。（ii）**F 上的可比预算/校准实验**可以单独、明确标记使用内层 F-DEV 的标签来校准所有策略，或仅使用无标签的 F 预测分数分布进行调用比例调整，但必须把这个条件定义为已经进行 regime adaptation，而非纯 transfer。共同 F outer heldout 的 outcome 只能用于最终评价。把质量－调用预算曲线与自然实际调用率同时报告，以免等次数事后重排被误写成可部署点位规则。
+
 **Scientific GO**：候选目标失配显著且具有实际意义地降低 full-active heldout gate choice quality（不能只出现 label/NDCG 表面符号翻转），候选感知方案在合理共享预算和同一外层用户验证中稳健减少损失；重复种子/其他划分支持方向，而不是仅一折微小差异。将实现的增量目标与最强 fixed strategy 共同展示，不仅比较 gate 间小优势。
 
 **NO-GO**：无转移损失、候选感知校准未超合理简单 baseline、效果仅来自 target-conditioned candidate 构造或 hindsight selection。则 RQ2 保留为测量协议诊断，不可升级成政策泛化机制。
