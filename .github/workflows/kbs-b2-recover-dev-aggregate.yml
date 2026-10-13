@@ -1,0 +1,67 @@
+name: KBS B2 recover already computed DEV source aggregates
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-b2-recover-dev-aggregate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b2-recovery-only
+  cancel-in-progress: false
+jobs:
+  verified-existing-summary-no-rescore:
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 12
+    steps:
+      - name: Independently attest persisted 50k DEV calculation from original files
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import hashlib,json,pathlib
+          root=pathlib.Path.home()/'.cache/kuailive-agent-kbs/klm3_b2_full_dev_memory_source_ablation_seed20261013_v1'
+          manifest=root/'summary.json'
+          data=root/'dev_memory_source_ablation_pairs.csv'
+          if not (manifest.is_file() and data.is_file()):
+              raise SystemExit("B2 full DEV result is missing; DO NOT rescore")
+          x=json.loads(manifest.read_text())
+          assert x['schema']=='kbs-b2-dev-relationship-source-ablation-v1'
+          assert x['status']=='PASS' and x['is_full_cohort']
+          assert x['n_events']==50049 and x['n_users']==12628
+          assert x['full_memory_nDCG_mismatches']=={'F':0,'S':0}
+          assert not x['new_TEST_opened'] and not x['models_retrained']
+          assert not x['private_ids_exported'] and not x['b2_nested_policy_fit']
+          assert x['source_b1_pair_sha256']=='37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea'
+          assert len(x['variants'])==5
+          h=hashlib.sha256()
+          with data.open('rb') as f:
+              for chunk in iter(lambda:f.read(8<<20),b''):
+                  h.update(chunk)
+          assert h.hexdigest()==x['private_event_source_csv_sha256']
+          allowed={'schema','scope','status','new_TEST_opened','models_retrained',
+            'private_ids_exported','candidate_labels_target_retained_offline_only',
+            'sampled_size','n_events','n_users','variants','full_memory_nDCG_mismatches',
+            'source_b1_pair_sha256','source_b1_original_F_sha256',
+            'relations_placement_shift_seed','relation_null_type','source_means',
+            'history_replay_events_scanned','wall_seconds','b2_nested_policy_fit',
+            'is_full_cohort','private_event_source_csv_sha256'}
+          assert set(x)==allowed
+          # Crucial: this is an aggregate, not an event-level data or credential dump.
+          print('B2_SAFE_AGGREGATE_JSON='+json.dumps(x,sort_keys=True,separators=(',',':')))
+          print('B2_REUSED_PRIVATE_CSV_SHA256='+h.hexdigest())
+          print('B2_RECOVERED_PERSISTED_COMPUTE_NO_NEW_SCORING=True')
+          dest=pathlib.Path('b2-recovered-aggregate')
+          dest.mkdir(exist_ok=True)
+          (dest/'summary.json').write_text(json.dumps(x,sort_keys=True,indent=2)+'\n')
+          PY
+      - name: Retry upload only; network failure does not invalidate prior computation
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: kbs-b2-existing-full-dev-aggregate-recovery
+          path: b2-recovered-aggregate/summary.json
+          retention-days: 30
+          if-no-files-found: error
