@@ -47,3 +47,9 @@ The post-G5 nested DEV Direct vs Two-stage sensitivity analysis has been prepare
 ## 6. Handoff decision
 
 **N7 main-manuscript scientific editing = PASS. N7 final combined supplement = HOLD. Overall N7 = PARTIAL**, with one precisely identified packaging task. The paper's original scientific evidence remains intact. N8 may start its independent reviewer-style audit, but **SUBMISSION READY must not be declared** until the addendum is correctly assembled and all N8 scientific, PDF and author-compliance checks are resolved.
+
+## N7-SUP-P1 final closure, superseding the earlier PARTIAL gate
+
+**13 October 2026 — FULL SOURCE/PACKAGE PASS.** Subsequent N8 work completed the open combined-supplement task that caused N7 PARTIAL. The original S7.7 addendum was inserted into the definitive combined S1–S9 between S7.6 and S8, with exactly one new Table S7.5 and unchanged G5 frozen comparisons. Combined source blob `f5575d29ac3de222a04f78b48698cae119eac0bf`. [Exact final supplementary build #38357256339](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38357256339) succeeded; final 34-page PDF SHA256 `96884692596c661bfb2d9d74f506582c042581cedc11ddf7b5f9764e6a75e522`. Main N7 PDF build #38344272685 also succeeded (31 pages). The original stage PARTIAL status above is **historical**; the N7-SUP-P1 file assembly item is now closed. **N7 scholarly-source and compilation status = PASS**.
+
+The post-G5 nested DEV analysis remains labeled exploratory in S7.7 and does not update S8's original confirmation. Note that closure of the supplement package does not close separate N8 originality, serving economics, authorship, disclosures, permanent legal data archiving, or portal compliance gates. See [N8 source and PDF QA](N8_SOURCE_PDF_AND_PUBLISHER_QA_2026-10-13.md) and [N8 independent-perspective reviewer report](N8_KBS_INDEPENDENT_REFEREE_REPORT_2026-10-13.md).
