@@ -42,7 +42,7 @@ Two features of live recommendation make this valuation especially informative. 
 
 These considerations define one connected research problem: characterize when a fixed relationship specialist adds ranking utility to its incumbent, determine whether a pre-outcome estimate of that increment can guide specialist use under an explicitly specified invocation-count constraint, and examine how the candidate regime shapes the value being estimated. We investigate these aspects in three complementary live-streaming protocols rather than treating them as interchangeable replications. Twitch/LiveRec tests streamer-level selection and retrospectively characterizes historical complementarity; original KuaiLive provides a paired, previously examined live-\emph{room} candidate-regime comparison; and KuaiLive-M3 evaluates author-level decisions on a separately frozen forward-time TEST cohort across independently trained SASRec and GRU4Rec incumbents \cite{rappaz2021liverec,qu2026kuailive}.
 
-The results demonstrate both the decision value and the scope of this comparison. On 44,221 Twitch TEST events, the DEV-frozen Utility selector improves NDCG@10 from $0.58211$ to $0.58983$ while invoking Memory on $15.04\%$ of requests. In KuaiLive-M3, the Utility objective improves on the specified alternative decision objectives in both NDCG and observed Memory-call frequency across six Base fits on a common 47,575-event TEST cohort. Meanwhile, the same 10,222 original KuaiLive room events exhibit a Memory--Base NDCG@10 reversal from $-0.04120$ with sampled-active candidates to $+0.04631$ with full-active candidates. M3's unconditional Memory ranker also achieves higher absolute NDCG than its selective policies; therefore, selection performance is interpreted under the stipulated Memory-invocation rule, not as an unconstrained accuracy or serving-latency improvement.
+Across two frozen selection tests, relative-utility guidance improves ranking compared with the specified alternative decision rules under their respective invocation designs. The paired original KuaiLive room evaluation separately demonstrates a sign reversal of measured Memory--Base value across candidate regimes. These findings connect the valuation of historical relationships with their conditional use; unconditional Memory remains a strong M3 reference when no specialist-call constraint is imposed.
 
 Our contributions form a cumulative account of relationship knowledge as a \emph{conditional ranking resource}:
 \begin{itemize}
@@ -78,7 +78,7 @@ Together, these literatures establish the technical precedents for representatio
 \section{Problem Formulation}
 \label{sec:problem}
 
-We study the incremental ranking value of a fixed relationship-memory specialist relative to a trained sequential recommender. The object of interest is an event-specific \emph{comparison} between two rankings of the same eligible candidates, rather than the intrinsic informativeness of a historical relationship in isolation. This comparison provides a supervision target for conditional specialist selection and a basis for interpreting candidate-regime effects.
+Let the value of a relationship-memory specialist be the change in event-level ranking utility obtained by replacing the designated trained incumbent on the same eligible candidates. This definition supplies an observable supervision target and a candidate-regime-specific basis for interpretation.
 
 \subsection{Recommendation Setting and Event-Level Ranking Utility}
 \label{sec:event-utility}
@@ -148,7 +148,7 @@ To interpret aggregate differences, let $S$ index mutually exclusive target-rela
     \,\mathbb{E}\!\left[\Delta_M(X)\mid S=s,R=r\right],
     \label{eq:regime-decomposition}
 \end{equation}
-where $\bar{\Delta}_r=\mathbb{E}[\Delta_M(X)\mid R=r]$. This accounting separates the frequency of the retrospectively defined states from the utility conditional on each state. A separate same-event candidate comparison examines the change in $\Delta_M$ when the ranking environment itself changes (Section~\ref{sec:exp-regimes}).
+where $\bar{\Delta}_r=\mathbb{E}[\Delta_M(X)\mid R=r]$. This separates the prevalence of retrospectively defined states from their state-conditional utility; the paired candidate-regime contrast is defined in Section~\ref{sec:exp-regimes}.
 
 
 \section{Base-Relative Evidence Valuation Framework}
@@ -232,13 +232,13 @@ At inference, the Base produces the default ranking and its observable score des
 \section{Experimental Setup}
 \label{sec:experimental-setup}
 
-The experiments connect complementary questions through three nonexchangeable live-streaming ranking tasks (Table~\ref{tab:exp-datasets}). Twitch tests whether relative-value prediction improves held-out streamer selection; the original KuaiLive task examines how candidate environments change a fixed room-ranking comparison; KuaiLive-M3 tests specialist decisions on independently frozen forward-time author-ranking events. Each numerical comparison uses the ranking unit and candidates specified for its own protocol.
+Table~\ref{tab:exp-datasets} defines the distinct ranked units, candidate sets and evaluation roles of the three protocols. All comparisons are evaluated within their designated task and candidate environment.
 
 \subsection{Datasets and Prediction Tasks}
 \label{sec:exp-data}
 
 \paragraph{Twitch/LiveRec.}
-We use the availability-aware LiveRec protocol to rank streamers at ten-minute observed activity steps \cite{rappaz2021liverec}. The filtered study has 46,878 DEV and 44,221 held-out TEST requests, each with one recorded relevant streamer. The Base has an input length of 16; eligible relationships precede the target step, and the Memory popularity reference uses training records. Recorded observation boundaries are not interpreted as exact physical session entry or exit times. The primary TEST examines a DEV-frozen Utility policy; alternative history timing assumptions are evaluated in Supplementary S1.
+We use the availability-aware LiveRec protocol to rank streamers at ten-minute observed activity steps \cite{rappaz2021liverec}. The filtered study has 46,878 DEV and 44,221 held-out TEST requests, each with one recorded relevant streamer. The Base has an input length of 16; eligible relationships precede the target step, and the Memory popularity reference uses training records. Recorded observation boundaries are not equated with physical session entry or exit times (Supplementary S1).
 
 \paragraph{Original KuaiLive.}
 We rank a time-bounded live \emph{room} using a Dual-ID Base and a specialist that aggregates histories through persistent creators \cite{qu2026kuailive}. A per-user chronological leave-last-two-out split yields 10,222 eligible users with paired development and previously examined test events. In the sampled-active regime, each target is ranked alongside 574 distinct contemporaneously active non-target rooms; the full-active regime includes the contemporaneous room roster. Session eligibility is defined by the recorded half-open time interval, with the observed positive retained where its source interval is inconsistent with its presence. The 575 candidates include the target; sampled non-targets are ranking alternatives, not verified negative preferences. The same 10,222 TEST targets are reused in the \emph{retrospective} paired candidate analysis.
