@@ -1,0 +1,61 @@
+{
+  "schema": "kbs-n8-final-status-and-submission-gate-v1",
+  "date": "2026-10-13",
+  "git_head": "fd6115d66926024d10c3cd08418a9f331e53d267",
+  "source_blobs": {
+    "main": "40be249de52c0ae423b793c0dd4c55f2fdd69f46",
+    "combined_supplement_s1_s9": "f5575d29ac3de222a04f78b48698cae119eac0bf",
+    "highlights_text": "6b95ea733f7c134c61f9901ef04b1043f4d78d0e"
+  },
+  "phase_status": {
+    "N0": "PASS",
+    "N1": "PASS",
+    "N2": "PASS_SCOPED_DECISIONS",
+    "N3": "PASS",
+    "N4": "PASS",
+    "N5": "PASS",
+    "N6": "PASS",
+    "N7": "PASS_AFTER_S7_7_MERGE",
+    "N8": "TECHNICAL_AND_INTERNAL_REVIEW_COMPLETE_SUBMISSION_HOLD"
+  },
+  "builds": {
+    "main": {
+      "run_id": 38344272685,
+      "artifact_id": 11788491619,
+      "pages": 31,
+      "sha256": "dfc91a943145485bcf7217d589580ba8df29ac6ebd6cd1dcba91d37a21ee4200"
+    },
+    "supplement": {
+      "run_id": 38357256339,
+      "artifact_id": 11793380796,
+      "pages": 34,
+      "sha256": "96884692596c661bfb2d9d74f506582c042581cedc11ddf7b5f9764e6a75e522"
+    }
+  },
+  "frozen_evidence": {
+    "R0_claims": 12,
+    "tracked_R0_issues": 12,
+    "original_G5_TEST_unmodified": true,
+    "post_G5_D1_exploratory_only": true
+  },
+  "scientific_residual_risks": [
+    "Novelty differential from established L2D/DS-Frame and knowledge routing, editorial-major",
+    "No independent real-world cost scarcity: Always Memory M3 higher absolute NDCG and lower warm path time",
+    "Stronger method-matched external baselines not implemented; no SOTA claim allowed"
+  ],
+  "hard_submission_blocks": [
+    "Author name/order/affiliation/CRediT signoff",
+    "Funding/competing interest confirmation",
+    "AI-assisted manuscript preparation disclosure, plus research-methods AI-use check where applicable",
+    "Dataset privacy, license, derived artifact redistributability and durable source archive",
+    "Live KBS Guide for Authors/portal requirements approval",
+    "Author-approved final PDF and independent private-source numerical verification"
+  ],
+  "reports": [
+    "N8_KBS_INDEPENDENT_REFEREE_REPORT_2026-10-13.md",
+    "N8_CLAIM_TO_SOURCE_FINAL_AUDIT_2026-10-13.json",
+    "N8_AUTHOR_SIGNOFF_AND_SUBMISSION_CHECKLIST_2026-10-13.md",
+    "N8_SOURCE_PDF_AND_PUBLISHER_QA_2026-10-13.md"
+  ],
+  "final_submission_status": "HOLD"
+}
