@@ -51,11 +51,11 @@
     "manuscript/kbs_latex/SUPPLEMENTARY_S10_B1B2_EXPLORATORY_DEV_DRAFT_2026-10-13.md"
   ],
   "current_sources": {
-    "main_tex_blob": "774cece1e35951c2d50af12ac398eb9f3bd3ff74",
+    "main_tex_blob": "dd57e309fca7ddd59f05d40512539d0ac31aa0c8",
     "original_main_blob": "40be249de52c0ae423b793c0dd4c55f2fdd69f46",
     "supplement_new_path": "manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md",
     "original_s1_s9_blob": "f5575d29ac3de222a04f78b48698cae119eac0bf",
-    "supplement_new_blob": "60d6ccb319f0229218d91b656408505df2630e70",
+    "supplement_new_blob": "9577203f26d260fc778e20be8fcd1ca22142dd40",
     "bibliography_blob": "30adb848df85cc1cb2e7a2d884afee376baf7841"
   },
   "scientific_runs": {
@@ -91,30 +91,37 @@
   "p3_author_gate": "manuscript/kbs_latex/N9_P3_AUTHOR_CONFIRMATIONS_AND_DISCLOSURE_DRAFT_2026-10-13.md",
   "next_research_plan": "manuscript/kbs_latex/N9_POST_P3_THREE_RISK_TARGETED_REVISION_PLAN_2026-10-13.md",
   "next_research_stages": {
-    "G0": "PASS_PROTOCOL_AND_SOURCE_CONTRASTS_FROZEN",
-    "G1_E3a_E2": "PASS_E3A_PAIRED_USER_INTERACTION_AND_E2_FULL_SHADOW_PRICE_ENVELOPE",
-    "G2_E1": "PASS_B1_EXACT_PARITY_AND_POLICY_DISAGREEMENT_DECOMPOSITION_CORRECTED_S_UNVALIDATED",
-    "G3_E3b": "METADATA_SOURCE_SCHEMA_PASS_PILOT_AND_RIGHTS_PENDING",
-    "G4": "NOT_STARTED_AWAIT_G3_ADJUDICATION_OR_JUSTIFIED_SKIP",
-    "G5_G6": "NOT_STARTED_MAIN_AND_S1_S10_UNCHANGED"
+    "G0": "PASS_FROZEN_EXPLORATORY_CONTRASTS",
+    "G1_E3a_E2": "PASS_PAIRED_SOURCE_CANDIDATE_INTERACTION_AND_SHADOW_PRICE_FRONTIER",
+    "G2_E1": "PASS_EXACT_B1_PARITY_WITH_21_TO_23_PERCENT_DECISION_DISAGREEMENT_CORRECTED_S_HOLD",
+    "G3_E3b": "PASS_128_DEV_TIME_AND_ACTIVITY_PRESERVED_NONFLOOR_PILOT_FULL_COHORT_NOT_PERFORMED",
+    "G4": "PASS_BOUNDED_THREE_RISK_DECISION_SUPPORT_VERDICT",
+    "G5_G6": "MAIN_TEX_COMPILE_PASS_SUPPLEMENTARY_PANDOC_MATH_FIX_REBUILD_IN_PROGRESS"
   },
-  "next_plan_note": "G0 G1 E2 E3a and G2 E1 completed on identical exploratory DEV; G3 metadata only. Preserve N9-P3 and G5 original TEST, postpone manuscript modification until G4.",
+  "next_plan_note": "Post-P3 targeted science G0-G4 completed, G3 nonfloor 128-event pilot not full causality; G5 main rebuilt and supplementary format fix under validation. No new original G5 TEST opened.",
   "next_research_runs": {
     "E3a": 38388691201,
     "E1": 38389150075,
     "G3_metadata": 38389532148,
-    "E2": "SOURCE_AGGREGATE_CPU_ONLY_NO_WORKFLOW"
+    "G3_time_structure": 38390243060,
+    "G3_strict_activity": 38390834055,
+    "G3_private_snapshot": 38391152867,
+    "G3_null_ranking_pilot": 38391389532,
+    "G5_main_compile": 38391955348,
+    "G5_supplement_rebuild": 38392398908
   },
   "next_research_outputs": {
     "G0": "manuscript/kbs_latex/N9_G0_FROZEN_E1_E2_E3_CONTRAST_CONTRACT_2026-10-13.md",
     "E2": "manuscript/kbs_latex/N9_G1_E2_SHADOW_PRICE_DECISION_ENVELOPE_2026-10-13.md",
     "E3a": "manuscript/kbs_latex/N9_G1_E3A_PAIRED_SOURCE_REGIME_INTERACTION_2026-10-13.md",
     "E1": "manuscript/kbs_latex/N9_G2_E1_SUPERVISION_DECISION_DECOMPOSITION_2026-10-13.md",
-    "G3": "manuscript/kbs_latex/N9_G3_HISTORY_PLACEBO_METADATA_AND_PILOT_GATE_2026-10-13.md"
+    "G3": "manuscript/kbs_latex/N9_G3_TIME_PRESERVING_RELATION_PLACEBO_PILOT_2026-10-13.md",
+    "G4": "manuscript/kbs_latex/N9_G4_THREE_RISK_EVIDENCE_VERDICT_2026-10-13.md",
+    "G5_G6": "manuscript/kbs_latex/N9_G5_G6_TARGETED_REVISION_AND_QA_2026-10-13.md"
   },
   "next_research_interim_verdict": {
-    "R1": "INCREASED_EMPIRICAL_DECISION_DIFFERENTIATION_21_TO_23_PERCENT_REQUEST_SWITCHES_NOT_YET_DISTINCT_FROM_GENERIC_SAMPLED_THEORY",
-    "R2": "HYPOTHETICAL_LINEAR_SHADOW_PRICE_REGION_DEMONSTRATED_REAL_RESOURCE_COST_UNVERIFIED",
-    "R3": "PAIRED_SOURCE_REGIME_INTERACTION_USER_CI_POSITIVE_ZERO_MASS_AND_RELATION_IDENTITY_CAUSAL_CONTROL_UNVERIFIED"
+    "R1": "BOUNDED_BUT_IMPROVED_REQUEST_SPECIFIC_DECISION_REALLOCATION_NOT_NEW_DEFER_THEORY",
+    "R2": "BOUNDED_HYPOTHETICAL_SHADOW_PRICE_ONLY_ALWAYS_MEMORY_BETTER_AT_ZERO_COST",
+    "R3": "BOUNDED_PAIRED_FIXED_SOURCE_CANDIDATE_INTERACTION_AND_NONFLOOR_128_DEV_HISTORICAL_ID_PILOT_FULL_TEST_NOT_DONE"
   }
 }
