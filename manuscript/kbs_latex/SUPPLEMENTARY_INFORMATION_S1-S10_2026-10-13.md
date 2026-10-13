@@ -915,10 +915,7 @@ The original Twitch/M3 frozen TEST results remain the independent decision evalu
 ## S10.9 Supervision-induced knowledge-use decisions
 
 The B1 F- and S-supervised policies were refitted with the original 12 pre-outcome features, 120-iteration HGB, five outer by four inner user-disjoint folds and at most 30% inner OOF Memory calls. Their original full-active NDCG and natural outer Memory-call totals reproduced exactly. On the same 50,049 full-active outer-held-out DEV author requests, we compute the policy disagreement probability $D_{S,F}=P(\pi_S(Z)\neq\pi_F(Z))$ and the identity
-$
-V_F(\pi_F)-V_F(\pi_S)
-=\mathbb{E}[(\pi_F(Z)-\pi_S(Z))\Delta_F(X)].
-$
+$V_F(\pi_F)-V_F(\pi_S)=\mathbb{E}[(\pi_F(Z)-\pi_S(Z))\Delta_F(X)]$.
 The identity is an accounting decomposition, not a novel decision theorem. Both policies have similar realized total invocations but can allocate them to different requests.
 
 **Table S10.5. F-aligned versus S-supervised choice changes and relative utility, post-G5 M3 DEV.**
@@ -947,9 +944,7 @@ The interaction is heterogeneous across pre-outcome user history strata: the mea
 ## S10.11 Conditional net decision value under hypothetical use costs
 
 The empirical A1 quality--call curve was evaluated against all alternative A1 invocation-limit policies and the fixed Always Base/Always Memory endpoints, using the **actual outer-call rate** $q(\pi)$:
-$
-J_{\lambda}(\pi)=V_F(\pi)-\lambda q(\pi).
-$
+$J_{\lambda}(\pi)=V_F(\pi)-\lambda q(\pi)$.
 Here $\lambda\geq0$ is an assumed shadow price in units of expected ranking NDCG per additional Memory call. This analysis sets incremental full-path gate overhead to **zero only for the hypothetical envelope calculation**, and does not measure monetary, energy or production-latency costs.
 
 Over the observed-policy upper envelope, the 30%-inner-limit policy is optimal for $\lambda\in[0.084516,0.111321]$ on SASRec and $\lambda\in[0.083119,0.104379]$ on GRU4Rec. At zero shadow cost, Always Memory maximizes the observed M3 DEV ranking quality. Other budget-limited policies dominate at other assumed shadow-price intervals; the complete machine-readable policy envelope is archived in \`N9_G1_E2_SHADOW_PRICE_ENVELOPE_PUBLIC_AGGREGATE_2026-10-13.json\`. These thresholds are point estimates from the existing 50,049 DEV events. The public A1 per-arm aggregates do not preserve the joint user-level score covariance needed to bootstrap uncertainty around frontier switch points; no confidence interval for $\lambda$ is inferred.
