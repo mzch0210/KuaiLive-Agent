@@ -35,23 +35,52 @@ jobs:
           assert 'torch.load' not in s
           print('B0 source is DEV-only and contains no training or TEST-reader logic')
           PY
+      - name: Package immutable B0 inspection source without private files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p b0-source-bundle/analysis/kbs_plan_c
+          cp analysis/kbs_plan_c/b0_candidate_regime_dev_feasibility.py \
+             analysis/kbs_plan_c/g3_dev_full_active.py \
+             analysis/kbs_plan_c/g2_train_base.py \
+             b0-source-bundle/analysis/kbs_plan_c/
+          (cd b0-source-bundle && sha256sum analysis/kbs_plan_c/*.py > SHA256SUMS)
+          (cd b0-source-bundle && sha256sum -c SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b0-inspection-source-bundle
+          path: b0-source-bundle/
+          retention-days: 7
+          if-no-files-found: error
   private-dev-cache-gate:
     needs: hosted-source-safety
     runs-on: [self-hosted, linux, x64, gpu-3090]
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - name: Restore verified code from GitHub-hosted artifact (no github.com checkout)
+        uses: actions/download-artifact@v4
+        with:
+          name: kbs-b0-inspection-source-bundle
+          path: ${{ runner.temp }}/b0-source-bundle
+      - name: Verify hosted-source SHA256 manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/b0-source-bundle"
+          sha256sum -c SHA256SUMS
+          test -s analysis/kbs_plan_c/b0_candidate_regime_dev_feasibility.py
+          echo "Hosted B0 source restored without self-hosted git fetch"
       - name: Inspect verified canonical DEV-only G1/G2/G3 files and 8 live rosters
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          export PYTHONPATH="$PWD/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONPATH="$RUNNER_TEMP/b0-source-bundle/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
           export OPENBLAS_NUM_THREADS=1
           export OMP_NUM_THREADS=2
           PY="$HOME/venvs/kuailive-gpu/bin/python"
           test -x "$PY"
-          "$PY" analysis/kbs_plan_c/b0_candidate_regime_dev_feasibility.py \
+          "$PY" "$RUNNER_TEMP/b0-source-bundle/analysis/kbs_plan_c/b0_candidate_regime_dev_feasibility.py" \
             --root "$HOME/.cache/kuailive-agent-kbs" \
             --out "$RUNNER_TEMP/kbs_b0_candidate_regime_dev_aggregate.json" \
             --roster-probe
