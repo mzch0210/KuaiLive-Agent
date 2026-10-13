@@ -1,6 +1,6 @@
 {
   "date": "2026-10-13",
-  "status": "IN_PROGRESS_R0_PASS_P0_PUBLIC_PASS_A0_STATIC_PASS_PRIVATE_GATE_HOLD",
+  "status": "IN_PROGRESS_R0_PASS_P0_PUBLIC_PASS_A0_STATIC_PASS_P1_DRAFT_READY_PRIVATE_GATE_HOLD",
   "stages": {
     "R0": "PASS_DECISION_SUPPORT_RISK_GATE",
     "A0": "PUBLIC_SOURCE_STATIC_AUDIT_COMPLETE_PRIVATE_SOURCE_SHA_PENDING",
@@ -8,7 +8,7 @@
     "A2": "PARTIAL_DIRECT_TWO_STAGE_FEASIBLE_IF_PRIVATE_SOURCE_PASS_FUSION_SCORE_CACHE_UNVERIFIED",
     "A3": "AFTER_A1_A2_DECISION_SUPPORT_CLAIM_GATE",
     "P0": "PUBLIC_SOURCE_CLAIM_REGISTER_COMPLETE_PRIVATE_ROW_VERIFY_PENDING",
-    "P1": "READY_TO_DRAFT_EXPLORATORY_B1B2_TABLES",
+    "P1": "DRAFT_MAIN_TEX_TABLES_AND_SUPPLEMENT_S10_READY_NOT_IN_CANONICAL_MAIN",
     "P2": "AFTER_A3_EVIDENCE_VERDICT",
     "P3": "AFTER_P2",
     "T0": "METADATA_ONLY_NOT_EXECUTED",
@@ -43,5 +43,9 @@
     "Per-candidate Base/Memory score arrays and candidate IDs needed for A2 score/rank fusion not publicly established",
     "Do not treat B1/B2 paired user intervals as new G5 confirmatory tests",
     "No authorized fresh unexposed lawful cohort for new TEST"
+  ],
+  "P1_drafts": [
+    "manuscript/kbs_latex/N9_P1_B1B2_MAIN_TABLES_AND_TEXT_DRAFT_2026-10-13.tex",
+    "manuscript/kbs_latex/SUPPLEMENTARY_S10_B1B2_EXPLORATORY_DEV_DRAFT_2026-10-13.md"
   ]
 }
