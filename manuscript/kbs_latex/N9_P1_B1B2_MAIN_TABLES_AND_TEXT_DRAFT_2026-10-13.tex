@@ -1,0 +1,50 @@
+% N9-P1 DRAFT ONLY (2026-10-13): post-G5 exploratory matched M3 DEV
+% Not yet included in main.tex. Numerical source: B1 report + B2 matched public aggregate.
+% Do not combine with original G5 confirmatory statistical family.
+
+\begin{table}[!htbp]
+\centering
+\caption{Candidate-regime supervision and selection decisions on the same KuaiLive-M3 author-ranking development events ($n=50{,}049$; 12,628 users). All conditions are evaluated under full-active candidates using the same Base-family primary seed and nested user-disjoint validation. Specialist invocations are observed outer-fold counts, not an enforced equal-call quota. This post-G5 exploratory analysis is distinct from the frozen M3 TEST.}
+\label{tab:n9-b1-candidate-supervision-draft}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Incumbent & Training $\rightarrow$ evaluation & NDCG@10 & Memory calls & Calls (\%)\\
+\midrule
+SASRec & Sampled $\rightarrow$ full & 0.296499 & 14,988 & 29.947\\
+SASRec & Full $\rightarrow$ full & \textbf{0.302658} & 15,016 & 30.003\\
+SASRec & Adapted $\rightarrow$ full & 0.301847 & 14,954 & 29.879\\
+\addlinespace
+GRU4Rec & Sampled $\rightarrow$ full & 0.298123 & 15,001 & 29.973\\
+GRU4Rec & Full $\rightarrow$ full & \textbf{0.303093} & 14,762 & 29.495\\
+GRU4Rec & Adapted $\rightarrow$ full & 0.303000 & 14,989 & 29.949\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Reviewer-facing interpretation paragraph for future insertion after the B1 table.
+% The following is scholarly prose, not a claim of new independent confirmation:
+In exploratory nested development analyses on matched full-active author-ranking requests, candidate-aligned supervision yielded higher held-out full-active policy NDCG@10 than supervision derived from target-retained sampled-candidate evaluation. The full-minus-sampled differences were 0.006159 for SASRec (paired user 95\% CI [0.004835, 0.007543]) and 0.004970 for GRU4Rec (CI [0.003550, 0.006369]). The selectors had similar but nonidentical realized Memory invocation rates, and the adapted supervision condition had access to full-candidate labels from outer-training users. Accordingly, these estimates characterize candidate-regime sensitivity of relative-knowledge-value supervision rather than a strictly equal-cost treatment effect or an independent confirmation on the frozen test cohort.
+
+\begin{table}[!htbp]
+\centering
+\caption{Knowledge-source sensitivity to evaluated candidate regime on the matched KuaiLive-M3 development author-ranking events ($n=50{,}049$). Sampled evaluation retrospectively retains the observed target among 575 authors and is not a deployed online candidate generator. All sources use fixed scores without re-optimizing mixture weights.}
+\label{tab:n9-b2-source-regime-draft}
+\footnotesize
+\setlength{\tabcolsep}{7pt}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Memory knowledge source & Full-active NDCG@10 & Sampled NDCG@10\\
+\midrule
+Full Short--Long--Popularity & \textbf{0.343509} & 0.668498\\
+Long-only & 0.333231 & \textbf{0.773602}\\
+Short-only & 0.273839 & 0.407506\\
+Training-only popularity & 0.022215 & 0.197796\\
+Within-event history-score placement placebo & 0.007576 & 0.189571\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Reviewer-facing interpretation paragraph for the B2 table.
+The Full and Long-only relationship specialists reverse their ordering across the evaluated candidate regimes. This source-dependent comparison illustrates that the measured contribution of historical knowledge is tied to the candidate environment. The comparison does not isolate candidate-set size from candidate identity or competition, and the history-placement placebo does not preserve global user--author margins. The subsequent source-specific decision experiments remain exploratory and their realized invocation rates must be considered separately.
