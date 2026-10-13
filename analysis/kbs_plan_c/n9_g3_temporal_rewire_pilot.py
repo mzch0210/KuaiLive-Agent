@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""G3 exploratory DEV-only historical-identity null pilot: structural feasibility."""
+from __future__ import annotations
+import argparse,json,hashlib,time
+from pathlib import Path
+from collections import defaultdict
+import numpy as np,pandas as pd,pyarrow.parquet as pq
+
+def digest(p):
+ h=hashlib.sha256()
+ with p.open('rb') as f:
+  for b in iter(lambda:f.read(8<<20),b''):h.update(b)
+ return h.hexdigest()
+
+def main():
+ a=argparse.ArgumentParser();a.add_argument('--root',type=Path,required=True)
+ a.add_argument('--out',type=Path,required=True)
+ z=a.parse_args();start=time.monotonic()
+ if z.out.exists():raise FileExistsError("No overwriting prior G3 pilot")
+ root=z.root;g1=root/'klm3_plan_c_g1_v1';dev=root/'klm3_g2_dev_checkpoint_screen_v1'
+ b1=root/'klm3_b1_full_dev_candidate_labels_seed20261012_v1'
+ d=json.loads((dev/'manifest.json').read_text())
+ b=json.loads((b1/'summary.json').read_text())
+ assert b['scope']=='DEV_ONLY_POST_G5_EXPLORATORY' and b['test_accessed'] is False
+ assert b['private_event_source_csv_sha256']=='37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea'
+ assert digest(b1/'dev_pair_candidate_labels.csv')==b['private_event_source_csv_sha256']
+ for name in ('dev_source_event_ids.npy','dev_positive_author_tokens.npy'):
+  assert digest(dev/name)==d['files_sha256'][name]
+ events=np.load(dev/'dev_source_event_ids.npy',mmap_mode='r')
+ clock=pq.read_table(g1/'dev_cohort.parquet',columns=['source_event_id','user_id','observed_at'])
+ assert len(events)==50049 and np.array_equal(clock.column('source_event_id').to_numpy(),events)
+ data=clock.to_pandas()
+ data['ts']=pd.to_datetime(data.observed_at,utc=True)
+ order=np.argsort(data.ts.to_numpy(),kind='stable')
+ last_quarter=order[int(len(order)*.75):]
+ choose=last_quarter[np.unique(np.linspace(0,len(last_quarter)-1,128,dtype=int))]
+ users=set(data.user_id.iloc[choose].tolist())
+ tmin=data.ts.iloc[choose].min()
+ prefix=[]
+ stream=g1/'causal_stream_sealed.parquet'
+ scanned=0
+ for chunk in pq.ParquetFile(stream).iter_batches(batch_size=262144,columns=['user_id','author_id','observed_at','split']):
+  df=chunk.to_pandas()
+  scanned+=len(df)
+  sel=df.user_id.isin(users)&df.split.ne('TEST')
+  if not sel.any():continue
+  part=df.loc[sel,['user_id','author_id','observed_at']].copy()
+  part['ts']=pd.to_datetime(part.observed_at,utc=True)
+  part=part[part.ts<tmin]
+  if len(part):prefix.append(part[['user_id','author_id','ts']])
+ if not prefix:raise RuntimeError("No allowed predecision prefix edges")
+ df=pd.concat(prefix,ignore_index=True)
+ res={'schema':'n9-g3-structural-pilot-v1','scope':'POST_G5_DEV_ONLY',
+      'chosen_events':len(choose),'chosen_users':len(users),
+      'closed_prefix_user_events':len(df),'stream_rows_scanned':scanned,
+      'G5_TEST_used':False,'Base_models_retrained':False,'private_rows_exported':False,
+      'sampling_rule':'128 evenly spaced within latest chronological quartile of DEV',
+      'closed_prefix_definition':'only causal history earlier than earliest selected DEV event'}
+ for hours in (1,6,24):
+  bucket=df.ts.dt.floor(str(hours)+'h')
+  groups=df.groupby(bucket,sort=False)
+  active=0;candidate_pairs=0;author_diverse=0
+  for _,grp in groups:
+   if len(grp)<2:continue
+   nu=grp.user_id.nunique();na=grp.author_id.nunique()
+   if nu>=2 and na>=2:
+    active+=len(grp)
+    candidate_pairs+=int(len(grp)*(len(grp)-1)//2)
+    author_diverse+=1
+  res['bucket_'+str(hours)+'h']={'edges_in_multi_user_multi_author_bins':active,
+                                  'fraction_of_prefix_edges':active/len(df),
+                                  'eligible_bins_before_eligibility_checks':author_diverse,
+                                  'upper_bound_pair_proposals':candidate_pairs}
+ res['full_relation_identity_placebo_validated']=False
+ res['candidate_activity_cross_swap_validated']=False
+ res['nonfloor_scoring_validated']=False
+ res['scientific_gate']='STRUCTURE_ONLY_NOT_E3B_CAUSAL_RESULT'
+ res['wall_seconds']=round(time.monotonic()-start,2)
+ z.out.mkdir(parents=True,mode=0o700)
+ (z.out/'summary.json').write_text(json.dumps(res,indent=2,sort_keys=True)+'\n')
+ print(json.dumps(res,sort_keys=True),flush=True)
+
+if __name__=='__main__':main()
