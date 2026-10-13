@@ -1,0 +1,171 @@
+#!/usr/bin/env python3
+"""N9-A2: user-disjoint DEV decision-target controls for the fixed knowledge specialist.
+No full L2D reproduction, no rank-score fusion, no G5 TEST reads. Post-G5 exploratory.
+"""
+from __future__ import annotations
+import argparse,hashlib,json,math,time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import GroupKFold
+from sklearn.ensemble import HistGradientBoostingRegressor
+
+N=50049;USERS=12628;SEED=20261012;OUTER=5;INNER=4
+CAPS=(.10,.30,.50)
+ARMS=("direct_delta","two_stage","base_difficulty","specialist_quality")
+SHARED=("hist_event_count","hist_warm_count","hist_distinct",
+        "hist_repeat_max","hist_short_unique","memory_history_supported_share",
+        "candidate_log_count")
+BASE=("base_margin","base_std","base_top_z","base_top_score","base_score_mean")
+
+def sha256(path):
+    h=hashlib.sha256()
+    with path.open('rb') as f:
+        for block in iter(lambda:f.read(8<<20),b''):h.update(block)
+    return h.hexdigest()
+
+def reg(seed):
+    return HistGradientBoostingRegressor(loss="squared_error",max_iter=120,
+        learning_rate=.05,max_depth=3,min_samples_leaf=50,
+        l2_regularization=1.,early_stopping=False,random_state=seed)
+
+def threshold(scores,gains,max_rate):
+    n=len(scores)
+    if not n or n!=len(gains) or not 0<max_rate<=1:raise ValueError("OOF threshold source invalid")
+    cap=math.floor(max_rate*n)
+    ordered=sorted(zip(scores,gains),key=lambda x:x[0],reverse=True)
+    best={"threshold":None,"calls":0,"dev_oof_gain":0.}
+    running=0.;i=0
+    while i<n:
+        j=i
+        while j<n and ordered[j][0]==ordered[i][0]:
+            running+=ordered[j][1];j+=1
+        gain=running/n
+        if j<=cap and gain>best["dev_oof_gain"]+1e-14:
+            best={"threshold":ordered[i][0],"calls":j,"dev_oof_gain":gain}
+        i=j
+    return best
+
+def user_ci(diff,user,reps=2000):
+    ids,inverse=np.unique(user,return_inverse=True)
+    sm=np.bincount(inverse,weights=diff,minlength=len(ids))
+    ns=np.bincount(inverse,minlength=len(ids))
+    rng=np.random.default_rng(20261013)
+    draws=np.empty(reps)
+    for k in range(reps):
+        idx=rng.integers(len(ids),size=len(ids))
+        draws[k]=sm[idx].sum()/ns[idx].sum()
+    return [float(x) for x in np.quantile(draws,[.025,.975])]
+
+def predict_fit(X,base,mem,train,valid,seed):
+    pD=reg(seed);pB=reg(seed);pM=reg(seed)
+    pD.fit(X[train],mem[train]-base[train])
+    pB.fit(X[train],base[train])
+    pM.fit(X[train],mem[train])
+    db=pD.predict(X[valid]);bm=pB.predict(X[valid]);mm=pM.predict(X[valid])
+    return {"direct_delta":db,"two_stage":mm-bm,
+            "base_difficulty":-bm,"specialist_quality":mm}
+
+def run_family(df,fam):
+    features=["x_"+x for x in SHARED]+["x_"+fam+"_"+x for x in BASE]
+    if len(features)!=12 or any(s not in df for s in features):raise RuntimeError("Missing F-only pretarget features")
+    X=df[features].to_numpy(dtype=np.float64)
+    base=df[fam+"_ndcg10"].to_numpy(dtype=np.float64)
+    mem=df["memory_ndcg10"].to_numpy(dtype=np.float64)
+    delta=mem-base
+    users=df.user_id.astype(str).to_numpy()
+    if not np.isfinite(X).all() or not np.isfinite(delta).all():raise RuntimeError("nonfinite A2 input")
+    mask={(cap,arm):np.zeros(N,dtype=bool) for cap in CAPS for arm in ARMS}
+    seen=np.zeros(N,dtype=np.uint8);folds=[];begin=time.perf_counter()
+    for oi,(tr,va) in enumerate(GroupKFold(n_splits=OUTER).split(X,groups=users),start=1):
+        if set(users[tr])&set(users[va]):raise RuntimeError("outer user leakage")
+        oof={arm:np.full(len(tr),np.nan) for arm in ARMS}
+        for ii,(fidx,vidx) in enumerate(GroupKFold(n_splits=INNER).split(X[tr],groups=users[tr])):
+            t=tr[fidx];v=tr[vidx]
+            if set(users[t])&set(users[v]):raise RuntimeError("inner leakage")
+            preds=predict_fit(X,base,mem,t,v,SEED+ii)
+            for arm in ARMS:oof[arm][vidx]=preds[arm]
+        if any(not np.isfinite(scores).all() for scores in oof.values()):
+            raise RuntimeError("missing OOF predictions")
+        held=predict_fit(X,base,mem,tr,va,SEED)
+        rates={}
+        for cap in CAPS:
+            for arm in ARMS:
+                th=threshold(oof[arm].tolist(),delta[tr].tolist(),cap)
+                select=np.zeros(len(va),dtype=bool) if th["threshold"] is None else held[arm]>=th["threshold"]
+                mask[(cap,arm)][va]=select
+                rates[str(cap)+"_"+arm]=float(select.mean())
+        seen[va]+=1
+        folds.append({"fold":oi,"val_events":len(va),"val_users":len(set(users[va])),"realized_rates":rates})
+        print(json.dumps({"family":fam,"completed_outer_fold":oi,"valid_events":len(va)},sort_keys=True),flush=True)
+    if not np.all(seen==1):raise RuntimeError("not every DEV event scored once")
+    tables={};contrasts={}
+    for cap in CAPS:
+        quality={}
+        tables[str(cap)]={}
+        for arm in ARMS:
+            m=mask[(cap,arm)]
+            q=base+m*delta
+            quality[arm]=q
+            tables[str(cap)][arm]={"full_F_ndcg10":float(q.mean()),
+                  "memory_calls":int(m.sum()),"realized_rate":float(m.mean()),
+                  "gain_vs_base":float(np.mean(q-base))}
+        contrasts[str(cap)]={}
+        for arm in ARMS:
+            if arm=="direct_delta":continue
+            v=quality["direct_delta"]-quality[arm]
+            contrasts[str(cap)]["direct_minus_"+arm]={
+                "mean_F_NDCG10":float(v.mean()),"paired_user_ci95":user_ci(v,users),
+                "memory_call_difference":tables[str(cap)]["direct_delta"]["memory_calls"]-
+                    tables[str(cap)][arm]["memory_calls"]}
+    expected={"sasrec":(.3026580312702608,15016),"gru4rec":(.3030931582511879,14762)}
+    exp_ndcg,exp_calls=expected[fam]
+    v=tables[str(.30)]["direct_delta"]
+    if abs(v["full_F_ndcg10"]-exp_ndcg)>1e-9 or v["memory_calls"]!=exp_calls:
+        raise RuntimeError("A2 direct contrast does not reproduce B1/A1 primary F-to-F arm")
+    return {"n_events":N,"n_users":USERS,"base":fam,
+       "always_base_F_ndcg10":float(base.mean()),
+       "always_memory_F_ndcg10":float(mem.mean()),
+       "a1_direct_frozen_30pct_reproduced":True,
+       "natural_call_tables":tables,"matched_user_contrasts":contrasts,
+       "outer_fold_summaries":folds,"elapsed_cpu_seconds":round(time.perf_counter()-begin,2)}
+
+def main():
+    a=argparse.ArgumentParser()
+    a.add_argument("--source",type=Path,required=True)
+    a.add_argument("--out",type=Path,required=True)
+    x=a.parse_args()
+    if x.out.exists():raise FileExistsError("Refuse overwrite of prior A2 output")
+    meta=json.loads((x.source/"summary.json").read_text())
+    data_path=x.source/"dev_pair_candidate_labels.csv"
+    if not (meta["schema"]=="kbs-b1-full-dev-paired-candidate-labels-v1" and
+            meta["scope"]=="DEV_ONLY_POST_G5_EXPLORATORY" and
+            meta["n_dev_events"]==N and meta["n_users"]==USERS and
+            meta["test_accessed"] is False and meta["model_training"] is False and
+            sha256(data_path)==meta["private_event_source_csv_sha256"] and
+            meta["private_event_source_csv_sha256"]=="37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea"):
+        raise RuntimeError("Frozen A0 private input identity failed")
+    df=pd.read_csv(data_path)
+    if len(df)!=N or df.event_id.duplicated().any() or not df.split.eq("DEV").all() or df.user_id.nunique()!=USERS:
+        raise RuntimeError("Not accepted DEV source")
+    result={fam:run_family(df,fam) for fam in ("sasrec","gru4rec")}
+    summary={"schema":"kbs-n9-a2-decision-target-controls-dev-v1",
+       "scope":"POST_G5_EXPLORATORY_DEV_ONLY","n_events":N,"n_users":USERS,
+       "source_sha256":meta["private_event_source_csv_sha256"],
+       "call_caps":list(CAPS),"outer_folds":OUTER,"inner_folds":INNER,
+       "no_TEST":True,"base_weights_unchanged":True,
+       "both_models_called_for_score_fusion":False,
+       "raw_score_fusion_still_HOLD":True,
+       "two_stage_uses_two_regression_heads":True,
+       "families":result}
+    x.out.mkdir(parents=True,mode=0o700)
+    (x.out/"summary.json").write_text(json.dumps(summary,indent=2,sort_keys=True)+"\n")
+    public={"A2":"PASS_DEV_DIRECT_TWO_STAGE_AND_DECISION_OBJECTIVE",
+       "events":N,"users":USERS,"test_accessed":False,
+       "families":{f:{"tables":z["natural_call_tables"],
+                     "contrasts":z["matched_user_contrasts"]}
+                   for f,z in result.items()}}
+    print(json.dumps(public,sort_keys=True),flush=True)
+
+if __name__=="__main__":
+    main()
