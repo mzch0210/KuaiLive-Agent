@@ -285,7 +285,7 @@ def main():
     print(json.dumps({"status": output["status"], "events": args.limit,
                       "rank_errors": errors, "seconds": output["timings_seconds"],
                       "gpu_peak_MiB": output["gpu_peak_allocated_MiB"]}), flush=True)
-    if errors:
+    if any(errors.values()):
         raise RuntimeError("B1 frozen-score parity failure; do not run full nested DEV")
 
 
