@@ -1,5 +1,5 @@
 # N9-A0 | Public source, private-cache and fair-comparison feasibility audit
-Date: 2026-10-13. **Status: SOURCE/CODE STATIC AUDIT COMPLETE; PRIVATE RUNNER ATTESTATION PENDING.** No workflows launched, no GPU or private labels accessed.
+Date: 2026-10-13. **Status: PRIVATE READ-ONLY SOURCE IDENTITY AND SHA GATE PASS; A2 FULL PER-CANDIDATE SCORE CACHE STILL UNVERIFIED.** Original static review retained below; verified self-host workflow is linked in the 2026-10-13 acceptance addendum.
 
 ## 1. Repository source checks performed
 - Read `analysis/kbs_plan_c/b1_full_dev_candidate_labels.py`, `b1_nested_regime_transfer_dev.py`, `b2_nested_knowledge_specificity_dev.py`, `frozen_gate.py`, `.github/workflows/kbs-b2-inline-offline-nested-dev.yml`, B1/B2 experiment report and private-source attestation metadata.
@@ -35,3 +35,9 @@ Date: 2026-10-13. **Status: SOURCE/CODE STATIC AUDIT COMPLETE; PRIVATE RUNNER AT
 3. If raw per-candidate score caches absent, make a separate bounded feasibility/cost decision before A2 fusion. No expensive GPU job was authorized or executed during this static audit.
 
 GitHub documents provide prior-run evidence, not fresh personal access to the runner. This audit is not a re-execution of B1/B2 or G5.
+
+## 6. 2026-10-13 A0 self-host private-source acceptance addendum
+
+[Successful read-only GitHub Actions #38382393789](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38382393789) used source workflow `.github/workflows/kbs-n9-a0-private-cache-readonly.yml` without checkout, artifacts or private row export. The private B1 50,049-event DEV CSV matched its SHA256 and the original corrected F CSV matched the manifest's F SHA. The B2 50,049-event CSV matched its private manifest and its nested summary linked exactly to the same digest. **Both source files contain 50,049 unique event IDs, 12,628 users and DEV-only split rows.** Original G5 TEST not accessed; no Base training or new labels. Run output explicitly reports `PASS_PRIVATE_DEV_IDENTITY_AND_SHA`.
+
+**Decision:** A0 **PASS for event-level B1/B2 utility analyses**, authorizing A1 and the DEV-only portion of A2 that relies on event utility and decision-time features. The shallow cache probe found zero candidate-score-array files under nominated local directories and did not verify any full candidate score vectors, so A2 score/rank fusion is **HOLD** until candidate IDs and raw score parity are obtained. This latter negative shallow probe is not proof that no score cache exists elsewhere.
