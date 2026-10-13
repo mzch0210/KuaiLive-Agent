@@ -89,20 +89,19 @@ jobs:
            if len(intervals)==0:raise RuntimeError("No matched roster intervals")
            by_author={}
            for author,sub in intervals.groupby('author_id'):
-            s=np.sort(sub[['start','finish']].to_numpy(),axis=0)
             # Sort by starts and allow overlapping active intervals.
-            starts=sub.start.astype('int64').to_numpy()
-            closes=sub.finish.astype('int64').to_numpy()
+            starts=sub.start.dt.as_unit('ns').astype('int64').to_numpy()
+            closes=sub.finish.dt.as_unit('ns').astype('int64').to_numpy()
             order=np.argsort(starts)
             ss=starts[order];max_end=np.maximum.accumulate(closes[order])
             by_author[author]=(ss,max_end)
-           stamp=df.ts.astype('int64').to_numpy()
+           stamp=df.ts.dt.as_unit('ns').astype('int64').to_numpy()
            def available(author,at):
             u=by_author.get(author)
             if u is None:return False
             starts,ends=u
             k=int(np.searchsorted(starts,at,side='right'))-1
-            return k>=0 and ends[k]>=at
+            return k>=0 and ends[k]>at
            hour=(stamp//(3600*10**9)).astype(np.int64)
            slots=defaultdict(list)
            for i,key in enumerate(hour):slots[int(key)].append(i)
@@ -171,7 +170,7 @@ jobs:
           import hashlib,os,pathlib
           b=pathlib.Path(os.environ['N9_SCRIPT']).read_bytes()
           actual=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
-          assert actual=='0c9c2b6bc690baf060ad23e3d0a88a98b828e085', 'scientific source SHA mismatch'
+          assert actual=='6d868ca431d9e6a9fc36374d76cf79fe520b2df6', 'scientific source SHA mismatch'
           print('N9 G3 source SHA PASS',flush=True)
           PY_SHA
           "$HOME/venvs/kuailive-gpu/bin/python" "$RUNNER_TEMP/g3_active.py" \
