@@ -581,7 +581,7 @@ Reproduction source: [analysis/kbs_section6_stage2_dev_replay.py](https://github
 
 
 ## S7.7 Nested-DEV direct versus two-stage estimator sensitivity (exploratory)
-This independently recorded addendum complements S7.1–S7.6 and is intended for incorporation into the final combined S1–S9 submission supplement during N8. It is **post-G5 exploratory DEV evidence**, not part of the original confirmatory G5 TEST.
+This independently recorded addendum complements S7.1–S7.6 within the final combined S1–S9 submission supplement. It is **post-G5 exploratory DEV evidence**, not part of the original confirmatory G5 TEST.
 
 The Direct estimator learns the event NDCG@10 increment of Memory over the fixed Base. The Two-stage estimator separately learns Memory and Base NDCG@10, then subtracts. Both target the same conditional expectation by linearity; they are alternative implementations, not different deferral theories.
 
