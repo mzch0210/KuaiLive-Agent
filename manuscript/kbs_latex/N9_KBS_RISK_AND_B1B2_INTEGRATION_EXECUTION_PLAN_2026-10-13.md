@@ -16,3 +16,13 @@
 
 **执行策略**：研究线 A0→A1→A2→A3；论文线 P0→P1（与 A0–A2 并行）→P2→P3（A3 后定稿）；独立新数据及投稿责任线 T0/T1/T2。先制作 B1/B2 可追溯稿件内容，待关键验证决定方法或价值评价定位后，再统一修订主文标题、摘要、引言、讨论与结论。
 
+## A. 研究验证线：直接降低 R1/R2
+
+**A0 — 数据与强对照可行性闸门（第一步，无新训练）。** 核查 DEV 上逐事件 F/S Base/Memory 效用、用户组、决策前特征、冻结权重、inner OOF/outer heldout gate 分数与 hash。B1/B2 聚合数据**并未证明有逐候选 Base/Memory scores**；先查私有缓存，缺失时仅对所需 DEV 重评分，保持 original eligibility/tie/FP32 和 corrected all-prior Memory。一次时间有序历史/活动集扫描与大 batch GPU；分别量测 CPU/GPU/wall 耗时，不能以 GPU 使用率代替效率。交付 **N9_A0_SOURCE_AND_FUSION_FEASIBILITY.md**。A1 所需事件结果/user group 缺失则 HOLD；A2 缺融合分数则单独 HOLD。
+
+**A1 — R2 无硬 30% 上限选择价值。** 同一 M3 DEV 50,049 事件、SASRec/GRU4Rec 冻结主种子、完整候选 F；采用 5 outer×4 inner user-disjoint 分组，只用 inner OOF 选择一个**预定的无上限**路由阈值，outer 只评价。对照 Always Base、Always Memory、原 30% Utility 与新规则；额外画用 inner 校准的 0/10/20/30/50/70/90/100% Memory 调用率—NDCG/HR 前沿，记录 outer 实际 calls/用户配对区间，**禁止从 outer 结果挑最好阈值当主结果**。Memory-first fallback 只有在选择前不需要先跑完整 Base 的特征下才能称实际提前路由；若有真实 mean/p95 latency 需同硬件、同 warmed regime。交付 **N9_A1_UNCONSTRAINED_POLICY_FRONTIER.md**。若仍不能超过 Always Memory 且无客观稀缺成本，R2 对“绝对质量/经济优势”判 NO-GO；对限定的价值测量问题仍可继续。
+
+**A2 — R1 直接融合与 defer 对照。** 同一 F 作者候选中比较 Base、Memory、inner-DEV 调权的简单一参数 score fusion（含两个端点）及事先指定的 rank fusion 敏感性；两模型都被调用的执行开销须真实计入。比较已有 Direct relative-utility 和 Two-stage Specialist−Base 预测，同数据/用户折/模型容量/特征/DEV 调参机会/自然调用率；明确称其为 **L2D 风格可实现代理**，不得冒称复现所有 NeurIPS/ICML 理论方法。报告绝对 NDCG 与计算成本 Pareto、Always Memory、paired user CI。交付 **N9_A2_FUSION_DEFERRAL_BASELINES.md**。若简单融合在同成本上占优，不得继续宣传路由方法优势。
+
+**A3 — 三风险与论文方向裁决。** 若无上限规则超 Always Memory 且公平融合/deferral 有独立收益，采用 **method-first**；若 Always Memory/融合更强但 B1/B2 的候选监督与知识来源机制稳定，采用 **valuation-first**（默认保守分支）；若强对照消除主张或来源难以合规复核，按 **scientific HOLD** 缩窄主张或审查期刊适配。交付 **N9_A3_THESIS_AND_RISK_VERDICT.md**，单独记录 R1/R2/R3 PASS/PARTIAL/HOLD，不得把任一新 DEV 分析加入原 G5 预注册统计家族。
+
