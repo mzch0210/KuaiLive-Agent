@@ -1,0 +1,12 @@
+label,rq,unique_scientific_role,supplement,essential_evidence_guard,status
+fig:framework,RQ3,Online/offline specialist decision flow,S2/S7,Decision-time state distinct from target visibility,KEEP
+tab:exp-datasets,All,"Three task identity, cohort and candidate definitions",S1/S2,"Streamers, rooms and authors not pooled",KEEP
+tab:exp-methods,RQ3,Selectors and comparator protocol tiers,S2/S7,Twitch equal-count Difficulty retrospective,KEEP
+fig:results-evidence-states,RQ1,Twitch conditional value pattern,S4/S6,Groups target-derived,KEEP
+tab:results-evidence-states,RQ1,Twitch conditional ranking utility and CI,S4,Keep state cohort counts,KEEP
+tab:results-twitch-policy,RQ3,Twitch fixed Utility vs hindsight references,S7,Only Utility pointwise frozen,KEEP
+tab:results-m3-policy,RQ3,Five-policy primary M3 TEST joint quality/calls,S7/S8,Always Memory quality counterexample,KEEP
+tab:results-m3-robustness,RQ3,Six Base fits on common cohort,S8,Within-fit Holm scope,KEEP
+tab:results-factorial,RQ2,Original KuaiLive candidate/reference accounting,S5/S8,No pure candidate-number causal effect,KEEP
+tab:results-feature-ablation,RQ3 support,DEV feature-family evidence,S7,Not frozen new TEST,KEEP
+tab:results-m3-cost,RQ3 scope,Warmed DEV execution cost,S9,Not end-to-end serving economics,KEEP
