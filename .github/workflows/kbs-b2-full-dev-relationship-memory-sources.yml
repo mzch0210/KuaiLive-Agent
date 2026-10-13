@@ -1,0 +1,106 @@
+name: KBS B2 full 50k DEV Memory source ablation
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-b2-full-dev-relationship-memory-sources.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b2-full-memory-sources
+  cancel-in-progress: false
+jobs:
+  hosted-source-verification:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check B2 DEV-only exact-source scorer and dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/{b2_relationship_memory_labels_dev.py,b1_dev_regime_pilot.py,b1_fast_roster_dev_check.py,g3_replay_correct_memory.py,g3_dev_full_active.py,g2_train_base.py}
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('analysis/kbs_plan_c/b2_relationship_memory_labels_dev.py').read_text()
+          assert 'full_memory_nDCG_mismatches' in s and 'replay_all_history' in s
+          assert 'relationship_shifted' in s and 'popularity_only' in s
+          assert 'test_cohort.parquet' not in s
+          print('B2 full scoring source is DEV-only')
+          PY
+      - name: Package exact sources verified in B2 pilot
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p b2-code/analysis/kbs_plan_c
+          cp analysis/kbs_plan_c/{b2_relationship_memory_labels_dev.py,b1_dev_regime_pilot.py,b1_fast_roster_dev_check.py,g3_replay_correct_memory.py,g3_dev_full_active.py,g2_train_base.py} b2-code/analysis/kbs_plan_c/
+          (cd b2-code && sha256sum analysis/kbs_plan_c/*.py > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b2-full-verified-source-bundle
+          path: b2-code/
+          retention-days: 7
+          if-no-files-found: error
+  selfhost-private-all-dev-ablation:
+    needs: hosted-source-verification
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 80
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kbs-b2-full-verified-source-bundle
+          path: ${{ runner.temp }}/b2-code
+      - name: Reconstruct five Memory evidence variants for 50049 DEV events
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd "$RUNNER_TEMP/b2-code" && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$RUNNER_TEMP/b2-code/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          "$HOME/venvs/kuailive-gpu/bin/python" \
+            "$RUNNER_TEMP/b2-code/analysis/kbs_plan_c/b2_relationship_memory_labels_dev.py" \
+            --root "$HOME/.cache/kuailive-agent-kbs" \
+            --out "$HOME/.cache/kuailive-agent-kbs/klm3_b2_full_dev_memory_source_ablation_seed20261013_v1"
+      - name: Publish scientific aggregates only after 0 F/S full-memory mismatches
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,pathlib
+          home=pathlib.Path.home()/'.cache/kuailive-agent-kbs/klm3_b2_full_dev_memory_source_ablation_seed20261013_v1'
+          x=json.loads((home/'summary.json').read_text())
+          assert x['schema']=='kbs-b2-dev-relationship-source-ablation-v1'
+          assert x['scope']=='POST_G5_DEV_EXPLORATORY'
+          assert x['status']=='PASS' and x['is_full_cohort']
+          assert x['n_events']==50049 and x['n_users']==12628
+          assert x['full_memory_nDCG_mismatches']=={'F':0,'S':0}
+          assert not x['new_TEST_opened'] and not x['models_retrained']
+          assert not x['private_ids_exported'] and not x['b2_nested_policy_fit']
+          assert len(x['variants'])==5 and x['sampled_size']==575
+          assert len(x['private_event_source_csv_sha256'])==64
+          columns={'schema','scope','status','new_TEST_opened','models_retrained',
+            'private_ids_exported','candidate_labels_target_retained_offline_only',
+            'sampled_size','n_events','n_users','variants','full_memory_nDCG_mismatches',
+            'source_b1_pair_sha256','source_b1_original_F_sha256',
+            'relations_placement_shift_seed','relation_null_type','source_means',
+            'history_replay_events_scanned','wall_seconds','b2_nested_policy_fit',
+            'is_full_cohort','private_event_source_csv_sha256'}
+          assert set(x)==columns
+          folder=pathlib.Path('b2-full-public-aggregate')
+          folder.mkdir(exist_ok=True)
+          (folder/'summary.json').write_text(json.dumps(x,indent=2,sort_keys=True)+'\n')
+          print('B2 full five-arm source ablation complete; no TEST or private IDs exported')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b2-full-50k-dev-memory-source-aggregate
+          path: b2-full-public-aggregate/summary.json
+          retention-days: 30
+          if-no-files-found: error
