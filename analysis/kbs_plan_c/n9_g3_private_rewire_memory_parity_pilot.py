@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+"""G3 128-event DEV-only active-edge-swap Memory F/S parity and floor pilot."""
+from __future__ import annotations
+import argparse,collections,csv,hashlib,heapq,json,math,time
+from pathlib import Path
+import numpy as np,pandas as pd,pyarrow.parquet as pq
+
+N=50049
+def sha(p):
+ h=hashlib.sha256()
+ with p.open('rb') as f:
+  for b in iter(lambda:f.read(8<<20),b''):h.update(b)
+ return h.hexdigest()
+def ndcg(rank):return 1.0/math.log2(rank+1) if rank<=10 else 0.0
+def rank(c,s,target):
+ p=int(np.searchsorted(c,target))
+ if p==len(c) or c[p]!=target:raise RuntimeError("DEV target not eligible")
+ v=s[p]
+ return 1+int(np.count_nonzero((s>v+1e-12)|((np.abs(s-v)<=1e-12)&(c<target))))
+def score(c,pop,warm,recent,den):
+ c=np.asarray(c,dtype=np.int32)
+ s=.10*pop[c].astype(np.float64)
+ if warm:
+  if den<=0:raise RuntimeError("bad historical denominator")
+  ids=np.fromiter(warm,dtype=np.int32,count=len(warm))
+  vals=np.fromiter(warm.values(),dtype=np.float64,count=len(warm))
+  order=np.argsort(ids);ids=ids[order];vals=vals[order]
+  ix=np.searchsorted(ids,c);hit=(ix<len(ids))
+  hit&=ids[np.minimum(ix,len(ids)-1)]==c
+  s[hit]+=.45*vals[ix[hit]]/den
+ if recent:
+  short={}
+  for distance,tok in enumerate(reversed(recent)):
+   if tok:short[tok]=max(short.get(tok,0.),math.exp(-distance/3.))
+  if short:
+   ids=np.fromiter(sorted(short),dtype=np.int32)
+   vals=np.array([short[k] for k in ids],dtype=np.float64)
+   ix=np.searchsorted(ids,c);hit=ix<len(ids)
+   hit&=ids[np.minimum(ix,len(ids)-1)]==c
+   s[hit]+=.45*vals[ix[hit]]
+ return s
+def longscore(c,warm,den):
+ return score(c,np.zeros(int(np.max(c))+1,dtype=np.float64),warm,(),den)
+def roster(path,clocks,targets,known):
+ order=sorted(range(len(clocks)),key=lambda i:(clocks[i],i))
+ def interval_rows():
+  for b in pq.ParquetFile(path).iter_batches(batch_size=131072,columns=['open_ts','close_ts','author_id']):
+   d=b.to_pydict()
+   yield from zip(d['open_ts'],d['close_ts'],d['author_id'])
+ it=iter(interval_rows());ahead=next(it,None)
+ active=collections.Counter();heap=[]
+ for ix in order:
+  t=clocks[ix]
+  while ahead is not None and ahead[0]<=t:
+   start,end,author=ahead
+   tok=known.get(int(author))
+   if tok is not None and end>t:
+    active[tok]+=1;heapq.heappush(heap,(end,tok))
+   ahead=next(it,None)
+  while heap and heap[0][0]<=t:
+   _,tok=heapq.heappop(heap)
+   active[tok]-=1
+   if not active[tok]:del active[tok]
+  if int(targets[ix]) not in active:raise RuntimeError("positive outside original F roster")
+  yield ix,np.fromiter(sorted(active),dtype=np.int32,count=len(active))
+def main():
+ a=argparse.ArgumentParser()
+ a.add_argument('--root',type=Path,required=True)
+ a.add_argument('--swap',type=Path,required=True)
+ a.add_argument('--out',type=Path,required=True);x=a.parse_args()
+ if x.out.exists():raise FileExistsError("G3 pilot output cannot be overwritten")
+ t0=time.monotonic();root=x.root
+ g=root/'klm3_plan_c_g1_v1';idx=root/'klm3_g2_train_index_v1'
+ dev=root/'klm3_g2_dev_checkpoint_screen_v1'
+ b1=root/'klm3_b1_full_dev_candidate_labels_seed20261012_v1'
+ b2=root/'klm3_b2_full_dev_memory_source_ablation_seed20261013_v1'
+ m1=json.loads((b1/'summary.json').read_text());m2=json.loads((b2/'summary.json').read_text())
+ ms=json.loads((x.swap/'summary.json').read_text())
+ if not (m1['schema']=='kbs-b1-full-dev-paired-candidate-labels-v1'
+  and m1['test_accessed'] is False
+  and sha(b1/'dev_pair_candidate_labels.csv')==m1['private_event_source_csv_sha256']
+  and m1['private_event_source_csv_sha256']=='37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea'
+  and m2['new_TEST_opened'] is False
+  and m2['full_memory_nDCG_mismatches']=={'F':0,'S':0}
+  and sha(b2/'dev_memory_source_ablation_pairs.csv')==m2['private_event_source_csv_sha256']
+  and ms['time_bin_author_degree_exact'] is True
+  and ms['both_swapped_authors_active_at_both_event_times'] is True
+  and ms['all_swaps_before_earliest_target'] is True):
+  raise RuntimeError("B1/B2 and private placebo provenance gate failed")
+ rewrite=np.load(x.swap/'rewired_event_authors_PRIVATE.npz')
+ pairs=dict(zip(rewrite['source_event_ids'].astype(np.int64).tolist(),
+                rewrite['rewired_author_ids'].astype(np.int64).tolist()))
+ if len(pairs)!=ms['changed_history_endpoints'] or len(pairs)<10000:
+  raise RuntimeError("private swap snapshot mismatched expected edge IDs")
+ ids=np.load(dev/'dev_source_event_ids.npy',mmap_mode='r')
+ targets=np.load(dev/'dev_positive_author_tokens.npy',mmap_mode='r')
+ dm=json.loads((dev/'manifest.json').read_text())
+ for name in ('dev_source_event_ids.npy','dev_positive_author_tokens.npy'):
+  if sha(dev/name)!=dm['files_sha256'][name]:raise RuntimeError("DEV source snapshot invalid")
+ tab=pq.read_table(g/'dev_cohort.parquet',columns=['source_event_id','user_id','observed_at'])
+ if not np.array_equal(tab.column('source_event_id').to_numpy(),ids):
+  raise RuntimeError("chronological cohort misaligned")
+ cohort=tab.to_pandas()
+ order=np.argsort(pd.to_datetime(cohort.observed_at,utc=True).to_numpy(),kind='stable')
+ recent=order[int(N*.75):]
+ choose=recent[np.unique(np.linspace(0,len(recent)-1,128,dtype=int))]
+ requested={int(ids[i]):j for j,i in enumerate(choose)}
+ users=set(cohort.user_id.iloc[choose].tolist())
+ n=128;snapshots_orig=[None]*n;snapshots_null=[None]*n
+ byuser=None
+ wo=collections.Counter();wn=collections.Counter()
+ ao=collections.Counter();an=collections.Counter()
+ ro=collections.deque(maxlen=10);rn=collections.deque(maxlen=10)
+ mo=0;mn=0
+ known_ids=np.load(idx/'authors.npy',mmap_mode='r')
+ known={int(z):i+1 for i,z in enumerate(known_ids)}
+ matched=0;history_rows=0;seenusers=set()
+ for batch in pq.ParquetFile(g/'causal_stream_sealed.parquet').iter_batches(
+    batch_size=262144,columns=['source_event_id','user_id','author_id','split']):
+  df=batch.to_pandas()
+  df=df[df.user_id.isin(users)&df.split.ne('TEST')]
+  for event,user,author in df[['source_event_id','user_id','author_id']].itertuples(index=False,name=None):
+   history_rows+=1
+   if user!=byuser:
+    if user in seenusers:raise RuntimeError("Causal stream user order violated")
+    seenusers.add(user);byuser=user
+    wo.clear();wn.clear();ao.clear();an.clear();ro.clear();rn.clear();mo=mn=0
+   k=requested.get(int(event))
+   if k is not None:
+    if snapshots_orig[k] is not None:raise RuntimeError("duplicate DEV snapshot")
+    snapshots_orig[k]=(dict(wo),tuple(ro),mo)
+    snapshots_null[k]=(dict(wn),tuple(rn),mn)
+    matched+=1
+   original=int(author);alternate=int(pairs.get(int(event),original))
+   for raw,warm,allc,last in ((original,wo,ao,ro),(alternate,wn,an,rn)):
+    allc[raw]+=1
+    tok=known.get(raw,0)
+    last.append(tok)
+    if tok:warm[tok]+=1
+   mo=max(mo,ao[original]);mn=max(mn,an[alternate])
+ if matched!=n or any(s is None for s in snapshots_orig+snapshots_null):
+  raise RuntimeError("Cannot reproduce all pretarget history snapshots")
+ counts=np.bincount(np.load(idx/'sequence_ids.npy',mmap_mode='r'),
+                    minlength=len(known_ids)+1).astype(float)
+ logs=np.log1p(counts);pop=np.zeros(len(logs),dtype=float)
+ pop[1:]=(logs[1:]-logs[1:].min())/(logs[1:].max()-logs[1:].min())
+ # Event IDs/targets remain private; public output only aggregate utility and gates.
+ with (b2/'dev_memory_source_ablation_pairs.csv').open(newline='') as fh:
+  original={int(row['event_id']):row for row in csv.DictReader(fh)
+             if int(row['event_id']) in requested}
+ if len(original)!=n:raise RuntimeError("private B2 pilot event parity missing")
+ clocks=[tab.column('observed_at')[int(i)].as_py() for i in choose]
+ ys=targets[choose]
+ scores={label:[] for label in
+         ('original_full_F','original_full_S','original_long_F','original_long_S',
+          'control_full_F','control_full_S','control_long_F','control_long_S',
+          'popularity_F','popularity_S')}
+ f_positive=0;s_positive=0
+ for k,c in roster(g/'available_room_intervals.parquet',clocks,ys,known):
+  real_id=int(ids[choose[k]]);true=int(ys[k])
+  pool=c[c!=true]
+  if len(pool)<574:raise RuntimeError("sampled candidate roster too small")
+  sampled=np.sort(np.concatenate((np.random.default_rng(20261012+real_id).choice(
+                    pool,size=574,replace=False),np.array([true],dtype=np.int32))))
+  selected=np.searchsorted(c,sampled)
+  if not np.array_equal(c[selected],sampled):raise RuntimeError("S roster mismatch")
+  p=.10*pop[c]
+  for label,snap in [('original',snapshots_orig[k]),('control',snapshots_null[k])]:
+   warm,last,den=snap
+   full=score(c,pop,warm,last,den)
+   long=longscore(c,warm,den)
+   for source_name,vec in [('full',full),('long',long)]:
+    scores[label+'_'+source_name+'_F'].append(ndcg(rank(c,vec,true)))
+    scores[label+'_'+source_name+'_S'].append(ndcg(rank(sampled,vec[selected],true)))
+  scores['popularity_F'].append(ndcg(rank(c,p,true)))
+  scores['popularity_S'].append(ndcg(rank(sampled,p[selected],true)))
+  old=original[real_id]
+  for col,label in [
+   ('memory_ndcg10','original_full_F'),
+   ('sampled_memory_ndcg10','original_full_S'),
+   ('b2_long_only_F_ndcg10','original_long_F'),
+   ('b2_long_only_S_ndcg10','original_long_S')]:
+   if abs(scores[label][-1]-float(old[col]))>1e-12:
+    raise RuntimeError("Original B1/B2 Memory source score parity FAILED "+col)
+ means={k:float(np.mean(v)) for k,v in scores.items()}
+ nonzero={k:int(np.count_nonzero(v)) for k,v in scores.items()}
+ control_ok=(means['control_full_F']>=max(0.10,.30*means['original_full_F'])
+             and means['control_full_S']>=.20
+             and means['control_full_F']>=means['popularity_F']+.02
+             and nonzero['control_full_F']>=10
+             and ms['changed_fraction']>=.10)
+ result={'schema':'n9-g3-relation-null-ranking-pilot-v1','evidence':'POST_G5_EXPLORATORY_DEV_ONLY',
+    'events':n,'users':len(users),'historical_user_rows_scanned':history_rows,
+    'verified_original_F_S_Full_Long_score_parity':True,
+    'source_b2_SHA256':m2['private_event_source_csv_sha256'],
+    'strict_time_bin_author_marginals':ms['time_bin_author_degree_exact'],
+    'historical_endpoints_rewired':ms['changed_history_endpoints'],
+    'rewired_fraction':ms['changed_fraction'],
+    'observed_mean_ndcg10':means,'positive_NDCG_event_counts':nonzero,
+    'preset_nonfloor_gate_PASSED':bool(control_ok),
+    'inferential_warning':'128 pilot events selected by DEV timestamp, not independent confirmatory TEST',
+    'full_dev_E3b_executed':False,'G5_TEST_opened':False,
+    'private_user_event_edges_exported':False,
+    'elapsed_wall_seconds':round(time.monotonic()-t0,2)}
+ x.out.mkdir(parents=True,mode=0o700)
+ (x.out/'summary.json').write_text(json.dumps(result,sort_keys=True,indent=2)+'\n')
+ print(json.dumps(result,sort_keys=True),flush=True)
+
+if __name__=='__main__':main()
