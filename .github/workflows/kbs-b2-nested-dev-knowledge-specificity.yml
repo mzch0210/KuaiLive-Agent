@@ -32,7 +32,9 @@ jobs:
           assert gate['full_memory_F_rank_differences']==0
           assert gate['full_memory_S_ndcg_differences']==0
           assert gate['B2_test_accessed'] is False
-          assert len(gate['private_event_csv_SHA256'])==64
+          assert gate['private_event_csv_sha256_provenance']=='validated_on_private_runner_before_fit'
+          assert gate['B2_source_original_run']==38367721633
+          assert gate['B2_private_manifest_fields_verified_in_original_run'] is True
           script=Path('analysis/kbs_plan_c/b2_nested_knowledge_specificity_dev.py').read_text()
           for required in ('GroupKFold','full_regret_minus_','cluster_ci',
                     'candidate_base_only','relationship_shifted','S_to_F','F_to_F',
