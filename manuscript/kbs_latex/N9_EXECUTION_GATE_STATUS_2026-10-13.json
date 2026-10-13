@@ -1,29 +1,29 @@
 {
   "date": "2026-10-13",
-  "status": "IN_PROGRESS_R0_PASS_P0_PUBLIC_PASS_A0_STATIC_PASS_P1_DRAFT_READY_PRIVATE_GATE_HOLD",
+  "status": "N9_R0_A0_A1_A2_DECISION_COMPONENT_A3_PASS_BOUNDED_P2_MANUSCRIPT_MERGED_QA_RUNNING",
   "stages": {
-    "R0": "PASS_DECISION_SUPPORT_RISK_GATE",
-    "A0": "PUBLIC_SOURCE_STATIC_AUDIT_COMPLETE_PRIVATE_SOURCE_SHA_PENDING",
-    "A1": "HOLD_UNTIL_A0_PRIVATE_EVENT_REHASH",
-    "A2": "PARTIAL_DIRECT_TWO_STAGE_FEASIBLE_IF_PRIVATE_SOURCE_PASS_FUSION_SCORE_CACHE_UNVERIFIED",
-    "A3": "AFTER_A1_A2_DECISION_SUPPORT_CLAIM_GATE",
-    "P0": "PUBLIC_SOURCE_CLAIM_REGISTER_COMPLETE_PRIVATE_ROW_VERIFY_PENDING",
-    "P1": "DRAFT_MAIN_TEX_TABLES_AND_SUPPLEMENT_S10_READY_NOT_IN_CANONICAL_MAIN",
-    "P2": "AFTER_A3_EVIDENCE_VERDICT",
-    "P3": "AFTER_P2",
-    "T0": "METADATA_ONLY_NOT_EXECUTED",
-    "T1": "HOLD_NO_NEW_TEST_AUTHORIZATION",
+    "R0": "PASS",
+    "A0": "PASS_PRIVATE_SHA_50049_DEV_12628_USERS",
+    "A1": "PASS_USER_DISJOINT_DEV_FRONTIER_G5_TEST_UNTOUCHED",
+    "A2": "PASS_MATCHED_DECISION_TARGET_CONTROLS_RAW_SCORE_FUSION_HOLD",
+    "A3": "BOUNDED_SCIENCE_PASS_SCOPED_P2_GO",
+    "P0": "PASS_SOURCE_REGISTER_AND_PRIVATE_SHA",
+    "P1": "PASS_B1B2_MAIN_TEX_AND_S10_DRAFT_CREATED",
+    "P2": "MAIN_TEX_COMPILE_PASS_S1_S10_ASSEMBLED_PDF_QA_RUNNING",
+    "P3": "HOLD_FINAL_JOURNAL_AND_STATISTICAL_REVIEW",
+    "T0": "NOT_AUTHORIZED_NEW_TEST_METADATA_ONLY",
+    "T1": "HOLD_NO_ELIGIBLE_NEW_TEST",
     "T2": "AUTHOR_SIGNOFF_OPEN"
   },
   "risks": {
-    "R1": "DECISION_SUPPORT_DISTINCTION_BOUNDED_OPEN",
-    "R2": "DECISION_RELEVANCE_SUPPORTED_OPERATIONAL_SCARCITY_OPEN",
-    "R3": "PARTIALLY_MITIGATED_POST_G5_DEV"
+    "R1": "BOUNDED_DECISION_SUPPORT_DIFFERENTIAL_PRIOR_ART_AND_FUSION_GAP",
+    "R2": "BOUNDED_DECISION_VALIDITY_OPERATIONAL_COST_HOLD",
+    "R3": "BOUNDED_PARTIAL_MITIGATION_SAME_POST_G5_DEV"
   },
-  "B1_B2": "EXPLORATORY_DEV_COMPLETE_PUBLIC_CLAIM_REGISTERED_NOT_YET_IN_MAIN_MANUSCRIPT",
+  "B1_B2": "EXPLORATORY_DEV_RESULTS_IN_MAIN_TEX_AND_NEW_S1_S10_COMBINED_SUPPLEMENT",
   "old_TEST_modified": false,
   "new_TEST_authorized": false,
-  "main_tex_modified": false,
+  "main_tex_modified": true,
   "submission": "HOLD",
   "revision_scope": "N9_R0 scientific gates corrected to fixed N1 decision-support thesis; no method-first branch",
   "audit_reports": [
@@ -47,5 +47,24 @@
   "P1_drafts": [
     "manuscript/kbs_latex/N9_P1_B1B2_MAIN_TABLES_AND_TEXT_DRAFT_2026-10-13.tex",
     "manuscript/kbs_latex/SUPPLEMENTARY_S10_B1B2_EXPLORATORY_DEV_DRAFT_2026-10-13.md"
+  ],
+  "current_sources": {
+    "main_tex_blob": "2d99f068dc6fc9dcb5085c0f398a71f46f1b6ffd",
+    "original_main_blob": "40be249de52c0ae423b793c0dd4c55f2fdd69f46",
+    "supplement_new_path": "manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md",
+    "original_s1_s9_blob": "f5575d29ac3de222a04f78b48698cae119eac0bf"
+  },
+  "scientific_runs": {
+    "A0": 38382393789,
+    "A1": 38382693869,
+    "A2": 38383262381,
+    "main_compile": 38383802641,
+    "supplement_pdf_qa": 38384252296
+  },
+  "next_qa": [
+    "Confirm latest S1-S10 PDF build and inspect warnings/layout",
+    "One full cross-chapter source-to-claim and user-cluster statistical-scope review",
+    "Revisit no-full-score-fusion limitation without inventing data",
+    "Human-author data-rights, CRediT, AI disclosure, KBS submission portal sign-off"
   ]
 }
