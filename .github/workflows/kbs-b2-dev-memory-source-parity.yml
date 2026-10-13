@@ -1,0 +1,112 @@
+name: KBS B2 DEV relationship source parity pilot
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-b2-dev-memory-source-parity.yml'
+      - 'analysis/kbs_plan_c/b2_relationship_memory_labels_dev.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b2-dev-source-parity
+  cancel-in-progress: false
+jobs:
+  hosted-source-verification:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate B2 sources, exact Memory and no TEST logic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            analysis/kbs_plan_c/b2_relationship_memory_labels_dev.py \
+            analysis/kbs_plan_c/b1_dev_regime_pilot.py \
+            analysis/kbs_plan_c/b1_fast_roster_dev_check.py \
+            analysis/kbs_plan_c/g3_replay_correct_memory.py \
+            analysis/kbs_plan_c/g3_dev_full_active.py \
+            analysis/kbs_plan_c/g2_train_base.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('analysis/kbs_plan_c/b2_relationship_memory_labels_dev.py').read_text()
+          for name in ('replay_all_history','corrected_memory_score','deterministic_sample',
+                       'relationship_shifted','popularity_only','long_only','short_only',
+                       'full_memory_nDCG_mismatches'):
+              assert name in s,name
+          assert 'test_cohort.parquet' not in s and 'torch.optim' not in s
+          print('B2 one-pass DEV-only source guard passed')
+          PY
+      - name: SHA-lock exactly required B2 source files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p b2-verified/analysis/kbs_plan_c
+          cp analysis/kbs_plan_c/{b2_relationship_memory_labels_dev.py,b1_dev_regime_pilot.py,b1_fast_roster_dev_check.py,g3_replay_correct_memory.py,g3_dev_full_active.py,g2_train_base.py} b2-verified/analysis/kbs_plan_c/
+          (cd b2-verified && sha256sum analysis/kbs_plan_c/*.py > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b2-128-dev-memory-sources-bundle
+          path: b2-verified/
+          retention-days: 7
+          if-no-files-found: error
+  selfhost-parity-and-science-pilot:
+    needs: hosted-source-verification
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 28
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kbs-b2-128-dev-memory-sources-bundle
+          path: ${{ runner.temp }}/b2-verified
+      - name: Execute 128 same-event DEV Memory source ablations
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd "$RUNNER_TEMP/b2-verified" && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$RUNNER_TEMP/b2-verified/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          "$HOME/venvs/kuailive-gpu/bin/python" \
+            "$RUNNER_TEMP/b2-verified/analysis/kbs_plan_c/b2_relationship_memory_labels_dev.py" \
+            --root "$HOME/.cache/kuailive-agent-kbs" \
+            --out "$RUNNER_TEMP/b2_memory_pilot_128_dev" \
+            --limit 128
+      - name: Export aggregate-only 128-event result if exact F/S parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,os,pathlib
+          j=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'b2_memory_pilot_128_dev/summary.json').read_text())
+          assert j['schema']=='kbs-b2-dev-relationship-source-ablation-v1'
+          assert j['scope']=='POST_G5_DEV_EXPLORATORY'
+          assert j['status']=='PASS' and j['n_events']==128
+          assert j['full_memory_nDCG_mismatches']=={'F':0,'S':0}
+          assert j['pilot_parity']=='PASS_FROZEN_F_AND_B1_S'
+          assert not j['new_TEST_opened'] and not j['models_retrained'] and not j['private_ids_exported']
+          assert len(j['variants'])==5 and not j['b2_nested_policy_fit']
+          safe={'schema','scope','status','new_TEST_opened','models_retrained',
+            'private_ids_exported','candidate_labels_target_retained_offline_only',
+            'sampled_size','n_events','n_users','variants','full_memory_nDCG_mismatches',
+            'source_b1_pair_sha256','source_b1_original_F_sha256',
+            'relations_placement_shift_seed','relation_null_type','source_means',
+            'history_replay_events_scanned','wall_seconds','b2_nested_policy_fit',
+            'is_full_cohort','pilot_parity'}
+          assert set(j)==safe
+          folder=pathlib.Path('b2-pilot-aggregate')
+          folder.mkdir(exist_ok=True)
+          (folder/'summary.json').write_text(json.dumps(j,indent=2,sort_keys=True)+'\n')
+          print('Exact F/S source parity verified; safe to request B2 all DEV labels')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b2-128-dev-memory-source-aggregate
+          path: b2-pilot-aggregate/summary.json
+          retention-days: 30
+          if-no-files-found: error
