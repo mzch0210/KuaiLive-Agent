@@ -1,0 +1,24 @@
+section,scientific_ownership,main_text_responsibility,main_source_anchor,supplement_owner,evidence_integrity_guard
+sec3,event context and NDCG@K,"Define x=(xi,y), pre-outcome xi, one positive and event metric",sec:problem;sec:event-utility;eq:event-ndcg,S1.2/S1.3,Keep exact event formula; only training-time details in S1
+sec3,fixed Base Memory increment,Define pair-specific same candidates Delta_M,sec:relative-utility;eq:delta-memory,S3,Never imply improvement over unspecified stronger incumbents
+sec3,conditional expected increment and selection identity,Condition on regime and observable Z; prove conditional decision gain,sec:conditional-utility;eq:eta;eq:expected-selective-gain,S7,Standard L2D principle properly attributed
+sec3,pointwise constrained choice,Define threshold and DEV sample call limit,sec:decision-rule;eq:utility-threshold,S2/S7,DEV limit not hard TEST cap; latency not demonstrated
+sec3,retrospective history-state mixture,Provide state conditional decomposition only,sec:regime-decomposition;eq:regime-decomposition,S4/S8,S is hindsight target-derived
+sec4,unified knowledge decision pathway,"Link B rankings, pre-outcome Z, fixed Memory and offline target labels",sec:framework;fig:framework,S2/S7,Original diagram preserved verbatim
+sec4,designated trained incumbent,Describe room-streamer Dual-ID; LiveRec; M3 author Base,sec:framework-base,S2/S3,Training budget fairness in S3; task ranking units differ
+sec4,fixed transparent specialist,"Define short long training prior, fixed 0.45/0.45/0.10 score",sec:framework-memory;eq:memory-scoring,S1.3/S4,All-author M3 prior history includes TRAIN-unseen authors for Short/Long
+sec4,target visibility,Define post-outcome represented recoverable unavailable,sec:framework-states;eq:diagnostic-states,S1.2/S4,Target state excluded from gate
+sec4,observable pre-decision gate features,Describe history and Base-score families,sec:framework-estimation,S2/S7,"M3 history support from prior interaction and active roster, not Memory call"
+sec4,decision flow,Explain conditional selection returning one fixed ranking,sec:framework-controls,S7,Keep comparator definition in sec5 not duplicate
+sec5,three nonequivalent datasets,Twitch streamer; KuaiLive room; M3 author roles and sizes,sec:exp-data;tab:exp-datasets,S1,Never compare cross-task absolute NDCG
+sec5,Twitch evidence tier,DEV frozen Utility; Difficulty TEST top-m match,sec:exp-comparators;tab:exp-methods,S2/S7,Retrospective Difficulty not pointwise frozen
+sec5,original KuaiLive evidence tier,Paired same-event candidate contrast,sec:exp-data;sec:exp-freeze;sec:exp-regimes,S5/S8,Already inspected TEST; no independent gate result
+sec5,M3 five policies and 12 descriptor fairness,Three regression targets and two deterministic baselines,sec:exp-comparators,S2/S7/S8,Uncertainty negative Base margin not calibrated entropy model
+sec5,M3 temporal split and candidate eligibility,Source-clock global split; active TRAIN known author,sec:exp-data,S1/S2,Time zone not assigned; source typed-timestamp hash deviation in S1
+sec5,M3 checkpoint and OOF,575 candidate checkpoint screen distinct full-active DEV,sec:exp-freeze,S2/S3,Five group-user folds; no TEST tuning
+sec5,M3 DEV cap/TEST drift,Define policy threshold OOF and pointwise TEST deployment,sec:exp-freeze,S7/S8,qDEV<=0.30 not qTEST<=0.30
+sec5,M3 prequential TEST label blind evaluation,Earlier observed TEST history allowed; no current/future targets,sec:exp-freeze,S1/S2,Same TEST user sample across six fits
+sec5,paired candidate Shapley style decomposition,Define D and two order-average allocations,eq:paired-regime-shift;eq:factorial-allocations,S5/S8,C includes composition size and competition; not pure count causal effect
+sec5,inference families,User clustered CI/signed randomization; within fit Holm 3,sec:exp-statistics,S8,Not 18 pooled familywise correction
+sec5,reproducible implementation minimum,Retain model dimensions and gate HGB params; refer full source,sec:exp-implementation,S1/S2/S3/S7/S8,No source-stage GitHub run IDs within journal prose
+parallel,new post-G5 DEV two-stage trial,Separate exploratory comparison; not in original main G5 confirmatory,N2-D1,N2_D1_PRIMARYSEED_DEV_PILOT_LAUNCH,N5 novelty adjudication after validated aggregate; do not retrofit to N4
