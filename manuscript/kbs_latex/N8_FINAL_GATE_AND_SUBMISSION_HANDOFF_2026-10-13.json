@@ -42,7 +42,7 @@
     "Novelty differential from established L2D/DS-Frame and knowledge routing, editorial-major",
     "No independent real-world cost scarcity: Always Memory M3 higher absolute NDCG and lower warm path time",
     "Stronger method-matched external baselines not implemented; no SOTA claim allowed",
-    "P0 R3 Integrated contribution importance: conditional Memory utility, candidate-regime dependence and specialist selection have not been linked by a same-event/same-task candidate-shift-to-policy-quality experiment or knowledge-specific placebo ablation"
+    "P0 R3 Integrated contribution importance: B1 nested post-G5 DEV now empirically links candidate-regime supervision mismatch to selection-quality regret; B2 relationship-knowledge specificity and fresh independent confirmation remain OPEN"
   ],
   "hard_submission_blocks": [
     "Author name/order/affiliation/CRediT signoff",
@@ -57,7 +57,8 @@
     "N8_CLAIM_TO_SOURCE_FINAL_AUDIT_2026-10-13.json",
     "N8_AUTHOR_SIGNOFF_AND_SUBMISSION_CHECKLIST_2026-10-13.md",
     "N8_SOURCE_PDF_AND_PUBLISHER_QA_2026-10-13.md",
-    "N8_THREE_CORE_SCIENTIFIC_RISKS_INTEGRATED_REMEDIATION_2026-10-13.md"
+    "N8_THREE_CORE_SCIENTIFIC_RISKS_INTEGRATED_REMEDIATION_2026-10-13.md",
+    "../../../experiments/kbs_plan_c/B1_FULL_DEV_REGIME_TRANSFER_RESULTS_AND_R3_IMPACT_2026-10-13.md"
   ],
   "final_submission_status": "HOLD",
   "risk_extension": {
@@ -65,9 +66,33 @@
     "risk_count": 3,
     "third_risk_id": "R3",
     "third_risk_priority": "P0",
-    "status": "OPEN_SCIENTIFIC_IMPORTANCE_NOT_YET_VALIDATED",
+    "status": "PARTIALLY_MITIGATED_EXPLORATORY_DEV_POLICY_BRIDGE_B2_SPECIFICITY_PENDING",
     "research_plan": "N8_THREE_CORE_SCIENTIFIC_RISKS_INTEGRATED_REMEDIATION_2026-10-13.md",
     "scientific_evidence_reaffirmed": "G5 TEST unmodified; new DEV study proposed only",
-    "overrides_original_risk_count_but_not_frozen_pdf_gate": true
+    "overrides_original_risk_count_but_not_frozen_pdf_gate": true,
+    "B1_reviewed": true,
+    "B1_nested_DEV_evidence": {
+      "source_file": "experiments/kbs_plan_c/B1_FULL_DEV_REGIME_TRANSFER_RESULTS_AND_R3_IMPACT_2026-10-13.md",
+      "run_id": 38365477972,
+      "artifact_id": 11796876868,
+      "family_differences_full_aligned_minus_sampled_transfer": {
+        "sasrec": {
+          "ndcg_at_10": 0.006159445485776395,
+          "ci95": [
+            0.004835203927918851,
+            0.0075427277029243775
+          ]
+        },
+        "gru4rec": {
+          "ndcg_at_10": 0.004969910358806818,
+          "ci95": [
+            0.003550090790878693,
+            0.006368715906666234
+          ]
+        }
+      },
+      "test_accessed": false,
+      "note": "Post-G5 nested DEV, shared 50049 users' events, unequal naturally realized calls; original R0/G5 TEST untouched. R3 not closed without B2/source-specific evidence and new independent TEST."
+    }
   }
 }
