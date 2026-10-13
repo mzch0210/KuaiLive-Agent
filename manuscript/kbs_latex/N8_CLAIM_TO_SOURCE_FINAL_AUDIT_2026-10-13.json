@@ -1,0 +1,379 @@
+{
+  "schema": "kbs-n8-source-claim-audit-v1",
+  "date": "2026-10-13",
+  "source_git_blobs": {
+    "main": "40be249de52c0ae423b793c0dd4c55f2fdd69f46",
+    "combined_S1_S9": "f5575d29ac3de222a04f78b48698cae119eac0bf",
+    "bibliography": "433c40192da861a6caac03c3de40b8f041e70ba8",
+    "R0": "584276fa97c44ad12bd48cf1926b25b634452df1",
+    "R6_issues": "e0d55204f7a894709d0073a229c378312233cdbc"
+  },
+  "main": {
+    "sections": 8,
+    "figures": 2,
+    "tables": 9,
+    "duplicate_labels": [],
+    "missing_ref_ids": [],
+    "missing_bib_keys": []
+  },
+  "supplement": {
+    "top_level_S_sections": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "S7_7_count": 1,
+    "S7_5_count": 1,
+    "post_G5_dev_status": true
+  },
+  "accepted_R0_claims": [
+    {
+      "id": "C1-T1",
+      "protocol_scope": "FROZEN_TEST",
+      "unit": "streamer",
+      "R0_frozen_measures": {
+        "base_ndcg10": 0.58211,
+        "memory_ndcg10": 0.5398,
+        "memory_minus_base": -0.04232,
+        "paired_ci95": [
+          -0.04521,
+          -0.0395
+        ]
+      },
+      "numeric_and_scope_markers": [
+        "0.58211",
+        "0.53980",
+        "0.04232"
+      ],
+      "main_markers_all_present": true,
+      "validation": "SOURCE_TEXT_CHECK_NOT_RAW_STATISTICS_RECOMPUTATION"
+    },
+    {
+      "id": "C1-T2",
+      "protocol_scope": "RETROSPECTIVE_TARGET_DEFINED_SUBGROUP_ON_FROZEN_TEST",
+      "unit": "streamer",
+      "R0_frozen_measures": {
+        "base_ndcg10": 0.30181,
+        "memory_ndcg10": 0.52225,
+        "delta": 0.22045,
+        "paired_ci95": [
+          0.2114,
+          0.23001
+        ]
+      },
+      "numeric_and_scope_markers": [
+        "5,539",
+        "0.22045"
+      ],
+      "main_markers_all_present": true,
+      "validation": "SOURCE_TEXT_CHECK_NOT_RAW_STATISTICS_RECOMPUTATION"
+    },
+    {
+      "id": "C2-K1",
+      "protocol_scope": "POSTHOC_PAIRED_ALREADY_INSPECTED_TEST",
+      "unit": "room",
+      "R0_frozen_measures": {
+        "sampled_base": 0.6070916,
+        "sampled_memory": 0.5658875,
+        "sampled_delta": -0.04120411,
+        "full_base": 0.3857124,
+        "full_memory": 0.4320191,
+        "full_delta": 0.04630669,
+        "paired_shift": 0.0875108,
+        "paired_shift_ci95": [
+          0.0821,
+          0.09326
+        ]
+      },
+      "numeric_and_scope_markers": [
+        "10,222",
+        "0.04120",
+        "0.04631",
+        "0.08751"
+      ],
+      "main_markers_all_present": true,
+      "validation": "SOURCE_TEXT_CHECK_NOT_RAW_STATISTICS_RECOMPUTATION"
+    },
+    {
+      "id": "C2-K2",
+      "protocol_scope": "POSTHOC_PAIRED_DIAGNOSTIC",
+      "unit": "room",
+      "R0_frozen_measures": {
+        "membership_term": 0.08826963,
+        "normalization_reference_term": -0.00075883
+      },
+      "numeric_and_scope_markers": [
+        "0.08827",
+        "0.00076"
+      ],
+      "main_markers_all_present": true,
+      "validation": "SOURCE_TEXT_CHECK_NOT_RAW_STATISTICS_RECOMPUTATION"
+    },
+    {
+      "id": "C3-T1",
+      "protocol_scope": "FROZEN_TEST_UTILITY_VS_POSTHOC_MATCHED_DIFFICULTY",
+      "unit": "streamer",
+      "R0_frozen_measures": {
+        "base_ndcg10": 0.58211,
+        "utility_ndcg10": 0.58983,
+        "difficulty_ndcg10": 0.5834,
+        "oracle_ndcg10": 0.64806,
+        "utility_calls": 6650,
+        "utility_fraction": 0.1504,
+        "utility_minus_base": 0.00772,
+        "utility_minus_base_ci95": [
+          0.00641,
+          0.00903
+        ],
+        "utility_minus_difficulty": 0.00644,
+        "utility_minus_difficulty_ci95": [
+          0.00528,
+          0.00762
+        ]
+      },
+      "numeric_and_scope_markers": [
+        "0.58983",
+        "0.58340",
+        "6,650"
+      ],
+      "main_markers_all_present": true,
+      "validation": "SOURCE_TEXT_CHECK_NOT_RAW_STATISTICS_RECOMPUTATION"
+    },
+    {
+      "id": "C1-M3",
+      "protocol_scope": "ONE_SHOT_FROZEN_TEST",
+      "unit": "author",
+      "R0_frozen_measures": {
+        "memory_ndcg10": 0.34679245908092543,
+        "base_ndcg10_range": [
+          0.2580038642721321,
+          0.260649
+        ],
+        "memory_advantage_all_positive": true
+      },
+      "numeric_and_scope_markers": [
+        "0.34679",
+        "0.25800",
+        "0.26065"
+      ],
+      "main_markers_all_present": true,
+      "validation": "SOURCE_TEXT_CHECK_NOT_RAW_STATISTICS_RECOMPUTATION"
+    },
+    {
+      "id": "C3-M3",
+      "protocol_scope": "ONE_SHOT_FROZEN_TEST",
+      "unit": "author",
+      "R0_frozen_measures": {
+        "utility_ndcg10_range": [
+          0.301766,
+          0.304004
+        ],
+        "best_other_objective": "uncertainty",
+        "utility_minus_uncertainty_range": [
+          0.013012,
+          0.014314
+        ],
+        "always_memory_ndcg10": 0.34679245908092543,
+        "dev_max_call_rate": 0.3,
+        "utility_test_call_fraction_range": [
+          0.277183,
+          0.292149
+        ]
+      },
+      "numeric_and_scope_markers": [
+        "0.30287",
+        "0.28937",
+        "0.34679"
+      ],
+      "main_markers_all_present": true,
+      "validation": "SOURCE_TEXT_CHECK_NOT_RAW_STATISTICS_RECOMPUTATION"
+    },
+    {
+      "id": "STAT-M3",
+      "protocol_scope": "ONE_SHOT_FROZEN_TEST",
+      "unit": "author",
+      "R0_frozen_measures": {
+        "contrasts": [
+          "utility_minus_base",
+          "utility_minus_difficulty",
+          "utility_minus_specialist"
+        ],
+        "familywise": "Holm correction across three per model/seed",
+        "n_model_seed_combinations": 6,
+        "n_tests": 18,
+        "bootstraps": 5000,
+        "signflip_resamples": 5000,
+        "all_adjusted_p": 0.0005998800239952009
+      },
+      "numeric_and_scope_markers": [
+        "Holm",
+        "12,533",
+        "0.00060"
+      ],
+      "main_markers_all_present": true,
+      "validation": "SOURCE_TEXT_CHECK_NOT_RAW_STATISTICS_RECOMPUTATION"
+    },
+    {
+      "id": "BUD-M3",
+      "protocol_scope": "ONE_SHOT_FROZEN_TEST",
+      "unit": "author",
+      "R0_frozen_measures": {
+        "sasrec_primary_seed_test_call_fraction": {
+          "utility": 0.29214923804519183,
+          "difficulty": 0.2990436153441934,
+          "specialist": 0.29568050446663163,
+          "uncertainty": 0.30179716237519705,
+          "history": 0.354724119810825
+        }
+      },
+      "numeric_and_scope_markers": [
+        "29.21",
+        "35.47"
+      ],
+      "main_markers_all_present": true,
+      "validation": "SOURCE_TEXT_CHECK_NOT_RAW_STATISTICS_RECOMPUTATION"
+    },
+    {
+      "id": "BUD-ORACLE",
+      "protocol_scope": "TEST_HINDSIGHT_REFERENCE",
+      "unit": "author",
+      "R0_frozen_measures": {
+        "sasrec_seed_20261012_oracle30": 0.38813465239750006,
+        "sasrec_seed_20261012_oracle_unlimited": 0.3883330755161653,
+        "random30_expectation": 0.28463950957136697
+      },
+      "numeric_and_scope_markers": [
+        "0.38813",
+        "0.28464"
+      ],
+      "main_markers_all_present": true,
+      "validation": "SOURCE_TEXT_CHECK_NOT_RAW_STATISTICS_RECOMPUTATION"
+    },
+    {
+      "id": "COST-M3",
+      "protocol_scope": "DEV_WARMED_OFFLINE_REPLAY",
+      "unit": "author",
+      "R0_frozen_measures": {
+        "base_only_mean_ms": 1.4245,
+        "memory_only_mean_ms": 0.8033,
+        "utility_selective_mean_ms": 1.8018,
+        "utility_subsample_call_rate": 0.3125
+      },
+      "numeric_and_scope_markers": [
+        "0.803",
+        "1.802",
+        "256"
+      ],
+      "main_markers_all_present": true,
+      "validation": "SOURCE_TEXT_CHECK_NOT_RAW_STATISTICS_RECOMPUTATION"
+    },
+    {
+      "id": "FREEZE-M3",
+      "protocol_scope": "REGISTERED_PRETEST_AND_ONE_SHOT",
+      "unit": "author",
+      "R0_frozen_measures": {
+        "g5a_artifact": 11736962620,
+        "g5b_artifact": 11735868084,
+        "mean_candidates": 32166.63218076721,
+        "median_candidates": 31065,
+        "history": "prequential strictly prior TRAIN DEV and earlier TEST interactions"
+      },
+      "numeric_and_scope_markers": [
+        "chronologically",
+        "full-active",
+        "TEST"
+      ],
+      "main_markers_all_present": true,
+      "validation": "SOURCE_TEXT_CHECK_NOT_RAW_STATISTICS_RECOMPUTATION"
+    }
+  ],
+  "historical_R0_issues": [
+    {
+      "id": "R0-P0-01",
+      "priority": "P0",
+      "issue": "Two-task framing",
+      "n8_status": "SOURCE_SCOPED_RESOLVED_NOT_RAW_RECOMPUTED"
+    },
+    {
+      "id": "R0-P0-02",
+      "priority": "P0",
+      "issue": "Twitch-only prospective confirmation statement",
+      "n8_status": "SOURCE_SCOPED_RESOLVED_NOT_RAW_RECOMPUTED"
+    },
+    {
+      "id": "R0-P0-03",
+      "priority": "P0",
+      "issue": "DEV invocation cap mistaken for exact TEST budget",
+      "n8_status": "SOURCE_SCOPED_RESOLVED_NOT_RAW_RECOMPUTED"
+    },
+    {
+      "id": "R0-P0-04",
+      "priority": "P0",
+      "issue": "Always Memory and unfavorable M3 cost missing from main",
+      "n8_status": "ADVERSE_COST_REPORTED_ECONOMIC_BUDGET_NOT_ESTABLISHED"
+    },
+    {
+      "id": "R0-P0-05",
+      "priority": "P0",
+      "issue": "Ranked unit, feature dimension and candidate screening mismatch",
+      "n8_status": "SOURCE_SCOPED_RESOLVED_NOT_RAW_RECOMPUTED"
+    },
+    {
+      "id": "R0-P0-06",
+      "priority": "P0",
+      "issue": "Incorrect inferential family/correlation interpretation",
+      "n8_status": "SOURCE_SCOPED_RESOLVED_NOT_RAW_RECOMPUTED"
+    },
+    {
+      "id": "R0-P1-01",
+      "priority": "P1",
+      "issue": "Pretest G0F timestamp_ms versus DuckDB typed hash variance",
+      "n8_status": "SOURCE_SCOPED_RESOLVED_NOT_RAW_RECOMPUTED"
+    },
+    {
+      "id": "R0-P1-02",
+      "priority": "P1",
+      "issue": "Exact ties in G5 versus tolerance in earlier DEV ranker",
+      "n8_status": "SOURCE_SCOPED_RESOLVED_NOT_RAW_RECOMPUTED"
+    },
+    {
+      "id": "R0-P1-03",
+      "priority": "P1",
+      "issue": "Supplementary still Twitch-only and missing M3",
+      "n8_status": "SOURCE_SCOPED_RESOLVED_NOT_RAW_RECOMPUTED"
+    },
+    {
+      "id": "R0-P1-04",
+      "priority": "P1",
+      "issue": "Differentiation from general L2D/gating weak",
+      "n8_status": "EDITORIAL_NOVELTY_PARTIAL"
+    },
+    {
+      "id": "R0-P1-05",
+      "priority": "P1",
+      "issue": "Historical source reports contain superseded TEST-not-run status",
+      "n8_status": "SOURCE_SCOPED_RESOLVED_NOT_RAW_RECOMPUTED"
+    },
+    {
+      "id": "R0-P1-06",
+      "priority": "P1",
+      "issue": "Actions artifact retention and stable reproducibility gap",
+      "n8_status": "OPEN_ARCHIVE_RIGHTS"
+    }
+  ],
+  "freeze": {
+    "G5_TEST_results_not_changed": true,
+    "new_DEV_is_exploratory": true,
+    "task_ranked_units_not_pooled": true,
+    "M3_six_fits_share_users": true,
+    "Holm_within_model_only": true,
+    "DEV_call_cap_not_TEST_quota": true
+  },
+  "limits": "Main-source rounded numeric markers and evidence scopes only; raw private event-level data, independent recomputation, user rights and publication declarations not certified"
+}
