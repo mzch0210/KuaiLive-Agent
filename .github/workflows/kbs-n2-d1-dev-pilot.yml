@@ -41,8 +41,10 @@ jobs:
       - name: Verify private corrected 50,049-event DEV source and Python packages
         run: |
           set -euo pipefail
+          export PYTHONPATH="$PWD/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
           umask 077
           test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          test -d "$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1/sklearn"
           ROOT="$HOME/.cache/kuailive-agent-kbs"
           test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1/dev_full_active_pairs.csv"
           test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1/summary.json"
@@ -60,14 +62,14 @@ jobs:
       - name: Independent synthetic guard on isolated User-host interpreter
         run: |
           set -euo pipefail
-          export PYTHONPATH=analysis/kbs_plan_c
+          export PYTHONPATH="$PWD/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
           export OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2
           "$HOME/venvs/kuailive-gpu/bin/python" -m unittest analysis/kbs_plan_c/test_n2_d1_nested_dev_pilot.py -v
       - name: Run only primary-seed SASRec and GRU4Rec nested DEV exploratory pilot
         run: |
           set -euo pipefail
+          export PYTHONPATH="$PWD/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
           umask 077
-          export PYTHONPATH=analysis/kbs_plan_c
           export OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
           export PYTHONUNBUFFERED=1
           ROOT="$HOME/.cache/kuailive-agent-kbs"
@@ -77,6 +79,7 @@ jobs:
       - name: Export aggregates only; keep event rows and identities on private host
         run: |
           set -euo pipefail
+          export PYTHONPATH="$PWD/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
           umask 077
           mkdir -p n2-d1-report
           ROOT="$HOME/.cache/kuailive-agent-kbs/klm3_n2_d1_nested_dev_primaryseed_v1"
