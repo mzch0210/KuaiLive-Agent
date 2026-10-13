@@ -12,7 +12,12 @@ marker = "\n\n---\n\n# S8. Distinct KuaiLive room-seed diagnostics and M3 frozen
 def main():
     original = combined.read_text()
     if "## S7.7 Nested-DEV" in original:
-        print("S7.7 already assembled; no changes")
+        stale = "and is intended for incorporation into the final combined S1–S9 submission supplement during N8."
+        if stale in original:
+            combined.write_text(original.replace(stale, "within the final combined S1–S9 submission supplement."))
+            print("Updated assembled supplement status to current final-package wording")
+        else:
+            print("S7.7 already assembled; no changes")
         return
     blob = subprocess.check_output(["git", "hash-object", str(combined)], text=True).strip()
     if blob != expected_git_blob:
