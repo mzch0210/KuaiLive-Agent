@@ -8,7 +8,7 @@ permissions:
   contents: read
 concurrency:
   group: kbs-b2-knowledge-specificity
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   hosted-protocol-and-frozen-input-gate:
     runs-on: ubuntu-24.04
@@ -57,6 +57,7 @@ jobs:
           retention-days: 7
           if-no-files-found: error
   selfhost-nested-knowledge-selector-study:
+    if: false # disabled only while action download endpoint is unhealthy; fallback executes no-action inline same SHA-verified source
     needs: hosted-protocol-and-frozen-input-gate
     runs-on: [self-hosted, linux, x64, gpu-3090]
     timeout-minutes: 120
