@@ -2,7 +2,7 @@
 title: "Supplementary Information"
 subtitle: "When Does Relationship Memory Help? Base-Relative Evidence Valuation for Live-Streaming Recommendation"
 author: "Anonymous manuscript — Knowledge-Based Systems"
-date: "12 October 2026"
+date: "13 October 2026"
 fontsize: 9pt
 geometry: margin=0.76in
 colorlinks: true
