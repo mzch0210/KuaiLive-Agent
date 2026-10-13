@@ -1,0 +1,14 @@
+Manuscript object,Main scientific statement,Confirmed evidence / status,Where supported,Risk boundary / editor check
+Title,Relative relationship value versus designated Base in streaming ranking,N1 thesis; N3–N5 scientific results,"frontmatter; §§3,6–8",Retain accepted title; no algorithm novelty or SOTA implied
+Abstract / motivation,Relationship memory's incremental ranking value depends on incumbent and candidates,Formal Δ_M event-NDCG and history states,§3 eq:delta-memory; §6.1,Knowledge state retrospective not online selector feature
+Abstract / Twitch,DEV-frozen Utility improves from 0.58211 to 0.58983 at 15.04% calls,"44,221 streamer TEST; retrospectively matched Difficulty",§6.2; S4/S7,Do not assert equal prospective TEST call quotas
+Abstract / KuaiLive room,Memory−Base changes −0.04120 sampled to +0.04631 full,"10,222 paired previously examined room events",§6.3; S5/S8,Not causal candidate-count-only or independent TEST
+Abstract / KuaiLive-M3,Utility higher NDCG and fewer realized calls than four specific alternatives in six fits,"Same 47,575 author TEST events and 12,533 users over six Base fits",§6.2; S7/S8,Not six independent cohorts; not exact realized TEST quota
+Abstract / Always Memory,Always Memory M3 accuracy 0.34679 and faster warm DEV path,Frozen M3 TEST NDCG; separate 256-event warmed RTX3090 DEV replay,§6.2; §6.5; S9,Accuracy and timing distinct measurement settings; no serving economics claim
+Discussion / knowledge,Memory improves ranking value in relation to a particular incumbent,"Twitch conditional states, M3 six-fit Base and unconditional Memory",§7.1; §6.1,Across-setting mechanism not causal attribution
+Discussion / candidates,Candidate protocol is constitutive of label definition,Original KuaiLive 2×2 descriptive allocation and sign flip,§7.2; §6.3,Do not claim sampled metric theory invented
+Discussion / decisions,Predicted Δ_M directs selection under stated invocation regime,Frozen Twitch/M3 policy results; D1 nested DEV exploratory only,§7.3; §6.2,Do not claim full L2D or DS-Frame outperformed
+Discussion / cost,Call fraction differs from actual compute cost,Memory outperforms constrained policies; measured warm DEV replay,§7.4; §6.5,External memory scarcity unmeasured
+Discussion / transfer,Streamers vs rooms vs authors and shared M3 cohort,Three distinct protocols; G5 Holm within fit,§7.5; §5,No global Holm 18 tests or cross-platform transfer
+Conclusion / scholarly contribution,"Candidate-aligned, incumbent-relative knowledge valuation with predicted decision relevance",RQ1–3 linked under source protocols,§8; N1–N5,"Conditional epistemic contribution, not new generic regression target"
+Highlights / all,Five 85-character-limited quantitative/qualitative discoveries,N1 RQ1–3 and N3 cost facts,Highlights.txt,Final KBS Guide for Authors and portal requirements must be checked at N8
