@@ -1,0 +1,96 @@
+name: KBS N9 A0 private DEV source audit (read-only)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-n9-a0-private-cache-readonly.yml'
+permissions:
+  contents: read
+concurrency:
+  group: kbs-n9-a0-readonly
+  cancel-in-progress: false
+jobs:
+  verify-private-dev-source:
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 20
+    steps:
+      - name: Strict DEV-only hash, schema and score-cache attestation (no checkout or upload)
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import csv, hashlib, json
+          from pathlib import Path
+          root=Path.home()/'.cache/kuailive-agent-kbs'
+          b1=root/'klm3_b1_full_dev_candidate_labels_seed20261012_v1'
+          b2=root/'klm3_b2_full_dev_memory_source_ablation_seed20261013_v1'
+          b2_nested=root/'klm3_b2_nested_knowledge_specificity_seed20261013_v1'
+          corrected=root/'klm3_g3_dev_fullactive_base_memory_corrected_v1'
+          def digest(p):
+              h=hashlib.sha256()
+              with p.open('rb') as f:
+                  for chunk in iter(lambda:f.read(8<<20),b''):
+                      h.update(chunk)
+              return h.hexdigest()
+          def manifest(p):
+              return json.loads((p/'summary.json').read_text())
+          mb1=manifest(b1); mb2=manifest(b2); mn=manifest(b2_nested)
+          assert mb1['schema']=='kbs-b1-full-dev-paired-candidate-labels-v1'
+          assert mb1['status']=='PASS' and mb1['n_dev_events']==50049 and mb1['n_users']==12628
+          assert mb1['scope']=='DEV_ONLY_POST_G5_EXPLORATORY'
+          assert mb1['test_accessed'] is False and mb1['model_training'] is False
+          assert mb1['target_retained_sampling_offline_labels_only'] is True
+          assert mb1['B1_nested_gate_fitted'] is False
+          assert mb1['sampled_candidate_count']==575
+          assert mb1['private_event_source_csv_sha256']=='37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea'
+          assert digest(b1/'dev_pair_candidate_labels.csv')==mb1['private_event_source_csv_sha256']
+          assert digest(corrected/'dev_full_active_pairs.csv')==mb1['corrected_F_source_sha256']
+          assert mb2['schema']=='kbs-b2-dev-relationship-source-ablation-v1'
+          assert mb2['scope']=='POST_G5_DEV_EXPLORATORY'
+          assert mb2['status']=='PASS' and mb2['n_events']==50049 and mb2['n_users']==12628
+          assert mb2['full_memory_nDCG_mismatches']=={'F':0,'S':0}
+          assert not mb2['new_TEST_opened'] and not mb2['models_retrained']
+          assert digest(b2/'dev_memory_source_ablation_pairs.csv')==mb2['private_event_source_csv_sha256']
+          assert mn['schema']=='kbs-b2-nested-user-group-knowledge-specificity-dev-v1'
+          assert mn['scope']=='POST_G5_EXPLORATORY_DEV_ONLY'
+          assert mn['n_events']==50049 and mn['n_users']==12628
+          assert mn['n_outer_folds']==5 and mn['n_inner_folds']==4
+          assert mn['source_b2_private_SHA256']==mb2['private_event_source_csv_sha256']
+          assert not mn['test_accessed'] and not mn['base_retrained'] and not mn['any_claim_confirmatory']
+          required_b1={'event_id','user_id','split','memory_ndcg10',
+              'sasrec_ndcg10','gru4rec_ndcg10',
+              'sampled_memory_ndcg10','sampled_sasrec_ndcg10','sampled_gru4rec_ndcg10'}
+          for label,p in [('b1',b1/'dev_pair_candidate_labels.csv'),
+                          ('b2',b2/'dev_memory_source_ablation_pairs.csv')]:
+              with p.open(newline='') as f:
+                  rd=csv.DictReader(f)
+                  if label=='b1': assert required_b1.issubset(set(rd.fieldnames))
+                  else: assert {'event_id','user_id','split','memory_ndcg10'}.issubset(set(rd.fieldnames))
+                  count=0; unique_events=set(); unique_users=set()
+                  for row in rd:
+                      assert row['split']=='DEV'
+                      unique_events.add(row['event_id'])
+                      unique_users.add(row['user_id'])
+                      count+=1
+                  assert count==50049 and len(unique_events)==50049 and len(unique_users)==12628
+              print(json.dumps({'source':label,'status':'PRIVATE_SHA_AND_EVENT_USER_DEV_IDENTITY_PASS',
+                                'event_count':count,'user_count':len(unique_users),
+                                'identifiers_exported':False},sort_keys=True))
+          # No assumption that B1/B2 per-event utility is equivalent to raw candidate score vectors.
+          # Search only under known cache root and report binary availability flags, never file names.
+          score_roots=[p for p in root.iterdir() if p.is_dir() and (
+              'score' in p.name.lower() or 'logit' in p.name.lower() or
+              'fullactive' in p.name.lower() or 'corrected' in p.name.lower())]
+          candidate_arrays=0
+          for folder in score_roots[:80]:
+              for p in list(folder.glob('*.npy'))[:100]+list(folder.glob('*.npz'))[:100]:
+                  if p.is_file(): candidate_arrays+=1
+          print(json.dumps({'A0':'PASS_PRIVATE_DEV_IDENTITY_AND_SHA',
+              'B1_source':True,'B2_source':True,'B2_nested_source_link':True,
+              'full_per_candidate_score_cache_verified':False,
+              'candidate_array_file_count_shallow':candidate_arrays,
+              'a2_raw_fusion':'HOLD_REQUIRE_SCORE_AND_CANDIDATE_IDENTITY_PARITY',
+              'no_TEST_read':True,'no_training':True,'no_private_rows_exported':True},sort_keys=True))
+          PY
