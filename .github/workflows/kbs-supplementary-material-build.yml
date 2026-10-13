@@ -32,6 +32,10 @@ jobs:
           s=p.read_text(encoding='utf-8')
           titles=[int(x) for x in re.findall(r'^# S([1-9])\.',s,re.M)]
           assert titles==list(range(1,10)),titles
+          assert s.count('## S7.7 Nested-DEV')==1, 'Exploratory S7.7 must occur exactly once'
+          assert s.count('**Table S7.5.')==1, 'Exploratory Table S7.5 must occur exactly once'
+          assert s.count('## S7.6')==1 and '# S8. Distinct' in s, 'Original S7/S8 boundary must remain'
+          assert 'post-G5' in s, 'DEV exploratory evidence tier must be explicit'
           tables=re.findall(r'\*\*Table S([1-9])\.(\d+)\.',s)
           assert len(tables)>=20,len(tables)
           for section in range(2,10):
