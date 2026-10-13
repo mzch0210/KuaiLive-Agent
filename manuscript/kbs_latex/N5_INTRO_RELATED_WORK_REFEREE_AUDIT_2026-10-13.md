@@ -10,7 +10,7 @@ This N5 source patch affects **only LaTeX §§1–2** and adds **three verified 
 - §§1–2 organize *relative knowledge valuation*, *decision relevance of predicting that value*, and *candidate-conditioned meaning of the value label* as a cumulative account, **not three unrelated invention claims**. The Introduction includes numerical signals for Twitch TEST, six-fit M3 TEST, paired KuaiLive room contrast and always-Memory adverse M3 result.
 - The 2026 NeurIPS/ICML/DS-Frame nearest-prior concerns are handled positively by locating the contribution in **empirical measurement and decision relevance**, not attributing established deferral mathematics or budget routing architecture to this manuscript.
 - **KBS 2026** knowledge fusion is acknowledged via MHGFCL/KAPER and modern memory via ACL MemRec. GUIDER represents external uncertainty-based LLM reranking, not a method whose full implementation appears in our simple negative-Base-margin control.
-- DEV post-G5 two-stage D1 appears only as a one-sentence implementation-sensitivity acknowledgement in §2, without exploratory numbers or new confirmatory result; detailed N5 impact remains source-logged separately.
+- The post-G5 two-stage DEV comparator is reserved for the separate scholarly-impact and eventual supplementary evidence record. No repository-stage or post-G5 DEV process narration, exploratory numbers, or new confirmatory claim appears in §§1–2; the primary G5 result remains unchanged.
 
 ## Primary sources and bibliography additions
 
@@ -39,3 +39,7 @@ This N5 source patch affects **only LaTeX §§1–2** and adds **three verified 
 - **N6** should align Discussion/Conclusion and then Abstract/title/Highlights with this causal-neutral evidence hierarchy and counterexample; do not reintroduce a "new budget router" or total latency reduction claim.
 
 This internal analysis does not constitute a measured acceptance probability, external referee approval, or proof that all 2026 literature has been exhaustively surveyed.
+
+## Final N5 publication-style refinement
+
+The revised Related Work was tightened after first commit to remove a sentence describing the author's new DEV pilot procedure. The main narrative now connects existing published deferral theory directly to this paper's evidence-value estimand and tested fixed selectors. Current N5 `main.tex` blob: `d7ea52f37f2a9ba802eff56e969940e9d7f619bb` (academic prose refinement commit `85e069c0c5dba267297ecf1df23dcdc2bfd34713`); current `kbs_references.bib` blob `433c40192da861a6caac03c3de40b8f041e70ba8`. All section/figure/table labels and the original numerical evidence remain unchanged. Static citation/reference checks passed; latest CI PDF build verdict must be checked and recorded separately.
