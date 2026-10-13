@@ -1,0 +1,101 @@
+{
+  "schema": "kbs-n7-scientific-anchor-inventory-v1",
+  "created": "2026-10-13",
+  "original_accepted_R0_claim_count": 12,
+  "claims": [
+    {
+      "id": "C1-T1",
+      "meaning": "Twitch Memory worse aggregate",
+      "accepted_numeric_anchor": "0.53980 vs 0.58211",
+      "evidence_tier": "TEST",
+      "status": "ANCHOR_PRESENT_MAIN_NOT_INDEPENDENTLY_RECOMPUTED"
+    },
+    {
+      "id": "C1-T2",
+      "meaning": "Twitch recoverable-history subgroup",
+      "accepted_numeric_anchor": "0.22045; 5,539",
+      "evidence_tier": "TARGET_RETROSPECTIVE",
+      "status": "ANCHOR_PRESENT_MAIN_NOT_INDEPENDENTLY_RECOMPUTED"
+    },
+    {
+      "id": "C2-K1",
+      "meaning": "Original KuaiLive paired candidate flip",
+      "accepted_numeric_anchor": "-0.04120 to +0.04631; 10,222",
+      "evidence_tier": "RETROSPECTIVE",
+      "status": "ANCHOR_PRESENT_MAIN_NOT_INDEPENDENTLY_RECOMPUTED"
+    },
+    {
+      "id": "C2-K2",
+      "meaning": "Candidate membership and normalization allocation",
+      "accepted_numeric_anchor": "+0.08827; -0.00076",
+      "evidence_tier": "RETROSPECTIVE_DESCRIPTIVE",
+      "status": "ANCHOR_PRESENT_MAIN_NOT_INDEPENDENTLY_RECOMPUTED"
+    },
+    {
+      "id": "C3-T1",
+      "meaning": "Twitch DEV-frozen selection",
+      "accepted_numeric_anchor": "0.58983; 6,650",
+      "evidence_tier": "TEST",
+      "status": "ANCHOR_PRESENT_MAIN_NOT_INDEPENDENTLY_RECOMPUTED"
+    },
+    {
+      "id": "C1-M3",
+      "meaning": "M3 fixed Memory against six Base fits",
+      "accepted_numeric_anchor": "0.34679; 0.25800",
+      "evidence_tier": "TEST",
+      "status": "ANCHOR_PRESENT_MAIN_NOT_INDEPENDENTLY_RECOMPUTED"
+    },
+    {
+      "id": "C3-M3",
+      "meaning": "M3 five selectors against Utility",
+      "accepted_numeric_anchor": "0.30287; 0.28937",
+      "evidence_tier": "TEST",
+      "status": "ANCHOR_PRESENT_MAIN_NOT_INDEPENDENTLY_RECOMPUTED"
+    },
+    {
+      "id": "STAT-M3",
+      "meaning": "Within-fit three Holm contrasts; shared TEST users",
+      "accepted_numeric_anchor": "12,533",
+      "evidence_tier": "TEST_INFERENCE",
+      "status": "ANCHOR_PRESENT_MAIN_NOT_INDEPENDENTLY_RECOMPUTED"
+    },
+    {
+      "id": "BUD-M3",
+      "meaning": "DEV 30 percent call limit differs from TEST rate",
+      "accepted_numeric_anchor": "27.72%; 35.47%",
+      "evidence_tier": "TEST_CALLS",
+      "status": "ANCHOR_PRESENT_MAIN_NOT_INDEPENDENTLY_RECOMPUTED"
+    },
+    {
+      "id": "BUD-ORACLE",
+      "meaning": "M3 oracle is hindsight reference",
+      "accepted_numeric_anchor": "0.38813",
+      "evidence_tier": "HINDSIGHT",
+      "status": "ANCHOR_PRESENT_MAIN_NOT_INDEPENDENTLY_RECOMPUTED"
+    },
+    {
+      "id": "COST-M3",
+      "meaning": "Always Memory faster in warmed DEV replay",
+      "accepted_numeric_anchor": "0.803 ms; Utility 1.802 ms",
+      "evidence_tier": "DEV_COST",
+      "status": "ANCHOR_PRESENT_MAIN_NOT_INDEPENDENTLY_RECOMPUTED"
+    },
+    {
+      "id": "FREEZE-M3",
+      "meaning": "G5 one-shot reveal follows frozen scoring",
+      "accepted_numeric_anchor": "TEST/DEV separate",
+      "evidence_tier": "PROTOCOL",
+      "status": "ANCHOR_PRESENT_MAIN_NOT_INDEPENDENTLY_RECOMPUTED"
+    }
+  ],
+  "original_G5_unmodified": true,
+  "original_combined_S1_S9_unmodified": true,
+  "DEV_S7_7_addendum": "post-G5 exploratory separate file pending merge before final submission",
+  "N8_open": [
+    "Raw numerical recomputation",
+    "R0 P0/P1 full closure",
+    "PDF page-level visual review",
+    "Author rights and archive",
+    "KBS Guide for Authors final compliance"
+  ]
+}
