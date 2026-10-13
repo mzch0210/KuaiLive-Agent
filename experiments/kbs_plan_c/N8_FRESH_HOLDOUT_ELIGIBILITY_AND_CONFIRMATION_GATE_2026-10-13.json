@@ -1,0 +1,104 @@
+{
+  "schema": "kbs-post-b2-fresh-test-eligibility-and-pretest-method-gate-v1",
+  "created": "2026-10-13",
+  "scope": "FUTURE_CONDITIONAL_PROTOCOL_NOT_AN_EXECUTED_TEST",
+  "evidence_reviewed": {
+    "original_G5_TEST": "already_revealed_and_frozen_in_2026_10_12",
+    "B1_B2_DEV": "50049_M3_DEV_events_12628_users_post_G5_exploratory",
+    "original_KuaiLive_room": "10222_paired_room_TEST_retrospective_inspected",
+    "new_holdout_data": "NOT_IDENTIFIED_AND_NOT_VERIFIED",
+    "new_outcome_labels_read": false,
+    "new_training_or_scoring_executed": false
+  },
+  "decision": {
+    "scientific_position": "conditional_candidate_aligned_incumbent_relative_relationship_knowledge_value",
+    "new_test_usefulness": "HIGH_FOR_MAIN_MECHANISM_CLAIM",
+    "independently_unseen_outcome_cohort_available": "UNVERIFIED",
+    "new_test_protocol_design": "GO",
+    "new_test_execution": "HOLD",
+    "gating_decision": "HOLD_UNTIL_D1_AND_D2_PASS",
+    "whether_new_test_is_absolute_for_original_frozen_claims": false,
+    "whether_new_test_is_expected_for_stronger_mechanistic_KBS_claim": true
+  },
+  "D1_eligibility_requirements": [
+    {
+      "id": "D1-1",
+      "name": "temporal_and_provenance",
+      "criterion": "new forward-time cohort not used or looked at in any TRAIN, DEV, old G5 TEST, B1/B2 or original room diagnostics; all event IDs unique after protected local overlap checks",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "D1-2",
+      "name": "outcome_blindness",
+      "criterion": "no target label/rank/utility read by the researchers or scripts during authorization and pretest design; any earlier exposure recorded",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "D1-3",
+      "name": "rights_and_privacy",
+      "criterion": "clear permitted computational reuse, confidentiality, storage and derived evidence release; no unconsented re-identification",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "D1-4",
+      "name": "candidate_and_history_provenance",
+      "criterion": "eligible full-active author roster and complete prior observable history at time t, TRAIN-known author identity as defined before outcome, no future events in Z",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "D1-5",
+      "name": "cohort_size_and_dependence",
+      "criterion": "outcome-free event counts, distinct users, timestamp range and user overlap flags enough for user cluster statistical power feasibility",
+      "status": "UNVERIFIED"
+    },
+    {
+      "id": "D1-6",
+      "name": "frozen_input_contract",
+      "criterion": "frozen Base & Memory score implementation and exact eligible candidate semantics transferable without method retuning on unseen outcomes",
+      "status": "UNVERIFIED"
+    }
+  ],
+  "D2_pretest_requirements": [
+    {
+      "id": "D2-1",
+      "criterion": "freeze central contrast same target full-active evaluation F-to-F vs pure S-to-F, and expected positive user-cluster paired NDCG difference"
+    },
+    {
+      "id": "D2-2",
+      "criterion": "freeze real relation source comparison and a valid support/author-marginal-preserving placebo; measure true expert strength to avoid weak-control floor effects"
+    },
+    {
+      "id": "D2-3",
+      "criterion": "freeze actual decision rules fitted and threshold-calibrated without new TEST utility, natural calls plus predeclared fair-budget sensitivity; report Always Memory"
+    },
+    {
+      "id": "D2-4",
+      "criterion": "freeze primary family, correction across predefined Base comparisons, cluster unit, confidence estimator, minimum practical effect threshold justified from known DEV only (explicitly post-hoc-derived)"
+    },
+    {
+      "id": "D2-5",
+      "criterion": "freeze selected two Base families & seeds, author/event cohort, all preprocessing files, SHA registries and no future sample selection after observing labels"
+    },
+    {
+      "id": "D2-6",
+      "criterion": "sign/data version/report/archive checklist and locked one-shot reveal permission"
+    }
+  ],
+  "new_test_pretrigger_checks": {
+    "if_any_D1_UNVERIFIED": "DO_NOT_RUN",
+    "if_any_D1_FAIL": "DO_NOT_RUN",
+    "if_D2_not_frozen_prior_to_outcomes": "DO_NOT_RUN",
+    "if_old_G5_TEST_proposed_as_new_data": "DO_NOT_RUN",
+    "if_all_PASS": "MAY_INITIATE_SEPARATE_FRESH_TEST_WITH_NEW_UNSEEN_OUTCOMES",
+    "results_not_prejudged": true,
+    "risk_R3": "PARTIALLY_MITIGATED_PENDING_INDEPENDENT_CONFIRMATION",
+    "risks_R1_R2": "OPEN"
+  },
+  "references": [
+    "manuscript/kbs_latex/N8_POST_B2_THESIS_AND_NEW_TEST_DECISION_2026-10-13.md",
+    "experiments/kbs_plan_c/B1_FULL_DEV_REGIME_TRANSFER_RESULTS_AND_R3_IMPACT_2026-10-13.md",
+    "experiments/kbs_plan_c/B2_COMPLETE_DEV_KNOWLEDGE_SOURCE_SELECTOR_ANALYSIS_2026-10-13.md",
+    "manuscript/kbs_latex/N8_FINAL_GATE_AND_SUBMISSION_HANDOFF_2026-10-13.json"
+  ],
+  "original_G5_scientific_claims_changed": false
+}
