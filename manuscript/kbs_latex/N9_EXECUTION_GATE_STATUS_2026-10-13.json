@@ -1,6 +1,6 @@
 {
   "date": "2026-10-13",
-  "status": "N9_R0_A0_A1_A2_DECISION_COMPONENT_A3_PASS_BOUNDED_P2_MANUSCRIPT_MERGED_QA_RUNNING",
+  "status": "R0_A0_A1_A2_DECISION_ARMS_A3_BOUNDED_P0_P1_P2_TECHNICAL_PASS_P3_HOLD",
   "stages": {
     "R0": "PASS",
     "A0": "PASS_PRIVATE_SHA_50049_DEV_12628_USERS",
@@ -9,8 +9,8 @@
     "A3": "BOUNDED_SCIENCE_PASS_SCOPED_P2_GO",
     "P0": "PASS_SOURCE_REGISTER_AND_PRIVATE_SHA",
     "P1": "PASS_B1B2_MAIN_TEX_AND_S10_DRAFT_CREATED",
-    "P2": "MAIN_TEX_COMPILE_PASS_S1_S10_ASSEMBLED_PDF_QA_RUNNING",
-    "P3": "HOLD_FINAL_JOURNAL_AND_STATISTICAL_REVIEW",
+    "P2": "PASS_CANONICAL_MAIN_AND_NEW_S1_S10_SOURCE_BUILDS",
+    "P3": "INDEPENDENT_JOURNAL_REVIEW_AUTHOR_SIGNOFF_AND_FINAL_QA_HOLD",
     "T0": "NOT_AUTHORIZED_NEW_TEST_METADATA_ONLY",
     "T1": "HOLD_NO_ELIGIBLE_NEW_TEST",
     "T2": "AUTHOR_SIGNOFF_OPEN"
@@ -52,7 +52,8 @@
     "main_tex_blob": "2d99f068dc6fc9dcb5085c0f398a71f46f1b6ffd",
     "original_main_blob": "40be249de52c0ae423b793c0dd4c55f2fdd69f46",
     "supplement_new_path": "manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md",
-    "original_s1_s9_blob": "f5575d29ac3de222a04f78b48698cae119eac0bf"
+    "original_s1_s9_blob": "f5575d29ac3de222a04f78b48698cae119eac0bf",
+    "supplement_new_blob": "4856be8aa2e92886922f9f1a0065e18fb13dbf9e"
   },
   "scientific_runs": {
     "A0": 38382393789,
@@ -66,5 +67,20 @@
     "One full cross-chapter source-to-claim and user-cluster statistical-scope review",
     "Revisit no-full-score-fusion limitation without inventing data",
     "Human-author data-rights, CRediT, AI disclosure, KBS submission portal sign-off"
-  ]
+  ],
+  "verified_pdfs": {
+    "main": {
+      "run_id": 38383802641,
+      "artifact_id": 11804004496,
+      "build": "SUCCESS",
+      "pages": 35
+    },
+    "supplement": {
+      "run_id": 38384252296,
+      "artifact_id": 11804803346,
+      "build": "SUCCESS",
+      "tables": 34
+    }
+  },
+  "p2_qa": "manuscript/kbs_latex/N9_P2_MANUSCRIPT_INTEGRATION_AND_BUILD_QA_2026-10-13.md"
 }
