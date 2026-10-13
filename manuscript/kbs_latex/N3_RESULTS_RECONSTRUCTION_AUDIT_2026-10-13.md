@@ -17,3 +17,10 @@
 - New DEV two-stage comparator belongs to a separate *exploratory* branch of the effort, not §6 or G5 predeclared family; no invented validation.
 - N4 must reconcile duplicated protocol details. N5 must update DS-Frame/L2D reference frame. N6 must provide theoretical interpretation and positive close rather than merely restating results. N7/N8 must compile/read exact-source PDF and audit the R0 twelve issues and lawful data rights.
 - **No claim of successful final compilation is made at N3.**
+
+## Follow-up source and LaTeX quality gate (verified)
+
+- N3 `main.tex` immutable blob: `0ed5fd77b81cb87e7528a2044c2faef3ab0f00b9`, 621 source lines.
+- [GitHub Actions LaTeX manuscript compile #38336035881](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38336035881), **conclusion success**, checked out N3 edit commit `b1f1a06158c5aebbe0ddfdbcc873ef74d4aac284`; compile artifact `11784592230` (~496 KB ZIP, expires 2026-11-12).
+- Static final-source check on updated main: 8 sections, 9 tables, 2 figures, no duplicate LaTeX label, no undefined cross-reference names, and no missing `\\cite` BibTeX keys among the current citations. All 12 N0 canonical evidence ID responsibilities remain an explicit source-tracking requirement.
+- **Scope of PASS:** manuscript source compiles and main Results scientific narrative has been rewritten. This is not a claim that rendered pages have received independent visual quality review, nor that N4–N8 cross-section consistency and journal submission declarations have been completed.
