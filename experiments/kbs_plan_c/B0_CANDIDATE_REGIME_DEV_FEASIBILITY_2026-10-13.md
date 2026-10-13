@@ -41,3 +41,38 @@
 5. 只有 full-active heldout **policy** 出现稳定且实际重要的 regret / candidate-aware recovery，再考虑 B2 历史知识专属性实验或真正新的独立 TEST；仅看到 NDCG label 漂移属于已有采样评价常识，不算 R3 解决。
 
 **范围声明：** 此阶段不修改 N8 已验收 31 页主稿、34 页合并补充材料、G5 registry/TEST，且未运行任何新拟合。
+
+## B0 final independent source and self-host verification — PASS (2026-10-13)
+
+The earlier statement **"self-host running/conditional PASS" is superseded** by this final evidence-based acceptance.
+
+### Failure analysis and transport repair
+
+- [Original B0 run #38361051746](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38361051746) failed exclusively in self-host `actions/checkout@v4`: `git fetch` to `github.com:443` encountered `curl 28` TCP connect timeouts on **all three attempts** and exited 128. Hosted source syntax audit passed. **All actual DEV validation steps had been skipped** on that first run.
+- Replaced self-host git checkout with a tightly scoped GitHub-hosted **artifact relay**: hosted job packages `b0_candidate_regime_dev_feasibility.py`, `g3_dev_full_active.py`, `g2_train_base.py` and SHA256SUMS; self-host downloads and verifies that exact artifact with no `github.com` Git fetch. No private data are present in the code bundle.
+- [Recovery run #38362497343](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38362497343), source commit `9e2ee9fc1cbb09c9719ea1cc007c3487a5c3a8e6`: **hosted-source-safety SUCCESS; private-dev-cache-gate SUCCESS; overall SUCCESS**. Both user-host source checking and eight DEV roster probes completed; zero job-log errors.
+
+### Read-back from the real, uploaded aggregate artifact
+
+Artifact: `kbs-b0-m3-candidate-regime-dev-aggregate`, GitHub Actions ID `11794918018`, 30-day retention. Inner `summary.json` SHA256: `684cb34af90f5a29b27da7b65d68bcd423198101da1f7572dea8cd24b23d5459`. The result was **independently downloaded and parsed**, not inferred from job success alone.
+
+| Check | Observed result | Verdict |
+|---|---|---|
+| Frozen G1 derived source / TRAIN index / G2 DEV screen / corrected G3 DEV pairs | All 14 named mandatory private source files found | PASS |
+| Corrected paired DEV source manifest and CSV | `kbs-plan-c-full-active-dev-paired-v2`, complete DEV-only, SHA verified | PASS |
+| DEV identity and scope | **50,049 events; 12,628 distinct users**; DEV rows only | PASS |
+| All-event full-active candidate count | min **14,022**, max **53,762** | PASS |
+| Frozen SASRec model | primary seed 20261012 checkpoint present; expected SHA verified | PASS |
+| Frozen GRU4Rec model | primary seed 20261012 checkpoint present; expected SHA verified | PASS |
+| 8 reconstructed time-based DEV rosters | min **22,934**, max **53,379** candidates, all target-positive authors present | PASS |
+| Source event identities or candidate IDs uploaded | None uploaded; aggregate-only artifact | PASS |
+| New model training / G5 TEST accessed | **False / False** | PASS |
+| Per-candidate Base/Memory score vectors already saved | **False** | B1 must recompute exact rankings from frozen models and corrected history |
+
+### Acceptance and handoff
+
+**B0 = PASS: `PASS_RECONSTRUCTIBLE_REQUIRES_FROZEN_BASE_RESCORING`.** This certifies source availability, corrected DEV identity, frozen model artifacts and minimal roster reproducibility; it does **not** certify a full 50,049-event sampled/full-active re-scoring experiment, candidate-regime transfer result or statistically significant policy benefit. The M3 Base scores are item-embedding dot products and can be regenerated on frozen model weights without training new Base models; corrected Memory must be reconstructed from all pretarget historical interactions, including TRAIN-unseen historical authors.
+
+**B1 first stage:** design a low-cost read-only DEV subset scored in both candidate regimes, validate exact full-active ranks against the already frozen corrected DEV paired source, then build nested user-disjoint policy comparisons. Sampled target-retention remains an offline evaluation protocol, never a decision-time feature. The full prior G5 TEST must remain unopened.
+
+**N8 manuscript and supplementary scientific evidence remain frozen and unchanged.**
