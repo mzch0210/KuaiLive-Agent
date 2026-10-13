@@ -42,7 +42,7 @@
     "Novelty differential from established L2D/DS-Frame and knowledge routing, editorial-major",
     "No independent real-world cost scarcity: Always Memory M3 higher absolute NDCG and lower warm path time",
     "Stronger method-matched external baselines not implemented; no SOTA claim allowed",
-    "P0 R3 Integrated contribution importance: B1 nested post-G5 DEV now empirically links candidate-regime supervision mismatch to selection-quality regret; B2 relationship-knowledge specificity and fresh independent confirmation remain OPEN"
+    "P0 R3 integrated knowledge value: B1 + B2 exploratory matched-DEV experiments now connect relationship source, candidate-regime label shift and selector regret; contribution is strengthened but no confirmatory independent TEST or strong source-identity placebo, so R3 remains PARTIALLY MITIGATED"
   ],
   "hard_submission_blocks": [
     "Author name/order/affiliation/CRediT signoff",
@@ -58,7 +58,9 @@
     "N8_AUTHOR_SIGNOFF_AND_SUBMISSION_CHECKLIST_2026-10-13.md",
     "N8_SOURCE_PDF_AND_PUBLISHER_QA_2026-10-13.md",
     "N8_THREE_CORE_SCIENTIFIC_RISKS_INTEGRATED_REMEDIATION_2026-10-13.md",
-    "../../../experiments/kbs_plan_c/B1_FULL_DEV_REGIME_TRANSFER_RESULTS_AND_R3_IMPACT_2026-10-13.md"
+    "../../../experiments/kbs_plan_c/B1_FULL_DEV_REGIME_TRANSFER_RESULTS_AND_R3_IMPACT_2026-10-13.md",
+    "../../experiments/kbs_plan_c/B2_COMPLETE_DEV_KNOWLEDGE_SOURCE_SELECTOR_ANALYSIS_2026-10-13.md",
+    "../../experiments/kbs_plan_c/B2_NESTED_DEV_SOURCE_SPECIFICITY_AGGREGATE_2026-10-13.json"
   ],
   "final_submission_status": "HOLD",
   "risk_extension": {
@@ -66,7 +68,7 @@
     "risk_count": 3,
     "third_risk_id": "R3",
     "third_risk_priority": "P0",
-    "status": "PARTIALLY_MITIGATED_EXPLORATORY_DEV_POLICY_BRIDGE_B2_SPECIFICITY_PENDING",
+    "status": "PARTIALLY_MITIGATED_EXPLORATORY_B1_B2_POLICY_AND_SOURCE_BRIDGE_INDEPENDENT_TEST_PENDING",
     "research_plan": "N8_THREE_CORE_SCIENTIFIC_RISKS_INTEGRATED_REMEDIATION_2026-10-13.md",
     "scientific_evidence_reaffirmed": "G5 TEST unmodified; new DEV study proposed only",
     "overrides_original_risk_count_but_not_frozen_pdf_gate": true,
@@ -93,6 +95,36 @@
       },
       "test_accessed": false,
       "note": "Post-G5 nested DEV, shared 50049 users' events, unequal naturally realized calls; original R0/G5 TEST untouched. R3 not closed without B2/source-specific evidence and new independent TEST."
+    },
+    "B2_reviewed": true,
+    "B2_nested_DEV_evidence": {
+      "source_file": "experiments/kbs_plan_c/B2_COMPLETE_DEV_KNOWLEDGE_SOURCE_SELECTOR_ANALYSIS_2026-10-13.md",
+      "public_aggregate": "experiments/kbs_plan_c/B2_NESTED_DEV_SOURCE_SPECIFICITY_AGGREGATE_2026-10-13.json",
+      "run_id": 38369503457,
+      "private_report_sha256": "80aaa58e194a3e39188dc5807f2c3b913e1e5378df7dce254dbe3ca1d65e7d74",
+      "n_dev_events": 50049,
+      "five_memory_sources": [
+        "full",
+        "long_only",
+        "short_only",
+        "popularity_only",
+        "relationship_shifted"
+      ],
+      "feature_sets": [
+        "original12",
+        "candidate_plus_base_descriptors6"
+      ],
+      "primary_source_findings": {
+        "f_full_NDCG": 0.34350918072958464,
+        "f_long_NDCG": 0.3332313796946974,
+        "s_full_NDCG": 0.668498135845128,
+        "s_long_NDCG": 0.7736022027205331,
+        "sasrec_full_regret_all12": 0.006159445485776394,
+        "gru4rec_full_regret_all12": 0.004969910358806818,
+        "sasrec_full_regret_base_only6": 0.0018135504376842158,
+        "gru4rec_full_regret_base_only6": 0.0016067363983028773
+      },
+      "scientific_scope": "Post-G5 exploratory DEV; not new G5 TEST; no user-level data shared; observational comparisons partly affected by invocation drift; strict relation placebo and independent holdout unresolved."
     }
   }
 }
