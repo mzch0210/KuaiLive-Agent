@@ -88,5 +88,15 @@
   },
   "p2_qa": "manuscript/kbs_latex/N9_P2_MANUSCRIPT_INTEGRATION_AND_BUILD_QA_2026-10-13.md",
   "p3_qa": "manuscript/kbs_latex/N9_P3_KBS_REFEREE_REVIEW_AND_REMEDIATION_2026-10-13.md",
-  "p3_author_gate": "manuscript/kbs_latex/N9_P3_AUTHOR_CONFIRMATIONS_AND_DISCLOSURE_DRAFT_2026-10-13.md"
+  "p3_author_gate": "manuscript/kbs_latex/N9_P3_AUTHOR_CONFIRMATIONS_AND_DISCLOSURE_DRAFT_2026-10-13.md",
+  "next_research_plan": "manuscript/kbs_latex/N9_POST_P3_THREE_RISK_TARGETED_REVISION_PLAN_2026-10-13.md",
+  "next_research_stages": {
+    "G0": "PLAN_ONLY_NOT_EXECUTED",
+    "G1_E3a_E2": "NOT_STARTED",
+    "G2_E1": "NOT_STARTED",
+    "G3_E3b": "CONDITIONAL_NOT_AUTHORIZED",
+    "G4": "NOT_STARTED",
+    "G5_G6": "NOT_STARTED"
+  },
+  "next_plan_note": "Preserves N9-P3 technical QA PASS and submission HOLD; requires G0 freeze before additional exploratory experiments."
 }
