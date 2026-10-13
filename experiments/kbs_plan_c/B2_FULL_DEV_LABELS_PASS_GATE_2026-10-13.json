@@ -18,5 +18,8 @@
   "original_B1_dev_pair_sha256": "37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea",
   "need_private_rehash_before_fit": true,
   "evidence_tier": "POST_G5_EXPLORATORY_DEV_ONLY",
-  "caveat": "The source SHA256 value is not fabricated or copied from unverified output. The B2 nested script itself must rehash the private CSV and compare to the original private B2 manifest before fitting. Original score-generation logs verified the aggregate record; upload-artifact failed after source validation."
+  "caveat": "The source SHA256 value is not fabricated or copied from unverified output. The B2 nested script itself must rehash the private CSV and compare to the original private B2 manifest before fitting. Original score-generation logs verified the aggregate record; upload-artifact failed after source validation.",
+  "executor_unblock_version": 2,
+  "reason": "Original artifact-dependent nested job hung on actions/download-artifact. Requeue hosted validation with selfhost job disabled; independently launched no-action inline workflow performs byte-verified private nested analysis.",
+  "untouched_science_gate": true
 }
