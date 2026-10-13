@@ -41,7 +41,8 @@
   "scientific_residual_risks": [
     "Novelty differential from established L2D/DS-Frame and knowledge routing, editorial-major",
     "No independent real-world cost scarcity: Always Memory M3 higher absolute NDCG and lower warm path time",
-    "Stronger method-matched external baselines not implemented; no SOTA claim allowed"
+    "Stronger method-matched external baselines not implemented; no SOTA claim allowed",
+    "P0 R3 Integrated contribution importance: conditional Memory utility, candidate-regime dependence and specialist selection have not been linked by a same-event/same-task candidate-shift-to-policy-quality experiment or knowledge-specific placebo ablation"
   ],
   "hard_submission_blocks": [
     "Author name/order/affiliation/CRediT signoff",
@@ -55,7 +56,18 @@
     "N8_KBS_INDEPENDENT_REFEREE_REPORT_2026-10-13.md",
     "N8_CLAIM_TO_SOURCE_FINAL_AUDIT_2026-10-13.json",
     "N8_AUTHOR_SIGNOFF_AND_SUBMISSION_CHECKLIST_2026-10-13.md",
-    "N8_SOURCE_PDF_AND_PUBLISHER_QA_2026-10-13.md"
+    "N8_SOURCE_PDF_AND_PUBLISHER_QA_2026-10-13.md",
+    "N8_THREE_CORE_SCIENTIFIC_RISKS_INTEGRATED_REMEDIATION_2026-10-13.md"
   ],
-  "final_submission_status": "HOLD"
+  "final_submission_status": "HOLD",
+  "risk_extension": {
+    "date": "2026-10-13",
+    "risk_count": 3,
+    "third_risk_id": "R3",
+    "third_risk_priority": "P0",
+    "status": "OPEN_SCIENTIFIC_IMPORTANCE_NOT_YET_VALIDATED",
+    "research_plan": "N8_THREE_CORE_SCIENTIFIC_RISKS_INTEGRATED_REMEDIATION_2026-10-13.md",
+    "scientific_evidence_reaffirmed": "G5 TEST unmodified; new DEV study proposed only",
+    "overrides_original_risk_count_but_not_frozen_pdf_gate": true
+  }
 }
