@@ -89,3 +89,11 @@ N8 已通过最终主稿和补充材料的技术 QA，但 **SUBMISSION HOLD**：
 **执行 B1/B2 均未达成科学 GO**：不要再用多轮 DEV 微调制造漂亮的结果。保留 scoped 方法评估主张并接受 KBS 对 novelty 的剩余风险；必要时考虑更重视可复现应用/实证知识系统的备选期刊，但不宣称 KBS 不可能录用。
 
 **当前状态：** 可立即进入 A 精修与 B1-0 可行性检查，但这些是推荐，不是已运行的新增训练；所有新统计应按后见 exploratory 证据身份记录。
+
+## R3 NEW ADDENDUM — scientific importance of the integrated knowledge-system contribution
+
+**Date: 2026-10-13; superseding risk count = THREE core academic risks.** This document preserves the original two-risk research decision as a historical audit. The user has identified an additional **P0 risk**: the combination of conditional fixed-Memory value, candidate-regime-dependent metric/utility labels and specialist decisions may constitute three adjacent but insufficiently integrated established ideas, rather than one important new knowledge-systems result.
+
+The key missing evidence is **within-one-task linkage RQ2 → RQ3**: whether changing the candidate regime changes the learned *relative knowledge value* enough to degrade held-out **full-active** selection and whether decision-time candidate-aware estimation can measurably recover quality; in parallel, a knowledge-specific Short/Long/popularity and relationship-placebo control must show the mechanism is actually historical relationship evidence, not only a generic two-ranker difference.
+
+**Authoritative updated three-risk plan:** [N8 three core academic risks and validation gates](N8_THREE_CORE_SCIENTIFIC_RISKS_INTEGRATED_REMEDIATION_2026-10-13.md). Priority: R3/R1 scientific contribution chain first; R2 deployment economic cost independently scoped. Original G5 TEST, main source and existing statistics remain frozen. New DEV is exploratory; a true new confirmatory TEST requires previously unseen outcomes. This addition does not certify that the proposed mechanism has been observed.
