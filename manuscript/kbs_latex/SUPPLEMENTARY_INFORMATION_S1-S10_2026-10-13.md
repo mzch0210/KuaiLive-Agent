@@ -835,6 +835,8 @@ Use 2,000 paired user-cluster percentile bootstrap draws for descriptive 95% int
 
 ## S10.3 Candidate supervision, full-ranking policy utility
 
+**Table S10.1. Candidate-aligned and sampled-label transfer evaluated on identical full-active author-ranking DEV events.**
+
 | Incumbent | S→F NDCG@10; calls | F→F NDCG@10; calls | Adapted→F NDCG@10; calls | F→F − S→F (paired 95% user CI) |
 | --- | --- | --- | --- | --- |
 | SASRec | 0.296499; 14,988 | 0.302658; 15,016 | 0.301847; 14,954 | 0.006159 [0.004835, 0.007543] |
@@ -852,6 +854,8 @@ This demonstrates source-dependent evaluation differences on fixed historical sc
 
 For original twelve-feature selectors, full-candidate aligned-minus-sampled-trained decision-quality differences were:
 
+**Table S10.2. Historical knowledge source and candidate-supervision transfer losses under the original twelve-feature selector.**
+
 | Memory source | SASRec difference | GRU4Rec difference | Interpretation |
 | --- | ---: | ---: | --- |
 | Full | 0.006159 | 0.004970 | Matched users, similar but nonidentical calls |
@@ -868,7 +872,7 @@ To probe whether direct relation-history descriptors affect transfer, the same e
 
 The full-active, candidate-aligned Direct relative-utility selector was evaluated under pre-specified inner-DEV Memory-call maxima of 0%, 10%, 20%, 30%, 50%, 70%, 90% and 100%. Training and threshold selection use the same 5-outer by 4-inner user-disjoint scheme and the same single-head HGB model as Section S10.2; only the OOF invocation limit changes. The 100% condition permits unconstrained threshold selection and **does not force** every event to use Memory. All quality values are measured over identical held-out outer-user full-active ranking events; actual outer call rates can exceed inner development limits.
 
-**Table S10.1. Development candidate-aligned policy quality versus natural Memory invocation rate.**
+**Table S10.3. Development candidate-aligned policy quality versus natural Memory invocation rate.**
 
 | Inner call-rate maximum | SASRec Memory calls | SASRec F NDCG@10 | GRU4Rec Memory calls | GRU4Rec F NDCG@10 |
 | --- | ---: | ---: | ---: | ---: |
@@ -888,7 +892,7 @@ The 30% condition reproduces the original Full-to-Full development comparison ex
 
 To test whether incremental ranking utility is a more decision-relevant signal than request difficulty or expert standalone quality, four DEV-only objectives were compared on the same full-active events and nested user splits. Direct predicts Memory-minus-Base event NDCG; Two-stage subtracts separate estimates of Memory and Base event NDCG; Base Difficulty predicts negative Base event utility; and Specialist Quality predicts Memory event utility. All use the same twelve decision-time inputs and HGB hyperparameters, although Two-stage fits two prediction heads rather than one. All policies are calibrated using the same original inner OOF utility-gain threshold rule, and their actual outer Memory invocations are not retroactively equalized.
 
-**Table S10.2. Objective controls on matched full-active M3 DEV NDCG@10.**
+**Table S10.4. Objective controls on matched full-active M3 DEV NDCG@10.**
 
 | Maximum inner calls | Base | Direct value | Two-stage | Base difficulty | Memory quality |
 | --- | --- | ---: | ---: | ---: | ---: |
