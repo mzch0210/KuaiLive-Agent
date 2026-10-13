@@ -1,0 +1,53 @@
+name: KBS N8 guarded supplementary S7.7 assembly
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/kbs_n8_assemble_supplement.py'
+      - '.github/workflows/kbs-n8-assemble-supplement.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: kbs-n8-supplement-assembly
+  cancel-in-progress: false
+jobs:
+  merge-and-verify:
+    if: github.repository == 'mzch0210/KuaiLive-Agent' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Merge only frozen S7.7 and assert unchanged existing source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/kbs_n8_assemble_supplement.py
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md').read_text()
+          assert text.count('## S7.7 Nested-DEV') == 1
+          assert text.count('Table S7.5.') == 1
+          assert text.count('## S7.6') == 1
+          assert '# S8. Distinct KuaiLive' in text
+          assert 'post-G5' in text
+          print('Merged supplement verified')
+          PY
+      - name: Commit and publish integrated S1-S9 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md; then
+            echo "Already integrated"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S9_2026-10-10.md
+          git commit -m 'supplement(kbs-n8): integrate exploratory S7.7 into combined S1-S9 [skip ci]'
+          git push origin HEAD:main
