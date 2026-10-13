@@ -91,12 +91,30 @@
   "p3_author_gate": "manuscript/kbs_latex/N9_P3_AUTHOR_CONFIRMATIONS_AND_DISCLOSURE_DRAFT_2026-10-13.md",
   "next_research_plan": "manuscript/kbs_latex/N9_POST_P3_THREE_RISK_TARGETED_REVISION_PLAN_2026-10-13.md",
   "next_research_stages": {
-    "G0": "PLAN_ONLY_NOT_EXECUTED",
-    "G1_E3a_E2": "NOT_STARTED",
-    "G2_E1": "NOT_STARTED",
-    "G3_E3b": "CONDITIONAL_NOT_AUTHORIZED",
-    "G4": "NOT_STARTED",
-    "G5_G6": "NOT_STARTED"
+    "G0": "PASS_PROTOCOL_AND_SOURCE_CONTRASTS_FROZEN",
+    "G1_E3a_E2": "PASS_E3A_PAIRED_USER_INTERACTION_AND_E2_FULL_SHADOW_PRICE_ENVELOPE",
+    "G2_E1": "PASS_B1_EXACT_PARITY_AND_POLICY_DISAGREEMENT_DECOMPOSITION_CORRECTED_S_UNVALIDATED",
+    "G3_E3b": "METADATA_SOURCE_SCHEMA_PASS_PILOT_AND_RIGHTS_PENDING",
+    "G4": "NOT_STARTED_AWAIT_G3_ADJUDICATION_OR_JUSTIFIED_SKIP",
+    "G5_G6": "NOT_STARTED_MAIN_AND_S1_S10_UNCHANGED"
   },
-  "next_plan_note": "Preserves N9-P3 technical QA PASS and submission HOLD; requires G0 freeze before additional exploratory experiments."
+  "next_plan_note": "G0 G1 E2 E3a and G2 E1 completed on identical exploratory DEV; G3 metadata only. Preserve N9-P3 and G5 original TEST, postpone manuscript modification until G4.",
+  "next_research_runs": {
+    "E3a": 38388691201,
+    "E1": 38389150075,
+    "G3_metadata": 38389532148,
+    "E2": "SOURCE_AGGREGATE_CPU_ONLY_NO_WORKFLOW"
+  },
+  "next_research_outputs": {
+    "G0": "manuscript/kbs_latex/N9_G0_FROZEN_E1_E2_E3_CONTRAST_CONTRACT_2026-10-13.md",
+    "E2": "manuscript/kbs_latex/N9_G1_E2_SHADOW_PRICE_DECISION_ENVELOPE_2026-10-13.md",
+    "E3a": "manuscript/kbs_latex/N9_G1_E3A_PAIRED_SOURCE_REGIME_INTERACTION_2026-10-13.md",
+    "E1": "manuscript/kbs_latex/N9_G2_E1_SUPERVISION_DECISION_DECOMPOSITION_2026-10-13.md",
+    "G3": "manuscript/kbs_latex/N9_G3_HISTORY_PLACEBO_METADATA_AND_PILOT_GATE_2026-10-13.md"
+  },
+  "next_research_interim_verdict": {
+    "R1": "INCREASED_EMPIRICAL_DECISION_DIFFERENTIATION_21_TO_23_PERCENT_REQUEST_SWITCHES_NOT_YET_DISTINCT_FROM_GENERIC_SAMPLED_THEORY",
+    "R2": "HYPOTHETICAL_LINEAR_SHADOW_PRICE_REGION_DEMONSTRATED_REAL_RESOURCE_COST_UNVERIFIED",
+    "R3": "PAIRED_SOURCE_REGIME_INTERACTION_USER_CI_POSITIVE_ZERO_MASS_AND_RELATION_IDENTITY_CAUSAL_CONTROL_UNVERIFIED"
+  }
 }
