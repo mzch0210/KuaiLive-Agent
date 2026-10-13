@@ -1,6 +1,6 @@
 # N9-P | B1/B2 manuscript integration
 
-Status: PLAN ONLY; frozen paper and G5 TEST unchanged.
+Status: P0 PUBLIC-SOURCE REGISTER PASS / private row-level independent verification PENDING; P1 MAIN TABLES AND S10 **DRAFT READY**; frozen main paper and G5 TEST unchanged. See [P0 report](N9_P0_EVIDENCE_FREEZE_AND_CLAIM_AUDIT_2026-10-13.md), [38-row claim register](N9_P0_B1B2_CLAIM_SOURCE_COHORT_REGISTER_2026-10-13.csv), [main TeX table draft](N9_P1_B1B2_MAIN_TABLES_AND_TEXT_DRAFT_2026-10-13.tex) and [new S10 supplement draft](SUPPLEMENTARY_S10_B1B2_EXPLORATORY_DEV_DRAFT_2026-10-13.md). A3 follows the [decision-support R0 gate](N9_R0_DECISION_SUPPORT_RISK_GATE_2026-10-13.md), not method-first/valuation-first switching.
 
 ## P0 — Evidence freeze and claim-to-source map
 
@@ -12,7 +12,7 @@ Prepare one compact B1 table: S→F, F→F and regime-adapted→F in SASRec and 
 
 ## P2 — Formal source integration after A3
 
-§1–2: unify thesis and relate it accurately to L2D and sampled metrics. §3–5: add Δ_S/Δ_F, actual candidate protocol and post-G5 nested DEV status. §6.1–6.2: retain frozen Twitch/M3 TEST, add B1; §6.3–6.4: retain retrospective room experiment, add B2; §6.5: keep Always Memory adverse quality/time. §7–8 and Abstract: revise last, once A3 chooses method-first or valuation-first. Deliver diff, TeX, bib and PDFs.
+§1–2: unify thesis and relate it accurately to L2D and sampled metrics. §3–5: add Δ_S/Δ_F, actual candidate protocol and post-G5 nested DEV status. §6.1–6.2: retain frozen Twitch/M3 TEST, add B1; §6.3–6.4: retain retrospective room experiment, add B2; §6.5: keep Always Memory adverse quality/time. §7–8 and Abstract: revise last, once A3 judges decision-support claim strength and scope. Deliver diff, TeX, bib and PDFs.
 
 ## P3 — QA
 
