@@ -1,0 +1,19 @@
+id,source_location,action_and_scientific_guard
+N7-01,Introduction,Remove repetition of Abstract's result statistics; preserve conditional claim and Always Memory counterexample
+N7-02,Problem Formulation,"Condense repeated research motivation, retain relative utility estimand"
+N7-03,Problem Formulation,Condense retrospective conditional state decomposition explanation
+N7-04,Experimental Setup,De-duplicate three ranking tasks already defined in §1/table
+N7-05,Twitch protocol,"Preserve observed-availability caveat, remove redundant gate protocol statement"
+N7-06,Original KuaiLive protocol,Merge already examined TEST event identity and candidate eligibility
+N7-07,M3 protocol,Remove repeated Base model/panel specifics while retaining full-active distinction
+N7-08,M3 forward-time,Remove process-related freeze narration; preserve source/tie references
+N7-09,Results introduction,Use finding-first description instead of experiment inventory
+N7-10,M3 policy result,Leave full competing-policy NDCG values in Table 6 instead of duplicate narrative
+N7-11,Cost result,Retain actual TEST call drift and observed cost distinction with less repetition
+N7-12,Discussion,Connect exploratory estimator result to separately filed S7.7
+N7-13,Supplementary,New post-G5 nested DEV estimator comparison filed as separate S7.7 addendum
+N7-14,11 main visual objects,KEEP: distinct experimental or evidentiary purpose
+N7-15,S1–S9 frozen combined source,KEEP: do not overwrite established numerical or protocol source; final addendum integration pending
+N7-16,Time/inference safeguards,"KEEP: DEV/TEST, retrospective identity, shared users and three Holm contrasts"
+N7-17,Always Memory adverse case,KEEP: higher M3 accuracy and lower warmed DEV time
+N7-18,Literature,"KEEP: closest prior DS-Frame, knowledge gating and regression-based deferral"
