@@ -1,0 +1,80 @@
+name: KBS B1 lossless DEV roster CPU performance
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-b1-fast-roster-dev-benchmark.yml'
+      - 'analysis/kbs_plan_c/b1_fast_roster_dev_check.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b1-fast-roster-benchmark
+  cancel-in-progress: false
+jobs:
+  hosted-verify-and-package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/b1_fast_roster_dev_check.py analysis/kbs_plan_c/g3_dev_full_active.py
+          mkdir -p b1-roster-source/analysis/kbs_plan_c
+          cp analysis/kbs_plan_c/{b1_fast_roster_dev_check.py,g3_dev_full_active.py,g2_train_base.py} b1-roster-source/analysis/kbs_plan_c/
+          (cd b1-roster-source && sha256sum analysis/kbs_plan_c/*.py > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b1-verified-dev-roster-source
+          path: b1-roster-source/
+          retention-days: 7
+  private-dev-roster-benchmark:
+    needs: hosted-verify-and-package
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kbs-b1-verified-dev-roster-source
+          path: ${{ runner.temp }}/b1-roster-source
+      - name: Compare exact original and vectorized DEV rosters
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd "$RUNNER_TEMP/b1-roster-source" && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$RUNNER_TEMP/b1-roster-source/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          "$PY" "$RUNNER_TEMP/b1-roster-source/analysis/kbs_plan_c/b1_fast_roster_dev_check.py" \
+            --root "$HOME/.cache/kuailive-agent-kbs" \
+            --limit 256 \
+            --out "$RUNNER_TEMP/b1_roster_256_private.json"
+      - name: Export only verified aggregate and performance measures
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,os,pathlib
+          src=pathlib.Path(os.environ['RUNNER_TEMP'])/'b1_roster_256_private.json'
+          v=json.loads(src.read_text())
+          assert v['status']=='PASS' and v['roster_identity_order_discrepancies']==0
+          assert not v['test_accessed'] and not v['candidate_or_user_ids_exported']
+          assert v['dev_events']==256
+          allowed={'schema','status','test_accessed','train_fitted','candidate_or_user_ids_exported',
+            'dev_events','roster_identity_order_discrepancies','original_seconds',
+            'vectorized_seconds','wall_speedup','candidates_min','candidates_max',
+            'same_original_max_rooms_statistics'}
+          assert set(v)==allowed
+          dest=pathlib.Path('roster-aggregate')
+          dest.mkdir(exist_ok=True)
+          (dest/'summary.json').write_text(json.dumps(v,sort_keys=True,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b1-dev-roster-vectorization-aggregate
+          path: roster-aggregate/summary.json
+          retention-days: 30
