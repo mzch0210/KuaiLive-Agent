@@ -1,0 +1,106 @@
+name: KBS B1 nested DEV candidate regime policy transfer
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-b1-nested-dev-regime-transfer.yml'
+      - 'analysis/kbs_plan_c/b1_nested_regime_transfer_dev.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b1-nested-policy-transfer
+  cancel-in-progress: false
+jobs:
+  hosted-policy-science-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify exact B1 nested-only source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/b1_nested_regime_transfer_dev.py \
+            analysis/kbs_plan_c/frozen_gate.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('analysis/kbs_plan_c/b1_nested_regime_transfer_dev.py').read_text()
+          for required in ('GroupKFold','OUTER=5','INNER=4','MAX_CALL=.30',
+             'sampled_to_full','full_to_full','regime_adapted_to_full',
+             'pure_S_to_F_no_full_labels_in_model_or_calibration',
+             'candidate_aware_X','cluster_ci'):
+              assert required in s, required
+          assert 'test_cohort.parquet' not in s
+          assert 'cuda(' not in s
+          print('Nested policy comparison uses DEV only')
+          PY
+      - name: Package source with SHA256s
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p b1-policy/analysis/kbs_plan_c
+          cp analysis/kbs_plan_c/{b1_nested_regime_transfer_dev.py,frozen_gate.py} b1-policy/analysis/kbs_plan_c/
+          (cd b1-policy && sha256sum analysis/kbs_plan_c/*.py > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b1-nested-policy-source
+          path: b1-policy/
+          retention-days: 7
+  selfhost-user-disjoint-policy-comparison:
+    needs: hosted-policy-science-check
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 100
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kbs-b1-nested-policy-source
+          path: ${{ runner.temp }}/b1-policy
+      - name: Fit independent user folds using private corrected paired DEV only
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd "$RUNNER_TEMP/b1-policy" && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$RUNNER_TEMP/b1-policy/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          "$HOME/venvs/kuailive-gpu/bin/python" \
+            "$RUNNER_TEMP/b1-policy/analysis/kbs_plan_c/b1_nested_regime_transfer_dev.py" \
+            --source "$HOME/.cache/kuailive-agent-kbs/klm3_b1_full_dev_candidate_labels_seed20261012_v1" \
+            --out "$HOME/.cache/kuailive-agent-kbs/klm3_b1_nested_regime_transfer_seed20261012_v1"
+      - name: Export only complete aggregate scientific comparison
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,pathlib
+          p=pathlib.Path.home()/'.cache/kuailive-agent-kbs/klm3_b1_nested_regime_transfer_seed20261012_v1/summary.json'
+          s=json.loads(p.read_text())
+          assert s['schema']=='kbs-b1-nested-regime-transfer-dev-v1'
+          assert s['scientific_scope']=='POST_G5_EXPLORATORY_DEV_ONLY'
+          assert s['n_original_TEST_used']==0
+          assert s['n_dev_events']==50049 and s['n_users']==12628
+          assert set(s['families'])=={'sasrec','gru4rec'}
+          for a in s['families'].values():
+              assert a['outer_group_folds']==5 and a['inner_group_folds']==4
+              assert a['pure_S_to_F_no_full_labels_in_model_or_calibration']
+              assert a['regime_adapted_arm_uses_F_inner_training_labels']
+          assert set(s)=={'schema','scientific_scope','n_dev_events',
+              'n_users','source_candidate_pair_sha256','n_original_TEST_used',
+              'new_confirmatory_results','families'}
+          folder=pathlib.Path('b1-nested-public-aggregate')
+          folder.mkdir(exist_ok=True)
+          (folder/'summary.json').write_text(json.dumps(s,sort_keys=True,indent=2)+'\n')
+          print('B1 nested DEV policy transfer ready for scientific audit')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b1-nested-dev-regime-policy-results
+          path: b1-nested-public-aggregate/summary.json
+          retention-days: 30
+          if-no-files-found: error
