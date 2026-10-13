@@ -1,0 +1,120 @@
+name: KBS B1 50k DEV sampled/full candidate label generation
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kbs-b1-full-dev-candidate-labels.yml'
+      - 'analysis/kbs_plan_c/b1_full_dev_candidate_labels.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b1-full-dev-regime-labels
+  cancel-in-progress: false
+jobs:
+  hosted-science-source-guard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile sources and guard no TEST/fitting
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            analysis/kbs_plan_c/b1_full_dev_candidate_labels.py \
+            analysis/kbs_plan_c/b1_fast_roster_dev_check.py \
+            analysis/kbs_plan_c/b1_dev_regime_pilot.py \
+            analysis/kbs_plan_c/g2_train_base.py \
+            analysis/kbs_plan_c/g3_dev_full_active.py \
+            analysis/kbs_plan_c/g3_replay_correct_memory.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('analysis/kbs_plan_c/b1_full_dev_candidate_labels.py').read_text()
+          assert 'replay_all_history' in s
+          assert 'corrected_memory_score' in s
+          assert 'availability_vectorized' in s
+          assert 'score_batch' in s
+          assert 'full_candidate_count_min' in s
+          assert 'target_retained_sampling_offline_labels_only' in s
+          assert 'gate_feature_columns_unchanged_from_frozen_F' in s
+          assert 'test_cohort.parquet' not in s
+          assert 'train_model(' not in s
+          print('B1 full DEV source guard PASS')
+          PY
+      - name: Build SHA-verified private-run source artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p b1-code/analysis/kbs_plan_c
+          cp analysis/kbs_plan_c/{b1_full_dev_candidate_labels.py,b1_dev_regime_pilot.py,b1_fast_roster_dev_check.py,g2_train_base.py,g3_dev_full_active.py,g3_replay_correct_memory.py} b1-code/analysis/kbs_plan_c/
+          (cd b1-code && sha256sum analysis/kbs_plan_c/*.py > SHA256SUMS && sha256sum -c SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b1-full-dev-verified-source-bundle
+          path: b1-code/
+          retention-days: 7
+          if-no-files-found: error
+  selfhost-full-dev-paired-labels:
+    needs: hosted-science-source-guard
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 110
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kbs-b1-full-dev-verified-source-bundle
+          path: ${{ runner.temp }}/b1-code
+      - name: Verify source bundle and run frozen 50k DEV only
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd "$RUNNER_TEMP/b1-code" && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$RUNNER_TEMP/b1-code/analysis/kbs_plan_c:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export PYTHONUNBUFFERED=1
+          export OPENBLAS_NUM_THREADS=1
+          export OMP_NUM_THREADS=2
+          "$HOME/venvs/kuailive-gpu/bin/python" \
+            "$RUNNER_TEMP/b1-code/analysis/kbs_plan_c/b1_full_dev_candidate_labels.py" \
+            --root "$HOME/.cache/kuailive-agent-kbs" \
+            --output "$HOME/.cache/kuailive-agent-kbs/klm3_b1_full_dev_candidate_labels_seed20261012_v1" \
+            --batch 512
+      - name: Read private source manifest and export validated aggregates ONLY
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,pathlib,os
+          p=pathlib.Path.home()/'.cache/kuailive-agent-kbs/klm3_b1_full_dev_candidate_labels_seed20261012_v1/summary.json'
+          o=json.loads(p.read_text())
+          assert o['schema']=='kbs-b1-full-dev-paired-candidate-labels-v1'
+          assert o['scope']=='DEV_ONLY_POST_G5_EXPLORATORY'
+          assert o['n_dev_events']==50049 and o['sampled_candidate_count']==575
+          assert o['status']=='PASS' and not o['test_accessed'] and not o['model_training']
+          assert o['B1_nested_gate_fitted'] is False
+          assert o['target_retained_sampling_offline_labels_only'] is True
+          assert o['gate_feature_columns_unchanged_from_frozen_F'] is True
+          safe={'schema','status','scope','test_accessed','model_training',
+            'new_g5_confirmatory_inference','event_level_uploaded','n_dev_events',
+            'n_users','checkpoint_count','gpu_batch_size','full_candidate_count_min',
+            'full_candidate_count_max','sampled_candidate_count',
+            'target_retained_sampling_offline_labels_only',
+            'gate_feature_columns_unchanged_from_frozen_F',
+            'corrected_F_source_sha256','private_event_source_csv_sha256',
+            'mean_frozen_full_NDCG','mean_new_sampled_NDCG','time_seconds',
+            'cuda_peak_memory_MiB','source_history_rows_scanned','B1_nested_gate_fitted'}
+          assert set(o)==safe
+          out=pathlib.Path('b1-full-dev-aggregate')
+          out.mkdir(exist_ok=True)
+          (out/'summary.json').write_text(json.dumps(o,sort_keys=True,indent=2)+'\n')
+          print('B1 exact sampled/full DEV label summary safe for publication')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-b1-50k-dev-sampled-full-label-aggregate
+          path: b1-full-dev-aggregate/summary.json
+          retention-days: 30
+          if-no-files-found: error
