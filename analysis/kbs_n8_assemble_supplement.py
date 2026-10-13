@@ -12,6 +12,10 @@ marker = "\n\n---\n\n# S8. Distinct KuaiLive room-seed diagnostics and M3 frozen
 def main():
     original = combined.read_text()
     if "## S7.7 Nested-DEV" in original:
+        if 'date: "12 October 2026"' in original:
+            original = original.replace('date: "12 October 2026"', 'date: "13 October 2026"')
+            combined.write_text(original)
+            print("Updated supplement publication date after S7.7 integration")
         stale = "and is intended for incorporation into the final combined S1–S9 submission supplement during N8."
         if stale in original:
             combined.write_text(original.replace(stale, "within the final combined S1–S9 submission supplement."))
