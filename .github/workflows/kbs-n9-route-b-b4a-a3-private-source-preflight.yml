@@ -1,0 +1,54 @@
+name: KBS B4-A A3 private source metadata-only qualification
+on:
+  push:
+    branches: [kbs-b4a-a3-synthetic-preflight-20261014]
+    paths: ['.github/workflows/kbs-n9-route-b-b4a-a3-private-source-preflight.yml']
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b4a-a3-private-metadata
+  cancel-in-progress: false
+jobs:
+  private-unlabeled-source:
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 45
+    steps:
+      - name: Check secure prior cache without changing originals
+        run: |
+          set -euo pipefail
+          umask 077
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test -s "$ROOT/klm3_n9_route_b_b4a_a1_30000_4096_v1/summary.json"
+          test -s "$ROOT/klm3_plan_c_g1_v1/manifest.json"
+          test ! -e "$ROOT/klm3_n9_b4a_a3_private_source_preflight_v1"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Project A1 and G1 metadata ONLY and verify target-blind source
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$PWD:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1"
+          export OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          "$HOME/venvs/kuailive-gpu/bin/python" analysis/kbs_plan_c/n9_b4a_a3_private_source_preflight.py \
+            --a1 "$ROOT/klm3_n9_route_b_b4a_a1_30000_4096_v1" \
+            --g1 "$ROOT/klm3_plan_c_g1_v1" \
+            --out "$ROOT/klm3_n9_b4a_a3_private_source_preflight_v1"
+      - name: Check result is non-ranking and holds A4
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,os,pathlib
+          root=pathlib.Path.home()/'.cache/kuailive-agent-kbs'
+          p=root/'klm3_n9_b4a_a3_private_source_preflight_v1/summary.json'
+          j=json.loads(p.read_text())
+          assert j['status']=='PASS_INPUT_ONLY_NOT_PRODUCTION_SCORER'
+          assert not j['current_request_author_column_read']
+          assert not j['new_TEST_target_rank_or_ndcg_computed']
+          assert not j['new_TEST_predictions_computed']
+          assert not j['A4_label_unseal_authorized']
+          print('B4-A A3 source-only preflight PASS; target author never projected; A4 still HOLD')
+          PY
