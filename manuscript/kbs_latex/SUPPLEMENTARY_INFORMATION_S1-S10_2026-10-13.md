@@ -1031,14 +1031,20 @@ The precommitted nested **4,096 targets / 3,059 users** use separate $N_h/n_h$ p
 
 **Table S10.10. Natural-population weighted full-candidate NDCG@10 for authentic and three relationship-null histories (one frozen 4,096-target cohort).**
 
-| Relation condition | Weighted Full-F NDCG@10 |
-| --- | ---: |
-| Authentic original Full Memory | **0.334942** |
-| Null seed 20261014 | 0.303905 |
-| Null seed 20261015 | 0.304689 |
-| Null seed 20261016 | 0.302796 |
-| Mean of the three within-request null NDCGs | 0.303797 |
-| Authentic minus within-request mean null | **+0.031145** |
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Relation condition & Weighted Full-F NDCG@10 \\
+\midrule
+Authentic original Full Memory & \textbf{0.334942} \\
+Null seed 20261014 & 0.303905 \\
+Null seed 20261015 & 0.304689 \\
+Null seed 20261016 & 0.302796 \\
+Mean of the three within-request null NDCGs & 0.303797 \\
+Authentic minus within-request mean null & \textbf{+0.031145} \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 The last paired effect has 95% user-cluster CI **[+0.027389,+0.035098]**, Holm-adjusted one-sided $p=0.000600$. Null seeds are **three randomizations on the same requests**, not three independent cohorts; for inference the three null utilities are averaged **within event** before applying the 5,000-draw cluster procedure. Original and null rankings were SHA-sealed before A4; [H2 pre-outcome seal](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38517502835) and [A5 independent paired audit](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38519174441) substantiate this separation.
 
@@ -1082,7 +1088,9 @@ The B2 1,024-request/992-user post-G5 exploratory DEV historical-null study and 
 | Source swaps activate only after an hour closes | PASS | PASS |
 | Historical source edges rewired | ~78.62% | ~76.78–76.80% |
 | Original Full-F NDCG@10 | 0.339348 | 0.334942 (weighted) |
-| Null 20261014 / 20261015 / 20261016 | 0.306491 / 0.303804 / 0.305321 | 0.303905 / 0.304689 / 0.302796 (weighted) |
+| Null seed 20261014 | 0.306491 | 0.303905 (weighted) |
+| Null seed 20261015 | 0.303804 | 0.304689 (weighted) |
+| Null seed 20261016 | 0.305321 | 0.302796 (weighted) |
 | Same-cohort TRAIN-only Popularity F NDCG@10 | **0.021867**, verified | **NOT scored/sealed prior to A4** |
 | Preregistered null-above-popularity acceptance | **PASS under DEV protocol** | **NOT VERIFIED AS PREDECLARED** |
 | New independent later recording-period TEST | No | No |
