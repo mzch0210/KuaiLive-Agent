@@ -1,0 +1,1819 @@
+{
+  "schema": "N12_C0_N11_COMPLETE_SOURCE_MANIFEST_v1",
+  "authoritative_git_blob_sha": {
+    "main": "8ca7dc67ade90048eb0b12059ec8bec75c85194f",
+    "supplement": "9b83a31d82f08d1a212f59f99b60975ad902e8e6",
+    "N11_audit": "972999385fdc1ad3b6219e240efa4542e026d811",
+    "N10_status": "e122f5a7ba23fa78027eabdd167c67438066b903"
+  },
+  "source_counts": {
+    "segmented_source_blocks": 152,
+    "latex_labels": 59,
+    "main_tables": 13,
+    "main_figures": 3,
+    "main_equations": 9,
+    "original_main_sections": 8,
+    "new_main_sections": 7
+  },
+  "no_content_deletion_yet": true,
+  "source_block_partition_definition": "Split source on blank lines; each nonempty block has a source FNV32 checksum and unique ordered source-block ID; this is an editorial coverage map, NOT cryptographic evidence of test labels.",
+  "frozen_results_guard": [
+    "B4A_H1_SAS_.005391",
+    "B4A_H1_GRU_.003585",
+    "B4A_H2_.031145",
+    "ALWAYS_MEMORY_.348744",
+    "H2_POPULARITY_NOT_VERIFIED",
+    "F_S_REALIZED_CALLS_DIFFER",
+    "SAME_PERIOD_NOT_NEW_TEST"
+  ],
+  "blocks": [
+    {
+      "id": "N11-001",
+      "line": 1,
+      "source_section": "Front matter",
+      "source_subsection": "",
+      "source_fnv32": "7612bee5",
+      "labels": [],
+      "new_location": "Front matter/references and technical metadata",
+      "edit": "PRESERVE_FORMAT",
+      "opening": "\\documentclass[preprint,12pt]{elsarticle}"
+    },
+    {
+      "id": "N11-002",
+      "line": 3,
+      "source_section": "Front matter",
+      "source_subsection": "",
+      "source_fnv32": "f36f2dc1",
+      "labels": [],
+      "new_location": "Front matter/references and technical metadata",
+      "edit": "PRESERVE_FORMAT",
+      "opening": "\\usepackage[T1]{fontenc} \\usepackage[utf8]{inputenc} \\usepackage{amsmath,amssymb} \\usepackage{booktabs} \\usepackage{tabularx}"
+    },
+    {
+      "id": "N11-003",
+      "line": 15,
+      "source_section": "Front matter",
+      "source_subsection": "",
+      "source_fnv32": "4a32aac0",
+      "labels": [],
+      "new_location": "Front matter/references and technical metadata",
+      "edit": "PRESERVE_FORMAT",
+      "opening": "\\journal{Knowledge-Based Systems}"
+    },
+    {
+      "id": "N11-004",
+      "line": 17,
+      "source_section": "Front matter",
+      "source_subsection": "",
+      "source_fnv32": "cfceefbb",
+      "labels": [],
+      "new_location": "Front matter/references and technical metadata",
+      "edit": "PRESERVE_FORMAT",
+      "opening": "\\begin{document}"
+    },
+    {
+      "id": "N11-005",
+      "line": 19,
+      "source_section": "Front matter",
+      "source_subsection": "",
+      "source_fnv32": "9893bdf0",
+      "labels": [],
+      "new_location": "Front matter/references and technical metadata",
+      "edit": "PRESERVE_FORMAT",
+      "opening": "\\begin{frontmatter}"
+    },
+    {
+      "id": "N11-006",
+      "line": 21,
+      "source_section": "Front matter",
+      "source_subsection": "",
+      "source_fnv32": "3942a966",
+      "labels": [],
+      "new_location": "Front matter/references and technical metadata",
+      "edit": "PRESERVE_FORMAT",
+      "opening": "\\title{When Does Relationship Memory Help? Base-Relative Evidence Valuation for Live-Streaming Recommendation}"
+    },
+    {
+      "id": "N11-007",
+      "line": 23,
+      "source_section": "Front matter",
+      "source_subsection": "",
+      "source_fnv32": "3a5b5f2d",
+      "labels": [],
+      "new_location": "Front matter/references and technical metadata",
+      "edit": "PRESERVE_FORMAT",
+      "opening": "\\author{Anonymous Authors}"
+    },
+    {
+      "id": "N11-008",
+      "line": 25,
+      "source_section": "Front matter",
+      "source_subsection": "",
+      "source_fnv32": "47b91904",
+      "labels": [],
+      "new_location": "Front matter/references and technical metadata",
+      "edit": "PRESERVE_FORMAT",
+      "opening": "\\begin{abstract} Persistent viewer--creator relationships may complement sequential recommenders, but their marginal ranking "
+    },
+    {
+      "id": "N11-009",
+      "line": 29,
+      "source_section": "Front matter",
+      "source_subsection": "",
+      "source_fnv32": "eb4c17ba",
+      "labels": [],
+      "new_location": "Front matter/references and technical metadata",
+      "edit": "PRESERVE_FORMAT",
+      "opening": "\\begin{keyword} live-streaming recommendation \\sep sequential recommendation \\sep relationship memory \\sep marginal ranking u"
+    },
+    {
+      "id": "N11-010",
+      "line": 33,
+      "source_section": "Front matter",
+      "source_subsection": "",
+      "source_fnv32": "b7f1b6ec",
+      "labels": [],
+      "new_location": "Front matter/references and technical metadata",
+      "edit": "PRESERVE_FORMAT",
+      "opening": "\\end{frontmatter}"
+    },
+    {
+      "id": "N11-011",
+      "line": 35,
+      "source_section": "Introduction",
+      "source_subsection": "",
+      "source_fnv32": "d1257292",
+      "labels": [],
+      "new_location": "1 Introduction",
+      "edit": "REWRITE_FOCUSED",
+      "opening": "\\section{Introduction}"
+    },
+    {
+      "id": "N11-012",
+      "line": 37,
+      "source_section": "Introduction",
+      "source_subsection": "",
+      "source_fnv32": "9ee5739f",
+      "labels": [],
+      "new_location": "1 Introduction",
+      "edit": "REWRITE_FOCUSED",
+      "opening": "Sequential recommenders infer preferences from behavioral sequences, improving the modeling of recent and recurrent interests"
+    },
+    {
+      "id": "N11-013",
+      "line": 39,
+      "source_section": "Introduction",
+      "source_subsection": "",
+      "source_fnv32": "65975708",
+      "labels": [],
+      "new_location": "1 Introduction",
+      "edit": "REWRITE_FOCUSED",
+      "opening": "The answer must be comparative. A high-scoring memory-based recommender need not improve every request over a strong incumben"
+    },
+    {
+      "id": "N11-014",
+      "line": 41,
+      "source_section": "Introduction",
+      "source_subsection": "",
+      "source_fnv32": "06e91968",
+      "labels": [],
+      "new_location": "1 Introduction",
+      "edit": "REWRITE_FOCUSED",
+      "opening": "Two features of live recommendation make this valuation especially informative. First, a relationship that the incumbent does"
+    },
+    {
+      "id": "N11-015",
+      "line": 43,
+      "source_section": "Introduction",
+      "source_subsection": "",
+      "source_fnv32": "40d28444",
+      "labels": [],
+      "new_location": "1 Introduction",
+      "edit": "REWRITE_FOCUSED",
+      "opening": "These considerations define one connected research problem: characterize when a fixed relationship specialist adds ranking ut"
+    },
+    {
+      "id": "N11-016",
+      "line": 45,
+      "source_section": "Introduction",
+      "source_subsection": "",
+      "source_fnv32": "94ae5123",
+      "labels": [],
+      "new_location": "1 Introduction",
+      "edit": "REWRITE_FOCUSED",
+      "opening": "Across the held-out Twitch and M3 evaluations, predicted relative utility improves selection compared with the tested alterna"
+    },
+    {
+      "id": "N11-017",
+      "line": 47,
+      "source_section": "Introduction",
+      "source_subsection": "",
+      "source_fnv32": "596d874f",
+      "labels": [],
+      "new_location": "1 Introduction",
+      "edit": "REWRITE_FOCUSED",
+      "opening": "We make three connected empirical contributions, each tied to an observable proposition (Fig.~\\ref{fig:knowledge-value-chain}"
+    },
+    {
+      "id": "N11-018",
+      "line": 54,
+      "source_section": "Introduction",
+      "source_subsection": "",
+      "source_fnv32": "292d762f",
+      "labels": [
+        "fig:knowledge-value-chain"
+      ],
+      "new_location": "1 Introduction non-causal branching claim/evidence diagram",
+      "edit": "REDRAW_NO_FALSE_CAUSAL_CHAIN",
+      "opening": "\\begin{figure}[t] \\centering \\begin{tikzpicture}[ every node/.style={font=\\small}, evidence/.style={draw,rounded corners=2pt,"
+    },
+    {
+      "id": "N11-019",
+      "line": 77,
+      "source_section": "Related Work",
+      "source_subsection": "",
+      "source_fnv32": "85a2eaca",
+      "labels": [],
+      "new_location": "2 Related Work",
+      "edit": "CONSOLIDATE",
+      "opening": "\\section{Related Work}"
+    },
+    {
+      "id": "N11-020",
+      "line": 79,
+      "source_section": "Related Work",
+      "source_subsection": "Sequential Recommendation and Relationship Knowledge",
+      "source_fnv32": "f189a473",
+      "labels": [],
+      "new_location": "2 Related Work",
+      "edit": "CONSOLIDATE",
+      "opening": "\\subsection{Sequential Recommendation and Relationship Knowledge}"
+    },
+    {
+      "id": "N11-021",
+      "line": 81,
+      "source_section": "Related Work",
+      "source_subsection": "Sequential Recommendation and Relationship Knowledge",
+      "source_fnv32": "582791a5",
+      "labels": [],
+      "new_location": "2 Related Work",
+      "edit": "CONSOLIDATE",
+      "opening": "Sequential models learn representations of evolving behavioral preferences through attention, recurrence and multi-interest s"
+    },
+    {
+      "id": "N11-022",
+      "line": 83,
+      "source_section": "Related Work",
+      "source_subsection": "Sequential Recommendation and Relationship Knowledge",
+      "source_fnv32": "a67a8bcc",
+      "labels": [],
+      "new_location": "2 Related Work",
+      "edit": "CONSOLIDATE",
+      "opening": "The distinction is also relevant to memory-augmented recommendation. Zhong et al.'s scene-aware memory discrimination (SAMD) "
+    },
+    {
+      "id": "N11-023",
+      "line": 85,
+      "source_section": "Related Work",
+      "source_subsection": "Learning to Defer and Adaptive Specialist Selection",
+      "source_fnv32": "1bc96f59",
+      "labels": [],
+      "new_location": "2 Related Work",
+      "edit": "CONSOLIDATE",
+      "opening": "\\subsection{Learning to Defer and Adaptive Specialist Selection}"
+    },
+    {
+      "id": "N11-024",
+      "line": 87,
+      "source_section": "Related Work",
+      "source_subsection": "Learning to Defer and Adaptive Specialist Selection",
+      "source_fnv32": "4444c091",
+      "labels": [],
+      "new_location": "2 Related Work",
+      "edit": "CONSOLIDATE",
+      "opening": "Learning-to-Defer studies when a prediction should be delegated to a complementary expert. Mozannar and Sontag develop consis"
+    },
+    {
+      "id": "N11-025",
+      "line": 89,
+      "source_section": "Related Work",
+      "source_subsection": "Learning to Defer and Adaptive Specialist Selection",
+      "source_fnv32": "cb606d06",
+      "labels": [],
+      "new_location": "2 Related Work",
+      "edit": "CONSOLIDATE",
+      "opening": "Adaptive routing has also entered recommendation models directly. DS-Frame combines a fast sequential recommender, an iterati"
+    },
+    {
+      "id": "N11-026",
+      "line": 91,
+      "source_section": "Related Work",
+      "source_subsection": "Learning to Defer and Adaptive Specialist Selection",
+      "source_fnv32": "6bbc04c8",
+      "labels": [],
+      "new_location": "2 Related Work",
+      "edit": "CONSOLIDATE",
+      "opening": "Different selection scores test different information about the same decision. Predicting Base difficulty measures the incumb"
+    },
+    {
+      "id": "N11-027",
+      "line": 93,
+      "source_section": "Related Work",
+      "source_subsection": "Live-Streaming Ranking and Candidate-Dependent Evaluation",
+      "source_fnv32": "729216c9",
+      "labels": [],
+      "new_location": "2 Related Work",
+      "edit": "CONSOLIDATE",
+      "opening": "\\subsection{Live-Streaming Ranking and Candidate-Dependent Evaluation}"
+    },
+    {
+      "id": "N11-028",
+      "line": 95,
+      "source_section": "Related Work",
+      "source_subsection": "Live-Streaming Ranking and Candidate-Dependent Evaluation",
+      "source_fnv32": "097ef58a",
+      "labels": [],
+      "new_location": "2 Related Work",
+      "edit": "CONSOLIDATE",
+      "opening": "Live recommendation couples persistent viewer interests with time-varying availability, room identity and repeat engagement. "
+    },
+    {
+      "id": "N11-029",
+      "line": 97,
+      "source_section": "Related Work",
+      "source_subsection": "Live-Streaming Ranking and Candidate-Dependent Evaluation",
+      "source_fnv32": "082c87ff",
+      "labels": [],
+      "new_location": "2 Related Work",
+      "edit": "CONSOLIDATE",
+      "opening": "Candidate composition also changes the meaning of ranking metrics. Krichene and Rendle show that sampled ranking evaluations "
+    },
+    {
+      "id": "N11-030",
+      "line": 99,
+      "source_section": "Related Work",
+      "source_subsection": "Live-Streaming Ranking and Candidate-Dependent Evaluation",
+      "source_fnv32": "c54756e8",
+      "labels": [],
+      "new_location": "2 Related Work",
+      "edit": "CONSOLIDATE",
+      "opening": "Together, these literatures establish the distinct precedents for learning representations of auxiliary knowledge, choosing a"
+    },
+    {
+      "id": "N11-031",
+      "line": 101,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Live-Streaming Ranking and Candidate-Dependent Evaluation",
+      "source_fnv32": "3e93abe7",
+      "labels": [
+        "sec:problem"
+      ],
+      "new_location": "3.1-3.3 Value and candidate definitions",
+      "edit": "MERGE_3_4",
+      "opening": "\\section{Problem Formulation} \\label{sec:problem}"
+    },
+    {
+      "id": "N11-032",
+      "line": 104,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Live-Streaming Ranking and Candidate-Dependent Evaluation",
+      "source_fnv32": "54f8c1c2",
+      "labels": [],
+      "new_location": "3.1-3.3 Value and candidate definitions",
+      "edit": "MERGE_3_4",
+      "opening": "Let the value of a relationship-memory specialist be the change in event-level ranking utility obtained by replacing the desi"
+    },
+    {
+      "id": "N11-033",
+      "line": 106,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Recommendation Setting and Event-Level Ranking Utility",
+      "source_fnv32": "5bdfedef",
+      "labels": [
+        "sec:event-utility"
+      ],
+      "new_location": "3.1-3.3 Value and candidate definitions",
+      "edit": "MERGE_3_4",
+      "opening": "\\subsection{Recommendation Setting and Event-Level Ranking Utility} \\label{sec:event-utility}"
+    },
+    {
+      "id": "N11-034",
+      "line": 109,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Recommendation Setting and Event-Level Ranking Utility",
+      "source_fnv32": "72d2c89e",
+      "labels": [],
+      "new_location": "3.1-3.3 Value and candidate definitions",
+      "edit": "MERGE_3_4",
+      "opening": "For user $u$, time $t$ and regime $r$, define the pre-outcome context as $\\xi_r=(u,t,\\mathcal{C}^{(r)}_{u,t},\\mathcal{H}_{u,t"
+    },
+    {
+      "id": "N11-035",
+      "line": 111,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Recommendation Setting and Event-Level Ranking Utility",
+      "source_fnv32": "bfa40b06",
+      "labels": [
+        "eq:event-ndcg"
+      ],
+      "new_location": "3.1-3.3 Value and candidate definitions",
+      "edit": "MERGE_3_4",
+      "opening": "Let $r_A(y\\mid\\xi)$ be the one-indexed position of $y$ in the ranking produced by model $A$. For a single observed relevant t"
+    },
+    {
+      "id": "N11-036",
+      "line": 122,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Base-Relative Specialist Utility",
+      "source_fnv32": "5d42d82b",
+      "labels": [
+        "sec:relative-utility"
+      ],
+      "new_location": "3.1-3.3 Value and candidate definitions",
+      "edit": "MERGE_3_4",
+      "opening": "\\subsection{Base-Relative Specialist Utility} \\label{sec:relative-utility}"
+    },
+    {
+      "id": "N11-037",
+      "line": 125,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Base-Relative Specialist Utility",
+      "source_fnv32": "66ab7c83",
+      "labels": [
+        "eq:delta-memory"
+      ],
+      "new_location": "3.1-3.3 Value and candidate definitions",
+      "edit": "MERGE_3_4",
+      "opening": "Let $B$ be the designated trained incumbent and $M$ a fixed relationship-memory specialist within an evaluation protocol. Eac"
+    },
+    {
+      "id": "N11-038",
+      "line": 132,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Conditional Relative Utility",
+      "source_fnv32": "3b56cbce",
+      "labels": [
+        "sec:conditional-utility"
+      ],
+      "new_location": "3.3-3.4 Candidate-aligned conditional value",
+      "edit": "MERGE_3_4",
+      "opening": "\\subsection{Conditional Relative Utility} \\label{sec:conditional-utility}"
+    },
+    {
+      "id": "N11-039",
+      "line": 135,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Conditional Relative Utility",
+      "source_fnv32": "faf18383",
+      "labels": [
+        "eq:eta"
+      ],
+      "new_location": "3.3-3.4 Candidate-aligned conditional value",
+      "edit": "MERGE_3_4",
+      "opening": "Let $Z$ comprise decision-time observable summaries of user history and the Base's candidate scores. For the event distributi"
+    },
+    {
+      "id": "N11-040",
+      "line": 143,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Conditional Relative Utility",
+      "source_fnv32": "89e15f3b",
+      "labels": [
+        "eq:candidate-supervision-transfer"
+      ],
+      "new_location": "3.3-3.4 Candidate-aligned conditional value",
+      "edit": "MERGE_3_4",
+      "opening": "For the paired development evaluations considered below, $\\Delta_S(x)$ and $\\Delta_F(x)$ denote the specialist-minus-incumben"
+    },
+    {
+      "id": "N11-041",
+      "line": 151,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Conditional Relative Utility",
+      "source_fnv32": "d3548545",
+      "labels": [
+        "eq:expected-selective-gain"
+      ],
+      "new_location": "3.3-3.4 Candidate-aligned conditional value",
+      "edit": "MERGE_3_4",
+      "opening": "A pre-outcome decision $a(Z)\\in\\{0,1\\}$ returns the Base ranking when $a=0$ and invokes the Memory ranking when $a=1$. Its re"
+    },
+    {
+      "id": "N11-042",
+      "line": 160,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Selective Invocation and Invocation-Count Constraints",
+      "source_fnv32": "dc946e03",
+      "labels": [
+        "sec:decision-rule"
+      ],
+      "new_location": "3.5 Invocation and eligibility policy",
+      "edit": "MERGE_3_4",
+      "opening": "\\subsection{Selective Invocation and Invocation-Count Constraints} \\label{sec:decision-rule}"
+    },
+    {
+      "id": "N11-043",
+      "line": 163,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Selective Invocation and Invocation-Count Constraints",
+      "source_fnv32": "cfa86dd8",
+      "labels": [
+        "eq:utility-threshold"
+      ],
+      "new_location": "3.5 Invocation and eligibility policy",
+      "edit": "MERGE_3_4",
+      "opening": "A score-based policy selects Memory when its estimated relative utility exceeds a development-calibrated threshold. Denoting "
+    },
+    {
+      "id": "N11-044",
+      "line": 172,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Regime-Level Utility Decomposition",
+      "source_fnv32": "1b5646a5",
+      "labels": [
+        "sec:regime-decomposition"
+      ],
+      "new_location": "3.5 Diagnostic-only decomposition; S10 expanded",
+      "edit": "CONDENSE_SUPPLEMENT",
+      "opening": "\\subsection{Regime-Level Utility Decomposition} \\label{sec:regime-decomposition}"
+    },
+    {
+      "id": "N11-045",
+      "line": 175,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Regime-Level Utility Decomposition",
+      "source_fnv32": "b6423af0",
+      "labels": [
+        "eq:regime-decomposition"
+      ],
+      "new_location": "3.5 Diagnostic-only decomposition; S10 expanded",
+      "edit": "CONDENSE_SUPPLEMENT",
+      "opening": "To interpret aggregate differences, let $S$ index mutually exclusive target-relative relationship-evidence states (Section~\\r"
+    },
+    {
+      "id": "N11-046",
+      "line": 184,
+      "source_section": "Problem Formulation",
+      "source_subsection": "Regime-Level Utility Decomposition",
+      "source_fnv32": "dd473ba3",
+      "labels": [
+        "sec:framework"
+      ],
+      "new_location": "3.5 Diagnostic-only decomposition; S10 expanded",
+      "edit": "CONDENSE_SUPPLEMENT",
+      "opening": " \\section{Base-Relative Evidence Valuation Framework} \\label{sec:framework}"
+    },
+    {
+      "id": "N11-047",
+      "line": 188,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Regime-Level Utility Decomposition",
+      "source_fnv32": "21c2ae6c",
+      "labels": [],
+      "new_location": "3.5 Invocation and policy comparators",
+      "edit": "MERGE_3_4",
+      "opening": "The framework connects a trained sequential incumbent, an explicit fixed relationship-memory specialist and a selector that e"
+    },
+    {
+      "id": "N11-048",
+      "line": 190,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Regime-Level Utility Decomposition",
+      "source_fnv32": "b62929f1",
+      "labels": [
+        "fig:framework"
+      ],
+      "new_location": "3.5 Selective knowledge-use architecture, online/offline separation",
+      "edit": "KEEP_EDIT_CAPTION",
+      "opening": "\\begin{figure}[t] \\centering \\begin{tikzpicture}[ >=Latex, box/.style={draw,rounded corners=1.5pt,align=center,inner sep=5pt,"
+    },
+    {
+      "id": "N11-049",
+      "line": 216,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Strong Sequential Base Recommenders",
+      "source_fnv32": "aba03cbe",
+      "labels": [
+        "sec:framework-base"
+      ],
+      "new_location": "3.2 Fixed base and explicit Memory",
+      "edit": "MERGE_3_4",
+      "opening": "\\subsection{Strong Sequential Base Recommenders} \\label{sec:framework-base}"
+    },
+    {
+      "id": "N11-050",
+      "line": 219,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Strong Sequential Base Recommenders",
+      "source_fnv32": "10f8e1e8",
+      "labels": [],
+      "new_location": "3.2 Fixed base and explicit Memory",
+      "edit": "MERGE_3_4",
+      "opening": "The Base represents the recommendation capability to which relationship knowledge is added. The original KuaiLive Base combin"
+    },
+    {
+      "id": "N11-051",
+      "line": 221,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Transparent Relationship-Memory Specialist",
+      "source_fnv32": "33b80b80",
+      "labels": [
+        "sec:framework-memory"
+      ],
+      "new_location": "3.2 Fixed base and explicit Memory",
+      "edit": "MERGE_3_4",
+      "opening": "\\subsection{Transparent Relationship-Memory Specialist} \\label{sec:framework-memory}"
+    },
+    {
+      "id": "N11-052",
+      "line": 224,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Transparent Relationship-Memory Specialist",
+      "source_fnv32": "2a61db78",
+      "labels": [
+        "eq:memory-scoring"
+      ],
+      "new_location": "3.2 Fixed base and explicit Memory",
+      "edit": "MERGE_3_4",
+      "opening": "The specialist scores each eligible candidate using user--creator relationships observed strictly before the current event. L"
+    },
+    {
+      "id": "N11-053",
+      "line": 233,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Transparent Relationship-Memory Specialist",
+      "source_fnv32": "bd190826",
+      "labels": [],
+      "new_location": "3.2 Fixed base and explicit Memory",
+      "edit": "MERGE_3_4",
+      "opening": "These weights define the fixed specialist rather than a per-event trained fusion. In the original room-ranking task, multiple"
+    },
+    {
+      "id": "N11-054",
+      "line": 235,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Base-Relative Relationship-Evidence States",
+      "source_fnv32": "9b3eb67c",
+      "labels": [
+        "sec:framework-states"
+      ],
+      "new_location": "3.5 Brief diagnostic states and Supplement",
+      "edit": "CONDENSE_SUPPLEMENT",
+      "opening": "\\subsection{Base-Relative Relationship-Evidence States} \\label{sec:framework-states}"
+    },
+    {
+      "id": "N11-055",
+      "line": 238,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Base-Relative Relationship-Evidence States",
+      "source_fnv32": "abf0cf1c",
+      "labels": [
+        "eq:diagnostic-states"
+      ],
+      "new_location": "3.5 Brief diagnostic states and Supplement",
+      "edit": "CONDENSE_SUPPLEMENT",
+      "opening": "The visibility of the subsequently observed target in prior history provides an interpretable partition of realized specialis"
+    },
+    {
+      "id": "N11-056",
+      "line": 250,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Observable Features and Conditional Relative-Utility Estimation",
+      "source_fnv32": "07a4829a",
+      "labels": [
+        "sec:framework-estimation"
+      ],
+      "new_location": "3.4 Decision-time observable features and estimator",
+      "edit": "MERGE_3_4",
+      "opening": "\\subsection{Observable Features and Conditional Relative-Utility Estimation} \\label{sec:framework-estimation}"
+    },
+    {
+      "id": "N11-057",
+      "line": 253,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Observable Features and Conditional Relative-Utility Estimation",
+      "source_fnv32": "e2b6ead4",
+      "labels": [],
+      "new_location": "3.4 Decision-time observable features and estimator",
+      "edit": "MERGE_3_4",
+      "opening": "The decision vector $Z$ combines historical relationship descriptors with statistics computed from the Base's candidate score"
+    },
+    {
+      "id": "N11-058",
+      "line": 255,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Observable Features and Conditional Relative-Utility Estimation",
+      "source_fnv32": "3734b042",
+      "labels": [],
+      "new_location": "3.4 Decision-time observable features and estimator",
+      "edit": "MERGE_3_4",
+      "opening": "The Twitch implementation uses six history and eight Base-score descriptors; M3 uses seven history/candidate and five Base-sc"
+    },
+    {
+      "id": "N11-059",
+      "line": 257,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Specialist Selection and Comparator Policies",
+      "source_fnv32": "9d7fb3ce",
+      "labels": [
+        "sec:framework-controls"
+      ],
+      "new_location": "3.5 Invocation and policy comparators",
+      "edit": "MERGE_3_4",
+      "opening": "\\subsection{Specialist Selection and Comparator Policies} \\label{sec:framework-controls}"
+    },
+    {
+      "id": "N11-060",
+      "line": 260,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Specialist Selection and Comparator Policies",
+      "source_fnv32": "4480288c",
+      "labels": [],
+      "new_location": "3.5 Invocation and policy comparators",
+      "edit": "MERGE_3_4",
+      "opening": "At inference, the Base produces the default ranking and its observable score descriptors. The selector applies the DEV-calibr"
+    },
+    {
+      "id": "N11-061",
+      "line": 262,
+      "source_section": "Base-Relative Evidence Valuation Framework",
+      "source_subsection": "Specialist Selection and Comparator Policies",
+      "source_fnv32": "247e72d8",
+      "labels": [
+        "sec:experimental-setup"
+      ],
+      "new_location": "3.5 Invocation and policy comparators",
+      "edit": "MERGE_3_4",
+      "opening": " \\section{Experimental Setup} \\label{sec:experimental-setup}"
+    },
+    {
+      "id": "N11-062",
+      "line": 266,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Specialist Selection and Comparator Policies",
+      "source_fnv32": "0cf76939",
+      "labels": [],
+      "new_location": "4.6 Implementation summary; Supplement exact settings",
+      "edit": "CONDENSE_SUPPLEMENT",
+      "opening": "Table~\\ref{tab:exp-datasets} defines the distinct ranked units, candidate sets and evaluation roles of the three protocols. A"
+    },
+    {
+      "id": "N11-063",
+      "line": 268,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Datasets and Prediction Tasks",
+      "source_fnv32": "5b581e06",
+      "labels": [
+        "sec:exp-data"
+      ],
+      "new_location": "4.1 Dataset task and evidence-tier protocol",
+      "edit": "RESTRUCTURE",
+      "opening": "\\subsection{Datasets and Prediction Tasks} \\label{sec:exp-data}"
+    },
+    {
+      "id": "N11-064",
+      "line": 271,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Datasets and Prediction Tasks",
+      "source_fnv32": "8c1b16b2",
+      "labels": [],
+      "new_location": "4.1 Dataset task and evidence-tier protocol",
+      "edit": "RESTRUCTURE",
+      "opening": "\\paragraph{Twitch/LiveRec.} We use the availability-aware LiveRec protocol to rank streamers at ten-minute observed activity "
+    },
+    {
+      "id": "N11-065",
+      "line": 274,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Datasets and Prediction Tasks",
+      "source_fnv32": "544207dc",
+      "labels": [],
+      "new_location": "4.1 Dataset task and evidence-tier protocol",
+      "edit": "RESTRUCTURE",
+      "opening": "\\paragraph{Original KuaiLive.} We rank a time-bounded live \\emph{room} using a Dual-ID Base and a specialist that aggregates "
+    },
+    {
+      "id": "N11-066",
+      "line": 277,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Datasets and Prediction Tasks",
+      "source_fnv32": "984289f6",
+      "labels": [],
+      "new_location": "4.1 Dataset task and evidence-tier protocol",
+      "edit": "RESTRUCTURE",
+      "opening": "\\paragraph{KuaiLive-M3.} The M3 evaluation ranks persistent \\texttt{author\\_id} identities; contemporaneously active room ses"
+    },
+    {
+      "id": "N11-067",
+      "line": 280,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Datasets and Prediction Tasks",
+      "source_fnv32": "01dba447",
+      "labels": [
+        "tab:exp-datasets"
+      ],
+      "new_location": "4.1 Evidence tiers",
+      "edit": "REBUILD_IN_MAIN",
+      "opening": "\\begin{table}[t] \\centering \\caption{Complementary evaluation protocols. Counts denote selected prediction events. The 575-ca"
+    },
+    {
+      "id": "N11-068",
+      "line": 297,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Baselines and Compared Methods",
+      "source_fnv32": "c71fe918",
+      "labels": [
+        "sec:exp-comparators"
+      ],
+      "new_location": "4.2 Rankers and policy comparator scope",
+      "edit": "RESTRUCTURE",
+      "opening": "\\subsection{Baselines and Compared Methods} \\label{sec:exp-comparators}"
+    },
+    {
+      "id": "N11-069",
+      "line": 300,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Baselines and Compared Methods",
+      "source_fnv32": "3db8ed31",
+      "labels": [],
+      "new_location": "4.2 Rankers and policy comparator scope",
+      "edit": "RESTRUCTURE",
+      "opening": "Within every task, the two fixed scorers rank the same available candidates, and Utility predicts their single-event differen"
+    },
+    {
+      "id": "N11-070",
+      "line": 302,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Baselines and Compared Methods",
+      "source_fnv32": "6029b8d5",
+      "labels": [],
+      "new_location": "4.2 Rankers and policy comparator scope",
+      "edit": "RESTRUCTURE",
+      "opening": "The original KuaiLive candidate analysis uses the same fixed Dual-ID Base checkpoint pair, sampled-DEV-selected room fusion c"
+    },
+    {
+      "id": "N11-071",
+      "line": 304,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Baselines and Compared Methods",
+      "source_fnv32": "de04f0ac",
+      "labels": [],
+      "new_location": "4.2 Rankers and policy comparator scope",
+      "edit": "RESTRUCTURE",
+      "opening": "M3 uses SASRec and GRU4Rec author-level Base families with three fitted initialization seeds each (20261012, 20261013 and 202"
+    },
+    {
+      "id": "N11-072",
+      "line": 306,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Baselines and Compared Methods",
+      "source_fnv32": "73ec4128",
+      "labels": [],
+      "new_location": "4.2 Rankers and policy comparator scope",
+      "edit": "RESTRUCTURE",
+      "opening": "For M3, 12 available descriptors comprise five Base-score summaries (top-two margin, score standard deviation, standardized t"
+    },
+    {
+      "id": "N11-073",
+      "line": 308,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Baselines and Compared Methods",
+      "source_fnv32": "378e0364",
+      "labels": [
+        "tab:exp-methods"
+      ],
+      "new_location": "Supplement Methods comparator table",
+      "edit": "MOVE_TO_SUPPLEMENT",
+      "opening": "\\begin{table}[t] \\centering \\caption{Experimental comparison roles. M3's five gate objectives share DEV candidate events and "
+    },
+    {
+      "id": "N11-074",
+      "line": 326,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Experimental Protocols",
+      "source_fnv32": "738a3c9c",
+      "labels": [
+        "sec:exp-freeze",
+        "sec:exp-regimes"
+      ],
+      "new_location": "4.3-4.5 Freeze, candidate, source-null protocols",
+      "edit": "RESTRUCTURE",
+      "opening": "\\subsection{Experimental Protocols} \\label{sec:exp-freeze} \\label{sec:exp-regimes}"
+    },
+    {
+      "id": "N11-075",
+      "line": 330,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Experimental Protocols",
+      "source_fnv32": "09dc14e9",
+      "labels": [],
+      "new_location": "4.3-4.5 Freeze, candidate, source-null protocols",
+      "edit": "RESTRUCTURE",
+      "opening": "\\paragraph{Training, out-of-fold estimation and policy freeze.} All incumbent checkpoints and specialist score definitions ar"
+    },
+    {
+      "id": "N11-076",
+      "line": 333,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Experimental Protocols",
+      "source_fnv32": "8e290075",
+      "labels": [],
+      "new_location": "4.3-4.5 Freeze, candidate, source-null protocols",
+      "edit": "RESTRUCTURE",
+      "opening": "Each of the six M3 Base checkpoints is selected on the common sampled-candidate DEV screening panel specified above, while ga"
+    },
+    {
+      "id": "N11-077",
+      "line": 335,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Experimental Protocols",
+      "source_fnv32": "0e51479c",
+      "labels": [],
+      "new_location": "4.3-4.5 Freeze, candidate, source-null protocols",
+      "edit": "RESTRUCTURE",
+      "opening": "The five M3 selection objectives consequently share a \\emph{development calibration constraint}, but their realized TEST invo"
+    },
+    {
+      "id": "N11-078",
+      "line": 337,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Experimental Protocols",
+      "source_fnv32": "7d92363c",
+      "labels": [],
+      "new_location": "4.3-4.5 Freeze, candidate, source-null protocols",
+      "edit": "RESTRUCTURE",
+      "opening": "\\paragraph{Forward-time information boundary.} M3 evaluation proceeds chronologically. Earlier observed interactions—includin"
+    },
+    {
+      "id": "N11-079",
+      "line": 340,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Experimental Protocols",
+      "source_fnv32": "88973842",
+      "labels": [
+        "eq:paired-regime-shift",
+        "eq:factorial-allocations"
+      ],
+      "new_location": "4.3-4.5 Freeze, candidate, source-null protocols",
+      "edit": "RESTRUCTURE",
+      "opening": "\\paragraph{Paired candidate-regime evaluation.} For the original KuaiLive room task, the same user history, target and fixed "
+    },
+    {
+      "id": "N11-080",
+      "line": 357,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Experimental Protocols",
+      "source_fnv32": "384c61a6",
+      "labels": [],
+      "new_location": "4.3-4.5 Freeze, candidate, source-null protocols",
+      "edit": "RESTRUCTURE",
+      "opening": "\\paragraph{Exploratory candidate-supervision and relationship-source comparisons.} A subsequent M3 development analysis uses "
+    },
+    {
+      "id": "N11-081",
+      "line": 360,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Experimental Protocols",
+      "source_fnv32": "4e91cf08",
+      "labels": [],
+      "new_location": "4.3-4.5 Freeze, candidate, source-null protocols",
+      "edit": "RESTRUCTURE",
+      "opening": "\\paragraph{Time-preserving relationship-identity control.} To distinguish historical-source composition from correct viewer--"
+    },
+    {
+      "id": "N11-082",
+      "line": 363,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Experimental Protocols",
+      "source_fnv32": "0076382d",
+      "labels": [],
+      "new_location": "4.3-4.5 Freeze, candidate, source-null protocols",
+      "edit": "RESTRUCTURE",
+      "opening": "\\paragraph{Additional same-period, pre-outcome-frozen target evaluation.} A further analysis excludes all 47,575 initial M3 a"
+    },
+    {
+      "id": "N11-083",
+      "line": 366,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Experimental Protocols",
+      "source_fnv32": "11df3448",
+      "labels": [],
+      "new_location": "4.3-4.5 Freeze, candidate, source-null protocols",
+      "edit": "RESTRUCTURE",
+      "opening": "The nested historical comparison retains the original Full Memory ranker, three previously fixed closed-hour relation-null se"
+    },
+    {
+      "id": "N11-084",
+      "line": 368,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Evaluation Metrics and Statistical Analysis",
+      "source_fnv32": "56adf46d",
+      "labels": [
+        "sec:exp-statistics"
+      ],
+      "new_location": "4.4 Evaluation weights and inference",
+      "edit": "RESTRUCTURE",
+      "opening": "\\subsection{Evaluation Metrics and Statistical Analysis} \\label{sec:exp-statistics}"
+    },
+    {
+      "id": "N11-085",
+      "line": 371,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Evaluation Metrics and Statistical Analysis",
+      "source_fnv32": "6c479045",
+      "labels": [],
+      "new_location": "4.4 Evaluation weights and inference",
+      "edit": "RESTRUCTURE",
+      "opening": "The primary endpoint is event-level NDCG@10 (Eq.~\\eqref{eq:event-ndcg}); secondary endpoints are HR@10 and the realized speci"
+    },
+    {
+      "id": "N11-086",
+      "line": 373,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Evaluation Metrics and Statistical Analysis",
+      "source_fnv32": "9b63cc76",
+      "labels": [],
+      "new_location": "4.4 Evaluation weights and inference",
+      "edit": "RESTRUCTURE",
+      "opening": "Twitch TEST confidence intervals are based on 5,000 user-paired bootstrap replicates; original KuaiLive candidate-regime inte"
+    },
+    {
+      "id": "N11-087",
+      "line": 375,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Implementation Details",
+      "source_fnv32": "f475db15",
+      "labels": [
+        "sec:exp-implementation"
+      ],
+      "new_location": "4.6 Implementation summary; Supplement exact settings",
+      "edit": "CONDENSE_SUPPLEMENT",
+      "opening": "\\subsection{Implementation Details} \\label{sec:exp-implementation}"
+    },
+    {
+      "id": "N11-088",
+      "line": 378,
+      "source_section": "Experimental Setup",
+      "source_subsection": "Implementation Details",
+      "source_fnv32": "80cfc9bb",
+      "labels": [],
+      "new_location": "4.6 Implementation summary; Supplement exact settings",
+      "edit": "CONDENSE_SUPPLEMENT",
+      "opening": "The original KuaiLive room/creator Base uses 64-dimensional ReChorus SASRec branches with one attention layer, four heads and"
+    },
+    {
+      "id": "N11-089",
+      "line": 380,
+      "source_section": "Experimental Results",
+      "source_subsection": "Implementation Details",
+      "source_fnv32": "16360677",
+      "labels": [
+        "sec:results"
+      ],
+      "new_location": "5.4 Operational conditions and measured costs",
+      "edit": "CONDENSE",
+      "opening": "\\section{Experimental Results} \\label{sec:results}"
+    },
+    {
+      "id": "N11-090",
+      "line": 383,
+      "source_section": "Experimental Results",
+      "source_subsection": "Implementation Details",
+      "source_fnv32": "337c6844",
+      "labels": [],
+      "new_location": "5.4 Operational conditions and measured costs",
+      "edit": "CONDENSE",
+      "opening": "The results proceed from the incremental value of fixed relationship evidence, to the role of candidate availability in defin"
+    },
+    {
+      "id": "N11-091",
+      "line": 385,
+      "source_section": "Experimental Results",
+      "source_subsection": "Heterogeneous Utility of Relationship Memory",
+      "source_fnv32": "c74204e9",
+      "labels": [
+        "sec:results-heterogeneity"
+      ],
+      "new_location": "5.1 RQ1 history and candidates",
+      "edit": "RESTRUCTURE",
+      "opening": "\\subsection{Heterogeneous Utility of Relationship Memory} \\label{sec:results-heterogeneity}"
+    },
+    {
+      "id": "N11-092",
+      "line": 388,
+      "source_section": "Experimental Results",
+      "source_subsection": "Heterogeneous Utility of Relationship Memory",
+      "source_fnv32": "20b1994d",
+      "labels": [],
+      "new_location": "5.1 RQ1 history and candidates",
+      "edit": "RESTRUCTURE",
+      "opening": "The ranking contribution of relationship memory is heterogeneous rather than uniformly positive. On 44,221 Twitch held-out st"
+    },
+    {
+      "id": "N11-093",
+      "line": 390,
+      "source_section": "Experimental Results",
+      "source_subsection": "Heterogeneous Utility of Relationship Memory",
+      "source_fnv32": "f0458bab",
+      "labels": [],
+      "new_location": "5.1 RQ1 history and candidates",
+      "edit": "RESTRUCTURE",
+      "opening": "Figure~\\ref{fig:results-evidence-states} and Table~\\ref{tab:results-evidence-states} show that Memory improves NDCG@10 by $+0"
+    },
+    {
+      "id": "N11-094",
+      "line": 392,
+      "source_section": "Experimental Results",
+      "source_subsection": "Heterogeneous Utility of Relationship Memory",
+      "source_fnv32": "06cefe93",
+      "labels": [],
+      "new_location": "5.1 RQ1 history and candidates",
+      "edit": "RESTRUCTURE",
+      "opening": "In the distinct KuaiLive-M3 author-ranking TEST, Memory reaches NDCG@10 $0.34679$ on 47,575 events, exceeding each of six fit"
+    },
+    {
+      "id": "N11-095",
+      "line": 394,
+      "source_section": "Experimental Results",
+      "source_subsection": "Heterogeneous Utility of Relationship Memory",
+      "source_fnv32": "32241e39",
+      "labels": [
+        "fig:results-evidence-states"
+      ],
+      "new_location": "Supplement detailed Twitch state plot (subject to RQ1 density review)",
+      "edit": "REVIEW_MOVE_TO_SUPPLEMENT",
+      "opening": "\\begin{figure}[!htbp] \\centering \\begin{tikzpicture}[x=1cm,y=6.7cm] \\draw[->,thin] (0.65,-0.245) -- (0.65,0.277) node[above,f"
+    },
+    {
+      "id": "N11-096",
+      "line": 426,
+      "source_section": "Experimental Results",
+      "source_subsection": "Heterogeneous Utility of Relationship Memory",
+      "source_fnv32": "cc08c9bb",
+      "labels": [
+        "tab:results-evidence-states"
+      ],
+      "new_location": "Supplement Twitch outcome-state details",
+      "edit": "MOVE_TO_SUPPLEMENT",
+      "opening": "\\begin{table}[!htbp] \\centering \\caption{Memory and Base NDCG@10 by retrospective evidence state on frozen Twitch TEST ($n=44"
+    },
+    {
+      "id": "N11-097",
+      "line": 443,
+      "source_section": "Experimental Results",
+      "source_subsection": "Heterogeneous Utility of Relationship Memory",
+      "source_fnv32": "aadacfe2",
+      "labels": [
+        "sec:results-regimes"
+      ],
+      "new_location": "5.1 RQ1 history and candidates",
+      "edit": "RESTRUCTURE",
+      "opening": "\\FloatBarrier \\subsection{Candidate-Regime Dependence of Relative Utility} \\label{sec:results-regimes}"
+    },
+    {
+      "id": "N11-098",
+      "line": 447,
+      "source_section": "Experimental Results",
+      "source_subsection": "Candidate-Regime Dependence of Relative Utility",
+      "source_fnv32": "869a7913",
+      "labels": [],
+      "new_location": "5.1 RQ1 history and candidates",
+      "edit": "RESTRUCTURE",
+      "opening": "Because ranking utility is defined over competing alternatives, the candidate environment is part of the value being estimate"
+    },
+    {
+      "id": "N11-099",
+      "line": 449,
+      "source_section": "Experimental Results",
+      "source_subsection": "Candidate-Regime Dependence of Relative Utility",
+      "source_fnv32": "a403f7e6",
+      "labels": [],
+      "new_location": "5.1 RQ1 history and candidates",
+      "edit": "RESTRUCTURE",
+      "opening": "The crossed candidate-membership and Base score-normalization reference accounting in Table~\\ref{tab:results-factorial} attri"
+    },
+    {
+      "id": "N11-100",
+      "line": 451,
+      "source_section": "Experimental Results",
+      "source_subsection": "Candidate-Regime Dependence of Relative Utility",
+      "source_fnv32": "42549e93",
+      "labels": [
+        "tab:results-factorial"
+      ],
+      "new_location": "5.1 RQ1 candidate regime",
+      "edit": "KEEP_MAIN",
+      "opening": "\\begin{table}[!htbp] \\centering \\caption{KuaiLive Memory-minus-Base NDCG@10 under crossed ranked-candidate and score-normaliz"
+    },
+    {
+      "id": "N11-101",
+      "line": 467,
+      "source_section": "Experimental Results",
+      "source_subsection": "Candidate-Regime Dependence of Relative Utility",
+      "source_fnv32": "ddd1f673",
+      "labels": [],
+      "new_location": "5.1 RQ1 history and candidates",
+      "edit": "RESTRUCTURE",
+      "opening": "The reversal remains directionally stable across three separately trained KuaiLive checkpoint pairs and nine sampled-candidat"
+    },
+    {
+      "id": "N11-102",
+      "line": 469,
+      "source_section": "Experimental Results",
+      "source_subsection": "Candidate-Regime Dependence of Relative Utility",
+      "source_fnv32": "c8a20a92",
+      "labels": [],
+      "new_location": "5.1 RQ1 history and candidates",
+      "edit": "RESTRUCTURE",
+      "opening": "The matched M3 author-ranking development analysis tests the decision consequence of this label dependence on the \\emph{same}"
+    },
+    {
+      "id": "N11-103",
+      "line": 471,
+      "source_section": "Experimental Results",
+      "source_subsection": "Candidate-Regime Dependence of Relative Utility",
+      "source_fnv32": "2955daf9",
+      "labels": [
+        "tab:results-m3-dev-regime-transfer"
+      ],
+      "new_location": "Supplement DEV candidate transfer details",
+      "edit": "MOVE_TO_SUPPLEMENT",
+      "opening": "\\begin{table}[!htbp] \\centering \\caption{Exploratory M3 development-fold candidate-supervision transfer on the same 50,049 fu"
+    },
+    {
+      "id": "N11-104",
+      "line": 492,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "91d3a2bf",
+      "labels": [
+        "sec:results-decision"
+      ],
+      "new_location": "5.2 RQ2 aligned supervision and selection",
+      "edit": "RESTRUCTURE",
+      "opening": "\\subsection{Decision Value of Predicting Relative Utility} \\label{sec:results-decision}"
+    },
+    {
+      "id": "N11-105",
+      "line": 495,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "dc984edb",
+      "labels": [],
+      "new_location": "5.2 RQ2 aligned supervision and selection",
+      "edit": "RESTRUCTURE",
+      "opening": "The candidate comparisons motivate a consequential test: whether a selector guided by the incremental value of \\emph{this} Me"
+    },
+    {
+      "id": "N11-106",
+      "line": 497,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "5e330644",
+      "labels": [],
+      "new_location": "5.2 RQ2 aligned supervision and selection",
+      "edit": "RESTRUCTURE",
+      "opening": "Memory contributes $+0.05136$ NDCG@10 on Utility-selected Twitch requests but $-0.05890$ on the remaining requests, whereas D"
+    },
+    {
+      "id": "N11-107",
+      "line": 499,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "8b7b1520",
+      "labels": [
+        "tab:results-twitch-policy"
+      ],
+      "new_location": "5.2 RQ2 compact Twitch evidence; full table in supplement",
+      "edit": "CONDENSE_MAIN_DETAIL_SUPPLEMENT",
+      "opening": "\\begin{table}[!h] \\centering \\caption{Frozen Twitch/LiveRec TEST comparison ($n=44{,}221$). Utility applies a DEV-frozen poin"
+    },
+    {
+      "id": "N11-108",
+      "line": 518,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "1b05dd83",
+      "labels": [],
+      "new_location": "5.2 RQ2 aligned supervision and selection",
+      "edit": "RESTRUCTURE",
+      "opening": "On the prospectively frozen KuaiLive-M3 full-active author TEST, Utility obtains NDCG@10 $0.30287$ with $29.21\\%$ realized Me"
+    },
+    {
+      "id": "N11-109",
+      "line": 520,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "f4773a34",
+      "labels": [],
+      "new_location": "5.2 RQ2 aligned supervision and selection",
+      "edit": "RESTRUCTURE",
+      "opening": "This advantage extends across the three independently trained seeds of both SASRec and GRU4Rec (Table~\\ref{tab:results-m3-rob"
+    },
+    {
+      "id": "N11-110",
+      "line": 522,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "cdbb3efb",
+      "labels": [],
+      "new_location": "5.2 RQ2 aligned supervision and selection",
+      "edit": "RESTRUCTURE",
+      "opening": "For the primary SASRec fit, the predeclared Utility comparisons are against Base ($+0.04486$, user-cluster 95\\% CI $[+0.04281"
+    },
+    {
+      "id": "N11-111",
+      "line": 524,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "db081a89",
+      "labels": [
+        "tab:results-m3-policy"
+      ],
+      "new_location": "5.2 RQ2 initial M3 frozen choice",
+      "edit": "KEEP_MAIN",
+      "opening": "\\begin{table}[!htbp] \\centering \\caption{KuaiLive-M3 frozen full-active author-ranking TEST for the primary SASRec seed 20261"
+    },
+    {
+      "id": "N11-112",
+      "line": 545,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "1be41a2a",
+      "labels": [
+        "tab:results-m3-robustness"
+      ],
+      "new_location": "5.2 RQ2 six-fit compact robust summary",
+      "edit": "CONDENSE_MAIN_DETAIL_SUPPLEMENT",
+      "opening": "\\begin{table}[!htbp] \\centering \\caption{KuaiLive-M3 frozen TEST robustness across two Base families and three independently "
+    },
+    {
+      "id": "N11-113",
+      "line": 565,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "0a4050d3",
+      "labels": [],
+      "new_location": "5.2 RQ2 aligned supervision and selection",
+      "edit": "RESTRUCTURE",
+      "opening": "For the primary M3 fit, random uniform allocation at $30\\%$ calls has conditional expected NDCG@10 $0.28464$, compared with $"
+    },
+    {
+      "id": "N11-114",
+      "line": 567,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "8b2c4d60",
+      "labels": [],
+      "new_location": "5.2 RQ2 aligned supervision and selection",
+      "edit": "RESTRUCTURE",
+      "opening": "The additional 30,000-target same-period evaluation tests the consequence of \\emph{candidate-aligned utility supervision} usi"
+    },
+    {
+      "id": "N11-115",
+      "line": 569,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "2072bf75",
+      "labels": [
+        "tab:results-m3-b4a-supervision"
+      ],
+      "new_location": "5.2 RQ2 frozen 30000 additional-target H1",
+      "edit": "KEEP_MAIN",
+      "opening": "\\begin{table}[!htbp] \\centering \\caption{Additional frozen M3 author-ranking targets from the original TEST-source recording "
+    },
+    {
+      "id": "N11-116",
+      "line": 585,
+      "source_section": "Experimental Results",
+      "source_subsection": "Decision Value of Predicting Relative Utility",
+      "source_fnv32": "6cdbdae2",
+      "labels": [
+        "sec:results-robustness"
+      ],
+      "new_location": "5.2 RQ2 aligned supervision and selection",
+      "edit": "RESTRUCTURE",
+      "opening": "\\FloatBarrier \\subsection{Relationship Sources and Observable Signals} \\label{sec:results-robustness}"
+    },
+    {
+      "id": "N11-117",
+      "line": 589,
+      "source_section": "Experimental Results",
+      "source_subsection": "Relationship Sources and Observable Signals",
+      "source_fnv32": "d4ebd0e7",
+      "labels": [],
+      "new_location": "5.3 RQ3 authentic history and source controls",
+      "edit": "RESTRUCTURE",
+      "opening": "The source of historical knowledge is also relevant to its measured ranking value. For matched M3 development events, Full Me"
+    },
+    {
+      "id": "N11-118",
+      "line": 591,
+      "source_section": "Experimental Results",
+      "source_subsection": "Relationship Sources and Observable Signals",
+      "source_fnv32": "a84f11e8",
+      "labels": [],
+      "new_location": "5.3 RQ3 authentic history and source controls",
+      "edit": "RESTRUCTURE",
+      "opening": "On 1,024 stratified M3 DEV requests, valid historical-author nulls retaining source-hour author activity and user interaction"
+    },
+    {
+      "id": "N11-119",
+      "line": 593,
+      "source_section": "Experimental Results",
+      "source_subsection": "Relationship Sources and Observable Signals",
+      "source_fnv32": "c94df916",
+      "labels": [
+        "tab:results-m3-dev-source"
+      ],
+      "new_location": "Supplement mechanism DEV source components",
+      "edit": "MOVE_TO_SUPPLEMENT",
+      "opening": "\\begin{table}[!htbp] \\centering \\caption{Exploratory M3 DEV NDCG@10 of fixed relationship-knowledge components under full-act"
+    },
+    {
+      "id": "N11-120",
+      "line": 612,
+      "source_section": "Experimental Results",
+      "source_subsection": "Relationship Sources and Observable Signals",
+      "source_fnv32": "561ab403",
+      "labels": [
+        "tab:results-m3-additional-relation-identity"
+      ],
+      "new_location": "5.3 RQ3 fixed-candidate 4096 H2",
+      "edit": "KEEP_MAIN",
+      "opening": "\\begin{table}[!htbp] \\centering \\caption{Historical-source specificity on 4,096 additional M3 author-ranking targets (3,059 u"
+    },
+    {
+      "id": "N11-121",
+      "line": 632,
+      "source_section": "Experimental Results",
+      "source_subsection": "Relationship Sources and Observable Signals",
+      "source_fnv32": "f58f8e3c",
+      "labels": [],
+      "new_location": "5.3 RQ3 authentic history and source controls",
+      "edit": "RESTRUCTURE",
+      "opening": "In the nested 4,096-target M3 evaluation, authentic Full Memory exceeds the mean of three time- and activity-preserving histo"
+    },
+    {
+      "id": "N11-122",
+      "line": 634,
+      "source_section": "Experimental Results",
+      "source_subsection": "Relationship Sources and Observable Signals",
+      "source_fnv32": "0d2f52bf",
+      "labels": [],
+      "new_location": "5.3 RQ3 authentic history and source controls",
+      "edit": "RESTRUCTURE",
+      "opening": "The feasibility of predictive selection depends on pre-outcome descriptors of historical relationships and the incumbent's ca"
+    },
+    {
+      "id": "N11-123",
+      "line": 636,
+      "source_section": "Experimental Results",
+      "source_subsection": "Relationship Sources and Observable Signals",
+      "source_fnv32": "e33a454c",
+      "labels": [
+        "tab:results-feature-ablation"
+      ],
+      "new_location": "Supplement Twitch DEV features",
+      "edit": "MOVE_TO_SUPPLEMENT",
+      "opening": "\\begin{table}[!htbp] \\centering \\caption{Twitch DEV-only five-fold OOF feature-family comparison ($n=46{,}878$), with 6,563 M"
+    },
+    {
+      "id": "N11-124",
+      "line": 653,
+      "source_section": "Experimental Results",
+      "source_subsection": "Relationship Sources and Observable Signals",
+      "source_fnv32": "be61cfa6",
+      "labels": [],
+      "new_location": "5.3 RQ3 authentic history and source controls",
+      "edit": "RESTRUCTURE",
+      "opening": "Additional DEV-only diagnostics indicate how that relative value varies with Memory construction and the trained Base. Among "
+    },
+    {
+      "id": "N11-125",
+      "line": 655,
+      "source_section": "Experimental Results",
+      "source_subsection": "Relationship Sources and Observable Signals",
+      "source_fnv32": "29b5d5f5",
+      "labels": [
+        "sec:results-efficiency"
+      ],
+      "new_location": "5.3 RQ3 authentic history and source controls",
+      "edit": "RESTRUCTURE",
+      "opening": "\\FloatBarrier \\subsection{Invocation Constraints and Measured Scoring Cost} \\label{sec:results-efficiency}"
+    },
+    {
+      "id": "N11-126",
+      "line": 659,
+      "source_section": "Experimental Results",
+      "source_subsection": "Invocation Constraints and Measured Scoring Cost",
+      "source_fnv32": "36313ac9",
+      "labels": [],
+      "new_location": "5.4 Operational conditions and measured costs",
+      "edit": "CONDENSE",
+      "opening": "The M3 Utility rules realize $27.72$--$29.21\\%$ Memory calls on TEST after the DEV call-limit calibration. History reaches $3"
+    },
+    {
+      "id": "N11-127",
+      "line": 661,
+      "source_section": "Experimental Results",
+      "source_subsection": "Invocation Constraints and Measured Scoring Cost",
+      "source_fnv32": "587259e4",
+      "labels": [],
+      "new_location": "5.4 Operational conditions and measured costs",
+      "edit": "CONDENSE",
+      "opening": "In a matched, exploratory nested M3 DEV sensitivity analysis, raising the inner specialist-call limit from $30\\%$ to $50\\%$ i"
+    },
+    {
+      "id": "N11-128",
+      "line": 663,
+      "source_section": "Experimental Results",
+      "source_subsection": "Invocation Constraints and Measured Scoring Cost",
+      "source_fnv32": "d5bfffe2",
+      "labels": [],
+      "new_location": "5.4 Operational conditions and measured costs",
+      "edit": "CONDENSE",
+      "opening": "A first warmed RTX 3090 DEV replay on 256 M3 requests found a faster unconditional Memory scorer (mean $0.803$\\,ms) than the "
+    },
+    {
+      "id": "N11-129",
+      "line": 667,
+      "source_section": "Experimental Results",
+      "source_subsection": "Invocation Constraints and Measured Scoring Cost",
+      "source_fnv32": "ae6e713b",
+      "labels": [],
+      "new_location": "5.4 Operational conditions and measured costs",
+      "edit": "CONDENSE",
+      "opening": "A second, counterbalanced DEV measurement repeats the same 256 full-active requests three times, using synchronized Base, Mem"
+    },
+    {
+      "id": "N11-130",
+      "line": 669,
+      "source_section": "Experimental Results",
+      "source_subsection": "Invocation Constraints and Measured Scoring Cost",
+      "source_fnv32": "2c315b33",
+      "labels": [
+        "tab:results-n10-cost"
+      ],
+      "new_location": "5.4 Operating conditions short cost summary; full S10.17",
+      "edit": "CONDENSE_MAIN_DETAIL_SUPPLEMENT",
+      "opening": " \\begin{table}[!htbp] \\centering \\caption{Matched, counterbalanced \\emph{DEV-only} full-active ranking-path timing on RTX 309"
+    },
+    {
+      "id": "N11-131",
+      "line": 687,
+      "source_section": "Experimental Results",
+      "source_subsection": "Invocation Constraints and Measured Scoring Cost",
+      "source_fnv32": "731b8dd0",
+      "labels": [],
+      "new_location": "5.4 Operational conditions and measured costs",
+      "edit": "CONDENSE",
+      "opening": "The selector invokes Memory on 80 of 256 distinct DEV requests (31.25\\%). Its mean Base, feature and gate costs are 0.499, 0."
+    },
+    {
+      "id": "N11-132",
+      "line": 689,
+      "source_section": "Discussion",
+      "source_subsection": "Invocation Constraints and Measured Scoring Cost",
+      "source_fnv32": "204a7c75",
+      "labels": [
+        "sec:discussion"
+      ],
+      "new_location": "6.3 Source validity, policy and transfer conditions",
+      "edit": "CONSOLIDATE",
+      "opening": "\\section{Discussion} \\label{sec:discussion}"
+    },
+    {
+      "id": "N11-133",
+      "line": 692,
+      "source_section": "Discussion",
+      "source_subsection": "The Relative Value of Relationship Knowledge",
+      "source_fnv32": "407d3d07",
+      "labels": [
+        "sec:discussion-operational-value"
+      ],
+      "new_location": "6.1 Knowledge system contribution",
+      "edit": "CONSOLIDATE",
+      "opening": "\\subsection{The Relative Value of Relationship Knowledge} \\label{sec:discussion-operational-value}"
+    },
+    {
+      "id": "N11-134",
+      "line": 695,
+      "source_section": "Discussion",
+      "source_subsection": "The Relative Value of Relationship Knowledge",
+      "source_fnv32": "a1d09329",
+      "labels": [],
+      "new_location": "6.1 Knowledge system contribution",
+      "edit": "CONSOLIDATE",
+      "opening": "The central object of this study is the incremental utility of an explicitly specified relationship-history ranker over an ex"
+    },
+    {
+      "id": "N11-135",
+      "line": 697,
+      "source_section": "Discussion",
+      "source_subsection": "The Relative Value of Relationship Knowledge",
+      "source_fnv32": "e1da4ce1",
+      "labels": [],
+      "new_location": "6.1 Knowledge system contribution",
+      "edit": "CONSOLIDATE",
+      "opening": "This contribution complements prior work on scene-conditioned memory admission, graph-knowledge fusion and dynamic model rout"
+    },
+    {
+      "id": "N11-136",
+      "line": 699,
+      "source_section": "Discussion",
+      "source_subsection": "Candidate Context Defines the Value Being Predicted",
+      "source_fnv32": "3755d90b",
+      "labels": [
+        "sec:discussion-candidate-regimes"
+      ],
+      "new_location": "6.2 Candidate regime and evaluation meaning",
+      "edit": "CONSOLIDATE",
+      "opening": "\\subsection{Candidate Context Defines the Value Being Predicted} \\label{sec:discussion-candidate-regimes}"
+    },
+    {
+      "id": "N11-137",
+      "line": 702,
+      "source_section": "Discussion",
+      "source_subsection": "Candidate Context Defines the Value Being Predicted",
+      "source_fnv32": "8840d8b7",
+      "labels": [],
+      "new_location": "6.2 Candidate regime and evaluation meaning",
+      "edit": "CONSOLIDATE",
+      "opening": "A relative-ranking utility label is not intrinsic to the knowledge source: it also reflects which eligible alternatives compe"
+    },
+    {
+      "id": "N11-138",
+      "line": 704,
+      "source_section": "Discussion",
+      "source_subsection": "Candidate Context Defines the Value Being Predicted",
+      "source_fnv32": "2f8f206a",
+      "labels": [],
+      "new_location": "6.2 Candidate regime and evaluation meaning",
+      "edit": "CONSOLIDATE",
+      "opening": "The historical-source controls distinguish that supervision effect from an exclusively candidate-driven explanation. With the"
+    },
+    {
+      "id": "N11-139",
+      "line": 706,
+      "source_section": "Discussion",
+      "source_subsection": "Predicted Marginal Value as a Selection Signal",
+      "source_fnv32": "48ebd52f",
+      "labels": [
+        "sec:discussion-selective-decisions"
+      ],
+      "new_location": "6.3 Source validity, policy and transfer conditions",
+      "edit": "CONSOLIDATE",
+      "opening": "\\subsection{Predicted Marginal Value as a Selection Signal} \\label{sec:discussion-selective-decisions}"
+    },
+    {
+      "id": "N11-140",
+      "line": 709,
+      "source_section": "Discussion",
+      "source_subsection": "Predicted Marginal Value as a Selection Signal",
+      "source_fnv32": "c739cff9",
+      "labels": [],
+      "new_location": "6.3 Source validity, policy and transfer conditions",
+      "edit": "CONSOLIDATE",
+      "opening": "Conditional relative utility links evidence valuation to a testable choice: use Memory where pre-outcome descriptors predict "
+    },
+    {
+      "id": "N11-141",
+      "line": 711,
+      "source_section": "Discussion",
+      "source_subsection": "Predicted Marginal Value as a Selection Signal",
+      "source_fnv32": "4a52fc47",
+      "labels": [],
+      "new_location": "6.3 Source validity, policy and transfer conditions",
+      "edit": "CONSOLIDATE",
+      "opening": "The decision target should not be confused with a new estimation principle. Directly estimating $\\mathbb{E}[u_{10}(M)-u_{10}("
+    },
+    {
+      "id": "N11-142",
+      "line": 713,
+      "source_section": "Discussion",
+      "source_subsection": "Invocation Allocation and System Cost Are Distinct",
+      "source_fnv32": "34847c8f",
+      "labels": [
+        "sec:discussion-validity"
+      ],
+      "new_location": "6.3 Source validity, policy and transfer conditions",
+      "edit": "CONSOLIDATE",
+      "opening": "\\subsection{Invocation Allocation and System Cost Are Distinct} \\label{sec:discussion-validity}"
+    },
+    {
+      "id": "N11-143",
+      "line": 716,
+      "source_section": "Discussion",
+      "source_subsection": "Invocation Allocation and System Cost Are Distinct",
+      "source_fnv32": "0a0d41ab",
+      "labels": [],
+      "new_location": "6.3 Source validity, policy and transfer conditions",
+      "edit": "CONSOLIDATE",
+      "opening": "Choosing fewer Memory invocations is not the same as reducing latency or total computation. On M3, Always Memory is more accu"
+    },
+    {
+      "id": "N11-144",
+      "line": 718,
+      "source_section": "Discussion",
+      "source_subsection": "Invocation Allocation and System Cost Are Distinct",
+      "source_fnv32": "db7629e0",
+      "labels": [],
+      "new_location": "6.3 Source validity, policy and transfer conditions",
+      "edit": "CONSOLIDATE",
+      "opening": "Thus the positive selection finding is a \\emph{conditional allocation} result. A policy that sacrifices some unconditional ra"
+    },
+    {
+      "id": "N11-145",
+      "line": 720,
+      "source_section": "Discussion",
+      "source_subsection": "Transferability and Implications for Knowledge-Based Recommendation",
+      "source_fnv32": "d6628ea8",
+      "labels": [
+        "sec:discussion-implications"
+      ],
+      "new_location": "6.3 Source validity, policy and transfer conditions",
+      "edit": "CONSOLIDATE",
+      "opening": "\\subsection{Transferability and Implications for Knowledge-Based Recommendation} \\label{sec:discussion-implications}"
+    },
+    {
+      "id": "N11-146",
+      "line": 723,
+      "source_section": "Discussion",
+      "source_subsection": "Transferability and Implications for Knowledge-Based Recommendation",
+      "source_fnv32": "0e226a8e",
+      "labels": [],
+      "new_location": "6.3 Source validity, policy and transfer conditions",
+      "edit": "CONSOLIDATE",
+      "opening": "The experiments provide complementary, not interchangeable, evidence. Twitch evaluates streamers; original KuaiLive evaluates"
+    },
+    {
+      "id": "N11-147",
+      "line": 725,
+      "source_section": "Discussion",
+      "source_subsection": "Transferability and Implications for Knowledge-Based Recommendation",
+      "source_fnv32": "83cf5388",
+      "labels": [],
+      "new_location": "6.3 Source validity, policy and transfer conditions",
+      "edit": "CONSOLIDATE",
+      "opening": "For knowledge-enhanced recommendation, the resulting evaluation discipline is to define the \\emph{incumbent and candidate set"
+    },
+    {
+      "id": "N11-148",
+      "line": 727,
+      "source_section": "Conclusion",
+      "source_subsection": "Transferability and Implications for Knowledge-Based Recommendation",
+      "source_fnv32": "b2aeb02f",
+      "labels": [
+        "sec:conclusion"
+      ],
+      "new_location": "7 Conclusion",
+      "edit": "REWRITE_POSITIVE",
+      "opening": "\\section{Conclusion} \\label{sec:conclusion}"
+    },
+    {
+      "id": "N11-149",
+      "line": 730,
+      "source_section": "Conclusion",
+      "source_subsection": "Transferability and Implications for Knowledge-Based Recommendation",
+      "source_fnv32": "344a3855",
+      "labels": [],
+      "new_location": "7 Conclusion",
+      "edit": "REWRITE_POSITIVE",
+      "opening": "A fixed relationship-memory ranker has no context-free incremental value: its contribution depends on the trained incumbent a"
+    },
+    {
+      "id": "N11-150",
+      "line": 732,
+      "source_section": "Conclusion",
+      "source_subsection": "Transferability and Implications for Knowledge-Based Recommendation",
+      "source_fnv32": "5c9e0de1",
+      "labels": [],
+      "new_location": "7 Conclusion",
+      "edit": "REWRITE_POSITIVE",
+      "opening": "The research contribution is a reproducible framework for \\emph{evaluating when explicitly identified knowledge improves a pa"
+    },
+    {
+      "id": "N11-151",
+      "line": 734,
+      "source_section": "Conclusion",
+      "source_subsection": "Transferability and Implications for Knowledge-Based Recommendation",
+      "source_fnv32": "03fb7a36",
+      "labels": [],
+      "new_location": "7 Conclusion",
+      "edit": "REWRITE_POSITIVE",
+      "opening": " \\bibliographystyle{elsarticle-num} \\bibliography{kbs_references}"
+    },
+    {
+      "id": "N11-152",
+      "line": 738,
+      "source_section": "Conclusion",
+      "source_subsection": "Transferability and Implications for Knowledge-Based Recommendation",
+      "source_fnv32": "c3a841b7",
+      "labels": [],
+      "new_location": "7 Conclusion",
+      "edit": "REWRITE_POSITIVE",
+      "opening": "\\end{document}"
+    }
+  ]
+}
