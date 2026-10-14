@@ -1,0 +1,39 @@
+name: KBS B4-A A6 safe aggregate reviewer extract
+on:
+  push:
+    branches: [kbs-b4a-a3-synthetic-preflight-20261014]
+    paths: ['.github/workflows/kbs-n9-route-b-b4a-a6-safe-aggregates.yml']
+permissions:
+  contents: read
+jobs:
+  post-A4-aggregate-only:
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 6
+    steps:
+      - name: Report only anonymized aggregate main/side and cohort robustness
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'AGGREGATE'
+          from pathlib import Path
+          import json
+          root=Path.home()/'.cache/kuailive-agent-kbs'
+          a4=json.loads((root/'klm3_n9_b4a_a4_one_shot_v1/aggregate.json').read_text())
+          a5=json.loads((root/'klm3_n9_b4a_a5_independent_audit_v1/aggregate.json').read_text())
+          assert a4['status']=='A4_ONE_SHOT_FROZEN_TARGETS_EVALUATED_NEVER_REOPTIMIZED'
+          assert a5['state']=='COMPLETED_AGGREGATE_AUDIT_NOT_A_NEW_TEST'
+          assert not a5['raw_author_ids_opened_from_original_source_by_A5']
+          print(json.dumps({
+            'n_main':a4['n_main_requests'],
+            'n_mechanism':a4['n_mechanism_requests'],
+            'primary_comparisons':a4['frozen_primary_comparisons'],
+            'weighted_policies':a4['main_calls_and_quality'],
+            'H2_weighted_real_vs_null':a4['H2_full_real_vs_null'],
+            'daily_F_minus_S':{k:v['per_source_date'] for k,v in a5['H1_sup_alignment_call_fairness'].items()},
+            'daily_H2_effect':a5['H2_real_per_date'],
+            'H2_nonfloor_independent_diagnostics':a5['H2_fixed_seed_nonfloor_diagnostics'],
+            'same_period_not_external_future_TEST':True,
+            'author_or_event_identifiers_released':False
+            },sort_keys=True),flush=True)
+          AGGREGATE
