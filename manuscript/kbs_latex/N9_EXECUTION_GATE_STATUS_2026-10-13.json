@@ -137,5 +137,8 @@
       "pages": 39,
       "status": "SUCCESS"
     }
-  }
+  },
+  "active_followon_route": "ROUTE_B_2026_10_14",
+  "active_followon_status_file": "manuscript/kbs_latex/N9_ROUTE_B_EXECUTION_STATUS_2026-10-14.json",
+  "active_followon_latest_gate": "B0_B1_PASS_B2_1024_EVENT_PRESCORE_PREFLIGHT_PASS_ROLLING_NULL_RIGHTS_HOLD"
 }
