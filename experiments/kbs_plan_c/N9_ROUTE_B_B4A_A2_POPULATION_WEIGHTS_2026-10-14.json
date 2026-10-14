@@ -1,0 +1,310 @@
+{
+  "all_B4A_target_labels_read": false,
+  "balanced_cell_secondary": true,
+  "cluster_bootstrap": "5000 paired users, weighted ratio per draw",
+  "estimand": "eligible_population_date_by_history_quartile_ratio_weighted_NDCG",
+  "main": {
+    "N": 30000,
+    "N_effective_kish_for_population_weights": 26849.293759053424,
+    "max_weight": 203.008,
+    "min_weight": 63.73466666666667,
+    "strata": [
+      {
+        "base_poststratification_weight": 63.73466666666667,
+        "date": "2026-03-27",
+        "history_q": "q1",
+        "population_n": 95602,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 63.73466666666667,
+        "date": "2026-03-27",
+        "history_q": "q2",
+        "population_n": 95602,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 63.73466666666667,
+        "date": "2026-03-27",
+        "history_q": "q3",
+        "population_n": 95602,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 63.73466666666667,
+        "date": "2026-03-27",
+        "history_q": "q4",
+        "population_n": 95602,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 201.83133333333333,
+        "date": "2026-03-28",
+        "history_q": "q1",
+        "population_n": 302747,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 201.83133333333333,
+        "date": "2026-03-28",
+        "history_q": "q2",
+        "population_n": 302747,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 201.83133333333333,
+        "date": "2026-03-28",
+        "history_q": "q3",
+        "population_n": 302747,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 201.83133333333333,
+        "date": "2026-03-28",
+        "history_q": "q4",
+        "population_n": 302747,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 203.008,
+        "date": "2026-03-29",
+        "history_q": "q1",
+        "population_n": 304512,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 203.008,
+        "date": "2026-03-29",
+        "history_q": "q2",
+        "population_n": 304512,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 203.008,
+        "date": "2026-03-29",
+        "history_q": "q3",
+        "population_n": 304512,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 203.00733333333332,
+        "date": "2026-03-29",
+        "history_q": "q4",
+        "population_n": 304511,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 188.604,
+        "date": "2026-03-30",
+        "history_q": "q1",
+        "population_n": 282906,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 188.604,
+        "date": "2026-03-30",
+        "history_q": "q2",
+        "population_n": 282906,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 188.604,
+        "date": "2026-03-30",
+        "history_q": "q3",
+        "population_n": 282906,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 188.60333333333332,
+        "date": "2026-03-30",
+        "history_q": "q4",
+        "population_n": 282905,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 130.098,
+        "date": "2026-03-31",
+        "history_q": "q1",
+        "population_n": 195147,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 130.098,
+        "date": "2026-03-31",
+        "history_q": "q2",
+        "population_n": 195147,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 130.09733333333332,
+        "date": "2026-03-31",
+        "history_q": "q3",
+        "population_n": 195146,
+        "sample_n": 1500
+      },
+      {
+        "base_poststratification_weight": 130.09733333333332,
+        "date": "2026-03-31",
+        "history_q": "q4",
+        "population_n": 195146,
+        "sample_n": 1500
+      }
+    ]
+  },
+  "mechanism": {
+    "N": 4096,
+    "N_effective_kish_for_population_weights": 3659.4205434193127,
+    "max_weight": 1577.782383419689,
+    "min_weight": 436.53881278538813,
+    "strata": [
+      {
+        "base_poststratification_weight": 470.9458128078818,
+        "date": "2026-03-27",
+        "history_q": "q1",
+        "population_n": 95602,
+        "sample_n": 203
+      },
+      {
+        "base_poststratification_weight": 453.09004739336496,
+        "date": "2026-03-27",
+        "history_q": "q2",
+        "population_n": 95602,
+        "sample_n": 211
+      },
+      {
+        "base_poststratification_weight": 470.9458128078818,
+        "date": "2026-03-27",
+        "history_q": "q3",
+        "population_n": 95602,
+        "sample_n": 203
+      },
+      {
+        "base_poststratification_weight": 436.53881278538813,
+        "date": "2026-03-27",
+        "history_q": "q4",
+        "population_n": 95602,
+        "sample_n": 219
+      },
+      {
+        "base_poststratification_weight": 1462.5458937198068,
+        "date": "2026-03-28",
+        "history_q": "q1",
+        "population_n": 302747,
+        "sample_n": 207
+      },
+      {
+        "base_poststratification_weight": 1498.7475247524753,
+        "date": "2026-03-28",
+        "history_q": "q2",
+        "population_n": 302747,
+        "sample_n": 202
+      },
+      {
+        "base_poststratification_weight": 1448.5502392344497,
+        "date": "2026-03-28",
+        "history_q": "q3",
+        "population_n": 302747,
+        "sample_n": 209
+      },
+      {
+        "base_poststratification_weight": 1401.6064814814815,
+        "date": "2026-03-28",
+        "history_q": "q4",
+        "population_n": 302747,
+        "sample_n": 216
+      },
+      {
+        "base_poststratification_weight": 1577.782383419689,
+        "date": "2026-03-29",
+        "history_q": "q1",
+        "population_n": 304512,
+        "sample_n": 193
+      },
+      {
+        "base_poststratification_weight": 1450.057142857143,
+        "date": "2026-03-29",
+        "history_q": "q2",
+        "population_n": 304512,
+        "sample_n": 210
+      },
+      {
+        "base_poststratification_weight": 1409.7777777777778,
+        "date": "2026-03-29",
+        "history_q": "q3",
+        "population_n": 304512,
+        "sample_n": 216
+      },
+      {
+        "base_poststratification_weight": 1507.480198019802,
+        "date": "2026-03-29",
+        "history_q": "q4",
+        "population_n": 304511,
+        "sample_n": 202
+      },
+      {
+        "base_poststratification_weight": 1450.8,
+        "date": "2026-03-30",
+        "history_q": "q1",
+        "population_n": 282906,
+        "sample_n": 195
+      },
+      {
+        "base_poststratification_weight": 1235.3973799126638,
+        "date": "2026-03-30",
+        "history_q": "q2",
+        "population_n": 282906,
+        "sample_n": 229
+      },
+      {
+        "base_poststratification_weight": 1414.53,
+        "date": "2026-03-30",
+        "history_q": "q3",
+        "population_n": 282906,
+        "sample_n": 200
+      },
+      {
+        "base_poststratification_weight": 1481.1780104712043,
+        "date": "2026-03-30",
+        "history_q": "q4",
+        "population_n": 282905,
+        "sample_n": 191
+      },
+      {
+        "base_poststratification_weight": 956.6029411764706,
+        "date": "2026-03-31",
+        "history_q": "q1",
+        "population_n": 195147,
+        "sample_n": 204
+      },
+      {
+        "base_poststratification_weight": 985.5909090909091,
+        "date": "2026-03-31",
+        "history_q": "q2",
+        "population_n": 195147,
+        "sample_n": 198
+      },
+      {
+        "base_poststratification_weight": 1078.1546961325967,
+        "date": "2026-03-31",
+        "history_q": "q3",
+        "population_n": 195146,
+        "sample_n": 181
+      },
+      {
+        "base_poststratification_weight": 942.7342995169082,
+        "date": "2026-03-31",
+        "history_q": "q4",
+        "population_n": 195146,
+        "sample_n": 207
+      }
+    ]
+  },
+  "new_test_ranking_scores_computed": false,
+  "population_total": 4723652,
+  "raw_event_or_author_ids_public": false,
+  "sample_main_SHA256": "be96c9dbf13a14e0db85df24202e318b691b41a4250a3f5e9bc877d4e28d1e14",
+  "sample_mechanism_SHA256": "40c950e6a9d79ce3e4330b8b8f434dda764570fd369bdeb83a7b4d587c00d059",
+  "schema": "kbs-n9-b4a-a2-population-weight-freeze-v1",
+  "state": "FROZEN_BEFORE_TARGET_OUTCOME_REVEAL",
+  "github_actions_run_id": 38506781299
+}
