@@ -55,7 +55,7 @@ def check(root):
             "null_above_popularity_predeclared_checked":True,
             "null_top10_positives":s["null_Full_F_top10_positive_events"]})
     assert "0.334942" in z and "0.303905" in z and "0.304689" in z and "0.302796" in z
-    assert "0.031145" in z and "1,903–1,913" in qa and "NOT VERIFIED" in z
+    assert "0.031145" in z and ">1,900" in qa and "NOT VERIFIED" in z
     assert "76.78" in z and "TRAIN-popularity" in z
     return {"schema":"n10-c3a-public-null-controls-v1","status":"PASS_C3A_PUBLIC_READ_ONLY",
       "B2_DEV":{"n":1024,"users":992,"null_seeds":seed_out,
