@@ -1,0 +1,56 @@
+{
+  "schema": "kbs-n9-route-b-execution-v1",
+  "date": "2026-10-14",
+  "scientific_thesis": "incumbent-and-candidate-relative historical-knowledge valuation to decision support, NOT selector algorithm novelty",
+  "prior_completed_phase": "N9_POST_P3_G0_G6_TECHNICAL_PASS",
+  "baseline": {
+    "main_tex_git_blob": "dd57e309fca7ddd59f05d40512539d0ac31aa0c8",
+    "supp_git_blob": "183971e05aa4341dee13a4a8237cc54b0553ae0c",
+    "G5_TEST_unopened": true,
+    "manuscript_modified_in_route_B": false
+  },
+  "stages": {
+    "B0": "PASS_CONTRAST_SOURCE_SHA_BOOTSTRAP_NULL_SEEDS_GATES_FROZEN",
+    "B1A": "PASS_NINE_CELL_ORIGINAL_SOURCE_DEV_BOOTSTRAP",
+    "B1B": "PASS_PUBLIC_CALL_BALANCE_AND_INFORMATION_SCOPE_AUDIT",
+    "B2": "PREOUTCOME_1024_EVENT_992_USER_SAMPLE_PASS_ROLLING_CAUSAL_NULL_AND_RIGHTS_HOLD",
+    "B3": "NOT_STARTED_REQUIRES_VALID_B2_OR_EXPLICIT_HOLD_ADJUDICATION",
+    "B4": "HOLD_NO_AUTHORIZED_FRESH_TEST",
+    "B5": "NOT_STARTED_UNTIL_B3",
+    "B6": "NOT_STARTED_UNTIL_B5_AND_AUTHOR_SIGNOFF"
+  },
+  "runs": {
+    "B1A": 38498422665,
+    "B2_sample_preflight": 38498724492
+  },
+  "numbers": {
+    "source_regime_mean_interaction": 0.11538186791029255,
+    "source_regime_cluster_95": [
+      0.11157289469677811,
+      0.11911052033159161
+    ],
+    "either_zero_event_count": 46462,
+    "either_zero_signed_contribution": 0.10088461047811553,
+    "nonzero_signed_contribution": 0.014497257432176999,
+    "opposite_strict_nonzero_event_count": 66,
+    "B2_medium_sample": 1024,
+    "B2_medium_users": 992,
+    "B2_private_sample_digest": "6ad1a0753e181ac638636c278d226832b08d90d7d4867019910c61b96d7507da"
+  },
+  "files": {
+    "B0": "manuscript/kbs_latex/N9_B0_ROUTE_B_PROTOCOL_FREEZE_2026-10-14.md",
+    "B0_machine": "manuscript/kbs_latex/N9_B0_ROUTE_B_DATA_AND_ANALYSIS_FREEZE_2026-10-14.json",
+    "B1_report": "manuscript/kbs_latex/N9_B1_ZERO_STRUCTURE_AND_DECISION_FAIRNESS_AUDIT_2026-10-14.md",
+    "B1_ninecell": "experiments/kbs_plan_c/N9_B1A_NINE_CELL_SOURCE_CANDIDATE_PUBLIC_AGGREGATE_2026-10-14.json",
+    "B1_decision": "experiments/kbs_plan_c/N9_B1B_DECISION_CALL_FAIRNESS_AUDIT_PUBLIC_2026-10-14.json",
+    "B2_gate": "manuscript/kbs_latex/N9_ROUTE_B_B2_MEDIUM_ELIGIBILITY_AND_EXECUTION_GATE_2026-10-14.md",
+    "B2_sample": "experiments/kbs_plan_c/N9_ROUTE_B_B2_MEDIUM_SAMPLE_PREFLIGHT_PUBLIC_2026-10-14.json"
+  },
+  "risks": {
+    "R1": "BOUNDED_BY_SAMPLED_TOP10_SUPPORT_AND_GENERIC_DEFERRAL_EXPLANATIONS",
+    "R2": "BOUNDED_NO_MEASURED_REAL_CALL_RESOURCE_ADVANTAGE",
+    "R3": "BOUNDED_NONFLOOR_128_DEV_PILOT_NOT_COMPLETE_MEDIUM_RELATION_CAUSAL_IDENTIFICATION"
+  },
+  "submission": "HOLD",
+  "next_gate": "Authorize and verify rolling-causal degree/time-preserving null plus data-rights review; run source/rank parity on sealed 1024 DEV requests before any intervention conclusions"
+}
