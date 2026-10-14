@@ -41,7 +41,23 @@ def main():
     sample=np.load(p,allow_pickle=False)
     uids=sample["user_ids"]
     if len(np.unique(uids))!=992:raise RuntimeError("Wrong sampled user count")
-    times=sample["observed_at_ns"].astype(np.int64)
+    original_units=sample["observed_at_ns"].astype(np.int64)
+    # The frozen preflight array was named *_ns but Arrow/Pandas stored UTC microseconds.
+    # Preserve its SHA and normalize only in-memory after exact clock parity.
+    if np.median(original_units)<10**17:
+        times=original_units*1000
+        normalized_from="frozen_microseconds_to_nanoseconds"
+    else:
+        times=original_units.copy()
+        normalized_from="already_nanoseconds"
+    dev_clock=pq.read_table(g/"dev_cohort.parquet",
+                 columns=["source_event_id","observed_at"]).to_pandas()
+    stamp=ns(dev_clock.observed_at)
+    clock_by_event=dict(zip(dev_clock.source_event_id.astype("int64"),stamp))
+    expected=np.array([clock_by_event[int(e)] for e in sample["source_event_ids"]],
+                      dtype=np.int64)
+    if not np.array_equal(times,expected):
+        raise RuntimeError("Frozen DEV sample microsecond normalization failed clock parity")
     if not np.all(times>0):raise RuntimeError("Invalid selected event times")
     max_t={}
     for u,t in zip(uids,times):
@@ -112,6 +128,8 @@ def main():
     summary={"schema":"kbs-route-b-b2-real-closed-hour-null-v1",
        "source_data":"PRETARGET_POST_G5_DEV_ONLY","source_sample_SHA256":SAMPLE_HASH,
        "n_target_events":1024,"n_target_users":992,
+       "sample_clock_normalization":normalized_from,
+       "source_event_clock_parity":True,
        "private_historical_edges_for_selected_users":len(E),
        "unique_history_authors":len(authors),"room_intervals_relevant":int(len(actor)),
        "closed_hour_bins":int(len(boundary)-1),
