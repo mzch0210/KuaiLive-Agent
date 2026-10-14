@@ -1,0 +1,26 @@
+name: KBS N12-C0-C1 editorial freeze and thesis blueprint
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - '.github/workflows/kbs-n12-c0-c1-blueprint-audit.yml'
+      - 'analysis/kbs_plan_c/n12_c0_c1_source_blueprint_audit.py'
+      - 'analysis/kbs_plan_c/test_n12_c0_c1_source_blueprint_audit.py'
+      - 'manuscript/kbs_latex/N12_C0_SOURCE_BLOCK_MIGRATION_MANIFEST_2026-10-14.json'
+      - 'manuscript/kbs_latex/N12_C0_SOURCE_BLOCK_MIGRATION_MAP_2026-10-14.md'
+      - 'manuscript/kbs_latex/N12_C1_RQ_ARGUMENT_AND_EVIDENCE_BLUEPRINT_2026-10-14.md'
+      - 'manuscript/kbs_latex/N12_SINGLE_THESIS_KBS_MANUSCRIPT_RESTRUCTURE_PLAN_2026-10-14.md'
+permissions:
+  contents: read
+jobs:
+  locked-preedit-thesis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Audit full source and unchanged baseline
+        run: |
+          set -euo pipefail
+          python analysis/kbs_plan_c/n12_c0_c1_source_blueprint_audit.py
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n12_c0_c1_source_blueprint_audit.py' -v
