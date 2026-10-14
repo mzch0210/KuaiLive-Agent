@@ -171,7 +171,8 @@ def main():
     samp=np.load(sample/"B2_MEDIUM_EVENTS_PRIVATE.npz",allow_pickle=False)
     ids=samp["source_event_ids"].astype(np.int64)
     users=samp["user_ids"].astype(np.int64)
-    targetns=samp["observed_at_ns"].astype(np.int64)
+    raw_target_clock=samp["observed_at_ns"].astype(np.int64)
+    targetns=raw_target_clock*1000 if np.median(raw_target_clock)<10**17 else raw_target_clock
     if len(ids)!=EVENTS or len(np.unique(users))!=USERS:
         raise RuntimeError("B2 sample identity incorrect")
     devm=json.loads((dev/"manifest.json").read_text())
@@ -187,6 +188,10 @@ def main():
     if not np.array_equal(clock.column("source_event_id").to_numpy(),all_ids):
         raise RuntimeError("original G1 DEV time identity error")
     times=[clock.column("observed_at")[int(i)].as_py() for i in chosen]
+    clock_ns=(pd.to_datetime(pd.Series(times),utc=True)
+              .dt.as_unit("ns").astype("int64").to_numpy())
+    if not np.array_equal(clock_ns,targetns):
+        raise RuntimeError("Original DEV clock and normalized frozen sample do not match")
     if not np.array_equal(clock.column("user_id").to_numpy()[chosen],users):
         raise RuntimeError("user identities misaligned")
     original=pd.read_csv(b2/"dev_memory_source_ablation_pairs.csv").set_index("event_id").loc[ids]
