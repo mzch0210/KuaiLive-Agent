@@ -1,7 +1,7 @@
 # N10 Route C | C0/C1 execution status
 
 Date: 2026-10-14. Research branch: kbs-n10-route-c-c0-c1-20261014 (based on frozen B4-A A7 PR #3).
-**C0 PASS; C1 near-neighbor verification, positioning matrix and BibTeX PASS; C2 experimental execution NOT STARTED.**
+**C0 PASS; C1 near-neighbor verification, positioning matrix and BibTeX PASS; C2-A PUBLIC DEV ARCHIVED FRONTIER VERIFIED; C2-B FULL-PATH BENCHMARK NOT STARTED.**
 
 ## C0 — passed read-only public evidence validation
 
@@ -26,14 +26,23 @@ Date: 2026-10-14. Research branch: kbs-n10-route-c-c0-c1-20261014 (based on froz
 - Existing N9_G1_E2_SHADOW_PRICE_ENVELOPE_PUBLIC_AGGREGATE_2026-10-13.json represents DEV-only idealized policy frontiers at zero gate overhead. Shadow lambda is expected NDCG per specialist call, neither real money nor elapsed ms.
 - Next actionable C2-A task: verify and plot DEV-only natural call/quality frontier from frozen public aggregate. C2-B: benchmark full DEV system paths under matched hardware, candidate sets, time state, warm/cold cache and counterbalanced order, reporting mean/p50/p95 and shared vs avoidable work. No TEST label reread/retuning allowed. If Memory remains both more accurate and faster, R2 deployability must remain bounded.
 
+## C2-A — public DEV source-only execution completed
+
+- Reconstructed frozen public policy data (Git blob SHA 047411dfd4b6554e0601c60bf5787dac249da7c3) using analysis/kbs_plan_c/n10_c2a_public_dev_frontier.py; [GitHub Actions #38529277271](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38529277271) SUCCESS.
+- SASRec: fixed max-30%-inner DEV policy 15,016/50,049 calls (30.0026%); F NDCG 0.302658 vs Always Memory 0.343509, quality gap 0.040851. Its direct idealized break-even shadow price relative to Always Memory is 0.058361 NDCG per avoided Memory call.
+- GRU4Rec: 14,762/50,049 calls (29.4951%); F NDCG 0.303093 vs Always Memory 0.343509, gap 0.040416. Direct break-even is 0.057324 NDCG per avoided call.
+- The optimized frontier of *all* recorded policies has additional switching points. The 30%-inner policy is the estimated archived upper-envelope optimum only within selected shadow-price ranges (SASRec 0.084516–0.111321; GRU4Rec 0.083119–0.104379). These lambda units are **hypothetical NDCG per call**, NOT monetary saving, milliseconds, or a measured production latency.
+- Source HGB policy definitions/candidates are DEV-only and the fixed public summary assumes **zero incremental gate overhead**. The earlier G4 256-event warmed real execution had selective 1.8018 ms vs Always Memory 0.8033 ms. Hence no real cost dominance is claimed. This C2-A action did not train or recalibrate gates, use an outcome from a newly evaluated TEST request, or touch the frozen A4 data.
+- Next C2-B must explicitly include gate and shared computation overhead, compare matched request/candidate histories across all routes, and report p50/p95/cold/warm. If complete path costs remain unfavorable, limit R2 to a clearly externally justified invocation cap.
+
 ## Overall gates
 
 | Stage | Status |
 | --- | --- |
 | C0 frozen public evidence and leakage guard | PASS |
 | C1 near-neighbor references, P1/P2/P3 positioning, draft | PASS_FOR_C2 (body integration pending C5) |
-| C2-A DEV budget and policy source audit | NEXT |
-| C2-B matched full-path DEV efficiency | NOT RUN |
+| C2-A public-only frozen DEV budget/call-quality audit | PASS, source CI #38529277271 |
+| C2-B matched full-path DEV efficiency | NEXT; no new execution measured |
 | C3 negative/null condition audit | NOT RUN |
 | C4 scientific adjudication | NOT RUN |
 | C5 integration of revised main and supplement | NOT RUN |
