@@ -6,6 +6,7 @@ on:
       - '.github/workflows/kbs-n10-c5-integrated-paper-qa.yml'
       - 'manuscript/kbs_latex/main.tex'
       - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md'
+      - 'analysis/kbs_n9_supplement_tex_postprocess.py'
 permissions:
   contents: read
 concurrency:
