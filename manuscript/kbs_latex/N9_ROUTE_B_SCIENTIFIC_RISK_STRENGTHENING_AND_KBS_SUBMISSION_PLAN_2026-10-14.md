@@ -6,18 +6,18 @@
 
 ## 0. 已核查基线和本次必要性
 
-- GitHub 主稿 \`manuscript/kbs_latex/main.tex\` blob \`dd57e309fca7ddd59f05d40512539d0ac31aa0c8\`；36 页、八章、11 表、2 图。Actions \`38391955348\` SUCCESS。
-- Supplement \`SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md\` blob \`183971e05aa4341dee13a4a8237cc54b0553ae0c\`；39 页、S10 共 12 小节，Actions \`38392829047\` SUCCESS。旧 S1–S9 未修改。
+- GitHub 主稿 `manuscript/kbs_latex/main.tex` blob `dd57e309fca7ddd59f05d40512539d0ac31aa0c8`；36 页、八章、11 表、2 图。Actions `38391955348` SUCCESS。
+- Supplement `SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md` blob `183971e05aa4341dee13a4a8237cc54b0553ae0c`；39 页、S10 共 12 小节，Actions `38392829047` SUCCESS。旧 S1–S9 未修改。
 - 原冻结 TEST：Twitch 44,221 streamer events；KuaiLive M3 47,575 author events/12,533 users。旧 KuaiLive room 10,222 retrospective diagnostic。**三者不能混成一个独立确认总体。**
 - B1/B2/A1/A2/E1/E2/E3a 全部是**相同 post-G5 M3 DEV**，50,049 author-ranking events / 12,628 users；5 outer × 4 inner user-disjoint GroupKFold 与 2,000 user-cluster descriptive bootstrap；S 为含事后目标保留的离线 575-item sample，不是在线生成候选。
 - E1: F-vs-S trained policies differ on **10,672 SASRec requests (21.32%)** / **11,517 GRU4Rec (23.01%)**；F-supervision net gain +0.006159 / +0.004970 F NDCG at similar but **not strictly equal** realized calls。
 - E3a: fixed Full-versus-Long F−S interaction **+0.115382** [0.111724,0.119065] user-cluster CI；**46,462/50,049** have at least one zero source gap; **66** strict opposite nonzero gap signs。
-- E2: in idealized zero-gate-overhead \`J_lambda=F_NDCG−lambda*realized_call_fraction\`, the 30%-inner-cap policy is among observed-policy envelope maximizers only at [0.084516,0.111321] SASRec / [0.083119,0.104379] GRU4Rec; these are hypothetical NDCG-equivalent costs, **not observed finance/latency**。
-- E3b: 128 late-quarter DEV event history-identity placebo with 63,619 co-active degree/time-preserving swaps; original F Full 0.396585, placebo 0.384386; original offline S Full 0.661360, placebo 0.669835；**non-floor pilot PASS but neither user CI nor population relation-identity causality**. Source \`N9_G3_TIME_PRESERVING_RELATION_PLACEBO_PILOT_2026-10-13.md\`。
-- \`N9_G4_THREE_RISK_EVIDENCE_VERDICT_2026-10-13.md\` adjudicated **R1 BOUNDED / R2 BOUNDED / R3 BOUNDED**；投稿 HOLD。
-- Frozen B1 source SHA256 \`37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea\`；B2 private source digest must be checked against its original private summary; no G5 TEST read or new training authorization.
+- E2: in idealized zero-gate-overhead `J_lambda=F_NDCG−lambda*realized_call_fraction`, the 30%-inner-cap policy is among observed-policy envelope maximizers only at [0.084516,0.111321] SASRec / [0.083119,0.104379] GRU4Rec; these are hypothetical NDCG-equivalent costs, **not observed finance/latency**。
+- E3b: 128 late-quarter DEV event history-identity placebo with 63,619 co-active degree/time-preserving swaps; original F Full 0.396585, placebo 0.384386; original offline S Full 0.661360, placebo 0.669835；**non-floor pilot PASS but neither user CI nor population relation-identity causality**. Source `N9_G3_TIME_PRESERVING_RELATION_PLACEBO_PILOT_2026-10-13.md`。
+- `N9_G4_THREE_RISK_EVIDENCE_VERDICT_2026-10-13.md` adjudicated **R1 BOUNDED / R2 BOUNDED / R3 BOUNDED**；投稿 HOLD。
+- Frozen B1 source SHA256 `37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea`；B2 private source digest must be checked against its original private summary; no G5 TEST read or new training authorization.
 
-**Research objective:** distinguish known sampled-metric distortions / generic expert deferral from empirical \`incumbent-relative knowledge-value → candidate alignment → request-specific decision-value\` insight; assess whether viewer–creator **correct historical identity** contributes above time/activity/popularity structure; quantify conditional rather than asserted production value.
+**Research objective:** distinguish known sampled-metric distortions / generic expert deferral from empirical `incumbent-relative knowledge-value → candidate alignment → request-specific decision-value` insight; assess whether viewer–creator **correct historical identity** contributes above time/activity/popularity structure; quantify conditional rather than asserted production value.
 
 KBS official scope: https://shop.elsevier.com/journals/knowledge-based-systems/0950-7051 (original innovative AI/knowledge systems, recommendation, intelligent decision support, theory and application). Prior boundaries: Krichene & Rendle KDD 2020 https://research.google/pubs/on-sampled-metrics-for-item-recommendation/ ; Mao, Mohri & Zhong ICML 2024 https://proceedings.mlr.press/v235/mao24d.html ; Ren et al. Phys Rev E 2018 temporal degree-preserving null https://doi.org/10.1103/PhysRevE.97.052311 . We **do not** claim these prior ideas as new.
 
@@ -25,10 +25,10 @@ KBS official scope: https://shop.elsevier.com/journals/knowledge-based-systems/0
 
 | Stage | Task | Primary risk | Main artifact | Start gate |
 | --- | --- | --- | --- | --- |
-| **B0** | Freeze evidence/estimands/sample and independent-review protocol | R1/R2/R3 | \`N9_B0_ROUTE_B_PROTOCOL_FREEZE_2026-10-14.md\` + SHA manifest | Current main/supp/DEV manifest verified |
-| **B1** | E3a zero-mass decomposition + E1/E2 fairness/precision audit | R1/R2/R3 | \`N9_B1_ZERO_STRUCTURE_AND_DECISION_FAIRNESS_AUDIT.md\`, safe JSON | B0 PASS; verified existing event/user data |
-| **B2** | E3b *medium-sized* time-safe structure-preserving null, multiple seeds | R3 | \`N9_B2_MEDIUM_DEV_RELATION_IDENTITY_NULL.md\`, manifests, safe aggregates | B1 interpretation + temporal/candidate parity + ethics/data-rights + resource PASS |
-| **B3** | Stop/expand experimental decision & R1/R2/R3 independent referee-style verdict | All | \`N9_B3_RISK_AND_EVIDENCE_VERDICT.md\` | B2 robust assessment, including valid null outcome |
+| **B0** | Freeze evidence/estimands/sample and independent-review protocol | R1/R2/R3 | `N9_B0_ROUTE_B_PROTOCOL_FREEZE_2026-10-14.md` + SHA manifest | Current main/supp/DEV manifest verified |
+| **B1** | E3a zero-mass decomposition + E1/E2 fairness/precision audit | R1/R2/R3 | `N9_B1_ZERO_STRUCTURE_AND_DECISION_FAIRNESS_AUDIT.md`, safe JSON | B0 PASS; verified existing event/user data |
+| **B2** | E3b *medium-sized* time-safe structure-preserving null, multiple seeds | R3 | `N9_B2_MEDIUM_DEV_RELATION_IDENTITY_NULL.md`, manifests, safe aggregates | B1 interpretation + temporal/candidate parity + ethics/data-rights + resource PASS |
+| **B3** | Stop/expand experimental decision & R1/R2/R3 independent referee-style verdict | All | `N9_B3_RISK_AND_EVIDENCE_VERDICT.md` | B2 robust assessment, including valid null outcome |
 | **B4 (conditional)** | Lawful truly new blind forward-time TEST | Generalization | blind eligibility/approval and preregistered run | independent data existed uninspected & lawful; otherwise SKIP |
 | **B5–B6** | Two rounds of manuscript revision and KBS submission audit | All | versioned main/S10 or S11, source-to-claim audit, PDFs | B3; B4 if independently authorized; human sign-off to submit |
 
@@ -41,17 +41,17 @@ KBS official scope: https://shop.elsevier.com/journals/knowledge-based-systems/0
 - Freeze B1 sign/zero partition, bootstraps, tie handling, primary metrics and descriptive strata. Freeze B2 sample *before* inspecting additional sampled outcomes; select **distinct/new events from all chronological DEV quartiles**, avoiding the prior 128 cherry-picked late-quarter pilot in the primary estimate. Stratify by pretarget clock/history, preserve user clustering and report event/user numbers. Avoid selecting on observed NDCG or null advantage.
 - Freeze B2 three to five distinct null swap seeds **before execution**, exact degree/time/availability constraints, no future edges; label differing null seeds as **same cohort null randomness**, not external replications.
 - Data rights: no private event/user edges in public GitHub or action artifacts; private causal stream and model checkpoints stay self-host; human investigators confirm dataset terms and authorization for each additional processing/release step.
-- Explicit outputs \`GO/HOLD\` separately for (a) B1 analysis, (b) temporal null, (c) budget/capacity, (d) rights/privacy.
+- Explicit outputs `GO/HOLD` separately for (a) B1 analysis, (b) temporal null, (c) budget/capacity, (d) rights/privacy.
 
 ### B1-A — Zero-mass, source-contrast, and contribution decomposition (low cost, first)
 
 Define per event:
-\`dF_i=u10(Full,F,i)-u10(Long,F,i)\`,
-\`dS_i=u10(Full,S,i)-u10(Long,S,i)\`,
-\`I_i=dF_i-dS_i\`.
+`dF_i=u10(Full,F,i)-u10(Long,F,i)`,
+`dS_i=u10(Full,S,i)-u10(Long,S,i)`,
+`I_i=dF_i-dS_i`.
 
-- Compute the **3×3 cross-tab** of signs \`(-,0,+)\` for dF and dS, event share and distinct-user count. Avoid calling transitions to/from zero strict sign reversal.
-- For each cross-tab cell \`A\`, report \`C_A=(1/N)Σ_i 1_A(i)*I_i\`, its signed contribution to mean interaction, positive/negative cancellation, **and** group-specific means. Verify \`Σ_A C_A == +0.1153818679\` to numerical precision. A relative share exceeding 100% is possible under cancellation; show signed counts/values rather than misleading percentage pie.
+- Compute the **3×3 cross-tab** of signs `(-,0,+)` for dF and dS, event share and distinct-user count. Avoid calling transitions to/from zero strict sign reversal.
+- For each cross-tab cell `A`, report `C_A=(1/N)Σ_i 1_A(i)*I_i`, its signed contribution to mean interaction, positive/negative cancellation, **and** group-specific means. Verify `Σ_A C_A == +0.1153818679` to numerical precision. A relative share exceeding 100% is possible under cancellation; show signed counts/values rather than misleading percentage pie.
 - Analyze NDCG-support cases: both zero; only F nonzero; only S nonzero; both nonzero same/opposite sign. Distinguish top-10 censoring/target presence from substantive changes in relationship preferences.
 - User-cluster bootstrap (2,000 or a method frozen before running) for major contributions and original total, if per-user outcomes available. Descriptive pretarget hist_distinct, hist_event_count, candidate count / dispersion strata with denominators, no target-based online selector features.
 - A deliberately **general** comparison against ranking evaluation distortion: show which observations follow automatically from candidate-regime-dependent NDCG, and what remains a separate decision-valued empirical consequence. No new metric consistency theorem.
@@ -82,15 +82,15 @@ Define per event:
 - Record full physical runtime/CPU/GPU, stable source hashes and false-positive future leakage tests; CPU streaming and stable cached rosters are preferred; GPU only where required by the actual scoring path.
 
 **B2.2 Scientific estimands and precision:**
-- Primary: \`T_F = mean[u_F(real Full)-u_F(null Full)]\`, paired by event and **bootstrapped by user**, with interval and counts; across-null-seed means and variability must be reported separately or using a clearly stated hierarchical approach.
-- Secondary: \`T_S\`, \`T_F-T_S\`, Long-only source, and pretarget history-length/diversity conditional effects; avoid multiple unadjusted significant subgroup findings. Specify if model includes unchanged 10% popularity or other non-relational information, so \"relation identity contribution\" is interpreted conditional on preserved structure rather than universal causal effect.
+- Primary: `T_F = mean[u_F(real Full)-u_F(null Full)]`, paired by event and **bootstrapped by user**, with interval and counts; across-null-seed means and variability must be reported separately or using a clearly stated hierarchical approach.
+- Secondary: `T_S`, `T_F-T_S`, Long-only source, and pretarget history-length/diversity conditional effects; avoid multiple unadjusted significant subgroup findings. Specify if model includes unchanged 10% popularity or other non-relational information, so \"relation identity contribution\" is interpreted conditional on preserved structure rather than universal causal effect.
 - **Precision-driven, not significance-driven escalation:** before resampling choose a useful target interval half-width (e.g. 0.015 NDCG F on mean real-minus-null); if unmet at 1,024 but valid, expand to the predeclared 2,048 event ceiling, then stop or narrow claims. If control has non-floor but real-null effect near zero, **report near-zero**; do not alter swap windows or random seed to force superiority.
 - No complete DEV 50,049-event run without a separate B3 approval and concrete reason it would change interpretation, uncertainty or KBS reviewer decision.
 - All B2 conclusions **remain exploratory same-period DEV evidence**; even positive original-minus-null under F is not a randomized clinical-style causal effect nor fresh TEST.
 
 ### B3 — Go/stop scientific adjudication (no searching for positive outcomes)
 
-Assess **R1, R2, R3 separately** as \`STRONG_WITHIN_TESTED_DESIGN / BOUNDED / HOLD\`, always conditional on original TEST vs post-G5 DEV evidence tiers. Include exact source→claim, positive/negative results, bootstrap units, competing explanations, fair comparison and permitted text.
+Assess **R1, R2, R3 separately** as `STRONG_WITHIN_TESTED_DESIGN / BOUNDED / HOLD`, always conditional on original TEST vs post-G5 DEV evidence tiers. Include exact source→claim, positive/negative results, bootstrap units, competing explanations, fair comparison and permitted text.
 
 - **Case A: stable nonfloor true-history advantage** beyond uncertainty in F on multiple fixed null seeds. Strengthen *within observed cohort* identity-specificity, but do not claim all historical relationship mechanisms are uniquely causal. If interaction additionally depends on F/S, state candidate dependence with effect and CI.
 - **Case B: real and structurally valid null are close** or CI is wide. Downgrade independent identity-specificity claim and retain source composition/candidate supervision decision effect; useful negative scientific evidence, not grounds to run seeds until a desired result.
@@ -148,4 +148,4 @@ Assess **R1, R2, R3 separately** as \`STRONG_WITHIN_TESTED_DESIGN / BOUNDED / HO
 
 ## 4. Immediate next step and unchanged project state
 
-Start **B0**: verify versioned data and write frozen \`N9_B0_ROUTE_B_PROTOCOL_FREEZE_2026-10-14.md\`, then B1 analyses. This plan file itself **does not execute B0–B6, run GPU, change original G5 TEST or alter main.tex/S10**. The existing \`N9_EXECUTION_GATE_STATUS_2026-10-13.json\` remains authoritative for completed prior G0–G6 and submission HOLD until actual next-stage runs succeed.
+Start **B0**: verify versioned data and write frozen `N9_B0_ROUTE_B_PROTOCOL_FREEZE_2026-10-14.md`, then B1 analyses. This plan file itself **does not execute B0–B6, run GPU, change original G5 TEST or alter main.tex/S10**. The existing `N9_EXECUTION_GATE_STATUS_2026-10-13.json` remains authoritative for completed prior G0–G6 and submission HOLD until actual next-stage runs succeed.
