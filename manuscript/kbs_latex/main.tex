@@ -44,12 +44,35 @@ These considerations define one connected research problem: characterize when a 
 
 Across two frozen selection tests, relative-utility guidance improves ranking compared with the specified alternative decision rules under their respective invocation designs. The paired original KuaiLive room evaluation demonstrates a sign reversal of measured Memory--Base value across candidate regimes. A subsequent matched development-set study links this candidate-dependent supervision directly to downstream knowledge-use decisions and examines the information sources responsible for the specialist's utility. An additional, separately frozen same-period M3 target cohort tests whether the candidate-supervision consequence and the historical-identity contrast persist on requests excluded from the original G5 ranking evaluation. Unconditional Memory remains a strong M3 reference when no specialist-call constraint is imposed.
 
-Our contributions form a cumulative account of relationship knowledge as a \emph{conditional ranking resource}:
+Our contributions form a cumulative account of relationship knowledge as a \emph{conditional ranking resource}. We distinguish knowledge \emph{use} from memory admission, latent knowledge fusion and generic expert routing: the value of an already specified historical ranker is defined relative to a designated incumbent and to the ranking candidates actually available. The resulting three propositions concern historical complementarity, candidate-aligned supervision and controlled source validity (Fig.~\ref{fig:knowledge-value-chain}):
 \begin{itemize}
     \item \textbf{Incumbent-relative relationship valuation.} We operationalize the marginal event-level ranking value of a fixed, transparent relationship-memory specialist relative to trained sequential recommenders, and characterize heterogeneity in its historical complementarity across two held-out live-ranking tasks.
     \item \textbf{Decision relevance of predicted marginal value.} We test specialist selection informed by pre-outcome relative-utility estimates in frozen Twitch and KuaiLive-M3 evaluations. Across the six M3 incumbent fits, Utility improves ranking quality while making fewer observed Memory calls than each of four specified alternative selection objectives, under a common DEV calibration constraint.
     \item \textbf{Candidate-conditioned interpretation of knowledge value.} A paired original KuaiLive analysis shows that the measured gain of the fixed specialist can reverse between sampled-active and full-active room candidates. Matched M3 development experiments show that supervision alignment redistributes specialist calls across 21--23\% of requests; an additional frozen same-period target evaluation corroborates the corresponding full-ranking decision effect for both incumbents. Paired source comparisons reveal candidate-dependent evaluation, while fixed-candidate, time- and activity-preserving relation-identity controls show that the historical arrangement itself carries ranking information under the tested perturbation.
 \end{itemize}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\small},
+  evidence/.style={draw,rounded corners=2pt,align=center,text width=.86\linewidth,
+                  inner xsep=5pt,inner ysep=6pt},
+  arr/.style={-{Latex[length=2.2mm]},line width=.55pt}
+]
+\node[evidence] (p1) {\textbf{P1: Incumbent-relative relationship knowledge}\\
+Fixed historical Memory versus trained Base on the same eligible ranking candidates};
+\node[evidence,below=5mm of p1] (p2) {\textbf{P2: Candidate-aligned value supervision and selection}\\
+DEV-only $S/F$ relative-utility labels $\rightarrow$ frozen pre-outcome calls;
+B4-A H1 tests full-$F$ decision quality};
+\node[evidence,below=5mm of p2] (p3) {\textbf{P3: Historical-source specificity at fixed candidates}\\
+Original versus time- and activity-valid closed-hour identity permutations;
+B2 DEV and sealed B4-A H2};
+\draw[arr] (p1)--(p2);
+\draw[arr] (p2)--(p3);
+\end{tikzpicture}
+\caption{A linked, falsifiable evaluation of fixed relationship knowledge: marginal ranking value, candidate-regime-aligned decision supervision, and historical-source validity. The stages are evidence relations, not an asserted causal mediation graph or a novel general routing architecture. B4-A requests are additional targets from an already studied recording period.}
+\label{fig:knowledge-value-chain}
+\end{figure}
 
 \section{Related Work}
 
@@ -57,7 +80,7 @@ Our contributions form a cumulative account of relationship knowledge as a \emph
 
 Sequential models learn representations of evolving behavioral preferences through attention, recurrence and multi-interest structure \cite{kang2018sasrec,sun2019bert4rec,ni2025idmarec,sheng2025dsmgrec}. Knowledge-aware approaches extend these representations through additional relational or multimodal evidence. CKLF combines knowledge-graph propagation with sequence-sensitive preference modeling \cite{chen2024cklf}; MHGFCL adaptively fuses collaborative, semantic and structural views using multi-head gating \cite{xie2026mhgfcl}; KAPER selects graph-path evidence for preference-sensitive reranking \cite{kim2026kaper}. Such work demonstrates the value of learning how auxiliary information should enter the recommender. The question addressed here is complementary: given a trained incumbent and a separately specified relationship ranker, how should the \emph{marginal benefit} of that available knowledge be measured and predicted on an individual ranking event?
 
-The distinction is also relevant to memory-augmented recommendation. MemRec builds collaborative memory and distills information for an LLM-based recommender \cite{chen2026memrec}, while reliability- and denoising-oriented fusion models seek to control noisy or redundant auxiliary signals \cite{peng2025negative,zhu2026mifusr,zhang2026mcd4sr}. Our specialist instead remains fixed and transparent, allowing each observed gain to be defined relative to the incumbent's unchanged scores and the event's eligible alternatives. This operational notion is related to decision-theoretic information value \cite{abbas2025voi}: information matters through its consequence for a particular decision, not simply through its availability or richness. Here that consequence is a change in top-ten ranking utility for two fixed outputs.
+The distinction is also relevant to memory-augmented recommendation. Zhong et al.'s scene-aware memory discrimination (SAMD) estimates which personal interaction traces are worth admitting to or retaining in application-conditioned memory, including downstream personalization consequences \cite{zhong2026samd}. MemRec builds collaborative memory and distills information for an LLM-based recommender \cite{chen2026memrec}, while reliability- and denoising-oriented fusion models seek to control noisy or redundant auxiliary signals \cite{peng2025negative,zhu2026mifusr,zhang2026mcd4sr}. In contrast to memory admission, learned knowledge fusion and representation refinement, our specialist is already specified and remains fixed and transparent. Its use-time value is the observable gain of replacing an incumbent's ranking on the same eligible alternatives, not the decision to write new memory. This operational notion is related to decision-theoretic information value \cite{abbas2025voi}: information matters through its consequence for a particular decision, not simply through its availability or richness. Here that consequence is a change in top-ten ranking utility for two fixed outputs.
 
 \subsection{Learning to Defer and Adaptive Specialist Selection}
 
@@ -663,7 +686,7 @@ The M3 replay excludes preparation of histories and live author rosters, network
 
 Explicit relationship history is a potential source of knowledge, but its value for recommendation emerges through comparison with what an incumbent ranker can already achieve. The Twitch results illustrate this distinction: although Memory is weaker than Base in aggregate, it contributes substantial ranking value when the observed target belongs to earlier relationship history outside the incumbent's input window. Such recoverable history is neither uniformly useful nor wholly redundant. The relevant phenomenon is the conditional complementarity of a particular historical signal to a particular trained model, rather than an unconditional benefit of longer histories.
 
-The M3 author-ranking results add an important counterpart: Memory is stronger than the six evaluated Base fits in aggregate, despite weaker aggregate Memory performance on Twitch. These task-specific comparisons show why the standalone quality of a knowledge source and its marginal value are separate quantities. The definition $\Delta_M=u_{10}(M)-u_{10}(B)$ makes the incumbent part of the measurement, allowing positive and negative contributions to be analyzed with the same criterion. For knowledge-based recommendation, this provides an interpretable evaluation of an auxiliary evidence source even when its representation is not jointly learned with the incumbent. It complements representation- and fusion-oriented research \cite{xie2026mhgfcl,chen2026memrec} by connecting knowledge use to a concrete change in ranking decisions.
+The M3 author-ranking results add an important counterpart: Memory is stronger than the six evaluated Base fits in aggregate, despite weaker aggregate Memory performance on Twitch. These task-specific comparisons show why the standalone quality of a knowledge source and its marginal value are separate quantities. The definition $\Delta_M=u_{10}(M)-u_{10}(B)$ makes the incumbent part of the measurement, allowing positive and negative contributions to be analyzed with the same criterion. For knowledge-based recommendation, this provides an interpretable evaluation of an auxiliary evidence source even when its representation is not jointly learned with the incumbent. Unlike approaches that determine which records to retain or how knowledge views should be fused \cite{zhong2026samd,xie2026mhgfcl,chen2026memrec}, this valuation attaches to the \emph{use-time decision} for an unchanged historical source. The distinction is substantive only because candidate-conditioned supervision and historical-source perturbations have observable decision consequences; merely conditioning memory on a scene or applying a learned gate is not a new result here.
 
 \subsection{Candidate Context Defines the Value Being Predicted}
 \label{sec:discussion-candidate-regimes}
