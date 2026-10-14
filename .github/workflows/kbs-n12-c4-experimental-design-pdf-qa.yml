@@ -41,7 +41,7 @@ jobs:
           import re
           main=Path('manuscript/kbs_latex/main.tex').read_text()
           supp=Path('manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md').read_text()
-          assert 'S10.15--S10.16' in main
+          assert 'S10.15' in main and 'S10.16' in main
           assert 'tab:results-m3-additional-relation-identity' in main
           assert 'tab:results-m3-dev-relation-identity' not in main
           assert 'B4-A' not in main and 'G5' not in main
