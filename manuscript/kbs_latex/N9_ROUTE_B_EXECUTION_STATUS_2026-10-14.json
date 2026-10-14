@@ -13,17 +13,23 @@
     "B0": "PASS_CONTRAST_SOURCE_SHA_BOOTSTRAP_NULL_SEEDS_GATES_FROZEN",
     "B1A": "PASS_NINE_CELL_ORIGINAL_SOURCE_DEV_BOOTSTRAP",
     "B1B": "PASS_PUBLIC_CALL_BALANCE_AND_INFORMATION_SCOPE_AUDIT",
-    "B2": "PASS_PREOUTCOME_1024_SAMPLE_SYNTHETIC_CLOSED_HOUR_NULL_AND_B1B2_CACHED_LABEL_PARITY_REAL_ROLLING_NULL_HOLD",
-    "B3": "NOT_STARTED_REQUIRES_VALID_B2_OR_EXPLICIT_HOLD_ADJUDICATION",
-    "B4": "HOLD_NO_AUTHORIZED_FRESH_TEST",
-    "B5": "NOT_STARTED_UNTIL_B3",
-    "B6": "NOT_STARTED_UNTIL_B5_AND_AUTHOR_SIGNOFF"
+    "B2": "PASS_PRETARGET_1024_EVENTS_THREE_SEED_TIME_VALID_NONFLOOR_RELATION_ID_NULL_AND_SELF_SCORER_PARITY",
+    "B3": "PASS_R1_BOUNDED_IMPROVED_R2_BOUNDED_R3_STRONG_WITHIN_DEV_NULL_DESIGN_GENERALIZATION_BOUNDED",
+    "B4": "HOLD_NO_NEW_AUTHORIZED_BLIND_CHRONOLOGICAL_TEST",
+    "B5": "PASS_8_SECTION_MAIN_UPDATED_12_TABLES_SUPPLEMENT_S10_TO_14_SUBSECTIONS",
+    "B6": "MAIN_LATEX_PDF_37_PAGES_PASS_SUPPLEMENT_REBUILD_38502043249_IN_PROGRESS_HUMAN_COMPLIANCE_HOLD"
   },
   "runs": {
     "B1A": 38498422665,
     "B2_sample_preflight": 38498724492,
     "B2_temporal_synthetic": 38499302003,
-    "B2_original_scalar_parity": 38499469077
+    "B2_original_scalar_parity": 38499469077,
+    "B2_original_fresh_memory_replay": 38500305942,
+    "B2_private_structural_three_seeds": 38500930538,
+    "B2_null_scores_initial": 38501108142,
+    "B2_null_scores_same_scorer_qa": 38501460007,
+    "B5_main_compile": 38501940137,
+    "B5_supplement_build": 38502043249
   },
   "numbers": {
     "source_regime_mean_interaction": 0.11538186791029255,
@@ -40,7 +46,18 @@
     "B2_private_sample_digest": "6ad1a0753e181ac638636c278d226832b08d90d7d4867019910c61b96d7507da",
     "B2_frozen_1024_original_Full_F_NDCG": 0.3393482191091639,
     "B2_frozen_1024_original_Long_F_NDCG": 0.3386993718365371,
-    "B2_frozen_1024_descriptive_source_regime_interaction": 0.10406711613651634
+    "B2_frozen_1024_descriptive_source_regime_interaction": 0.10406711613651634,
+    "B2_original_history_replay_rows": 4735946,
+    "B2_structural_source_rows": 4276963,
+    "B2_active_marginal_preserving_change_fraction": 0.7862,
+    "B2_1024_mean_real_minus_null_F": 0.03414289574476847,
+    "B2_1024_per_seed_real_minus_null_F": [
+      0.032857678117368866,
+      0.03554425975848822,
+      0.034026749358448335
+    ],
+    "B2_1024_same_scorer_original_max_error": 5.551115123125783e-17,
+    "B2_three_null_arms_nonfloor": true
   },
   "files": {
     "B0": "manuscript/kbs_latex/N9_B0_ROUTE_B_PROTOCOL_FREEZE_2026-10-14.md",
@@ -53,14 +70,23 @@
     "B2_causal_and_parity_report": "manuscript/kbs_latex/N9_ROUTE_B_B2_CLOSED_HOUR_CAUSALITY_AND_ORIGINAL_CACHE_PARITY_2026-10-14.md",
     "B2_causal_engine": "analysis/kbs_plan_c/n9_route_b_temporal_null_engine.py",
     "B2_synthetic_tests": "analysis/kbs_plan_c/test_n9_route_b_temporal_null_engine.py",
-    "B2_readonly_parity": "experiments/kbs_plan_c/N9_ROUTE_B_B2_1024_CACHED_SOURCE_PARITY_PUBLIC_2026-10-14.json"
+    "B2_readonly_parity": "experiments/kbs_plan_c/N9_ROUTE_B_B2_1024_CACHED_SOURCE_PARITY_PUBLIC_2026-10-14.json",
+    "B2_final_source": "experiments/kbs_plan_c/N9_ROUTE_B_B2_1024_THREE_SEED_SAME_SCORER_VERIFIED_2026-10-14.json",
+    "B2_report": "manuscript/kbs_latex/N9_ROUTE_B_B2_1024_REAL_RELATION_IDENTITY_NULL_RESULTS_2026-10-14.md",
+    "B3_verdict": "manuscript/kbs_latex/N9_ROUTE_B_B3_THREE_SCIENTIFIC_RISKS_EVIDENCE_VERDICT_2026-10-14.md",
+    "B5_main": "manuscript/kbs_latex/main.tex",
+    "B5_supplement": "manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md"
   },
   "risks": {
-    "R1": "BOUNDED_BY_SAMPLED_TOP10_SUPPORT_AND_GENERIC_DEFERRAL_EXPLANATIONS",
-    "R2": "BOUNDED_NO_MEASURED_REAL_CALL_RESOURCE_ADVANTAGE",
-    "R3": "BOUNDED_NONFLOOR_128_DEV_PILOT_NOT_COMPLETE_MEDIUM_RELATION_CAUSAL_IDENTIFICATION"
+    "R1": "BOUNDED_BUT_KNOWLEDGE_IDENTITY_CONTROL_IS_NOT_REDUCIBLE_TO_SAMPLED_METRIC",
+    "R2": "BOUNDED_HYPOTHETICAL_CALL_COST_NOT_DEPLOYMENT_SAVING",
+    "R3": "STRONG_IN_EXPLORATORY_TIME_DEGREE_AVAILABILITY_PRESERVED_1024_DEV_CONTROL_EXTERNAL_VALIDITY_BOUNDED"
   },
   "submission": "HOLD",
-  "next_gate": "Real data rolling closed-hour swap, original scoring-path parity and dataset rights still require authorization/validation; synthetic and existing original labels do not establish relation-null effect",
-  "dataset_rights": "M3 PAPER NONCOMMERCIAL_SHAREALIKE_VS_HUGGINGFACE_BY_SHAREALIKE_METADATA_DISCREPANCY_AUTHORS_TO_RESOLVE"
+  "next_gate": "Finish 41-ish page supplementary PDF rebuild, final reviewer-style source claims and author/license/AI disclosure signoff; no 2048 expansion required, no new TEST established",
+  "dataset_rights": "M3 PAPER NONCOMMERCIAL_SHAREALIKE_VS_HUGGINGFACE_BY_SHAREALIKE_METADATA_DISCREPANCY_AUTHORS_TO_RESOLVE",
+  "current_paper_blobs": {
+    "main_tex_git_blob": "f5cd5aa5f24133b858e370fdbdda661261582e4d",
+    "s10_integrated_git_blob": "905931da96424a92d8a298d1cb6041667b20ac41"
+  }
 }
