@@ -1000,3 +1000,51 @@ The controls remain meaningful: their Full F NDCG is **0.303804–0.306491**, we
 The intervention is deliberately strong and disrupts repeated user--author pairs and higher-order co-interaction patterns despite preserving the stated temporal/degree/availability marginals. The **78.6% change fraction** is notably greater than the earlier 128-event pilot's 23.2%; those results are not direct replications under identical intervention intensity. No relation-identity average treatment effect under all possible alternative nulls, new independent chronological TEST, or operational resource saving is established. The user- and author-linked private exchange maps were retained in restricted analysis storage and were not redistributed. Dataset-version terms and any release of derived interaction records remain subject to author review.
 
 Reproduction code and privacy-safe aggregates: `analysis/kbs_plan_c/n9_route_b_b2_real_closed_hour_swap_dev.py`, `analysis/kbs_plan_c/n9_route_b_b2_1024_real_relation_null_scoring.py`, `experiments/kbs_plan_c/N9_ROUTE_B_B2_1024_THREE_SEED_SAME_SCORER_VERIFIED_2026-10-14.json`. Source parity, chronological gates and no TEST access were checked in the stored provenance manifests.
+## S10.15 Frozen same-period additional-target supervision-alignment evaluation
+
+The B4-A examination selects **30,000 previously unevaluated ranking target event IDs** (10,387 users), from 4,723,652 eligible residual KuaiLive-M3 interactions in the original **March 27–31, 2026 TEST-source recording interval**. It excludes all 47,575 original G5 ranking-evaluation target IDs, but *not* necessarily their users or observations used in prior prequential historical contexts; **these are not newly collected future-period data**. A nested 4,096-event subset (3,059 users) was independently sealed for historical-source perturbation (S10.16).
+
+Before new target labels were opened, the selection procedure partitioned eligible requests into twenty cells (five source dates × four within-date quartiles of *pretarget* history length). A source-event-ID-seeded, label-blind ordering chose 1,500 requests per cell. The main sample SHA-256 is be96c9dbf13a14e0db85df24202e318b691b41a4250a3f5e9bc877d4e28d1e14; the nested SHA-256 is 40c950e6a9d79ce3e4330b8b8f434dda764570fd369bdeb83a7b4d587c00d059. Original G1 source identity/clock compatibility, both Base checkpoints, four A2 HGB models, OOF thresholds and the 30,000 Full-F target-blind rankings were checked and sealed before the first A4 label access. Source actions: [A3 H1 seal](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38517170015), [H2/final seal](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38517502835), [independent prereveal audit](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38518563975), [the one successful A4 label reveal](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38518785650), and [A5 independent numerical reconstruction](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38519174441). The earlier A4 YAML-only failed triggers did not start a label-reading job.
+
+The primary estimand expands each observation using the preregistered weight \(w_i=N_{h(i)}/n_{h(i)}\), where \(N_h\) is the number of eligible residual events and \(n_h\) the frozen sample size in its date × history cell. For event value \(y_i\),
+\[
+\widehat{\mu}_w(y)=\frac{\sum_i w_i y_i}{\sum_i w_i}.
+\]
+The main Kish effective weight sample size is **26,849.29** (30,000 raw request observations, not 26,849 independent viewers). User-cluster paired bootstrap percentile 95% intervals use **5,000 resamples**; 5,000 one-sided user-cluster sign-randomizations assume approximate cluster-sign symmetry. Holm adjusts exactly the **three prespecified B4-A directional hypotheses** (SASRec F vs S, GRU4Rec F vs S, authentic Full Memory vs mean of three fixed history nulls), not the earlier exploratory DEV comparisons.
+
+The two frozen primary-seed 20261012 Base families, SASRec and GRU4Rec, use the same Full Memory score recipe. Each has an S-aligned HGB gate trained on retrospectively target-retained 575-item sampled candidate DEV labels and an F-aligned HGB gate trained on full-active DEV ranking labels. Both arms use **identical twelve pre-outcome Full-F features, the full-active TRAIN-known author roster, and fixed DEV-derived gate thresholds at B4-A target time**. The S roster occurs as DEV supervision, **not** a target-dependent online candidate generator. The 30% specialist-invocation limit applies to DEV user-disjoint OOF threshold fitting, not to a retrospectively enforced TEST quota.
+
+**Table S10.9. Additional M3 targets, fixed full-active F ranking, 20-cell natural population weighting.**
+
+| Frozen policy | Weighted F NDCG@10 | Realized Memory calls | Unweighted call rate | Weighted call rate |
+| --- | ---: | ---: | ---: | ---: |
+| SASRec Always Base | 0.259307 | 0 | 0% | 0% |
+| SASRec S-aligned | 0.300055 | 9,105 | 30.350% | 30.537% |
+| SASRec F-aligned | **0.305446** | **8,704** | **29.013%** | **29.203%** |
+| GRU4Rec Always Base | 0.260058 | 0 | 0% | 0% |
+| GRU4Rec S-aligned | 0.300945 | 9,168 | 30.560% | 30.809% |
+| GRU4Rec F-aligned | **0.304530** | **8,629** | **28.763%** | **29.008%** |
+| Always Memory (shared) | **0.348744** | 30,000 | 100% | 100% |
+
+The SASRec F-minus-S paired contrast is **+0.005391** (95% user-cluster CI **[+0.003646,+0.007174]**, three-test Holm-adjusted one-sided \(p=0.000600\)); GRU4Rec is **+0.003585** (CI **[+0.001599,+0.005576]**, adjusted \(p=0.000800\)). The F-aligned fixed gates make **401** and **539 fewer calls**, respectively. However, their realized unweighted call differences (**1.337** and **1.797 percentage points**) exceed the prespecified approximately equal-budget interpretation threshold of **1.0 pp**. Thus the evidence concerns quality and calls under **natural frozen-policy operation**, not a strict equal-call comparison. Always Memory remains more accurate at 100% specialist invocation. All five daily subgroup effects are descriptively positive, but shared users and one collection period prevent treating them as independent validation datasets. The DEV supervision labels also differ in available information, so the contrast does not isolate generic model architecture.
+
+## S10.16 Frozen relationship-history null confirmation and remaining control limits
+
+The precommitted nested **4,096 targets / 3,059 users** use separate \(N_h/n_h\) poststratification for the same eligible population, with Kish effective weight size **3,659.42**. The authentic Full Memory ranker and three previously frozen closed-hour relation-null seeds (**20261014, 20261015, 20261016**) rank **identical Full-F candidate rosters** for each target. Their historical-author substitutions pair events from different viewers within hourly source-time bins, require both creators to be active at both original event times, preserve per-user interaction timestamps/counts and original author-hour margins, and activate only after the swapped source hour ends. The current evaluation target author was not supplied to its own prediction. Around **76.78–76.80%** of relevant historical source edges were rewired, modifying user–author repetition and higher-order structure in addition to direct historical identity alignment.
+
+**Table S10.10. Natural-population weighted full-candidate NDCG@10 for authentic and three relationship-null histories (one frozen 4,096-target cohort).**
+
+| Relation condition | Weighted Full-F NDCG@10 |
+| --- | ---: |
+| Authentic original Full Memory | **0.334942** |
+| Null seed 20261014 | 0.303905 |
+| Null seed 20261015 | 0.304689 |
+| Null seed 20261016 | 0.302796 |
+| Mean of the three within-request null NDCGs | 0.303797 |
+| Authentic minus within-request mean null | **+0.031145** |
+
+The last paired effect has 95% user-cluster CI **[+0.027389,+0.035098]**, Holm-adjusted one-sided \(p=0.000600\). Null seeds are **three randomizations on the same requests**, not three independent cohorts; for inference the three null utilities are averaged **within event** before applying the 5,000-draw cluster procedure. Original and null rankings were SHA-sealed before A4; [H2 pre-outcome seal](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38517502835) and [A5 independent paired audit](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38519174441) substantiate this separation.
+
+The observed null histories are not collapsed controls: each retains **1,903–1,913** top-ten positive targets across the 4,096 requests, Full-F NDCG above **0.10** and above **30%** of the authentic reference, and substantial time/availability-valid rewiring. **One prespecified control diagnostic remains NOT VERIFIED:** the planned margin between each null's F NDCG and a fixed TRAIN-popularity-only ranker on *these same newly evaluated targets*. This popularity benchmark was not sealed or scored before the A4 label reveal. The complete original nonfloor acceptance family therefore cannot be described as fully passed; we do not retrospectively change scores, seeds or thresholds to repair this limitation.
+
+This historical intervention is strong and changes higher-order relations along with identity assignments; it is not an isolated treatment effect for a single relation semantics. The same-period B4-A evidence improves frozen target-specific confirmation of candidate-aligned supervision and authentic relational history value, **not** independent future-time validation, user-disjoint replication, causal identification of a unique microscopic relation property, or a demonstrated economic/latency advantage of selective Memory over Always Memory. Private event, user, author and edge-level outputs remain restricted to the secure analysis cache and are not part of the public supplement.
