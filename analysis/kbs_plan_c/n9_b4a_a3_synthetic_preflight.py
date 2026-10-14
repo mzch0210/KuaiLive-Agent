@@ -236,8 +236,8 @@ def run_synthetic_probe() -> dict:
     after = blind_synthetic_replay(altered, {103, 104}, score)
     _require(before[103] == after[103],
              "same-request prediction depends on current target token")
-    _require(before[104] != after[104] or before[104]["top10"] == after[104]["top10"],
-             "unexpected synthetic prequential behavior")
+    _require(before[104]["top10"] != after[104]["top10"],
+             "later request failed to observe the now-past synthetic target")
 
     failed_future = False
     try:
