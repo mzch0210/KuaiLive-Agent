@@ -19,7 +19,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: kbs-n12-c2-pdfs
+  group: kbs-n12-c4-evidence-tier-pdfs
   cancel-in-progress: false
 jobs:
   main-paper:
