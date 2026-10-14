@@ -50,6 +50,7 @@ def main(root,a0,out):
     if db.execute("SELECT COUNT(*) FROM pool").fetchone()[0]!=EXPECTED_POOL:
         raise RuntimeError("Pool count changed since A0")
     if len(counts)!=15 or any(n<2000 for _,_,n in counts):
+        print(json.dumps({"A1_PREOUTCOME_STRATUM_COUNTS":[{"day":str(d),"group":g,"eligible":n} for d,g,n in counts],"status":"HOLD_NOT_ENOUGH_FOR_EQUAL_QUOTA"}),flush=True)
         raise RuntimeError("Insufficient 5-day by 3-history activity stratum")
     # Candidate qualification previously checked author, but ranking is determined
     # solely by SOURCE EVENT ID and two frozen public purpose/seed strings.
