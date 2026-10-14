@@ -1,0 +1,105 @@
+{
+  "schema": "kbs-n10-route-c-post-b4a-a7-execution-v1",
+  "date": "2026-10-14",
+  "branch": "kbs-n10-route-c-c0-c1-20261014",
+  "parent_draft_pr": 3,
+  "draft_review_pr": 4,
+  "latest_C5_pdf_build": {
+    "run_id": 38532516206,
+    "status": "BOTH_JOBS_SUCCESS",
+    "main_pages": 42,
+    "supp_pages": 46,
+    "main_artifact_id": 11877674564,
+    "supp_artifact_id": 11878364108,
+    "main_pdf_sha256": "b256a3cb865fa50003cd78e29fc7f9b9c567e0094456008c126410e7a768503b",
+    "supplement_pdf_sha256": "5060d700faa21d36c1114409c446cdb707ab829b38bce2e46fde4092e4ad1a70",
+    "figure_table_visual_inspection": "PASS_SELECTED_PAGES",
+    "supp_latex_overfull_boxes": 0
+  },
+  "frozen_original_B4A": {
+    "A4_one_shot_run": 38518785650,
+    "original_successful_A5_run": 38519174441,
+    "primary_H1_SAS_diff_NDCG": 0.005391,
+    "primary_H1_GRU_diff_NDCG": 0.003585,
+    "primary_H2_real_minus_mean_null": 0.031145,
+    "new_later_time_cohort": false,
+    "rereveal_or_retune": false
+  },
+  "stages": {
+    "C0": {
+      "status": "PASS",
+      "runs": [
+        38528489454,
+        38528837682
+      ],
+      "scope": "nine original G5/B4A frozen public blobs; initial A7 main and supplement SHA; adversarial tests"
+    },
+    "C1": {
+      "status": "PASS_RESEARCH_AND_MANUSCRIPT_INTEGRATED",
+      "run": 38528837682,
+      "new_peer": "SAMD KBS 2026",
+      "novelty_boundaries": "completed P1-P3 and nearby research matrix, publisher bib and in-text citation"
+    },
+    "C2A": {
+      "status": "PASS_PUBLIC_DEV_AGGREGATE_ONLY",
+      "run": 38529277271
+    },
+    "C2B": {
+      "status": "PASS_REAL_DEV_GPU_NEGATIVE_LATENCY",
+      "run": 38530526158,
+      "n_distinct_dev_requests": 256,
+      "repeats": 3,
+      "device": "RTX3090",
+      "mean_ms": {
+        "always_base": 0.72759,
+        "always_memory": 0.69165,
+        "utility_selector": 1.76941
+      },
+      "selector_call_rate": 0.3125,
+      "latency_superior_to_always_memory": false,
+      "production_cost_claim_authorized": false,
+      "benchmark_scope": "original G3/E2 Utility SASRec pointwise not B4A vectorized F-aligned"
+    },
+    "C3A": {
+      "status": "PASS_PUBLIC_FROZEN_NULL_CONTROLS",
+      "run": 38530145391,
+      "B2_same_DEV_train_popularity_floor_verified": true,
+      "B4A_predeclared_same_cohort_train_popularity_floor_verified": false
+    },
+    "C3B": {
+      "status": "DEFERRED_CONDITIONAL_P1_DEV_EXPLORATORY",
+      "not_run_as_new_test": true
+    },
+    "C4": {
+      "status": "PASS_FOR_BOUNDED_PAPER_INTEGRATION"
+    },
+    "C5": {
+      "status": "PASS_SUBMISSION_CANDIDATE_PDFS_CREATED",
+      "run": 38532516206
+    },
+    "C6": {
+      "status": "STATIC_REVIEW_PASS_HUMAN_SIGNOFF_HOLD",
+      "run": 38532371661,
+      "bib_records": 35,
+      "citation_keys": 26,
+      "undefined_citations": 0
+    }
+  },
+  "risks": {
+    "R1": "STRONGER_BOUNDED_EMPIRICAL_KNOWLEDGE_VALUATION_TO_DECISION",
+    "R2": "CONSTRAINED_DECISION_SUPPORT_ONLY_NO_DEPLOYMENT_SAVING_ESTABLISHED",
+    "R3": "STRONG_WITHIN_FIXED_F_CANDIDATES_COMPOSITE_RELATION_NULL_PARTIAL_NONFLOOR_AND_NO_TEMPORAL_TRANSFER"
+  },
+  "human_submission_signoff_required": [
+    "authors_affiliations_CRediT",
+    "conflict_funding_ethics",
+    "AI_assisted_paper_and_methods_disclosure",
+    "data_reuse_and_redistribution_permission",
+    "final_live_KBS_guide_template_cover_letter",
+    "human_approval_and_pr_merge_choice"
+  ],
+  "original_A4_private_artifacts_accessed_during_route_C": false,
+  "source_scan_qualification": "C2B G3 replay physical G1 author column projected for whole stream; split TEST row histories skipped, no private B4A label/scoring; not claiming no TEST source bytes read",
+  "manuscript_submission_completed": false,
+  "merged_to_main": false
+}
