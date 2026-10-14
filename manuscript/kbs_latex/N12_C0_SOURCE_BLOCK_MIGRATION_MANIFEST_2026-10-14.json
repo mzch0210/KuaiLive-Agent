@@ -559,8 +559,8 @@
       "labels": [
         "sec:framework"
       ],
-      "new_location": "3.5 Invocation and policy comparators",
-      "edit": "MERGE_3_4",
+      "new_location": "3 Knowledge Valuation and Selective Use opening",
+      "edit": "REWRITE_SECTION_TRANSITION",
       "opening": " \\section{Base-Relative Evidence Valuation Framework} \\label{sec:framework}"
     },
     {
@@ -742,8 +742,8 @@
       "labels": [
         "sec:experimental-setup"
       ],
-      "new_location": "4.6 Implementation summary; Supplement exact settings",
-      "edit": "CONDENSE_SUPPLEMENT",
+      "new_location": "4 Experimental Design opening and evidence tiers",
+      "edit": "REWRITE_SECTION_TRANSITION",
       "opening": " \\section{Experimental Setup} \\label{sec:experimental-setup}"
     },
     {
@@ -1070,8 +1070,8 @@
       "labels": [
         "sec:results"
       ],
-      "new_location": "5.4 Operational conditions and measured costs",
-      "edit": "CONDENSE",
+      "new_location": "5 Results introduction and RQ handoff",
+      "edit": "REWRITE_SECTION_TRANSITION",
       "opening": "\\section{Experimental Results} \\label{sec:results}"
     },
     {
@@ -1579,8 +1579,8 @@
       "labels": [
         "sec:discussion"
       ],
-      "new_location": "6.3 Source validity, policy and transfer conditions",
-      "edit": "CONSOLIDATE",
+      "new_location": "6 Discussion opening and synthesis",
+      "edit": "REWRITE_SECTION_TRANSITION",
       "opening": "\\section{Discussion} \\label{sec:discussion}"
     },
     {
@@ -1816,5 +1816,5 @@
       "opening": "\\end{document}"
     }
   ],
-  "mapping_qa_note": "Corrected section/subsection assignment: process headings inside each blank-line source block before assigning its source section; avoids carrying previous subsection across new \\section. Source block order and original text/fingerprints unchanged."
+  "mapping_qa_note": "Corrected section/subsection assignment: process headings inside each blank-line source block before assigning its source section; avoids carrying previous subsection across new \\section. Source block order and original text/fingerprints unchanged. Section-opening bridge blocks explicitly map to the correct target chapter entrance, not default last-subsection."
 }
