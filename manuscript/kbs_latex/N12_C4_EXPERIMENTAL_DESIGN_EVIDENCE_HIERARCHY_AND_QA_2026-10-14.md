@@ -1,6 +1,6 @@
 # N12-C4 | Experimental Design: evidence hierarchy, frozen protocol identity and editorial audit
 
-Date: 2026-10-14. **N12-C4 source revision submitted** on N12 Draft PR #6. This document describes actual source changes; successful final PDF verification must be appended only after both main and supplement CI jobs pass.
+Date: 2026-10-14. **N12-C4 PASS — source and dual-PDF submission-review candidate validated** on Draft PR #6. The finished manuscript is not submitted and human author declarations remain pending.
 
 ## Scholarly problem addressed
 
@@ -37,3 +37,15 @@ The previous Experimental Setup chapter mixed platform descriptions, Base/compar
 **Next planned stage N12-C5** is Results reorganization by RQ1/RQ2/RQ3 followed by operating conditions, with original frozen 30,000 H1 and nested 4,096 H2 visually primary and exploratory DEV detail appropriately moved into Supplement under full claim-to-data coverage control. Until that is complete, Abstract/Discussion/Conclusion retain the previous wording and this draft is not a submission-ready manuscript.
 
 The KBS publisher describes the journal's interest in knowledge-based systems, recommendation and decision-support methods and a balance of methodological and practical analysis: https://shop.elsevier.com/journals/knowledge-based-systems/0950-7051 . This submission decision remains subject to real author approval and the official live Guide for Authors.
+
+
+## Final C4 scientific and PDF acceptance
+
+- **Final current PDF CI:** [#38553161784](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38553161784), both main-paper and complete-supplement jobs **SUCCESS**, run from the actual three-column evidence-tier table source.
+- **Main:** 38 pages; artifact ID **11887995612**, verified PDF SHA-256 **437a557af7df86a688acc3a2018760fab911c7d09f550883ca52c737abca39cf**.
+- **Supplement S1–S10.18:** 45 pages, artifact ID **11888000639**, verified PDF SHA-256 **fb0bcb9148352599a4827935fc342573cd405842bbdc9d093b1a640b8cb76cd3**. C4 did not edit the underlying supplement Markdown.
+- Main and supplement LaTeX logs show **zero overfull boxes, zero undefined references and zero unresolved citation warnings**. Final Table 1 (main p.14) rendered and visually inspected; legible three-column evidence hierarchy with all seven study roles. All original primary H1/H2 values and Section 5 Results survived PDF-text checks.
+- C4 automated science gate verifies exact two original candidate factorial equations, exact nine C3 equations, original eleven experimental reference IDs, complete DEV/TEST/additional-target/null/time/source provenance, statistical hypotheses and the original unverified popularity control. The prefix (C2/C3) and suffix (old Results/Discussion/Conclusion) are unchanged at source-text level.
+- **Workflow lifecycle:** Historical C2 and C3 dual-PDF workflows were retired from the current N12 branch after their successful frozen-stage CI runs [C2 #38547234449](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38547234449) and [C3 #38549828504](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38549828504). Their old eight-section/assertion contracts caused misleading red statuses once C4 intentionally changed Experimental Setup. Current C4 workflow is their validated superset and still checks earlier nine frozen mathematical blocks and unchanged C2/C3 source prefix; all historical Git commits and run outputs remain archived.
+
+**C4 editorial verdict:** RQ1/RQ2/RQ3 population/evidence identity and statistical interpretation are now available before the empirical Results. The main evidence matrix and section ordering are journal-readable. Remaining N12-C5 should reorder Results around the three RQs; N12-C6 should then harmonize Abstract/Discussion/Conclusion. These tasks have not been silently marked complete.
