@@ -17,3 +17,6 @@ Verified pre-reveal evidence:
 **Out-of-scope:** sample/model/threshold updates, retraining, any independent new collection-period claim, post-result seed selection, private author/edge publication, and edits to KBS manuscript before A6 scientific review.
 
 A4 code must check all A3 SHA prior to first label read, seal a one-shot attempt marker before first target author access, and block all reruns. Public GitHub may receive only safe aggregates after independent verification.
+
+## YAML-only retry after pre-run failure
+First attempted workflow trigger #38518690727 failed GitHub YAML parse (unquoted colon in a step name), had zero jobs and zero author label access. The corrected workflow changes only the step name and keeps identical A4 scorer/statistical source SHAs; new trigger is therefore still the first actual A4 label-read execution.
