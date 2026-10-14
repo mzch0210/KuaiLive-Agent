@@ -1,0 +1,233 @@
+{
+  "schema": "kbs-n9-route-b-b4a-a1-blind-freeze-v1",
+  "technical_status": "SEALED_SAMPLES_PASS_HUMAN_RIGHTS_AND_MODEL_GATES_PENDING",
+  "source_A0_pool_count": 4723652,
+  "main_events": 30000,
+  "main_users": 10387,
+  "mechanism_events": 4096,
+  "mechanism_users": 3059,
+  "strata": "5 source dates x 4 within-day pretarget history rank quartiles",
+  "main_per_stratum": 1500,
+  "main_strata": [
+    {
+      "date": "2026-03-27",
+      "history_group": "q1",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-27",
+      "history_group": "q2",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-27",
+      "history_group": "q3",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-27",
+      "history_group": "q4",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-28",
+      "history_group": "q1",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-28",
+      "history_group": "q2",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-28",
+      "history_group": "q3",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-28",
+      "history_group": "q4",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-29",
+      "history_group": "q1",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-29",
+      "history_group": "q2",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-29",
+      "history_group": "q3",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-29",
+      "history_group": "q4",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-30",
+      "history_group": "q1",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-30",
+      "history_group": "q2",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-30",
+      "history_group": "q3",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-30",
+      "history_group": "q4",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-31",
+      "history_group": "q1",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-31",
+      "history_group": "q2",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-31",
+      "history_group": "q3",
+      "events": 1500
+    },
+    {
+      "date": "2026-03-31",
+      "history_group": "q4",
+      "events": 1500
+    }
+  ],
+  "mechanism_strata": [
+    {
+      "date": "2026-03-27",
+      "history_group": "q1",
+      "events": 203
+    },
+    {
+      "date": "2026-03-27",
+      "history_group": "q2",
+      "events": 211
+    },
+    {
+      "date": "2026-03-27",
+      "history_group": "q3",
+      "events": 203
+    },
+    {
+      "date": "2026-03-27",
+      "history_group": "q4",
+      "events": 219
+    },
+    {
+      "date": "2026-03-28",
+      "history_group": "q1",
+      "events": 207
+    },
+    {
+      "date": "2026-03-28",
+      "history_group": "q2",
+      "events": 202
+    },
+    {
+      "date": "2026-03-28",
+      "history_group": "q3",
+      "events": 209
+    },
+    {
+      "date": "2026-03-28",
+      "history_group": "q4",
+      "events": 216
+    },
+    {
+      "date": "2026-03-29",
+      "history_group": "q1",
+      "events": 193
+    },
+    {
+      "date": "2026-03-29",
+      "history_group": "q2",
+      "events": 210
+    },
+    {
+      "date": "2026-03-29",
+      "history_group": "q3",
+      "events": 216
+    },
+    {
+      "date": "2026-03-29",
+      "history_group": "q4",
+      "events": 202
+    },
+    {
+      "date": "2026-03-30",
+      "history_group": "q1",
+      "events": 195
+    },
+    {
+      "date": "2026-03-30",
+      "history_group": "q2",
+      "events": 229
+    },
+    {
+      "date": "2026-03-30",
+      "history_group": "q3",
+      "events": 200
+    },
+    {
+      "date": "2026-03-30",
+      "history_group": "q4",
+      "events": 191
+    },
+    {
+      "date": "2026-03-31",
+      "history_group": "q1",
+      "events": 204
+    },
+    {
+      "date": "2026-03-31",
+      "history_group": "q2",
+      "events": 198
+    },
+    {
+      "date": "2026-03-31",
+      "history_group": "q3",
+      "events": 181
+    },
+    {
+      "date": "2026-03-31",
+      "history_group": "q4",
+      "events": 207
+    }
+  ],
+  "old_G5_target_id_overlap": 0,
+  "main_private_SHA256": "be96c9dbf13a14e0db85df24202e318b691b41a4250a3f5e9bc877d4e28d1e14",
+  "mechanism_private_SHA256": "40c950e6a9d79ce3e4330b8b8f434dda764570fd369bdeb83a7b4d587c00d059",
+  "sample_seed": "20261014",
+  "hash_input_fields": [
+    "source_event_id",
+    "fixed purpose and seed"
+  ],
+  "target_author_in_sampling_hash": false,
+  "target_author_labels_in_frozen_files": false,
+  "target_ranking_scores_read": false,
+  "model_predictions_computed": false,
+  "no_new_independent_collection_period": true,
+  "right_to_publish_derived_private_data": "PENDING_HUMAN_CLEARANCE",
+  "A2_A3_A4_authorized": false,
+  "action_run": 38505873258,
+  "source_code": "analysis/kbs_plan_c/n9_b4a_a1_blind_sample_freeze.py",
+  "prior_equal_hist_bin_attempts": "FAILED_BEFORE_SAMPLING_ON_SPARSE_HISTORY_BINS; FIXED_USING_DAY_SPECIFIC_HISTORY_RANK_QUARTILES_WITHOUT_OUTCOME_ACCESS"
+}
