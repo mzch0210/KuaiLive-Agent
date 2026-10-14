@@ -1,0 +1,47 @@
+{
+  "A3_A4_authorized": false,
+  "B4A_labels_read": false,
+  "TEST_rows_read": 0,
+  "results": {
+    "gru4rec": {
+      "F_aligned": {
+        "A3_execution_allowed": false,
+        "dev_probe_rows": 256,
+        "feature_contract_pass": true,
+        "model_SHA256_pass": true,
+        "n_feature_inputs": 12,
+        "pointwise_threshold_frozen": true
+      },
+      "S_aligned": {
+        "A3_execution_allowed": false,
+        "dev_probe_rows": 256,
+        "feature_contract_pass": true,
+        "model_SHA256_pass": true,
+        "n_feature_inputs": 12,
+        "pointwise_threshold_frozen": true
+      }
+    },
+    "sasrec": {
+      "F_aligned": {
+        "A3_execution_allowed": false,
+        "dev_probe_rows": 256,
+        "feature_contract_pass": true,
+        "model_SHA256_pass": true,
+        "n_feature_inputs": 12,
+        "pointwise_threshold_frozen": true
+      },
+      "S_aligned": {
+        "A3_execution_allowed": false,
+        "dev_probe_rows": 256,
+        "feature_contract_pass": true,
+        "model_SHA256_pass": true,
+        "n_feature_inputs": 12,
+        "pointwise_threshold_frozen": true
+      }
+    }
+  },
+  "schema": "kbs-route-b-b4a-a2-contract-check-v1",
+  "source_DEV_SHA256": "37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea",
+  "status": "FOUR_MODELS_DEV_SHA_FEATURE_AND_PREDICTION_CONTRACT_PASS",
+  "run_id": 38506978008
+}
