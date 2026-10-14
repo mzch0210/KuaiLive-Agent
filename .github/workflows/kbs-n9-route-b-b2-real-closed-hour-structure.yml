@@ -1,0 +1,240 @@
+name: KBS N9 Route B B2 real DEV closed-hour coactive swap structure
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-n9-route-b-b2-real-closed-hour-structure.yml']
+permissions:
+  contents: read
+concurrency:
+  group: kbs-n9-route-b-b2-real-structure
+  cancel-in-progress: false
+jobs:
+  causal-structure:
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 58
+    steps:
+      - name: Verify historical author active pairs and request-causal null activation
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 PYTHONUNBUFFERED=1
+          cat > "$RUNNER_TEMP/route_b_b2_structural.py" <<'NULL_SRC'
+          #!/usr/bin/env python3
+          """Route B B2: causal closed-hour coactive relation-null on frozen DEV users.
+          
+          Private-only author substitutions, *no target outcome scoring*.
+          No original G5 TEST; no private identifiers emitted in public logs.
+          """
+          from __future__ import annotations
+          import argparse,hashlib,json,time
+          from pathlib import Path
+          import numpy as np
+          import pandas as pd
+          import pyarrow.parquet as pq
+          
+          HOUR=3600_000_000_000
+          SAMPLE_HASH="6ad1a0753e181ac638636c278d226832b08d90d7d4867019910c61b96d7507da"
+          SEEDS=(20261014,20261015,20261016)
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open("rb") as f:
+                  for c in iter(lambda:f.read(8<<20),b""):h.update(c)
+              return h.hexdigest()
+          def ns(values):
+              s=pd.to_datetime(pd.Series(values),utc=True)
+              if s.isna().any():raise RuntimeError("Missing event/room timestamp")
+              return s.dt.as_unit("ns").astype("int64").to_numpy()
+          def main():
+              a=argparse.ArgumentParser()
+              a.add_argument("--root",type=Path,required=True)
+              a.add_argument("--out",type=Path,required=True)
+              q=a.parse_args()
+              if q.out.exists():raise FileExistsError("Do not overwrite private relation-null")
+              t0=time.monotonic();root=q.root
+              g=root/"klm3_plan_c_g1_v1";ss=root/"klm3_n9_route_b_b2_pretarget_sample_v1"
+              m=json.loads((ss/"summary.json").read_text())
+              p=ss/"B2_MEDIUM_EVENTS_PRIVATE.npz"
+              if not (sha(p)==m["sample_private_SHA256"]==SAMPLE_HASH
+                      and m["no_target_or_outcome_columns_loaded"] is True
+                      and m["n_events"]==1024 and m["n_users"]==992
+                      and m["old_128_late_DEV_pilot_excluded"] is True):
+                  raise RuntimeError("Frozen 1024 pretarget sample SHA failed")
+              sample=np.load(p,allow_pickle=False)
+              uids=sample["user_ids"]
+              if len(np.unique(uids))!=992:raise RuntimeError("Wrong sampled user count")
+              times=sample["observed_at_ns"].astype(np.int64)
+              if not np.all(times>0):raise RuntimeError("Invalid selected event times")
+              max_t={}
+              for u,t in zip(uids,times):
+                  key=int(u);max_t[key]=max(max_t.get(key,-1),int(t))
+              allowed=set(max_t)
+              eid=[];uid=[];aid=[];clock=[]
+              reader=pq.ParquetFile(g/"causal_stream_sealed.parquet")
+              seen_users=set();last_user=None;times_backwards=0;selected_rows=0
+              for batch in reader.iter_batches(batch_size=262144,
+                     columns=["source_event_id","user_id","author_id","observed_at","split"]):
+                  d=batch.to_pandas()
+                  d=d.loc[d.user_id.isin(allowed)&d.split.ne("TEST")]
+                  if d.empty:continue
+                  dt=ns(d["observed_at"])
+                  mask=np.array([t<=max_t[int(u)] for u,t in zip(d.user_id.to_numpy(),dt)])
+                  d=d.loc[mask]
+                  dt=dt[mask]
+                  if d.empty:continue
+                  eid.append(d.source_event_id.to_numpy(dtype=np.int64))
+                  uid.append(d.user_id.to_numpy(dtype=np.int64))
+                  aid.append(d.author_id.to_numpy(dtype=np.int64))
+                  clock.append(dt)
+                  selected_rows+=len(d)
+              if not eid:raise RuntimeError("No causal pretarget edges")
+              E=np.concatenate(eid);U=np.concatenate(uid);A=np.concatenate(aid);T=np.concatenate(clock)
+              if len(E)!=selected_rows or len(np.unique(E))!=len(E):raise RuntimeError("Repeated causal event ids")
+              # Input stream must be user-grouped and within-user nondecreasing, per G1.
+              change=np.r_[True,U[1:]!=U[:-1]]
+              starts=np.flatnonzero(change)
+              if len(np.unique(U))!=992 or len(starts)!=992 or len(set(U[starts]))!=992:
+                  raise RuntimeError("Causal stream selected user order broken")
+              for x,y in zip(starts,np.r_[starts[1:],len(E)]):
+                  if np.any(np.diff(T[x:y])<0):times_backwards+=1
+              if times_backwards:raise RuntimeError("Original source time non-monotonic")
+              if np.any(T>np.array([max_t[int(u)] for u in U],dtype=np.int64)):
+                  raise RuntimeError("Future event included")
+              authors=set(A.tolist())
+              # Load only relevant authors' eligible room intervals, not source/target labels.
+              ints=[]
+              for batch in pq.ParquetFile(g/"available_room_intervals.parquet").iter_batches(
+                      batch_size=262144,columns=["author_id","open_ts","close_ts"]):
+                  d=batch.to_pandas()
+                  d=d.loc[d.author_id.isin(authors)]
+                  if len(d):ints.append(d)
+              if not ints:raise RuntimeError("History author activity intervals unavailable")
+              frame=pd.concat(ints,ignore_index=True)
+              s=ns(frame.open_ts);e=ns(frame.close_ts)
+              ok=e>s
+              actor=frame.author_id.to_numpy(dtype=np.int64)[ok]
+              s=s[ok];e=e[ok]
+              ix=np.lexsort((s,actor))
+              actor=actor[ix];s=s[ix];e=e[ix]
+              offsets=np.r_[0,np.flatnonzero(actor[1:]!=actor[:-1])+1,len(actor)]
+              by_author={}
+              for lo,hi in zip(offsets[:-1],offsets[1:]):
+                  by_author[int(actor[lo])]=(s[lo:hi],np.maximum.accumulate(e[lo:hi]))
+              def active(auth,t):
+                  z=by_author.get(int(auth))
+                  if z is None:return False
+                  starts,ends=z
+                  j=int(np.searchsorted(starts,t,side="right"))-1
+                  return j>=0 and ends[j]>t
+              # Each hour is independent and can activate its changes only after it ends.
+              bins=T//HOUR
+              order=np.argsort(bins,kind="stable")
+              sb=bins[order]
+              boundary=np.r_[0,np.flatnonzero(sb[1:]!=sb[:-1])+1,len(order)]
+              summary={"schema":"kbs-route-b-b2-real-closed-hour-null-v1",
+                 "source_data":"PRETARGET_POST_G5_DEV_ONLY","source_sample_SHA256":SAMPLE_HASH,
+                 "n_target_events":1024,"n_target_users":992,
+                 "private_historical_edges_for_selected_users":len(E),
+                 "unique_history_authors":len(authors),"room_intervals_relevant":int(len(actor)),
+                 "closed_hour_bins":int(len(boundary)-1),
+                 "per_user_causal_order_monotone":True,
+                 "source_hour_activated_after_close_only":True,
+                 "no_G5_TEST_read":True,"no_target_labels_or_scores_read":True,
+                 "private_relation_edges_exported":False,"seed_results":[]}
+              outdir=q.out
+              outdir.mkdir(parents=True,mode=0o700)
+              for seed in SEEDS:
+                  changed=np.zeros(len(E),dtype=bool)
+                  swapped=A.copy()
+                  rngcache={}
+                  attempts=0;eligible_pairs=0;swaps=0
+                  import random
+                  for b in range(len(boundary)-1):
+                      lo,hi=boundary[b:b+2]
+                      chunk=order[lo:hi]
+                      size=len(chunk)
+                      if size<2:continue
+                      hour=int(sb[lo])
+                      key=f"n9-route-b-null-v1:{seed}:{hour}".encode("ascii")
+                      salt=int.from_bytes(hashlib.blake2b(key,digest_size=8).digest(),"little")
+                      gen=random.Random(salt)
+                      tries=min(size*3,75000)
+                      occupied=set()
+                      for _ in range(tries):
+                          if len(occupied)>=size-1:break
+                          i=gen.randrange(size);j=gen.randrange(size-1)
+                          if j>=i:j+=1
+                          x=int(chunk[i]);y=int(chunk[j])
+                          attempts+=1
+                          if i in occupied or j in occupied or U[x]==U[y] or A[x]==A[y]:
+                              continue
+                          if not(active(A[x],int(T[x])) and active(A[y],int(T[y]))
+                                 and active(A[y],int(T[x])) and active(A[x],int(T[y]))):
+                              continue
+                          eligible_pairs+=1
+                          swapped[x]=A[y];swapped[y]=A[x]
+                          changed[x]=changed[y]=True
+                          occupied.add(i);occupied.add(j);swaps+=1
+                  if int(changed.sum())!=2*swaps:raise RuntimeError("Disjoint pair accounting invalid")
+                  # Invariant check scoped only to changed author/hour memberships.
+                  before=pd.DataFrame({"h":bins[changed],"a":A[changed]}).groupby(["h","a"]).size()
+                  after=pd.DataFrame({"h":bins[changed],"a":swapped[changed]}).groupby(["h","a"]).size()
+                  if not before.equals(after):raise RuntimeError("Changed author hourly marginals")
+                  for i in np.flatnonzero(changed):
+                      if not active(swapped[i],int(T[i])):
+                          raise RuntimeError("Activity-invalid changed historical relation")
+                  if swaps==0:raise RuntimeError("No eligible causal history rewires")
+                  # For each frozen target request, count only changes in fully closed pretarget bins.
+                  user_index={}
+                  for lo,hi in zip(starts,np.r_[starts[1:],len(E)]):
+                      user_index[int(U[lo])]=(lo,hi)
+                  request_coverage=[];request_past_edge=[]
+                  for u,t in zip(uids,times):
+                      lo,hi=user_index[int(u)]
+                      past=T[lo:hi]<int(t)
+                      activated=(bins[lo:hi]+1)*HOUR<=int(t)
+                      m=changed[lo:hi]&past&activated
+                      request_coverage.append(int(m.sum()))
+                      request_past_edge.append(int(past.sum()))
+                  coverage=np.asarray(request_coverage)
+                  if not np.all(coverage<=np.asarray(request_past_edge)):
+                      raise RuntimeError("Future activated in past-edge count")
+                  changed_ids=E[changed];changed_author=swapped[changed]
+                  path=outdir/f"null_seed_{seed}_PRIVATE.npz"
+                  np.savez_compressed(path,source_event_ids=changed_ids,
+                                      swapped_author_ids=changed_author)
+                  diag={"seed":seed,"eligible_proposals_attempted":attempts,
+                       "fully_active_valid_pair_proposals":eligible_pairs,
+                       "disjoint_swaps":swaps,
+                       "changed_edges":int(changed.sum()),
+                       "changed_fraction_of_selected_user_history":float(changed.mean()),
+                       "target_requests_with_at_least_one_activated_null_edge":int(np.count_nonzero(coverage)),
+                       "target_request_mean_activated_edges":float(np.mean(coverage)),
+                       "target_request_median_activated_edges":float(np.median(coverage)),
+                       "target_request_mean_prior_history_edges":float(np.mean(request_past_edge)),
+                       "author_hour_marginals_exact":True,
+                       "both_authors_active_at_source_clock":True,
+                       "private_changed_map_sha256":sha(path),
+                       "history_null_ranking_scored":False}
+                  summary["seed_results"].append(diag)
+                  print(json.dumps({"B2_TEMPORAL_NULL": "SEED_STRUCTURAL_PASS",
+                                    "safe_summary":diag,"G5_TEST":False},sort_keys=True),flush=True)
+              summary["wall_seconds"]=round(time.monotonic()-t0,2)
+              (outdir/"summary.json").write_text(json.dumps(summary,indent=2,sort_keys=True)+"\n")
+              print(json.dumps({"B2_TEMPORAL_NULL":"PASS_PRIVATE_STRUCTURAL_REAL_DEV",
+                  "safe_summary":summary},sort_keys=True),flush=True)
+          if __name__=="__main__":main()
+          NULL_SRC
+          export N9_SCRIPT="$RUNNER_TEMP/route_b_b2_structural.py"
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'SHA'
+          import hashlib,os,pathlib
+          raw=pathlib.Path(os.environ['N9_SCRIPT']).read_bytes()
+          sha=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+          assert sha=='f91e3fec45b9f3c222d303a05a37543a278a8078', 'Route B B2 structural source SHA mismatch'
+          print('Route B B2 structural scientific source SHA PASS',flush=True)
+          SHA
+          "$HOME/venvs/kuailive-gpu/bin/python" -m py_compile "$RUNNER_TEMP/route_b_b2_structural.py"
+          "$HOME/venvs/kuailive-gpu/bin/python" "$RUNNER_TEMP/route_b_b2_structural.py" \
+            --root "$HOME/.cache/kuailive-agent-kbs" \
+            --out "$HOME/.cache/kuailive-agent-kbs/klm3_n9_route_b_b2_closed_hour_coactive_3seed_v1"
