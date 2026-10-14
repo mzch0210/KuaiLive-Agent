@@ -1,0 +1,174 @@
+{
+  "schema": "kbs-n9-route-b-b1a-zero-contribution-v1",
+  "date": "2026-10-14",
+  "evidence": "post-G5 shared M3 DEV; not independent holdout",
+  "run_id": 38498422665,
+  "events": 50049,
+  "users": 12628,
+  "mean_source_candidate_interaction": 0.11538186791029255,
+  "user_cluster_CI95": [
+    0.11157289469677811,
+    0.11911052033159161
+  ],
+  "source_verified": true,
+  "counts": {
+    "both_zero": 18728,
+    "F_zero_S_nonzero": 9625,
+    "S_zero_F_nonzero": 18109,
+    "opposite_nonzero": 66
+  },
+  "contribution_by_partition": {
+    "either_zero": 0.10088461047811553,
+    "both_nonzero": 0.014497257432176999,
+    "F_zero_S_nonzero": 0.09509428502718482,
+    "S_zero_F_nonzero": 0.005790325450930708,
+    "nonzero_opposite": 0.0002094402976479419
+  },
+  "nine_cells": [
+    {
+      "F_sign": -1,
+      "S_sign": -1,
+      "bootstrap_cluster95": [
+        0.009324477145771275,
+        0.01073666383989611
+      ],
+      "conditional_event_mean_I": 0.2602361984505966,
+      "contribution_to_global_mean": 0.010019683798163792,
+      "event_fraction": 0.038502267777577974,
+      "events": 1927,
+      "sum_absolute_event_effect_div_N": 0.011793517789855499,
+      "users": 1670,
+      "category": "F-1_S-1"
+    },
+    {
+      "F_sign": -1,
+      "S_sign": 0,
+      "bootstrap_cluster95": [
+        -0.051641756831888076,
+        -0.0492286826917186
+      ],
+      "conditional_event_mean_I": -0.23948564888837168,
+      "contribution_to_global_mean": -0.050443719366644976,
+      "event_fraction": 0.21063357909248936,
+      "events": 10542,
+      "sum_absolute_event_effect_div_N": 0.050443719366644976,
+      "users": 5601,
+      "category": "F-1_S0"
+    },
+    {
+      "F_sign": -1,
+      "S_sign": 1,
+      "bootstrap_cluster95": [
+        -0.0003514935833869849,
+        -0.00015150637668052717
+      ],
+      "conditional_event_mean_I": -0.4961189279884802,
+      "contribution_to_global_mean": -0.0002478166037225919,
+      "event_fraction": 0.0004995104797298648,
+      "events": 25,
+      "sum_absolute_event_effect_div_N": 0.0002478166037225919,
+      "users": 25,
+      "category": "F-1_S1"
+    },
+    {
+      "F_sign": 0,
+      "S_sign": -1,
+      "bootstrap_cluster95": [
+        0.10163801444295444,
+        0.10785003014036278
+      ],
+      "conditional_event_mean_I": 0.6153410883890734,
+      "contribution_to_global_mean": 0.10480064411733425,
+      "event_fraction": 0.17031309316869467,
+      "events": 8524,
+      "sum_absolute_event_effect_div_N": 0.10480064411733425,
+      "users": 3975,
+      "category": "F0_S-1"
+    },
+    {
+      "F_sign": 0,
+      "S_sign": 0,
+      "bootstrap_cluster95": [
+        0,
+        0
+      ],
+      "conditional_event_mean_I": 0,
+      "contribution_to_global_mean": 0,
+      "event_fraction": 0.37419329057523626,
+      "events": 18728,
+      "sum_absolute_event_effect_div_N": 0,
+      "users": 8926,
+      "category": "F0_S0"
+    },
+    {
+      "F_sign": 0,
+      "S_sign": 1,
+      "bootstrap_cluster95": [
+        -0.01038013994084565,
+        -0.009076247107367503
+      ],
+      "conditional_event_mean_I": -0.44122939700534825,
+      "contribution_to_global_mean": -0.009706359090149422,
+      "event_fraction": 0.021998441527303243,
+      "events": 1101,
+      "sum_absolute_event_effect_div_N": 0.009706359090149422,
+      "users": 979,
+      "category": "F0_S1"
+    },
+    {
+      "F_sign": 1,
+      "S_sign": -1,
+      "bootstrap_cluster95": [
+        0.00031715862073694297,
+        0.0006100624866153818
+      ],
+      "conditional_event_mean_I": 0.5581768452852158,
+      "contribution_to_global_mean": 0.00045725690137053384,
+      "event_fraction": 0.0008191971867569782,
+      "events": 41,
+      "sum_absolute_event_effect_div_N": 0.00045725690137053384,
+      "users": 41,
+      "category": "F1_S-1"
+    },
+    {
+      "F_sign": 1,
+      "S_sign": 0,
+      "bootstrap_cluster95": [
+        0.0547421351614029,
+        0.05775491564299501
+      ],
+      "conditional_event_mean_I": 0.37193837836326754,
+      "contribution_to_global_mean": 0.056234044817575685,
+      "event_fraction": 0.15119183200463546,
+      "events": 7567,
+      "sum_absolute_event_effect_div_N": 0.056234044817575685,
+      "users": 4706,
+      "category": "F1_S0"
+    },
+    {
+      "F_sign": 1,
+      "S_sign": 1,
+      "bootstrap_cluster95": [
+        0.00378864024588033,
+        0.004749594916210321
+      ],
+      "conditional_event_mean_I": 0.1340124249383596,
+      "contribution_to_global_mean": 0.004268133336365267,
+      "event_fraction": 0.03184878818757617,
+      "events": 1594,
+      "sum_absolute_event_effect_div_N": 0.007319608394651275,
+      "users": 1274,
+      "category": "F1_S1"
+    }
+  ],
+  "provenance": {
+    "B2": "Private B2 SHA256 equal to existing B2 manifest",
+    "original_E3a": "Mean and sign structure parity checked",
+    "G5_TEST_opened": false
+  },
+  "limitations": [
+    "Interaction is top-10 NDCG contrast, not causal source effect",
+    "Most apparent reversal mediated by zero-support transitions rather than strict positive-negative flips",
+    "User-paired descriptive bootstrap from same explored DEV cohort"
+  ]
+}
