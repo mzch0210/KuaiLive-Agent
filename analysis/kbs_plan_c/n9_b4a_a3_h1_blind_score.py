@@ -106,6 +106,7 @@ def main(cache,g1,index,a1,a2,source_preflight,registry,out,batch_size=16):
     top=np.empty((N,3,10),dtype=np.int32)
     decisions=np.empty((N,2,2),dtype=np.bool_)
     predicted=np.empty((N,2,2),dtype=np.float64)
+    features_by_family=np.empty((N,2,12),dtype=np.float64)
     ncand=np.empty(N,dtype=np.int32)
     gates={}
     for f in FAMILIES:
@@ -143,15 +144,12 @@ def main(cache,g1,index,a1,a2,source_preflight,registry,out,batch_size=16):
                     "x_"+family+"_base_score_mean":fields["x_base_score_mean"]}
                 features.update({key:value for key,value in fields.items() if key.startswith("x_") and key not in
                     {"x_base_margin","x_base_std","x_base_top_z","x_base_top_score","x_base_score_mean"}})
-                for ai,arm in enumerate(ARMS):
-                    reg,cols,threshold=gates[(family,arm)]
-                    x=np.asarray([[features[k] for k in cols]],dtype=np.float64)
-                    require(x.shape==(1,12) and np.isfinite(x).all(),
-                            "nonfinite/misaligned Full-F A3 gate input")
-                    val=float(reg.predict(x)[0])
-                    require(math.isfinite(val),"A2 gate nonfinite TEST inference")
-                    predicted[i,fi,ai]=val
-                    decisions[i,fi,ai]=threshold is not None and val>=threshold
+                gate_feature_order=gates[(family,ARMS[0])][1]
+                require(gate_feature_order==gates[(family,ARMS[1])][1],
+                        "F/S gate feature schema differs")
+                features_by_family[i,fi]=[features[k] for k in gate_feature_order]
+                require(np.isfinite(features_by_family[i,fi]).all(),
+                        "nonfinite/misaligned Full-F A3 gate input")
         processed+=len(block)
         if processed%2000<len(block):
             print(json.dumps({"phase":"A3_TARGET_BLIND_NO_METRICS",
@@ -164,6 +162,19 @@ def main(cache,g1,index,a1,a2,source_preflight,registry,out,batch_size=16):
             consume(pending);pending=[]
     if pending:consume(pending)
     require(processed==N and np.all(ncand>=10),"incomplete target-blind A3 scoring")
+    # Vectorized four-model inference prevents 120,000 tiny HGB.predict calls.
+    # Both S/F arms see EXACTLY the same features for their Base's F candidates.
+    for fi,family in enumerate(FAMILIES):
+        x=features_by_family[:,fi,:]
+        require(x.shape==(N,12) and np.isfinite(x).all(),
+                "invalid full-candidate bulk features")
+        for ai,arm in enumerate(ARMS):
+            reg,cols,threshold=gates[(family,arm)]
+            vals=np.asarray(reg.predict(x),dtype=np.float64)
+            require(vals.shape==(N,) and np.isfinite(vals).all(),
+                    "invalid A2 frozen gate predictions")
+            predicted[:,fi,ai]=vals
+            decisions[:,fi,ai]=False if threshold is None else (vals>=threshold)
     # Race-safe immutable staging, without public private data artifacts.
     stage=out.with_name(out.name+".incomplete")
     stage.mkdir(parents=True,mode=0o700,exist_ok=False)
