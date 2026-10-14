@@ -1,0 +1,50 @@
+{
+  "schema": "kbs-route-b-b0-freeze-v1",
+  "frozen_utc_date": "2026-10-14",
+  "plan": "manuscript/kbs_latex/N9_ROUTE_B_SCIENTIFIC_RISK_STRENGTHENING_AND_KBS_SUBMISSION_PLAN_2026-10-14.md",
+  "baseline": {
+    "main_tex_git_blob": "dd57e309fca7ddd59f05d40512539d0ac31aa0c8",
+    "supp_s1_s10_git_blob": "183971e05aa4341dee13a4a8237cc54b0553ae0c",
+    "G5_original_TEST_REOPEN": false
+  },
+  "experiment_cohort": {
+    "unit": "author-ranking event",
+    "event_count": 50049,
+    "unique_user_count": 12628,
+    "data_partition": "POST_G5_DEV_ONLY",
+    "independent_new_TEST": false
+  },
+  "sources": {
+    "B1_sha256": "37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea",
+    "B2_source_sha256": "VERIFY_FROM_PRIVATE_SUMMARY_AND_REHASH_EACH_RUN",
+    "prior_E1_aggregate_sha": "4d49fcd1cd0209de30a845c2d0d65dd4f8a16990",
+    "prior_E3a_aggregate_sha": "c68adb09078b9ba51eebb1351e669bb34e31c665"
+  },
+  "work": {
+    "B0": "SOURCE_AND_ESTIMAND_PROTOCOL_FROZEN",
+    "B1A": "ALLOWED_EXPLORATORY_DEV_WITH_PRIVATE_SHA_GUARD",
+    "B1B": "ALLOWED_EXISTING_PUBLIC_SOURCES",
+    "B2": "HOLD_MEDIUM_HISTORY_INTERVENTION_RIGHTS_AND_TEMPORAL_GATE",
+    "B3": "AFTER_B1_AND_B2_OR_JUSTIFIED_HOLD",
+    "B4": "HOLD_NO_ELIGIBLE_UNSEEN_COHORT",
+    "B5B6": "AFTER_SCIENCE_VERDICT"
+  },
+  "statistics": {
+    "primary_E3a": "nine_cell_signed_contribution_to_mean_source_x_regime_interaction",
+    "bootstrap": "paired_user_clusters_2000_seed_20261014",
+    "primary_E3b": "paired_original_minus_coactive_relation_null_F_NDCG10",
+    "medium_event_count": 1024,
+    "max_event_count": 2048,
+    "null_seeds": [
+      20261014,
+      20261015,
+      20261016
+    ],
+    "precision_half_width_target": 0.015
+  },
+  "rights_and_ethics": "HUMAN_AUTHORIZATION_PENDING_FOR_NEW_MEDIUM_HISTORY_PROCESSING_AND_DERIVED_RELEASE",
+  "old_TEST_modified": false,
+  "new_TEST_authorized": false,
+  "manuscript_modified": false,
+  "submission": "HOLD"
+}
