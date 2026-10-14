@@ -1,0 +1,243 @@
+name: KBS N9 Route B B2 sealed 1024 original Full Long F S replay
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kbs-n9-route-b-b2-1024-original-memory-replay.yml']
+permissions:
+  contents: read
+concurrency:
+  group: kbs-n9-route-b-b2-original-replay
+  cancel-in-progress: false
+jobs:
+  original-replay:
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 55
+    steps:
+      - name: Reconstruct all original 1024 DEV event Memory ranks with source SHA guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 PYTHONUNBUFFERED=1
+          cat > "$RUNNER_TEMP/route_b_b2_original.py" <<'ORIGINAL_SRC'
+          #!/usr/bin/env python3
+          """Route B B2 original fixed Full/Long Memory F/S exact 1024 DEV re-score.
+          
+          No relation null, no new model training or G5 TEST access. Validate that
+          original source scores can be exactly reconstructed from *pretarget* history.
+          Raw user/author/event IDs stay in private cache; public log is aggregate only.
+          """
+          from __future__ import annotations
+          import argparse,collections,csv,hashlib,heapq,json,math,time
+          from pathlib import Path
+          import numpy as np
+          import pandas as pd
+          import pyarrow.parquet as pq
+          
+          N=1024
+          SEED=20261012
+          B1SHA="37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea"
+          SAMPLESHA="6ad1a0753e181ac638636c278d226832b08d90d7d4867019910c61b96d7507da"
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open("rb") as f:
+                  for part in iter(lambda:f.read(8<<20),b""):h.update(part)
+              return h.hexdigest()
+          def ndcg(rank):
+              return 1.0/math.log2(rank+1) if rank<=10 else 0.0
+          def rank(c,score,true):
+              p=int(np.searchsorted(c,true))
+              if p==len(c) or c[p]!=true:raise RuntimeError("Original target not in full eligible roster")
+              v=score[p]
+              return 1+int(np.count_nonzero((score>v+1e-12)|((np.abs(score-v)<=1e-12)&(c<true))))
+          def score(c,pop,warm,recent,den,with_short=True):
+              c=np.asarray(c,dtype=np.int32)
+              a=.10*pop[c].astype(np.float64)
+              if warm:
+                  if den<=0:raise RuntimeError("invalid long count max")
+                  ids=np.fromiter(warm,dtype=np.int32,count=len(warm))
+                  val=np.fromiter(warm.values(),dtype=np.float64,count=len(warm))
+                  order=np.argsort(ids);ids,val=ids[order],val[order]
+                  loc=np.searchsorted(ids,c)
+                  hit=loc<len(ids)
+                  hit&=ids[np.minimum(loc,len(ids)-1)]==c
+                  a[hit]+=.45*val[loc[hit]]/den
+              if with_short and recent:
+                  short={}
+                  for d,tok in enumerate(reversed(recent)):
+                      if tok:short[tok]=max(short.get(tok,0.),math.exp(-d/3.0))
+                  if short:
+                      ids=np.fromiter(sorted(short),dtype=np.int32)
+                      val=np.array([short[k] for k in ids],dtype=np.float64)
+                      loc=np.searchsorted(ids,c);hit=loc<len(ids)
+                      hit&=ids[np.minimum(loc,len(ids)-1)]==c
+                      a[hit]+=.45*val[loc[hit]]
+              return a
+          def active_rosters(path,clocks,targets,known):
+              order=sorted(range(len(clocks)),key=lambda i:(clocks[i],i))
+              def room_rows():
+                  for b in pq.ParquetFile(path).iter_batches(batch_size=131072,
+                                                           columns=["open_ts","close_ts","author_id"]):
+                      q=b.to_pydict()
+                      yield from zip(q["open_ts"],q["close_ts"],q["author_id"])
+              rr=iter(room_rows());ahead=next(rr,None)
+              heap=[];active=collections.Counter()
+              for ix in order:
+                  t=clocks[ix]
+                  while ahead is not None and ahead[0]<=t:
+                      start,end,author=ahead
+                      tok=known.get(int(author))
+                      if tok is not None and end>t:
+                          active[tok]+=1;heapq.heappush(heap,(end,tok))
+                      ahead=next(rr,None)
+                  while heap and heap[0][0]<=t:
+                      _,tok=heapq.heappop(heap);active[tok]-=1
+                      if not active[tok]:del active[tok]
+                  if int(targets[ix]) not in active:raise RuntimeError("Target not eligible in original F roster")
+                  yield ix,np.fromiter(sorted(active),dtype=np.int32,count=len(active))
+          
+          def main():
+              a=argparse.ArgumentParser()
+              a.add_argument("--root",type=Path,required=True)
+              a.add_argument("--out",type=Path,required=True)
+              args=a.parse_args()
+              if args.out.exists():raise FileExistsError("Never overwrite original parity")
+              t0=time.monotonic();root=args.root;g=root/"klm3_plan_c_g1_v1"
+              idx=root/"klm3_g2_train_index_v1"
+              dev=root/"klm3_g2_dev_checkpoint_screen_v1"
+              sample=root/"klm3_n9_route_b_b2_pretarget_sample_v1"
+              b1=root/"klm3_b1_full_dev_candidate_labels_seed20261012_v1"
+              b2=root/"klm3_b2_full_dev_memory_source_ablation_seed20261013_v1"
+              sm=json.loads((sample/"summary.json").read_text())
+              m1=json.loads((b1/"summary.json").read_text())
+              m2=json.loads((b2/"summary.json").read_text())
+              if not(sm["n_events"]==N and sm["n_users"]==992 and sm["old_128_late_DEV_pilot_excluded"]
+                 and sm["no_target_or_outcome_columns_loaded"] is True
+                 and sha(sample/"B2_MEDIUM_EVENTS_PRIVATE.npz")==sm["sample_private_SHA256"]==SAMPLESHA
+                 and m1.get("test_accessed") is False and m2.get("new_TEST_opened") is False
+                 and sha(b1/"dev_pair_candidate_labels.csv")==m1["private_event_source_csv_sha256"]==B1SHA
+                 and sha(b2/"dev_memory_source_ablation_pairs.csv")==m2["private_event_source_csv_sha256"]
+                 and m2["full_memory_nDCG_mismatches"]=={"F":0,"S":0}):
+                  raise RuntimeError("B2 original SHA and DEV source gate failed")
+              frozen=np.load(sample/"B2_MEDIUM_EVENTS_PRIVATE.npz",allow_pickle=False)
+              target_ids=frozen["source_event_ids"].astype(np.int64)
+              if len(target_ids)!=N or len(np.unique(target_ids))!=N:raise RuntimeError("B2 sample invalid")
+              devm=json.loads((dev/"manifest.json").read_text())
+              for name in ("dev_source_event_ids.npy","dev_positive_author_tokens.npy"):
+                  if sha(dev/name)!=devm["files_sha256"][name]:
+                      raise RuntimeError("DEV checkpoint source SHA invalid")
+              all_dev=np.load(dev/"dev_source_event_ids.npy",mmap_mode="r")
+              target_all=np.load(dev/"dev_positive_author_tokens.npy",mmap_mode="r")
+              index={int(e):i for i,e in enumerate(all_dev)}
+              sel=np.array([index[int(e)] for e in target_ids],dtype=np.int64)
+              truths=target_all[sel]
+              cohort=pq.read_table(g/"dev_cohort.parquet",columns=["source_event_id","user_id","observed_at"])
+              if not np.array_equal(cohort.column("source_event_id").to_numpy(),all_dev):
+                  raise RuntimeError("G1 DEV clock misaligned")
+              clocks=[cohort.column("observed_at")[int(i)].as_py() for i in sel]
+              old_data=pd.read_csv(b2/"dev_memory_source_ablation_pairs.csv")
+              original=old_data.set_index("event_id").loc[target_ids]
+              if len(original)!=N or not original.split.eq("DEV").all():
+                  raise RuntimeError("B2 event cohort invalid")
+              user_ids=cohort.column("user_id").to_numpy()[sel]
+              if not np.array_equal(original.user_id.to_numpy(),user_ids):
+                  raise RuntimeError("Original B2 and causal user IDs differ")
+              known_ids=np.load(idx/"authors.npy",mmap_mode="r")
+              known={int(v):i+1 for i,v in enumerate(known_ids)}
+              counts=np.bincount(np.load(idx/"sequence_ids.npy",mmap_mode="r"),minlength=len(known_ids)+1).astype(float)
+              logs=np.log1p(counts);pop=np.zeros(len(logs),dtype=float)
+              pop[1:]=(logs[1:]-logs[1:].min())/(logs[1:].max()-logs[1:].min())
+              requested={int(e):i for i,e in enumerate(target_ids)}
+              allowed=set(user_ids.tolist())
+              snapshots=[None]*N;last_user=None;seen=set()
+              warm=collections.Counter();raw_count=collections.Counter()
+              recent=collections.deque(maxlen=10)
+              maxraw=0;rows_scanned=0;nonmonotone=0;equal_clock=0
+              last_time=None
+              stream=g/"causal_stream_sealed.parquet"
+              for batch in pq.ParquetFile(stream).iter_batches(batch_size=262144,
+                     columns=["source_event_id","user_id","author_id","observed_at","split"]):
+                  d=batch.to_pydict()
+                  for event,user,author,at,split in zip(d["source_event_id"],d["user_id"],
+                               d["author_id"],d["observed_at"],d["split"]):
+                      if split=="TEST" or user not in allowed:continue
+                      rows_scanned+=1
+                      if user!=last_user:
+                          if user in seen:raise RuntimeError("Causal history has noncontiguous user")
+                          seen.add(user);last_user=user
+                          warm.clear();raw_count.clear();recent.clear();maxraw=0;last_time=None
+                      if last_time is not None:
+                          if at<last_time:nonmonotone+=1
+                          if at==last_time:equal_clock+=1
+                      last_time=at
+                      j=requested.get(int(event))
+                      if j is not None:
+                          if split!="DEV" or snapshots[j] is not None:raise RuntimeError("wrong target split/collision")
+                          snapshots[j]=(dict(warm),tuple(recent),maxraw)
+                      raw=int(author);raw_count[raw]+=1;maxraw=max(maxraw,raw_count[raw])
+                      tok=known.get(raw,0);recent.append(tok)
+                      if tok:warm[tok]+=1
+              if nonmonotone or any(x is None for x in snapshots):
+                  raise RuntimeError("Original replay time order or 1024 target coverage invalid")
+              if len(seen)!=992:raise RuntimeError("Mismatched sampled user group count")
+              names=("full_F","full_S","long_F","long_S")
+              store={name:[] for name in names}
+              cmpcols={"full_F":"memory_ndcg10","full_S":"sampled_memory_ndcg10",
+                       "long_F":"b2_long_only_F_ndcg10","long_S":"b2_long_only_S_ndcg10"}
+              mismatch=collections.Counter()
+              max_err=0.
+              for k,c in active_rosters(g/"available_room_intervals.parquet",clocks,truths,known):
+                  event=int(target_ids[k]);true=int(truths[k])
+                  pool=c[c!=true]
+                  if len(pool)<574:raise RuntimeError("Original sampled S roster insufficient")
+                  sample_rng=np.random.default_rng(SEED+event)
+                  S=np.sort(np.concatenate((sample_rng.choice(pool,size=574,replace=False),
+                                            np.array([true],dtype=np.int32))))
+                  loc=np.searchsorted(c,S)
+                  if not np.array_equal(c[loc],S):raise RuntimeError("S candidates invalid")
+                  warm,recent,den=snapshots[k]
+                  f=score(c,pop,warm,recent,den,with_short=True)
+                  l=score(c,pop,warm,(),den,with_short=False)
+                  vals={"full_F":ndcg(rank(c,f,true)),
+                        "full_S":ndcg(rank(S,f[loc],true)),
+                        "long_F":ndcg(rank(c,l,true)),
+                        "long_S":ndcg(rank(S,l[loc],true))}
+                  for name,v in vals.items():
+                      actual=float(original.iloc[k][cmpcols[name]])
+                      e=abs(actual-v)
+                      max_err=max(max_err,e)
+                      if e>1e-12:mismatch[name]+=1
+                      store[name].append(v)
+              if mismatch:
+                  raise RuntimeError("Original 1024 source replay parity FAILED "+str(dict(mismatch)))
+              result={"schema":"kbs-route-b-b2-original-replay-v1",
+               "status":"PASS_ORIGINAL_FULL_LONG_F_S_DEV_RANK_PARITY",
+               "source_B1_SHA256":B1SHA,"source_B2_SHA256":m2["private_event_source_csv_sha256"],
+               "frozen_sample_SHA256":SAMPLESHA,"n_events":N,"n_users":992,
+               "history_records_for_selected_users":rows_scanned,
+               "replay_nonmonotone_user_timestamps":nonmonotone,
+               "replay_equal_time_neighbor_records":equal_clock,
+               "original_F_S_rank_score_mismatch_counts":dict(mismatch),
+               "max_absolute_NDCG_error":max_err,
+               "NDCG_means":{key:float(np.mean(val)) for key,val in store.items()},
+               "real_historical_null_executed":False,"relation_edges_rewired":False,
+               "G5_TEST_opened":False,"privacy_private_rows_exported":False,
+               "elapsed_seconds":round(time.monotonic()-t0,2)}
+              args.out.mkdir(parents=True,mode=0o700)
+              (args.out/"summary.json").write_text(json.dumps(result,sort_keys=True,indent=2)+"\n")
+              print(json.dumps({"B2_REPLAY":result["status"],"safe_summary":result},sort_keys=True),flush=True)
+          if __name__=="__main__":main()
+          ORIGINAL_SRC
+          export N9_SCRIPT="$RUNNER_TEMP/route_b_b2_original.py"
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'HASH'
+          import pathlib,hashlib,os
+          raw=pathlib.Path(os.environ['N9_SCRIPT']).read_bytes()
+          digest=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+          assert digest=='059f0900b8a5f2c9da4c8b25f3ba5960f5bbfab6', 'route B B2 source checksum mismatch'
+          print('B2 source SHA PASS',flush=True)
+          HASH
+          "$HOME/venvs/kuailive-gpu/bin/python" -m py_compile "$RUNNER_TEMP/route_b_b2_original.py"
+          "$HOME/venvs/kuailive-gpu/bin/python" "$RUNNER_TEMP/route_b_b2_original.py" \
+            --root "$HOME/.cache/kuailive-agent-kbs" \
+            --out "$HOME/.cache/kuailive-agent-kbs/klm3_n9_route_b_b2_original_replay_1024_v1"
