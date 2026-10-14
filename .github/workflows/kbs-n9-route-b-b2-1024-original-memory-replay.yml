@@ -198,7 +198,8 @@ jobs:
                   if not np.array_equal(c[loc],S):raise RuntimeError("S candidates invalid")
                   warm,recent,den=snapshots[k]
                   f=score(c,pop,warm,recent,den,with_short=True)
-                  l=score(c,pop,warm,(),den,with_short=False)
+                  # Original B2 Long-only deliberately excludes popularity and short-term terms.
+                  l=score(c,np.zeros_like(pop),warm,(),den,with_short=False)
                   vals={"full_F":ndcg(rank(c,f,true)),
                         "full_S":ndcg(rank(S,f[loc],true)),
                         "long_F":ndcg(rank(c,l,true)),
@@ -234,7 +235,7 @@ jobs:
           import pathlib,hashlib,os
           raw=pathlib.Path(os.environ['N9_SCRIPT']).read_bytes()
           digest=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
-          assert digest=='059f0900b8a5f2c9da4c8b25f3ba5960f5bbfab6', 'route B B2 source checksum mismatch'
+          assert digest=='d0f6149032d4c23813c4aa5af481ade380f1211e', 'route B B2 source checksum mismatch'
           print('B2 source SHA PASS',flush=True)
           HASH
           "$HOME/venvs/kuailive-gpu/bin/python" -m py_compile "$RUNNER_TEMP/route_b_b2_original.py"
