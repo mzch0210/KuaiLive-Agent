@@ -1,14 +1,12 @@
-# N12-C0 | N11 152段落与图表迁移台账（只读现稿）
+# N12-C0 | N11 全文152内容块迁移地图（章节边界已核验）
 
-> **版本状态**：迁移台账已建立、正文未迁移、没有任何实验重跑。下表中的摘要用于逐段定位；真实引用和准确科学定义始终以冻结N11 LaTeX及公开A4/A5为准。
+> 用于N12逐章重写前的逐段证据保全，原始LaTeX冻结版本保持不变；科学指标和源实验身份必须优先于摘要文本。
 
-- 冻结主稿Git blob：`8ca7dc67ade90048eb0b12059ec8bec75c85194f`
-- 冻结补充材料Git blob：`9b83a31d82f08d1a212f59f99b60975ad902e8e6`
-- 源块：152；标签：59；主文表：13；图：3；现有章节：8；目标章节：7。
+- 旧主文SHA：8ca7dc67ade90048eb0b12059ec8bec75c85194f
+- 旧补充材料SHA：9b83a31d82f08d1a212f59f99b60975ad902e8e6
+- 152个文本内容块、59个原LaTeX标签、13张表、3幅图、8个旧大节；每块仅对应一组新章节/补充材料目标。
 
-## 全段落迁移登记
-
-| 序号 | N11所在章/节 | 原始行 | 标签或起始文本 | 目标位置 | 处理 |
+| 段落ID | 旧大节与小节 | 原始行 | 内容/LaTeX标签 | 新位置 | 处理方式 |
 | --- | --- | ---: | --- | --- | --- |
 | N11-001 | Front matter | 1 | \documentclass[preprint,12pt]{elsarticle} | Front matter/references and technical metadata | PRESERVE_FORMAT |
 | N11-002 | Front matter | 3 | \usepackage[T1]{fontenc} \usepackage[utf8]{inputenc} \usepackage{amsma | Front matter/references and technical metadata | PRESERVE_FORMAT |
@@ -40,8 +38,8 @@
 | N11-028 | Related Work / Live-Streaming Ranking and Candidate-Dependent Evaluation | 95 | Live recommendation couples persistent viewer interests with time-vary | 2 Related Work | CONSOLIDATE |
 | N11-029 | Related Work / Live-Streaming Ranking and Candidate-Dependent Evaluation | 97 | Candidate composition also changes the meaning of ranking metrics. Kri | 2 Related Work | CONSOLIDATE |
 | N11-030 | Related Work / Live-Streaming Ranking and Candidate-Dependent Evaluation | 99 | Together, these literatures establish the distinct precedents for lear | 2 Related Work | CONSOLIDATE |
-| N11-031 | Problem Formulation / Live-Streaming Ranking and Candidate-Dependent Evaluation | 101 | `sec:problem` | 3.1-3.3 Value and candidate definitions | MERGE_3_4 |
-| N11-032 | Problem Formulation / Live-Streaming Ranking and Candidate-Dependent Evaluation | 104 | Let the value of a relationship-memory specialist be the change in eve | 3.1-3.3 Value and candidate definitions | MERGE_3_4 |
+| N11-031 | Problem Formulation | 101 | `sec:problem` | 3.1-3.3 Value and candidate definitions | MERGE_3_4 |
+| N11-032 | Problem Formulation | 104 | Let the value of a relationship-memory specialist be the change in eve | 3.1-3.3 Value and candidate definitions | MERGE_3_4 |
 | N11-033 | Problem Formulation / Recommendation Setting and Event-Level Ranking Utility | 106 | `sec:event-utility` | 3.1-3.3 Value and candidate definitions | MERGE_3_4 |
 | N11-034 | Problem Formulation / Recommendation Setting and Event-Level Ranking Utility | 109 | For user $u$, time $t$ and regime $r$, define the pre-outcome context  | 3.1-3.3 Value and candidate definitions | MERGE_3_4 |
 | N11-035 | Problem Formulation / Recommendation Setting and Event-Level Ranking Utility | 111 | `eq:event-ndcg` | 3.1-3.3 Value and candidate definitions | MERGE_3_4 |
@@ -55,9 +53,9 @@
 | N11-043 | Problem Formulation / Selective Invocation and Invocation-Count Constraints | 163 | `eq:utility-threshold` | 3.5 Invocation and eligibility policy | MERGE_3_4 |
 | N11-044 | Problem Formulation / Regime-Level Utility Decomposition | 172 | `sec:regime-decomposition` | 3.5 Diagnostic-only decomposition; S10 expanded | CONDENSE_SUPPLEMENT |
 | N11-045 | Problem Formulation / Regime-Level Utility Decomposition | 175 | `eq:regime-decomposition` | 3.5 Diagnostic-only decomposition; S10 expanded | CONDENSE_SUPPLEMENT |
-| N11-046 | Problem Formulation / Regime-Level Utility Decomposition | 184 | `sec:framework` | 3.5 Diagnostic-only decomposition; S10 expanded | CONDENSE_SUPPLEMENT |
-| N11-047 | Base-Relative Evidence Valuation Framework / Regime-Level Utility Decomposition | 188 | The framework connects a trained sequential incumbent, an explicit fix | 3.5 Invocation and policy comparators | MERGE_3_4 |
-| N11-048 | Base-Relative Evidence Valuation Framework / Regime-Level Utility Decomposition | 190 | `fig:framework` | 3.5 Selective knowledge-use architecture, online/offline separation | KEEP_EDIT_CAPTION |
+| N11-046 | Base-Relative Evidence Valuation Framework | 184 | `sec:framework` | 3.5 Invocation and policy comparators | MERGE_3_4 |
+| N11-047 | Base-Relative Evidence Valuation Framework | 188 | The framework connects a trained sequential incumbent, an explicit fix | 3.5 Invocation and policy comparators | MERGE_3_4 |
+| N11-048 | Base-Relative Evidence Valuation Framework | 190 | `fig:framework` | 3.5 Selective knowledge-use architecture, online/offline separation | KEEP_EDIT_CAPTION |
 | N11-049 | Base-Relative Evidence Valuation Framework / Strong Sequential Base Recommenders | 216 | `sec:framework-base` | 3.2 Fixed base and explicit Memory | MERGE_3_4 |
 | N11-050 | Base-Relative Evidence Valuation Framework / Strong Sequential Base Recommenders | 219 | The Base represents the recommendation capability to which relationshi | 3.2 Fixed base and explicit Memory | MERGE_3_4 |
 | N11-051 | Base-Relative Evidence Valuation Framework / Transparent Relationship-Memory Specialist | 221 | `sec:framework-memory` | 3.2 Fixed base and explicit Memory | MERGE_3_4 |
@@ -70,8 +68,8 @@
 | N11-058 | Base-Relative Evidence Valuation Framework / Observable Features and Conditional Relative-Utility Estimation | 255 | The Twitch implementation uses six history and eight Base-score descri | 3.4 Decision-time observable features and estimator | MERGE_3_4 |
 | N11-059 | Base-Relative Evidence Valuation Framework / Specialist Selection and Comparator Policies | 257 | `sec:framework-controls` | 3.5 Invocation and policy comparators | MERGE_3_4 |
 | N11-060 | Base-Relative Evidence Valuation Framework / Specialist Selection and Comparator Policies | 260 | At inference, the Base produces the default ranking and its observable | 3.5 Invocation and policy comparators | MERGE_3_4 |
-| N11-061 | Base-Relative Evidence Valuation Framework / Specialist Selection and Comparator Policies | 262 | `sec:experimental-setup` | 3.5 Invocation and policy comparators | MERGE_3_4 |
-| N11-062 | Experimental Setup / Specialist Selection and Comparator Policies | 266 | Table~\ref{tab:exp-datasets} defines the distinct ranked units, candid | 4.6 Implementation summary; Supplement exact settings | CONDENSE_SUPPLEMENT |
+| N11-061 | Experimental Setup | 262 | `sec:experimental-setup` | 4.6 Implementation summary; Supplement exact settings | CONDENSE_SUPPLEMENT |
+| N11-062 | Experimental Setup | 266 | Table~\ref{tab:exp-datasets} defines the distinct ranked units, candid | 4.6 Implementation summary; Supplement exact settings | CONDENSE_SUPPLEMENT |
 | N11-063 | Experimental Setup / Datasets and Prediction Tasks | 268 | `sec:exp-data` | 4.1 Dataset task and evidence-tier protocol | RESTRUCTURE |
 | N11-064 | Experimental Setup / Datasets and Prediction Tasks | 271 | \paragraph{Twitch/LiveRec.} We use the availability-aware LiveRec prot | 4.1 Dataset task and evidence-tier protocol | RESTRUCTURE |
 | N11-065 | Experimental Setup / Datasets and Prediction Tasks | 274 | \paragraph{Original KuaiLive.} We rank a time-bounded live \emph{room} | 4.1 Dataset task and evidence-tier protocol | RESTRUCTURE |
@@ -98,15 +96,15 @@
 | N11-086 | Experimental Setup / Evaluation Metrics and Statistical Analysis | 373 | Twitch TEST confidence intervals are based on 5,000 user-paired bootst | 4.4 Evaluation weights and inference | RESTRUCTURE |
 | N11-087 | Experimental Setup / Implementation Details | 375 | `sec:exp-implementation` | 4.6 Implementation summary; Supplement exact settings | CONDENSE_SUPPLEMENT |
 | N11-088 | Experimental Setup / Implementation Details | 378 | The original KuaiLive room/creator Base uses 64-dimensional ReChorus S | 4.6 Implementation summary; Supplement exact settings | CONDENSE_SUPPLEMENT |
-| N11-089 | Experimental Results / Implementation Details | 380 | `sec:results` | 5.4 Operational conditions and measured costs | CONDENSE |
-| N11-090 | Experimental Results / Implementation Details | 383 | The results proceed from the incremental value of fixed relationship e | 5.4 Operational conditions and measured costs | CONDENSE |
+| N11-089 | Experimental Results | 380 | `sec:results` | 5.4 Operational conditions and measured costs | CONDENSE |
+| N11-090 | Experimental Results | 383 | The results proceed from the incremental value of fixed relationship e | 5.4 Operational conditions and measured costs | CONDENSE |
 | N11-091 | Experimental Results / Heterogeneous Utility of Relationship Memory | 385 | `sec:results-heterogeneity` | 5.1 RQ1 history and candidates | RESTRUCTURE |
 | N11-092 | Experimental Results / Heterogeneous Utility of Relationship Memory | 388 | The ranking contribution of relationship memory is heterogeneous rathe | 5.1 RQ1 history and candidates | RESTRUCTURE |
 | N11-093 | Experimental Results / Heterogeneous Utility of Relationship Memory | 390 | Figure~\ref{fig:results-evidence-states} and Table~\ref{tab:results-ev | 5.1 RQ1 history and candidates | RESTRUCTURE |
 | N11-094 | Experimental Results / Heterogeneous Utility of Relationship Memory | 392 | In the distinct KuaiLive-M3 author-ranking TEST, Memory reaches NDCG@1 | 5.1 RQ1 history and candidates | RESTRUCTURE |
 | N11-095 | Experimental Results / Heterogeneous Utility of Relationship Memory | 394 | `fig:results-evidence-states` | Supplement detailed Twitch state plot (subject to RQ1 density review) | REVIEW_MOVE_TO_SUPPLEMENT |
 | N11-096 | Experimental Results / Heterogeneous Utility of Relationship Memory | 426 | `tab:results-evidence-states` | Supplement Twitch outcome-state details | MOVE_TO_SUPPLEMENT |
-| N11-097 | Experimental Results / Heterogeneous Utility of Relationship Memory | 443 | `sec:results-regimes` | 5.1 RQ1 history and candidates | RESTRUCTURE |
+| N11-097 | Experimental Results / Candidate-Regime Dependence of Relative Utility | 443 | `sec:results-regimes` | 5.1 RQ1 history and candidates | RESTRUCTURE |
 | N11-098 | Experimental Results / Candidate-Regime Dependence of Relative Utility | 447 | Because ranking utility is defined over competing alternatives, the ca | 5.1 RQ1 history and candidates | RESTRUCTURE |
 | N11-099 | Experimental Results / Candidate-Regime Dependence of Relative Utility | 449 | The crossed candidate-membership and Base score-normalization referenc | 5.1 RQ1 history and candidates | RESTRUCTURE |
 | N11-100 | Experimental Results / Candidate-Regime Dependence of Relative Utility | 451 | `tab:results-factorial` | 5.1 RQ1 candidate regime | KEEP_MAIN |
@@ -125,7 +123,7 @@
 | N11-113 | Experimental Results / Decision Value of Predicting Relative Utility | 565 | For the primary M3 fit, random uniform allocation at $30\%$ calls has  | 5.2 RQ2 aligned supervision and selection | RESTRUCTURE |
 | N11-114 | Experimental Results / Decision Value of Predicting Relative Utility | 567 | The additional 30,000-target same-period evaluation tests the conseque | 5.2 RQ2 aligned supervision and selection | RESTRUCTURE |
 | N11-115 | Experimental Results / Decision Value of Predicting Relative Utility | 569 | `tab:results-m3-b4a-supervision` | 5.2 RQ2 frozen 30000 additional-target H1 | KEEP_MAIN |
-| N11-116 | Experimental Results / Decision Value of Predicting Relative Utility | 585 | `sec:results-robustness` | 5.2 RQ2 aligned supervision and selection | RESTRUCTURE |
+| N11-116 | Experimental Results / Relationship Sources and Observable Signals | 585 | `sec:results-robustness` | 5.3 RQ3 authentic history and source controls | RESTRUCTURE |
 | N11-117 | Experimental Results / Relationship Sources and Observable Signals | 589 | The source of historical knowledge is also relevant to its measured ra | 5.3 RQ3 authentic history and source controls | RESTRUCTURE |
 | N11-118 | Experimental Results / Relationship Sources and Observable Signals | 591 | On 1,024 stratified M3 DEV requests, valid historical-author nulls ret | 5.3 RQ3 authentic history and source controls | RESTRUCTURE |
 | N11-119 | Experimental Results / Relationship Sources and Observable Signals | 593 | `tab:results-m3-dev-source` | Supplement mechanism DEV source components | MOVE_TO_SUPPLEMENT |
@@ -134,14 +132,14 @@
 | N11-122 | Experimental Results / Relationship Sources and Observable Signals | 634 | The feasibility of predictive selection depends on pre-outcome descrip | 5.3 RQ3 authentic history and source controls | RESTRUCTURE |
 | N11-123 | Experimental Results / Relationship Sources and Observable Signals | 636 | `tab:results-feature-ablation` | Supplement Twitch DEV features | MOVE_TO_SUPPLEMENT |
 | N11-124 | Experimental Results / Relationship Sources and Observable Signals | 653 | Additional DEV-only diagnostics indicate how that relative value varie | 5.3 RQ3 authentic history and source controls | RESTRUCTURE |
-| N11-125 | Experimental Results / Relationship Sources and Observable Signals | 655 | `sec:results-efficiency` | 5.3 RQ3 authentic history and source controls | RESTRUCTURE |
+| N11-125 | Experimental Results / Invocation Constraints and Measured Scoring Cost | 655 | `sec:results-efficiency` | 5.4 Operational conditions and measured costs | CONDENSE |
 | N11-126 | Experimental Results / Invocation Constraints and Measured Scoring Cost | 659 | The M3 Utility rules realize $27.72$--$29.21\%$ Memory calls on TEST a | 5.4 Operational conditions and measured costs | CONDENSE |
 | N11-127 | Experimental Results / Invocation Constraints and Measured Scoring Cost | 661 | In a matched, exploratory nested M3 DEV sensitivity analysis, raising  | 5.4 Operational conditions and measured costs | CONDENSE |
 | N11-128 | Experimental Results / Invocation Constraints and Measured Scoring Cost | 663 | A first warmed RTX 3090 DEV replay on 256 M3 requests found a faster u | 5.4 Operational conditions and measured costs | CONDENSE |
 | N11-129 | Experimental Results / Invocation Constraints and Measured Scoring Cost | 667 | A second, counterbalanced DEV measurement repeats the same 256 full-ac | 5.4 Operational conditions and measured costs | CONDENSE |
 | N11-130 | Experimental Results / Invocation Constraints and Measured Scoring Cost | 669 | `tab:results-n10-cost` | 5.4 Operating conditions short cost summary; full S10.17 | CONDENSE_MAIN_DETAIL_SUPPLEMENT |
 | N11-131 | Experimental Results / Invocation Constraints and Measured Scoring Cost | 687 | The selector invokes Memory on 80 of 256 distinct DEV requests (31.25\ | 5.4 Operational conditions and measured costs | CONDENSE |
-| N11-132 | Discussion / Invocation Constraints and Measured Scoring Cost | 689 | `sec:discussion` | 6.3 Source validity, policy and transfer conditions | CONSOLIDATE |
+| N11-132 | Discussion | 689 | `sec:discussion` | 6.3 Source validity, policy and transfer conditions | CONSOLIDATE |
 | N11-133 | Discussion / The Relative Value of Relationship Knowledge | 692 | `sec:discussion-operational-value` | 6.1 Knowledge system contribution | CONSOLIDATE |
 | N11-134 | Discussion / The Relative Value of Relationship Knowledge | 695 | The central object of this study is the incremental utility of an expl | 6.1 Knowledge system contribution | CONSOLIDATE |
 | N11-135 | Discussion / The Relative Value of Relationship Knowledge | 697 | This contribution complements prior work on scene-conditioned memory a | 6.1 Knowledge system contribution | CONSOLIDATE |
@@ -157,16 +155,15 @@
 | N11-145 | Discussion / Transferability and Implications for Knowledge-Based Recommendation | 720 | `sec:discussion-implications` | 6.3 Source validity, policy and transfer conditions | CONSOLIDATE |
 | N11-146 | Discussion / Transferability and Implications for Knowledge-Based Recommendation | 723 | The experiments provide complementary, not interchangeable, evidence.  | 6.3 Source validity, policy and transfer conditions | CONSOLIDATE |
 | N11-147 | Discussion / Transferability and Implications for Knowledge-Based Recommendation | 725 | For knowledge-enhanced recommendation, the resulting evaluation discip | 6.3 Source validity, policy and transfer conditions | CONSOLIDATE |
-| N11-148 | Conclusion / Transferability and Implications for Knowledge-Based Recommendation | 727 | `sec:conclusion` | 7 Conclusion | REWRITE_POSITIVE |
-| N11-149 | Conclusion / Transferability and Implications for Knowledge-Based Recommendation | 730 | A fixed relationship-memory ranker has no context-free incremental val | 7 Conclusion | REWRITE_POSITIVE |
-| N11-150 | Conclusion / Transferability and Implications for Knowledge-Based Recommendation | 732 | The research contribution is a reproducible framework for \emph{evalua | 7 Conclusion | REWRITE_POSITIVE |
-| N11-151 | Conclusion / Transferability and Implications for Knowledge-Based Recommendation | 734 |  \bibliographystyle{elsarticle-num} \bibliography{kbs_references} | 7 Conclusion | REWRITE_POSITIVE |
-| N11-152 | Conclusion / Transferability and Implications for Knowledge-Based Recommendation | 738 | \end{document} | 7 Conclusion | REWRITE_POSITIVE |
+| N11-148 | Conclusion | 727 | `sec:conclusion` | 7 Conclusion | REWRITE_POSITIVE |
+| N11-149 | Conclusion | 730 | A fixed relationship-memory ranker has no context-free incremental val | 7 Conclusion | REWRITE_POSITIVE |
+| N11-150 | Conclusion | 732 | The research contribution is a reproducible framework for \emph{evalua | 7 Conclusion | REWRITE_POSITIVE |
+| N11-151 | Conclusion | 734 |  \bibliographystyle{elsarticle-num} \bibliography{kbs_references} | 7 Conclusion | REWRITE_POSITIVE |
+| N11-152 | Conclusion | 738 | \end{document} | 7 Conclusion | REWRITE_POSITIVE |
 
-## 必须完成的表格/图形落地门禁
+## 表格/图文迁移门禁
 
-- `MOVE_TO_SUPPLEMENT`及`CONDENSE_MAIN_DETAIL_SUPPLEMENT`不能简单删除：须在原S10相应小节保留完整表格、数值和原估计协议，同时在新主文增加精准引用。
-- 无法自动确定价值的某些长式补充图，只能在N12-1证据分配审核后迁移，不允许暂存丢失。
-- 图示中P3为知识来源有效性旁路检验，不用P1→P2→P3单向因果箭头。
-- 源块FNV32只作编辑身份识别；用于冻结证据的Git SHA必须与N11仓库实际对象一致。
-- 主稿标题、作者声明和任何私有原始数据不属于编辑重构时可以自动替换的研究事实。
+- MOVE_TO_SUPPLEMENT：必须迁移完整数值、图注、科学控制和方法，并提供主稿定位。
+- 原同时间段B4-A 30k/4096的冻结效果和反证不因缩短正文而消失。
+- 新概念图把历史源有效性作为与决策检验并列的支路；不画出RQ2→RQ3的因果箭头。
+- FNV32仅用于编辑清单段落身份，不代替Git SHA与冻结实验SHA。
