@@ -68,9 +68,23 @@ def polish(path: Path) -> dict:
     markdown_path = path.with_name("SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md")
     markdown = markdown_path.read_text(encoding="utf-8")
     expected_tables = len(re.findall(r"\*\*Table S(?:[1-9]|10)\.\d+\.", markdown))
-    if tables != expected_tables or expected_tables < 23:
+    # N10 S10.10 is deliberately a small non-splitting raw LaTeX tabular.
+    # Pandoc previously rendered it as longtable with an orphaned repeated
+    # header on the next page. Count that table rather than disabling or
+    # weakening the original caption/table completeness contract.
+    raw_tables = re.findall(
+        r"\\begin\{tabular\}(.*?)\\end\{tabular\}", source, flags=re.S
+    )
+    if len(raw_tables) > 1 or any(
+        "Relation condition" not in block
+        or "Authentic original Full Memory" not in block
+        or "0.303905" not in block for block in raw_tables
+    ):
+        raise ValueError("Unexpected raw supplementary table or incomplete S10.10")
+    total_tables = tables + len(raw_tables)
+    if total_tables != expected_tables or expected_tables < 23:
         raise ValueError(
-            f"Source/TeX supplementary table-count mismatch: markdown {expected_tables}, TeX {tables}"
+            f"Source/TeX supplementary table-count mismatch: markdown {expected_tables}, TeX {total_tables}"
         )
     if rotations < 3:
         raise ValueError(f"Expected several publication-width tables; found {rotations}")
@@ -88,7 +102,7 @@ def polish(path: Path) -> dict:
             f"{n_captions} of {rotations}"
         )
     path.write_text(source, encoding="utf-8")
-    return {"breakable_sha256": n_hash, "tables": tables, "landscape_tables": rotations}
+    return {"breakable_sha256": n_hash, "tables": total_tables, "raw_nonbreakable_tables": len(raw_tables), "landscape_tables": rotations}
 
 
 if __name__ == "__main__":
