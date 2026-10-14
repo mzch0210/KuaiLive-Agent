@@ -2,7 +2,10 @@ name: KBS B4-A A7 updated paper and supplement PDF
 on:
   push:
     branches: [kbs-b4a-a3-synthetic-preflight-20261014]
-    paths: ['.github/workflows/kbs-n9-b4a-a7-integrated-build.yml']
+    paths:
+      - '.github/workflows/kbs-n9-b4a-a7-integrated-build.yml'
+      - 'manuscript/kbs_latex/main.tex'
+      - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md'
 permissions:
   contents: read
 concurrency:
