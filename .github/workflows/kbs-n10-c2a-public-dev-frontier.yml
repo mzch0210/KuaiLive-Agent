@@ -1,0 +1,32 @@
+name: KBS N10 C2-A public DEV-only frontier
+on:
+  push:
+    branches: [kbs-n10-route-c-c0-c1-20261014]
+    paths:
+      - '.github/workflows/kbs-n10-c2a-public-dev-frontier.yml'
+      - 'analysis/kbs_plan_c/n10_c2a_public_dev_frontier.py'
+      - 'analysis/kbs_plan_c/test_n10_c2a_public_dev_frontier.py'
+permissions:
+  contents: read
+jobs:
+  no-test-dev-aggregate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Reconstruct archived public DEV source with no data reading
+        run: |
+          set -euo pipefail
+          python analysis/kbs_plan_c/n10_c2a_public_dev_frontier.py > c2a_public_source_only.json
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n10_c2a_public_dev_frontier.py' -v
+          python - <<'PY'
+          import json
+          j=json.load(open('c2a_public_source_only.json'))
+          assert not j["B4A_reopened"] and not j["production_latency_or_cost_measured"]
+          print("C2A_PUBLIC_SOURCE_ONLY", json.dumps({
+              name:{"memory_minus_30":v["full_memory_minus_30_quality"],
+                    "call_fraction":v["30_inner_actual_q"],
+                    "shadow_NDCG_per_call":v["break_even_lambda_ndcg_per_memory_call"]}
+              for name,v in j["families"].items()},sort_keys=True))
+          PY
