@@ -101,17 +101,18 @@ Ranking utility is itself sensitive to which alternatives are evaluated. Krichen
 
 Taken together, existing work motivates learning what knowledge to represent or retain, when to delegate a decision and how ranking metrics change with candidate sampling. This study joins those questions at a measurable interface: the candidate-indexed downstream value of a fixed historical relationship source relative to its incumbent, its prediction from decision-time information, and the validity of the history that supplies it.
 
-\section{Problem Formulation}
+\section{Knowledge Valuation and Selective Use}
 \label{sec:problem}
+\label{sec:framework}
 
-Let the value of a relationship-memory specialist be the change in event-level ranking utility obtained by replacing the designated trained incumbent on the same eligible candidates. This definition supplies an observable supervision target and a candidate-regime-specific basis for interpretation.
+We study the use of an already specified relationship-knowledge specialist for a ranking decision. The framework fixes the incumbent, the historical source and the evaluation candidates before asking whether to use the specialist. Its central quantity is the specialist's incremental ranking utility on those candidates; observed outcomes provide offline supervision, whereas decision-time features alone determine invocation. Figure~\ref{fig:framework} separates these two information paths.
 
-\subsection{Recommendation Setting and Event-Level Ranking Utility}
+\subsection{Ranking Events and Candidate-Dependent Utility}
 \label{sec:event-utility}
 
-For user $u$, time $t$ and regime $r$, define the pre-outcome context as $\xi_r=(u,t,\mathcal{C}^{(r)}_{u,t},\mathcal{H}_{u,t})$. Here $\mathcal{C}^{(r)}_{u,t}$ is the eligible candidate set and $\mathcal{H}_{u,t}$ contains interactions already observed before the decision. An evaluated event is $x_r=(\xi_r,y)$, where $y\in\mathcal{C}^{(r)}_{u,t}$ is the subsequently observed relevant item. Both rankers operate on $\xi_r$ without access to $y$. The regime indexes the construction of candidates and ranking scores; the same user--time--target interaction may therefore be evaluated under distinct candidate regimes. We omit $r$ when the regime is fixed.
+For user $u$, decision time $t$ and candidate regime $r$, let $\xi_r=(u,t,\mathcal{C}^{(r)}_{u,t},\mathcal{H}_{u,t})$ denote the pre-outcome context. The set $\mathcal{C}^{(r)}_{u,t}$ contains the eligible ranking alternatives and $\mathcal{H}_{u,t}$ the interactions observed strictly before $t$. An offline evaluated event is $x_r=(\xi_r,y)$, where $y$ is the subsequently observed target in that eligible set. Rankers operate on $\xi_r$ without seeing $y$; the target is used only to evaluate their outputs. Candidate regime $r$ specifies how candidates and their scores are constructed, and a given event can be evaluated under more than one regime. We suppress $r$ when it is fixed.
 
-Let $r_A(y\mid\xi)$ be the one-indexed position of $y$ in the ranking produced by model $A$. For a single observed relevant target, event-level NDCG@$K$ is
+Let $r_A(y\mid\xi)$ be the one-indexed position of target $y$ in the candidate ranking returned by model $A$. For one observed relevant item, event-level normalized discounted cumulative gain at cutoff $K$ is
 \begin{equation}
     u_K(A,x)=
     \begin{cases}
@@ -120,75 +121,57 @@ Let $r_A(y\mid\xi)$ be the one-indexed position of $y$ in the ranking produced b
     \end{cases}
     \label{eq:event-ndcg}
 \end{equation}
-Its mean across a specified set of events is the corresponding aggregate NDCG@$K$. The realized target determines the offline utility, whereas the eligible candidates determine the competition in which that target is ranked. We use $K=10$ in the experiments.
+Mean NDCG@$K$ is calculated across an explicitly specified evaluation sample, with $K=10$ throughout the experiments. Since ranks depend on the eligible alternatives, changing the candidate regime may change the observed value of the same ranker without changing its historical evidence or scoring function.
 
-\subsection{Base-Relative Specialist Utility}
+\subsection{Fixed Incumbent and Explicit Relationship Knowledge}
+\label{sec:framework-base}
+\label{sec:framework-memory}
+
+The trained \emph{Base} ranker $B$ is the designated incumbent within each dataset's evaluation protocol. Twitch uses availability-aware LiveRec \cite{rappaz2021liverec}; the original KuaiLive room-ranking model combines room- and creator-identity SASRec branches, standardizing scores within each candidate set before their development-selected fusion; and KuaiLive-M3 uses author-ranking SASRec and GRU4Rec. These are protocol-specific trained models, not a single incumbent transferred between streamer-, room- and author-ranking tasks. Their training and checkpoint-selection procedures are described in Section~\ref{sec:experimental-setup} and Supplementary S2--S3.
+
+The \emph{Memory} ranker $M$ is a fixed and auditable specialist defined by prior user--creator relationships. Let $n_{u,i}(t)$ count interactions with creator $i$ before the event and $n_{u,\max}(t)=\max_j n_{u,j}(t)$ across eligible recorded history. The long-term score is $\mathrm{Long}(u,i,t)=n_{u,i}(t)/\max\{1,n_{u,\max}(t)\}$. For the user's last $K_s=10$ creator interactions, indexed backward from the most recent by $d=0$, define $\mathrm{Short}(u,i,t)=\max_{\{d:i_d=i\}}\exp(-d/3)$, with zero if no matching event exists. The popularity component $\mathrm{Pop}(i)$ is the log-count transform of TRAIN-split creator frequency followed by min--max scaling; it is zero for a creator absent from that reference. The specialist score is
+\begin{equation}
+s_M(u,i,t)=
+0.45\,\mathrm{Short}(u,i,t)
++0.45\,\mathrm{Long}(u,i,t)
++0.10\,\mathrm{Pop}(i).
+\label{eq:memory-scoring}
+\end{equation}
+The weights remain fixed across ranking events and the specialist does not retrain or fuse its coefficients for a particular user. Eligible rooms in the original KuaiLive protocol may share a creator-level score, whereas Twitch and M3 rank persistent streamer or author identities directly. In M3, Short uses the last ten \emph{all-author} interactions, and Long's history normalization considers past authors even if they are not in the current TRAIN-known vocabulary. Such historical observations affect recency and normalization, but they do not create additional eligible current candidates. Both $B$ and $M$ rank the \emph{same} event-specific candidates; eligibility and tie-breaking rules are recorded in Section~\ref{sec:exp-data} and Supplementary S1--S2.
+
+\subsection{Incumbent-Relative Knowledge Value and Candidate Regimes}
 \label{sec:relative-utility}
+\label{sec:conditional-utility}
 
-Let $B$ be the designated trained incumbent and $M$ a fixed relationship-memory specialist within an evaluation protocol. Each assigns a ranking to the \emph{same} candidate set for the same event. The event-level incremental utility of invoking the specialist is
+Knowledge value is defined as the difference between two fully specified ranking decisions, rather than the specialist's isolated predictive quality. For the same event and eligible candidates, write
 \begin{equation}
     \Delta_M(x)=u_K(M,x)-u_K(B,x).
     \label{eq:delta-memory}
 \end{equation}
-Positive, zero and negative values indicate that Memory improves, ties or worsens the incumbent's rank utility, respectively. Although $M$ may use relationship history beyond the incumbent's visible input, its usefulness is defined by the particular $B$, target-ranking unit and candidates. Since $\Delta_M$ depends on the observed target, it is available for supervised development and retrospective analysis, but not at the moment of selection.
+Positive or negative values mean that replacing $B$ with $M$ improves or worsens the realized top-$K$ rank utility. The target-dependent $\Delta_M$ is observable during supervised development and offline evaluation; it is \emph{not} itself a decision-time feature.
 
-\subsection{Conditional Relative Utility}
-\label{sec:conditional-utility}
-
-Let $Z$ comprise decision-time observable summaries of user history and the Base's candidate scores. For the event distribution associated with regime $R=r$, define
+Let $Z$ denote features computed from pretarget history, current candidate availability and Base scores. The regime-specific conditional value function is
 \begin{equation}
     \eta_r(z)
     =\mathbb{E}\!\left[\Delta_M(X)\mid Z=z,R=r\right].
     \label{eq:eta}
 \end{equation}
-The estimator $\hat{\eta}_r(z)$ predicts the ranking gain of using the fixed specialist in place of its incumbent. Conditioning on the regime makes the candidate and ranking protocol part of the estimation target; it does not require $R$ to be a separately provided input feature.
+A model fitted to these labels yields $\hat{\eta}_r(z)$ as the decision-time prediction of using $M$ instead of $B$. Candidate regime is part of the value target even if the selector is not given a separate categorical regime indicator.
 
-For the paired development evaluations considered below, $\Delta_S(x)$ and $\Delta_F(x)$ denote the specialist-minus-incumbent utility obtained on the sampled and full-active candidate sets, respectively. For a pre-outcome selection policy $\pi$, let $V_F(\pi)=\mathbb{E}[u_{10}(B,X_F)+\pi(Z)\Delta_F(X)]$ be its expected utility when the actual evaluation regime is full-active. The candidate-supervision transfer contrast is
+For the paired development tasks, $\Delta_S$ and $\Delta_F$ are the incremental utilities measured on sampled and full-active candidate sets, respectively. An observed target may be retained in a retrospectively constructed sampled \emph{training label}; this construction is separate from the information available to a deployed selector. Let $\pi_S$ and $\pi_F$ be policies trained and calibrated under their respective labels and evaluated on the same full-active events. Define $V_F(\pi)=\mathbb{E}[u_{10}(B,X_F)+\pi(Z)\Delta_F(X)]$. The policy transfer comparison is
 \begin{equation}
     \mathcal{R}_{S\rightarrow F}
     =V_F(\pi_F)-V_F(\pi_S),
     \label{eq:candidate-supervision-transfer}
 \end{equation}
-where $\pi_F$ and $\pi_S$ are fitted and calibrated with full-active and sampled-candidate utility labels, respectively. This is an empirical difference between fitted policies evaluated on the same full-active events; its sign is not asserted to be universally positive, and unequal realized specialist calls must be reported.
+This is a contrast between the realized full-candidate performance of \emph{frozen fitted policies}, not an identity guaranteeing that aligned supervision is superior or that their realized specialist-call rates are equal.
 
-A pre-outcome decision $a(Z)\in\{0,1\}$ returns the Base ranking when $a=0$ and invokes the Memory ranking when $a=1$. Its realized event utility is $u_K^{\mathrm{sel}}(x;a)=(1-a)u_K(B,x)+a\,u_K(M,x)$. By iterated expectation,
-\begin{align}
-    &\mathbb{E}\!\left[u_K^{\mathrm{sel}}(X;a)-u_K(B,X)\mid R=r\right] \\
-    &\qquad=\mathbb{E}\!\left[a(Z)\Delta_M(X)\mid R=r\right]
-    =\mathbb{E}\!\left[a(Z)\eta_r(Z)\mid R=r\right].
-    \label{eq:expected-selective-gain}
-\end{align}
-This identity connects the relative-value prediction target to selective ranking quality. The general idea of allocating predictions to an expert is established in learning-to-defer research \cite{mozannar2020defer,narasimhan2022posthoc}; our analysis operationalizes that comparison for a fixed relationship-memory ranker and event-level candidate-dependent ranking utility.
+\subsection{Pretarget Estimation and Observable Evidence}
+\label{sec:framework-estimation}
 
-\subsection{Selective Invocation and Invocation-Count Constraints}
-\label{sec:decision-rule}
+The feature vector $Z$ combines summaries of historical creator repetition and support with the incumbent's score distribution over the currently available candidates. These descriptors characterize the knowledge that could be useful and the incumbent decision it could change. The Twitch selector uses six history and eight Base-score features, while M3 uses seven history/candidate and five Base-score features; the fitted estimators and candidate-scoring pipelines are protocol-specific. M3's historical-support share, for example, is derived from creator identities already observed and the current candidate roster, \emph{before} computing the full Memory ranking.
 
-A score-based policy selects Memory when its estimated relative utility exceeds a development-calibrated threshold. Denoting the protocol's deterministic boundary comparison by $\succeq_r$, the Utility policy is
-\begin{equation}
-    a_{\tau_r}(z)=\mathbf{1}\!\left[
-    \hat{\eta}_r(z)\mathrel{\succeq_r}\tau_r
-    \right].
-    \label{eq:utility-threshold}
-\end{equation}
-Among candidate thresholds, development data determine a selection rule with a specified maximum fraction of Memory invocations. The finite-sample constraint is $\hat{q}_{\mathrm{DEV}}=n_{\mathrm{DEV}}^{-1}\sum_{i=1}^{n_{\mathrm{DEV}}}a_{\tau_r}(z_i)\le q_r$, where $q_r$ is the design limit; it is not a guaranteed upper bound on the realized future invocation rate. The threshold-selection and comparator-specific procedures are given in Section~\ref{sec:exp-freeze}. This is an \emph{invocation-count} constraint rather than a measured budget on end-to-end computation.
-
-\subsection{Regime-Level Utility Decomposition}
-\label{sec:regime-decomposition}
-
-To interpret aggregate differences, let $S$ index mutually exclusive target-relative relationship-evidence states (Section~\ref{sec:framework-states}). Their contributions to mean specialist value satisfy
-\begin{equation}
-    \bar{\Delta}_r
-    =\sum_s P(S=s\mid R=r)
-    \,\mathbb{E}\!\left[\Delta_M(X)\mid S=s,R=r\right],
-    \label{eq:regime-decomposition}
-\end{equation}
-where $\bar{\Delta}_r=\mathbb{E}[\Delta_M(X)\mid R=r]$. This separates the prevalence of retrospectively defined states from their state-conditional utility; the paired candidate-regime contrast is defined in Section~\ref{sec:exp-regimes}.
-
-
-\section{Base-Relative Evidence Valuation Framework}
-\label{sec:framework}
-
-The framework connects a trained sequential incumbent, an explicit fixed relationship-memory specialist and a selector that estimates their relative ranking value (Figure~\ref{fig:framework}). Base scores and historical descriptors are available before the choice; the Memory ranking is computed on selected requests. Observed outcomes subsequently provide development supervision and retrospective explanations of relative value.
+Training labels contain the subsequently observed target and its realized ranking positions, but no such target-specific information enters $Z$. The same separation applies to features that could only be calculated from the true target's membership in the Base's input or historical sequence: these are reserved for retrospective diagnostics. Section~\ref{sec:exp-comparators} specifies the fitted estimators and comparator targets; full feature transformations and audit rules appear in Supplementary S2 and S7.
 
 \begin{figure}[t]
 \centering
@@ -216,29 +199,31 @@ The framework connects a trained sequential incumbent, an explicit fixed relatio
 \label{fig:framework}
 \end{figure}
 
-\subsection{Strong Sequential Base Recommenders}
-\label{sec:framework-base}
+\subsection{Invocation-Constrained Use and Retrospective Diagnostics}
+\label{sec:decision-rule}
+\label{sec:framework-controls}
 
-The Base represents the recommendation capability to which relationship knowledge is added. The original KuaiLive Base combines room- and creator-identity SASRec branches to rank eligible \emph{rooms}; within-candidate score standardization precedes their development-selected fusion. Twitch uses the availability-aware LiveRec model with context and repeated-consumption components \cite{rappaz2021liverec}. KuaiLive-M3 employs author-level SASRec and GRU4Rec encoders that rank eligible persistent authors. These are designated trained incumbents for their respective tasks rather than a single model transferred across datasets. Their training, candidate construction and checkpoint selection are specified in Section~\ref{sec:experimental-setup} and Supplementary S2--S3.
+A policy first computes the Base ranking and the observable features. For each event it either returns $B$ or computes the ranking from $M$ using the identical eligible candidates. Denoting this pretarget decision by $a(Z)\in\{0,1\}$, the realized selected utility is $u_K^{\mathrm{sel}}(x;a)=(1-a)u_K(B,x)+a\,u_K(M,x)$. Taking expectations conditional on a regime yields
+\begin{align}
+    &\mathbb{E}\!\left[u_K^{\mathrm{sel}}(X;a)-u_K(B,X)\mid R=r\right] \\
+    &\qquad=\mathbb{E}\!\left[a(Z)\Delta_M(X)\mid R=r\right]
+    =\mathbb{E}\!\left[a(Z)\eta_r(Z)\mid R=r\right].
+    \label{eq:expected-selective-gain}
+\end{align}
+This standard identity connects the conditional value target with decision quality and is consistent with established learning-to-defer formulations \cite{mozannar2020defer,narasimhan2022posthoc}; it is not a claim of a new general delegation theorem.
 
-\subsection{Transparent Relationship-Memory Specialist}
-\label{sec:framework-memory}
-
-The specialist scores each eligible candidate using user--creator relationships observed strictly before the current event. Let $n_{u,i}(t)$ be the number of prior user interactions with creator $i$, and let $n_{u,\max}(t)=\max_j n_{u,j}(t)$ over the eligible recorded history. The long-term relationship score is $\mathrm{Long}(u,i,t)=n_{u,i}(t)/\max\{1,n_{u,\max}(t)\}$. For the last $K_s=10$ user--creator interactions, indexed backward from the most recent by $d=0$, the short-term score is $\mathrm{Short}(u,i,t)=\max_{\{d:i_d=i\}}\exp(-d/3)$, with an empty-set maximum of zero. Repeated recent interactions thus contribute their most recent decayed strength. The popularity score $\mathrm{Pop}(i)$ applies log-count transformation and min--max scaling to the training-split creator frequencies, assigning zero to a creator absent from that reference. The fixed relationship ranking score is
+The Utility policy compares the fitted gain estimate with a DEV-selected threshold. With $\succeq_r$ denoting the protocol's deterministic boundary convention, the policy is
 \begin{equation}
-s_M(u,i,t)=
-0.45\,\mathrm{Short}(u,i,t)
-+0.45\,\mathrm{Long}(u,i,t)
-+0.10\,\mathrm{Pop}(i).
-\label{eq:memory-scoring}
+    a_{\tau_r}(z)=\mathbf{1}\!\left[
+    \hat{\eta}_r(z)\mathrel{\succeq_r}\tau_r
+    \right].
+    \label{eq:utility-threshold}
 \end{equation}
+A threshold is chosen on development data for an invocation-fraction design limit $q_r$: $\hat q_{\mathrm{DEV}}=n_{\mathrm{DEV}}^{-1}\sum_i a_{\tau_r}(z_i)\le q_r$. Calibration constrains the \emph{development} call count and does not guarantee an identical realized fraction on the evaluation cohort. It is a limit on specialist invocations, rather than an observed cap on production compute time or monetary expense. The same frozen Base--Memory pair supports comparisons with predicted Base difficulty, standalone Memory performance and available pretarget heuristics; see Section~\ref{sec:exp-comparators}.
 
-These weights define the fixed specialist rather than a per-event trained fusion. In the original room-ranking task, multiple eligible rooms can inherit a common creator relationship score. Twitch and M3 directly rank persistent streamers or authors. In M3, the last ten \emph{all-author} prior interactions determine Short, while Long's normalization counts all past authors, including authors absent from the TRAIN-known candidate vocabulary. Such earlier authors can affect historical recency and normalization without becoming eligible current candidates. The frozen incumbent and Memory always rank the same decision-time candidate set; deterministic ranking-tie conventions and dataset-specific history eligibility are documented in Section~\ref{sec:exp-data} and Supplementary S1--S2.
-
-\subsection{Base-Relative Relationship-Evidence States}
+\paragraph{Retrospective relationship-evidence states.}
 \label{sec:framework-states}
-
-The visibility of the subsequently observed target in prior history provides an interpretable partition of realized specialist value. Let $V_L(x)$ indicate whether the target creator occurs within the Base's most recent $L$ input interactions and $H(x)$ whether it occurs anywhere in the eligible pre-target history. Define
+Let $V_L(x)$ indicate that the \emph{observed target creator} occurs in the Base's most recent $L$ input interactions, and let $H(x)$ indicate that the creator occurs in eligible earlier user history. For explanatory analysis after the target outcome, define
 \begin{equation}
 S_L(x)=
 \begin{cases}
@@ -248,20 +233,18 @@ S_L(x)=
 \end{cases}
 \label{eq:diagnostic-states}
 \end{equation}
-Here \emph{represented} describes input-sequence membership, not a claim about what the trained Base representation retains. Since this partition refers to the observed target, it is used to explain results after evaluation; neither $S_L$ nor target-specific recurrence distance is a selector input.
+The three states distinguish evidence represented in the input window, recoverable outside that window and not observed in accessible history. The label \emph{represented} describes sequence membership, not proof that the trained embedding retained every relationship. Since these states depend on the observed target, they are \emph{never} features for the real selector.
 
-\subsection{Observable Features and Conditional Relative-Utility Estimation}
-\label{sec:framework-estimation}
-
-The decision vector $Z$ combines historical relationship descriptors with statistics computed from the Base's candidate scores. Its history component characterizes how much and what kind of repeated creator evidence is available, while score-distribution summaries characterize the incumbent's current ranking context. The relative-utility regressor is trained on DEV event labels $\Delta_M(x)$ (Eq.~\eqref{eq:delta-memory}); the current target, its diagnostic state and realized rank utility are excluded from the predictor features.
-
-The Twitch implementation uses six history and eight Base-score descriptors; M3 uses seven history/candidate and five Base-score descriptors. The platforms use different history construction and ranking units, so their fitted models and feature vectors are protocol-specific. In M3, the history-support fraction can be obtained from previously observed creator identities and the available candidate roster \emph{before} evaluating the full Memory ranking; it does not expose the current target. Section~\ref{sec:exp-comparators} defines the comparator prediction targets and exact feature groups, with full transformations in Supplementary S2 and S7.
-
-\subsection{Specialist Selection and Comparator Policies}
-\label{sec:framework-controls}
-
-At inference, the Base produces the default ranking and its observable score descriptors. The selector applies the DEV-calibrated pointwise rule from Eq.~\eqref{eq:utility-threshold}, returning the Base ranking or computing Memory on the identical available candidates. To test whether specialist-specific value offers more decision information than a broader request-difficulty signal, we compare Utility against predictors of incumbent difficulty and standalone specialist performance, as well as pre-outcome heuristic policies where the experimental protocol permits. Their complete definitions and inferential roles belong to Section~\ref{sec:exp-comparators}. The selection mechanism changes which ranking is returned, not the two underlying fixed rankings.
-
+\paragraph{Regime-level retrospective decomposition.}
+\label{sec:regime-decomposition}
+Let $S$ denote the preceding mutually exclusive historical-evidence states. Their contribution to mean specialist value obeys
+\begin{equation}
+    \bar{\Delta}_r
+    =\sum_s P(S=s\mid R=r)
+    \,\mathbb{E}\!\left[\Delta_M(X)\mid S=s,R=r\right],
+    \label{eq:regime-decomposition}
+\end{equation}
+This identity separates retrospective state prevalence from conditional Memory--Base utility and provides a diagnostic interpretation of results across candidate regimes (Section~\ref{sec:exp-regimes}). It does not define a second training target or alter the causal information available at a decision.
 
 \section{Experimental Setup}
 \label{sec:experimental-setup}
