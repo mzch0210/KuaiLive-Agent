@@ -1,0 +1,53 @@
+name: KBS B4-A A3 production code static contract checks
+on:
+  push:
+    branches: [kbs-b4a-a3-synthetic-preflight-20261014]
+    paths: ['.github/workflows/kbs-n9-route-b-b4a-a3-production-static.yml']
+  pull_request:
+    branches: [main]
+    paths:
+      - 'analysis/kbs_plan_c/n9_b4a_a3_*.py'
+      - '.github/workflows/kbs-n9-route-b-b4a-a3-production-static.yml'
+permissions:
+  contents: read
+jobs:
+  analyze-without-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Compile all A3 scripts, verify no label-evaluation imports and static safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            analysis/kbs_plan_c/n9_b4a_a3_synthetic_preflight.py \
+            analysis/kbs_plan_c/n9_b4a_a3_private_source_preflight.py \
+            analysis/kbs_plan_c/n9_b4a_a3_h1_blind_score.py \
+            analysis/kbs_plan_c/n9_b4a_a3_h2_private_null_structure.py \
+            analysis/kbs_plan_c/n9_b4a_a3_h2_blind_score.py
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          root=Path('analysis/kbs_plan_c')
+          files=['n9_b4a_a3_private_source_preflight.py',
+                 'n9_b4a_a3_h1_blind_score.py',
+                 'n9_b4a_a3_h2_private_null_structure.py',
+                 'n9_b4a_a3_h2_blind_score.py']
+          forbidden_modules={'g5_confirm_test','g5_unlabeled_test_score_eval',
+                  'n9_b4a_a4_unseal','g5_confirm'}
+          for name in files:
+              src=(root/name).read_text()
+              tree=ast.parse(src)
+              imported=set()
+              for n in ast.walk(tree):
+                  if isinstance(n,ast.Import):
+                      imported.update(a.name.split('.')[0] for a in n.names)
+                  if isinstance(n,ast.ImportFrom):
+                      imported.add((n.module or '').split('.')[0])
+              assert not imported & forbidden_modules,(name,imported&forbidden_modules)
+              assert 'A4' in src and 'ndcg' in src.lower(), 'Explicit no-outcome contract missing'
+          print('A3 production sources parse; no A4 label evaluator imported; no source data read')
+          PY
