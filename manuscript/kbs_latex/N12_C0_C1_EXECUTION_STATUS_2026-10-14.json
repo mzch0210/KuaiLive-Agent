@@ -1,10 +1,10 @@
 {
-  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v2",
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v3",
   "date": "2026-10-14",
   "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
   "draft_pr": 6,
   "base_branch": "kbs-n11-final-editorial-polish-20261014",
-  "current_stage": "N12_C0_C1_C2_COMPLETED_READY_FOR_N12_C3",
+  "current_stage": "N12_C0_C1_C2_C3_COMPLETE_NEXT_N12_C4",
   "CI": {
     "C0C1": {
       "run": 38546213364,
@@ -12,6 +12,10 @@
     },
     "C2": {
       "run": 38547234449,
+      "conclusion": "success"
+    },
+    "C3": {
+      "run": 38549828504,
       "conclusion": "success"
     }
   },
@@ -24,7 +28,7 @@
     "supp_rewritten": false,
     "A4_rerun": false,
     "private_TEST_labels_read": false,
-    "main_rewrite_scope": "ONLY_Introduction_Related_Work_and_Figure1",
+    "main_rewrite_scope": "C2_REWRITTEN_INTRO_RELATED_WORK_AND_C3_MERGED_METHOD_ONLY",
     "original_main_blob_still_available_as_N11": "8ca7dc67ade90048eb0b12059ec8bec75c85194f"
   },
   "stages": {
@@ -67,11 +71,28 @@
       "existing_10_experiment_families_in_main": true
     },
     "N12-3": {
-      "status": "NEXT",
-      "task": "Merge original Problem Formulation and Base-Relative Framework into Knowledge Valuation and Selective Use with no changed target leakage contract; update seven-section scientific checks."
+      "status": "PASS",
+      "task": "Merged former Problem Formulation and Framework into five scientific subsections; exact nine math blocks and 22 labels preserved; pretarget model and historical source unchanged.",
+      "CI_run": 38549828504,
+      "CI_status": "BOTH_JOBS_SUCCESS",
+      "main_pages": 38,
+      "supp_pages": 45,
+      "main_artifact_id": 11885972844,
+      "supp_artifact_id": 11886356772,
+      "main_sha256": "773ecfe60b0d1410728e29575deb88075315dab1438ee662b8ddb702c83a1038",
+      "supp_sha256": "032b1c96353029294bd3d2bc9768c15e34247d53144d313dc1ae9f8237f33448",
+      "method_equation_blocks_byte_text_identical_to_N11": 9,
+      "method_labels_preserved": 22,
+      "overfull_hbox_main": 0,
+      "overfull_hbox_supp": 0,
+      "unresolved_citations": 0,
+      "method_figure_page_position": "PASS_FLOATBARRIER_BEFORE_3_5",
+      "new_training": false,
+      "private_A4_read": false
     },
     "N12-4": {
-      "status": "NOT_STARTED"
+      "status": "NEXT_NOT_STARTED",
+      "task": "Refactor Experimental Setup into Experimental Design with explicit source/cohort/evidence tier and frozen statistical estimator identity; retain original claims and sample provenance."
     },
     "N12-5": {
       "status": "NOT_STARTED"
