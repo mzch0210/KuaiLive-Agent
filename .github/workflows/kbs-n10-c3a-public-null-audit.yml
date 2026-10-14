@@ -1,0 +1,22 @@
+name: KBS N10 C3-A fixed-source relation null audit
+on:
+  push:
+    branches: [kbs-n10-route-c-c0-c1-20261014]
+    paths:
+      - '.github/workflows/kbs-n10-c3a-public-null-audit.yml'
+      - 'analysis/kbs_plan_c/n10_c3a_public_null_validity.py'
+      - 'analysis/kbs_plan_c/test_n10_c3a_public_null_validity.py'
+permissions:
+  contents: read
+jobs:
+  null-public-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Distinguish B2 DEV vs B4-A A4 nonfloor condition
+        run: |
+          set -euo pipefail
+          python analysis/kbs_plan_c/n10_c3a_public_null_validity.py
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n10_c3a_public_null_validity.py' -v
