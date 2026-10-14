@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+"""Route-B B1A: source/candidate nine-cell utility attribution; strict post-G5 DEV only."""
+from __future__ import annotations
+import argparse,hashlib,json,time
+from pathlib import Path
+import numpy as np,pandas as pd
+N=50049
+USERS=12628
+REPS=2000
+SEED=20261014
+CODES=(-1,0,1)
+def sha(p):
+    h=hashlib.sha256()
+    with p.open("rb") as f:
+        for b in iter(lambda:f.read(8<<20),b""):h.update(b)
+    return h.hexdigest()
+def main():
+    ap=argparse.ArgumentParser()
+    ap.add_argument("--source",type=Path,required=True)
+    ap.add_argument("--out",type=Path,required=True)
+    a=ap.parse_args()
+    if a.out.exists():raise FileExistsError("Do not overwrite B1A evidence")
+    start=time.monotonic()
+    meta=json.loads((a.source/"summary.json").read_text())
+    p=a.source/"dev_memory_source_ablation_pairs.csv"
+    if not(meta.get("schema")=="kbs-b2-dev-relationship-source-ablation-v1"
+        and meta.get("scope")=="POST_G5_DEV_EXPLORATORY"
+        and meta.get("status")=="PASS"
+        and meta.get("is_full_cohort") is True
+        and meta.get("n_events")==N and meta.get("n_users")==USERS
+        and meta.get("full_memory_nDCG_mismatches")=={"F":0,"S":0}
+        and meta.get("new_TEST_opened") is False
+        and meta.get("models_retrained") is False
+        and sha(p)==meta.get("private_event_source_csv_sha256")):
+        raise RuntimeError("B2 DEV source and checksum gate failed")
+    df=pd.read_csv(p)
+    cols=["event_id","user_id","split","memory_ndcg10",
+          "b2_long_only_F_ndcg10","sampled_memory_ndcg10","b2_long_only_S_ndcg10"]
+    if not set(cols).issubset(df.columns):raise RuntimeError("missing source fields")
+    if not(len(df)==N and df.event_id.is_unique and df.user_id.nunique()==USERS
+           and df.split.eq("DEV").all()):raise RuntimeError("DEV source cohort mismatch")
+    F=df.memory_ndcg10.to_numpy(float)-df.b2_long_only_F_ndcg10.to_numpy(float)
+    S=df.sampled_memory_ndcg10.to_numpy(float)-df.b2_long_only_S_ndcg10.to_numpy(float)
+    I=F-S
+    if not(np.isfinite(F).all() and np.isfinite(S).all()):raise RuntimeError("nonfinite source utility")
+    if abs(I.mean()-.115382)>4e-6:raise RuntimeError("E3a fixed interaction parity failed")
+    signF=np.sign(F).astype(np.int8);signS=np.sign(S).astype(np.int8)
+    m0=(signF==0)|(signS==0)
+    opposite=(signF*signS)<0
+    diff=(signF!=signS)
+    if (int(m0.sum()),int(opposite.sum()),int(diff.sum()))!=(46462,66,27800):
+        raise RuntimeError("Original E3a exact sign pattern mismatched")
+    u,inv=np.unique(df.user_id.astype(str).to_numpy(),return_inverse=True)
+    den=np.bincount(inv,minlength=len(u))
+    nums=[];rows=[]
+    cell_ids=np.full(N,-1,dtype=np.int8)
+    for k,(f,s) in enumerate(( (f,s) for f in CODES for s in CODES)):
+        m=(signF==f)&(signS==s)
+        cell_ids[m]=k
+        contribution=float(I[m].sum()/N)
+        nums.append(np.bincount(inv,weights=I*m,minlength=len(u)))
+        rows.append({"F_sign":int(f),"S_sign":int(s),"events":int(m.sum()),
+            "users":int(len(np.unique(inv[m]))),
+            "event_fraction":float(m.mean()),
+            "conditional_event_mean_I":float(I[m].mean()) if m.any() else None,
+            "contribution_to_global_mean":contribution,
+            "sum_absolute_event_effect_div_N":float(np.abs(I[m]).sum()/N),
+            "bootstrap_cluster95":None})
+    if np.any(cell_ids<0):raise RuntimeError("Nine-cell coverage broken")
+    rng=np.random.default_rng(SEED)
+    bootstrap=np.empty((REPS,len(rows)),dtype=np.float64)
+    matrix=np.stack(nums,axis=1)
+    for b in range(REPS):
+        ix=rng.integers(len(u),size=len(u))
+        bootstrap[b,:]=matrix[ix,:].sum(axis=0)/den[ix].sum()
+    for k,row in enumerate(rows):
+        row["bootstrap_cluster95"]=[float(z) for z in np.quantile(bootstrap[:,k],[.025,.975])]
+    total=sum(z["contribution_to_global_mean"] for z in rows)
+    if abs(total-float(I.mean()))>1e-14:raise RuntimeError("Signed contribution identity broken")
+    totalboot=bootstrap.sum(axis=1)
+    out={"schema":"kbs-n9-route-b-b1a-nine-cell-v1","evidence":"POST_G5_EXPLORATORY_DEV_ONLY",
+         "n_events":N,"n_users":USERS,"source_SHA256":meta["private_event_source_csv_sha256"],
+         "user_cluster_bootstrap_reps":REPS,"bootstrap_seed":SEED,
+         "signed_mean_interaction":float(I.mean()),
+         "interaction_cluster95":[float(z) for z in np.quantile(totalboot,[.025,.975])],
+         "zero_in_either":int(m0.sum()),"opposite_nonzero":int(opposite.sum()),
+         "threeway_sign_different_including_zero":int(diff.sum()),
+         "both_zero":int(((signF==0)&(signS==0)).sum()),
+         "F_zero_S_nonzero":int(((signF==0)&(signS!=0)).sum()),
+         "S_zero_F_nonzero":int(((signS==0)&(signF!=0)).sum()),
+         "both_nonzero":int(((signS!=0)&(signF!=0)).sum()),
+         "sum_positive_interaction_event_div_N":float(I[I>0].sum()/N),
+         "sum_negative_interaction_event_div_N":float(I[I<0].sum()/N),
+         "sum_absolute_interaction_div_N":float(np.abs(I).sum()/N),
+         "nine_cells":rows,"all_cells_sum_to_global":True,
+         "cutoff_sensitivity_abs_1e_minus_12":{
+            "F_nearzero":int((np.abs(F)<=1e-12).sum()),
+            "S_nearzero":int((np.abs(S)<=1e-12).sum())},
+         "G5_TEST_opened":False,"models_retrained":False,"private_rows_exported":False,
+         "method_limit":"F/S sampled candidate regime changes candidates, competition and top10 support; no causal relation-identity proof",
+         "runtime_seconds":round(time.monotonic()-start,2)}
+    a.out.mkdir(parents=True,mode=0o700)
+    (a.out/"summary.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
+    print(json.dumps({"B1A":"PASS","source_identity":"SHA_PASS","n_events":N,"n_users":USERS,
+        "mean":out["signed_mean_interaction"],"cluster95":out["interaction_cluster95"],
+        "both_zero":out["both_zero"],"F_zero_S_nonzero":out["F_zero_S_nonzero"],
+        "S_zero_F_nonzero":out["S_zero_F_nonzero"],"opposite_nonzero":out["opposite_nonzero"],
+        "nine_cells":rows,"G5_TEST":False,"runtime_seconds":out["runtime_seconds"]},
+        sort_keys=True),flush=True)
+if __name__=="__main__":main()
