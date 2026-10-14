@@ -38,20 +38,24 @@ def main(root,a0,out):
     db.execute("CREATE VIEW test AS SELECT source_event_id,user_id,author_id,observed_at,prior_events FROM read_parquet("+q(root/"causal_stream_sealed.parquet")+") WHERE split='TEST'")
     db.execute("""
       CREATE TEMP TABLE pool AS
-      SELECT t.source_event_id,t.user_id,t.observed_at,t.prior_events,
-        CAST(t.observed_at AS DATE) AS day,
-        CASE WHEN t.prior_events<10 THEN 'h2to9'
-             WHEN t.prior_events<50 THEN 'h10to49' ELSE 'h50plus' END AS history_group
-      FROM test t JOIN warm w USING(author_id)
-      WHERE t.prior_events>=2
-        AND NOT EXISTS(SELECT 1 FROM old o WHERE o.source_event_id=t.source_event_id)
+      SELECT base.*,
+        'q' || CAST(NTILE(4) OVER (
+          PARTITION BY day ORDER BY prior_events,source_event_id
+        ) AS VARCHAR) AS history_group
+      FROM (
+        SELECT t.source_event_id,t.user_id,t.observed_at,t.prior_events,
+               CAST(t.observed_at AS DATE) AS day
+        FROM test t JOIN warm w USING(author_id)
+        WHERE t.prior_events>=2
+          AND NOT EXISTS(SELECT 1 FROM old o WHERE o.source_event_id=t.source_event_id)
+      ) base
     """)
     counts=db.execute("SELECT day,history_group,count(*) AS n FROM pool GROUP BY 1,2 ORDER BY 1,2").fetchall()
     if db.execute("SELECT COUNT(*) FROM pool").fetchone()[0]!=EXPECTED_POOL:
         raise RuntimeError("Pool count changed since A0")
-    if len(counts)!=15 or any(n<2000 for _,_,n in counts):
+    if len(counts)!=20 or any(n<1500 for _,_,n in counts):
         print(json.dumps({"A1_PREOUTCOME_STRATUM_COUNTS":[{"day":str(d),"group":g,"eligible":n} for d,g,n in counts],"status":"HOLD_NOT_ENOUGH_FOR_EQUAL_QUOTA"}),flush=True)
-        raise RuntimeError("Insufficient 5-day by 3-history activity stratum")
+        raise RuntimeError("Insufficient 5-day by 4 within-day history-activity rank quartiles")
     # Candidate qualification previously checked author, but ranking is determined
     # solely by SOURCE EVENT ID and two frozen public purpose/seed strings.
     db.execute("""
@@ -64,7 +68,7 @@ def main(root,a0,out):
                    source_event_id) AS selection_rank
         FROM pool
       )
-      WHERE selection_rank<=2000
+      WHERE selection_rank<=1500
     """)
     n,users=db.execute("SELECT count(*),count(DISTINCT user_id) FROM main").fetchone()
     if n!=30000 or users<3000:raise RuntimeError("Main sample size/user count")
@@ -99,8 +103,8 @@ def main(root,a0,out):
         "technical_status":"SEALED_SAMPLES_PASS_HUMAN_RIGHTS_AND_MODEL_GATES_PENDING",
         "source_A0_pool_count":EXPECTED_POOL,"main_events":n,"main_users":users,
         "mechanism_events":m,"mechanism_users":mu,
-        "strata":"5 original source dates x 3 pretarget history groups",
-        "main_per_stratum":2000,"main_strata":main_days,
+        "strata":"5 source dates x 4 within-day pretarget history rank quartiles",
+        "main_per_stratum":1500,"main_strata":main_days,
         "mechanism_strata":subset_days,
         "old_G5_target_id_overlap":overlap,
         "main_private_SHA256":main_hash,"mechanism_private_SHA256":mech_hash,
