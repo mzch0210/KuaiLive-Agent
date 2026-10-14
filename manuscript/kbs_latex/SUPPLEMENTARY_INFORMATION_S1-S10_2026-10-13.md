@@ -985,7 +985,7 @@ A relationship-null swaps historical author labels across *different users* with
 
 Three random null seeds were fixed before score inspection (20261014, 20261015, 20261016). They draw from the **same users and requests** and should not be counted as independent holdouts. A total of 4,276,963 selected-user pretarget historical records were eligible; each seed rewired approximately **3.36 million (78.6%)** with per-hour activity and cross-author availability checks, and every request had at least one activated changed historical relation. Bootstrap confidence intervals use **2,000 paired user-cluster samples per seed**.
 
-**Table S10.8. Ranking quality under original relationship identity and non-floor time-/activity-preserving controls.**
+**Table S10.8. Original and time-preserving-null ranking quality.**
 
 | Fixed null seed | Null Full F NDCG | Original−null F | 95% user-cluster CI for F gain | Null Full S NDCG | Original−null S | Null F top-10 hits |
 |---|---:|---:|---|---:|---:|---:|
