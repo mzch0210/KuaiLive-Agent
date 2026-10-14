@@ -1,0 +1,27 @@
+{
+  "G5_TEST_opened": false,
+  "NDCG_means": {
+    "full_F": 0.3393482191091639,
+    "full_S": 0.6638957040511909,
+    "long_F": 0.3386993718365371,
+    "long_S": 0.7673139729150804
+  },
+  "elapsed_seconds": 62.84,
+  "frozen_sample_SHA256": "6ad1a0753e181ac638636c278d226832b08d90d7d4867019910c61b96d7507da",
+  "history_records_for_selected_users": 4735946,
+  "max_absolute_NDCG_error": 5.551115123125783e-17,
+  "n_events": 1024,
+  "n_users": 992,
+  "original_F_S_rank_score_mismatch_counts": {},
+  "privacy_private_rows_exported": false,
+  "real_historical_null_executed": false,
+  "relation_edges_rewired": false,
+  "replay_equal_time_neighbor_records": 1768,
+  "replay_nonmonotone_user_timestamps": 0,
+  "schema": "kbs-route-b-b2-original-replay-v1",
+  "source_B1_SHA256": "37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea",
+  "source_B2_SHA256": "35c4a4024f06d3de3548047fbe28e71e4697a5b96860a08a4cd8dd78c9bc9fdf",
+  "status": "PASS_ORIGINAL_FULL_LONG_F_S_DEV_RANK_PARITY",
+  "run_id": 38500305942,
+  "report_date": "2026-10-14"
+}
