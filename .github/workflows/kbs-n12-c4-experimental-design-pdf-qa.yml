@@ -20,7 +20,7 @@ permissions:
   contents: read
 concurrency:
   group: kbs-n12-c4-evidence-tier-pdfs
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   main-paper:
     runs-on: ubuntu-24.04
