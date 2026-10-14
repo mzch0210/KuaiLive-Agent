@@ -258,7 +258,7 @@ We evaluate three empirical questions about a fixed relationship-knowledge sourc
 \paragraph{Twitch/LiveRec: historical complementarity and frozen selection.}
 In an availability-aware, ten-minute observation-step protocol, Twitch ranks eligible persistent streamers \cite{rappaz2021liverec}. The filtered data comprise 46,878 development (DEV) and 44,221 held-out TEST requests, each with one recorded relevant streamer. LiveRec uses the 16 most recent input interactions, while relationship histories contain only interactions preceding the target observation. Eligibility is determined by the recorded crawl-step boundary; these records do not establish exact physical session entry or exit. Training data determine the Memory popularity reference (Supplementary S1). The observed target is used to score the frozen ranking and retrospectively characterize evidence recoverability, never to construct an online selector feature.
 
-\paragraph{Original KuaiLive: a paired room-candidate diagnostic.}
+\paragraph{Original KuaiLive room ranking.}
 The original KuaiLive protocol ranks an active \emph{room}, although relationship knowledge is indexed by its persistent creator \cite{qu2026kuailive}. A per-user chronological leave-last-two-out split yields 10,222 eligible users and paired DEV/previously examined TEST room targets. The sampled-active evaluation ranks the positive alongside 574 distinct active non-target rooms (575 total); the full-active evaluation uses the recorded contemporaneous active room roster. Half-open session intervals determine candidate availability, with the observed positive retained when its source interval conflicts with the event. Sampled alternatives are not assumed to be verified disliked items. The same 10,222 previously examined TEST events, Base checkpoint and Memory history are used in both candidate regimes. This is a retrospective within-event comparison rather than a new, prospectively frozen room-ranking evaluation.
 
 \paragraph{KuaiLive-M3: original forward-time author ranking.}
@@ -273,17 +273,17 @@ A separate pre-outcome freeze selected 30,000 additional author-ranking targets 
 \label{tab:exp-datasets}
 \footnotesize
 \setlength{\tabcolsep}{2pt}
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{1.85cm}>{\raggedright\arraybackslash}p{1.30cm}X>{\raggedright\arraybackslash}p{1.90cm}@{}}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{1.85cm}>{\raggedright\arraybackslash}p{1.50cm}X>{\raggedright\arraybackslash}p{1.90cm}@{}}
 \toprule
 Setting & Ranking unit & Evaluated cohort and candidates & Inferential role \\
 \midrule
-Twitch/LiveRec & Streamer & 46,878 DEV; 44,221 TEST; available streamers & Frozen choice; RQ1/RQ2 \\
-Original KuaiLive & Live room & 10,222 previously evaluated paired targets; sampled 575 vs full-active rooms & Retrospective RQ1 \\
+Twitch & Streamer & 46,878 DEV; 44,221 TEST; available streamers & Frozen choice; RQ1/RQ2 \\
+Original KuaiLive & Live room & 10,222 previously evaluated paired targets; sampled 575 vs full-active rooms & Paired RQ1 \\
 M3 initial & Author & 50,049 DEV; 47,575 forward-time TEST; full-active authors & Frozen RQ2 selection \\
 M3 additional & Author & 30,000 presealed same-period targets; full-active authors & Frozen RQ2 supervision \\
 M3 nested & Author & 4,096 of the 30,000; fixed candidates, authentic vs three null histories & Frozen RQ3 source \\
 M3 auxiliary DEV & Author & Original 50,049 DEV; separate 1,024 historical-null DEV cohort & Exploratory RQ2/RQ3 \\
-M3 device & Author & 256 fixed DEV requests, three repeated measured passes & Operational diagnostic \\
+M3 device & Author & 256 fixed DEV requests, three repeated measured passes & Cost diagnostic \\
 \bottomrule
 \end{tabularx}
 \end{table}
