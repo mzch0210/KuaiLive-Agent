@@ -56,13 +56,13 @@ def check(root=ROOT):
       "hardware_scope":["256","three times","RTX 3090","original",
         "not","vectorized","production"],
       "negative_boundary":["not scored and sealed before the outcome revelation",
-        "not retrospectively certified","not equalized","not a newly collected later"],
+        "not retrospectively certified","not retrospectively equalized","Neither sample is a newly collected later-period TEST"],
     }
     for role,needles in contracts.items():
         absent=[x for x in needles if x.lower() not in chapter.lower()]
         require(not absent,role+" missing "+str(absent))
     # Original extra targets are from same source period, not new chronological data.
-    require("not a newly collected later-period TEST" in chapter and
+    require("Neither sample is a newly collected later-period TEST" in chapter and
             "not a guaranteed" not in chapter and
             "not make users disjoint across time" in chapter,
             "temporal and sampling identities inconsistent")
