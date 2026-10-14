@@ -110,6 +110,11 @@ def main(a1,g1,preflight,out):
     borders=np.r_[0,np.flatnonzero(sorted_hours[1:]!=sorted_hours[:-1])+1,len(E)]
     staging=out.with_name(out.name+".incomplete")
     staging.mkdir(parents=True,mode=0o700)
+    # Private causal-history rows allow all three H2 scoring passes to reuse
+    # one audited source extraction rather than repeatedly scan the full M3 file.
+    np.savez_compressed(staging/"H2_HISTORY_PRIVATE.npz",
+                        source_event_ids=E,user_ids=U,author_ids=A,source_time_ns=T)
+    history_sha=sha(staging/"H2_HISTORY_PRIVATE.npz")
     results=[]
     try:
         for seed in SEEDS:
@@ -159,6 +164,7 @@ def main(a1,g1,preflight,out):
              "main_SHA256":MAIN_SHA,"subset_SHA256":SUB_SHA,
              "n_targets":4096,"n_users":len(allowed),
              "source_history_rows":len(E),
+             "private_history_sha256":history_sha,
              "null_seed_registry":SEEDS,"seed_results":results,
              "target_NDCG_ranks_labels_read":False,
              "target_blind_top10_completed":False,
