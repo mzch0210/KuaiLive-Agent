@@ -17,7 +17,7 @@
     "B3": "PASS_R1_BOUNDED_IMPROVED_R2_BOUNDED_R3_STRONG_WITHIN_DEV_NULL_DESIGN_GENERALIZATION_BOUNDED",
     "B4": "HOLD_NO_NEW_AUTHORIZED_BLIND_CHRONOLOGICAL_TEST",
     "B5": "PASS_8_SECTION_MAIN_UPDATED_12_TABLES_SUPPLEMENT_S10_TO_14_SUBSECTIONS",
-    "B6": "MAIN_LATEX_PDF_37_PAGES_PASS_SUPPLEMENT_REBUILD_38502043249_IN_PROGRESS_HUMAN_COMPLIANCE_HOLD"
+    "B6": "PASS_MAIN_37P_SUPPLEMENT_PDF_TECHNICAL_QA_AUTHOR_RIGHTS_AND_DECLARATIONS_HOLD"
   },
   "runs": {
     "B1A": 38498422665,
@@ -29,7 +29,8 @@
     "B2_null_scores_initial": 38501108142,
     "B2_null_scores_same_scorer_qa": 38501460007,
     "B5_main_compile": 38501940137,
-    "B5_supplement_build": 38502043249
+    "B5_supplement_build": 38502043249,
+    "B6_supplement_success": 38502043249
   },
   "numbers": {
     "source_regime_mean_interaction": 0.11538186791029255,
@@ -75,7 +76,8 @@
     "B2_report": "manuscript/kbs_latex/N9_ROUTE_B_B2_1024_REAL_RELATION_IDENTITY_NULL_RESULTS_2026-10-14.md",
     "B3_verdict": "manuscript/kbs_latex/N9_ROUTE_B_B3_THREE_SCIENTIFIC_RISKS_EVIDENCE_VERDICT_2026-10-14.md",
     "B5_main": "manuscript/kbs_latex/main.tex",
-    "B5_supplement": "manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md"
+    "B5_supplement": "manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md",
+    "B5_B6_QA": "manuscript/kbs_latex/N9_ROUTE_B_B5_B6_MANUSCRIPT_AND_KBS_QA_2026-10-14.md"
   },
   "risks": {
     "R1": "BOUNDED_BUT_KNOWLEDGE_IDENTITY_CONTROL_IS_NOT_REDUCIBLE_TO_SAMPLED_METRIC",
@@ -83,10 +85,24 @@
     "R3": "STRONG_IN_EXPLORATORY_TIME_DEGREE_AVAILABILITY_PRESERVED_1024_DEV_CONTROL_EXTERNAL_VALIDITY_BOUNDED"
   },
   "submission": "HOLD",
-  "next_gate": "Finish 41-ish page supplementary PDF rebuild, final reviewer-style source claims and author/license/AI disclosure signoff; no 2048 expansion required, no new TEST established",
+  "next_gate": "Responsible human authors verify the exact M3 license and data lineage, AI-method/writing declarations, CRediT/COI/funding/data availability and live KBS Guide for Authors; external unseen TEST not established; no further unplanned DEV seed fishing.",
   "dataset_rights": "M3 PAPER NONCOMMERCIAL_SHAREALIKE_VS_HUGGINGFACE_BY_SHAREALIKE_METADATA_DISCREPANCY_AUTHORS_TO_RESOLVE",
   "current_paper_blobs": {
     "main_tex_git_blob": "f5cd5aa5f24133b858e370fdbdda661261582e4d",
     "s10_integrated_git_blob": "905931da96424a92d8a298d1cb6041667b20ac41"
+  },
+  "final_builds": {
+    "main": {
+      "run": 38501940137,
+      "artifact": 11865942763,
+      "status": "SUCCESS",
+      "pdf_pages": 37
+    },
+    "supplement": {
+      "run": 38502043249,
+      "artifact": 11866397339,
+      "status": "SUCCESS",
+      "pdf_pages": "not independently counted"
+    }
   }
 }
