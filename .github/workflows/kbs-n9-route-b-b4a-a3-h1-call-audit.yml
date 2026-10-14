@@ -1,0 +1,34 @@
+name: KBS B4-A A3 H1 unlabeled call rate aggregate audit
+on:
+  push:
+    branches: [kbs-b4a-a3-synthetic-preflight-20261014]
+permissions:
+  contents: read
+jobs:
+  sha-and-call-aggregates-only:
+    if: contains(github.event.head_commit.message, 'audit B4-A A3 H1 unlabeled call rates')
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 6
+    steps:
+      - name: Read H1 sealed manifest only; NEVER read target author or rank outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'AUDIT'
+          import json,pathlib
+          p=pathlib.Path.home()/'.cache/kuailive-agent-kbs/klm3_n9_b4a_a3_h1_frozen_30000_v1/manifest.json'
+          x=json.loads(p.read_text())
+          assert x['status']=='H1_30000_FROZEN_PREDICTIONS_A4_HARD_HOLD'
+          assert x['n_events']==30000 and not x['test_rank_ndcg_hr_computed']
+          assert not x['A4_unseal_authorized'] and not x['thresholds_recalibrated_on_TEST']
+          q=x['realized_call_fractions_unlabeled']
+          for base in ('sasrec','gru4rec'):
+              f=q[base]['F_aligned'];s=q[base]['S_aligned']
+              print(json.dumps({'base':base,'F_realized_call_fraction':f,
+                                'S_realized_call_fraction':s,
+                                'absolute_call_fraction_gap':abs(f-s),
+                                '1_percentage_point_sensitivity_warning':abs(f-s)>0.01,
+                                'TEST_labels_or_NDCG_opened':False},sort_keys=True))
+          print('A4 remains HARD HOLD; no private event IDs or Top-10 printed',flush=True)
+          AUDIT

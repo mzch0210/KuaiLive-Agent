@@ -1,0 +1,41 @@
+name: KBS B4-A A3 synthetic-only and public freeze preflight
+on:
+  push:
+    branches: [kbs-b4a-a3-synthetic-preflight-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/n9_b4a_a3_synthetic_preflight.py'
+      - 'analysis/kbs_plan_c/test_n9_b4a_a3_synthetic_preflight.py'
+      - '.github/workflows/kbs-n9-route-b-b4a-a3-synthetic-preflight.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'analysis/kbs_plan_c/n9_b4a_a3_synthetic_preflight.py'
+      - 'analysis/kbs_plan_c/test_n9_b4a_a3_synthetic_preflight.py'
+      - '.github/workflows/kbs-n9-route-b-b4a-a3-synthetic-preflight.yml'
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b4a-a3-synthetic-only
+  cancel-in-progress: false
+jobs:
+  public-synthetic-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run adversarial no-target synthetic preflight
+        env:
+          PYTHONPATH: .
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n9_b4a_a3_synthetic_preflight.py' -v
+          python analysis/kbs_plan_c/n9_b4a_a3_synthetic_preflight.py --repo-root .
+      - name: Confirm no access to private TEST or self-hosted runner
+        run: |
+          echo 'PUBLIC_ONLY_SNAPSHOT_SYNTHETIC_PASS'
+          echo 'A3_AUTHORIZED=false'
+          echo 'A4_AUTHORIZED=false'

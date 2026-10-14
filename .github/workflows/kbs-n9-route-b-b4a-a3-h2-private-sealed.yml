@@ -1,0 +1,1935 @@
+name: KBS B4-A A3 H2 4096 three seed blind null scoring and final seal
+on:
+  push:
+    branches: [kbs-b4a-a3-synthetic-preflight-20261014]
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b4a-a3-private-h2
+  cancel-in-progress: false
+jobs:
+  fixed-H2-closed-hour-null:
+    if: github.ref == 'refs/heads/kbs-b4a-a3-synthetic-preflight-20261014' && contains(github.event.head_commit.message, 'authorize B4-A A3 H2 fixed three seed null scoring')
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 240
+    steps:
+      - name: Require completed immutable H1 prior to any H2 scores
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test -s "$ROOT/klm3_n9_b4a_a3_h1_frozen_30000_v1/manifest.json"
+          test -s "$ROOT/klm3_n9_b4a_a3_private_source_preflight_v1/summary.json"
+          test -s "$ROOT/klm3_n9_route_b_b4a_a1_30000_4096_v1/summary.json"
+          test ! -e "$ROOT/klm3_n9_b4a_a3_h2_v1"
+          test ! -e "$ROOT/klm3_n9_b4a_a3_final_lock_v1"
+      - name: Materialize SHA-pinned H2 modules without network checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/g2_train_base.py" <<'B4A_H2_MODULE_0'
+          #!/usr/bin/env python3
+          """KBS Plan C G2: train-only GPU baselines and reusable author sequence index.
+          
+          No TEST file is opened. Training is not DEV model selection. This module only
+          produces TRAIN checkpoints and pilot throughput/memory observations. Models
+          must be evaluated/selected on a frozen DEV protocol before TEST.
+          """
+          from __future__ import annotations
+          import argparse
+          import hashlib
+          import json
+          import os
+          import random
+          import time
+          from pathlib import Path
+          
+          import numpy as np
+          import torch
+          from torch import nn
+          import torch.nn.functional as F
+          
+          L = 16
+          D = 64
+          
+          
+          def digest(file: Path):
+              h = hashlib.sha256()
+              with file.open("rb") as stream:
+                  for chunk in iter(lambda: stream.read(8 * 1024 * 1024), b""):
+                      h.update(chunk)
+              return h.hexdigest()
+          
+          
+          class Encoder(nn.Module):
+              def __init__(self, items, kind):
+                  super().__init__()
+                  if kind not in ("sasrec", "gru4rec"):
+                      raise ValueError("unknown Base family")
+                  self.kind = kind
+                  self.item = nn.Embedding(items + 1, D, padding_idx=0)
+                  nn.init.normal_(self.item.weight, 0, .02)
+                  with torch.no_grad():
+                      self.item.weight[0].zero_()
+                  if kind == "sasrec":
+                      self.pos = nn.Embedding(L, D)
+                      self.norm = nn.LayerNorm(D)
+                      block = nn.TransformerEncoderLayer(
+                          D, nhead=4, dim_feedforward=D * 4, dropout=.1,
+                          activation="gelu", batch_first=True, norm_first=True)
+                      self.encoder = nn.TransformerEncoder(block, num_layers=1, enable_nested_tensor=False)
+                      self.dropout = nn.Dropout(.1)
+                      self.register_buffer(
+                          "causal", torch.triu(torch.ones(L, L, dtype=torch.bool), 1),
+                          persistent=False)
+                  else:
+                      self.encoder = nn.GRU(D, D, num_layers=1, batch_first=True)
+                      self.norm = nn.LayerNorm(D)
+          
+              def forward(self, history):
+                  # Histories are left-padded and nonempty; latest event is rightmost.
+                  if self.kind == "sasrec":
+                      # IMPORTANT: left padding plus a causal mask can leave an all-masked
+                      # query row (NaNs in SDPA). Shift valid ids to the LEFT so the
+                      # earliest query always has a legal self-attention key. Padding is
+                      # now on the RIGHT and the last valid state is gathered explicitly.
+                      count = history.ne(0).sum(1)
+                      if torch.any(count == 0):
+                          raise ValueError("SASRec requires a nonempty causal history")
+                      steps = torch.arange(history.shape[1], device=history.device)
+                      gather_idx = (steps[None, :] + history.shape[1] - count[:, None]) % history.shape[1]
+                      right = history.gather(1, gather_idx)
+                      x = self.item(right)
+                      x = self.dropout(x + self.pos(steps))
+                      x = self.encoder(x, mask=self.causal[:history.shape[1], :history.shape[1]],
+                                       src_key_padding_mask=right.eq(0))
+                      last=x[torch.arange(history.shape[0],device=history.device), count-1]
+                      return self.norm(last)
+                  x = self.item(history)
+                  # Right-aligned sequences; a single GRU applied to all positions
+                  # handles left padding consistently across train and DEV.
+                  x, _ = self.encoder(x)
+                  return self.norm(x[:, -1])
+          
+              def score(self, history, candidate_ids):
+                  rep = self(history)
+                  return (rep.unsqueeze(-2) * self.item(candidate_ids)).sum(-1)
+          
+          
+          def load_or_prepare_train_index(g1: Path, cache: Path, synthetic=False):
+              import pyarrow.parquet as pq
+              manifest = json.loads((g1/"manifest.json").read_text())
+              if (manifest["schema"] != "kbs-plan-c-g1-derived-v1"
+                      or manifest["test_outcomes_inspected"] is not False):
+                  raise ValueError("wrong G1 source: expected TEST-unseen TRAIN bundle")
+              authors_path = g1 / "train_known_authors.parquet"
+              events_path = g1 / "train_author_events.parquet"
+              for path in (authors_path, events_path):
+                  if not path.is_file():
+                      raise FileNotFoundError(path)
+                  if not synthetic and digest(path) != manifest["generated_files_sha256"][path.name]:
+                      raise ValueError("train input digest mismatch " + path.name)
+              expected = {"g1_protocol_sha256": manifest["protocol_sha256"],
+                          "train_author_sha256": manifest["generated_files_sha256"][authors_path.name],
+                          "train_events_sha256": manifest["generated_files_sha256"][events_path.name],
+                          "item_index_zero_reserved": True}
+              idx_manifest = cache / "index_manifest.json"
+              if idx_manifest.exists():
+                  record = json.loads(idx_manifest.read_text())
+                  if any(record.get(k) != v for k, v in expected.items()):
+                      raise ValueError("TRAIN index manifest does not match source/protocol")
+                  for name in ("authors.npy", "sequence_ids.npy", "user_offsets.npy", "popularity_cdf.npy"):
+                      if digest(cache/name) != record["files_sha256"][name]:
+                          raise ValueError("TRAIN index was modified " + name)
+                  return record
+              if cache.exists():
+                  raise FileExistsError("Incomplete existing TRAIN index; inspect, never overwrite")
+              stage = cache.with_name(cache.name+".partial")
+              if stage.exists():
+                  raise FileExistsError("Interrupted stage exists; do not overwrite")
+              stage.mkdir(parents=True, mode=0o700)
+              author_arr = pq.read_table(authors_path, columns=["author_id"]).column("author_id").to_numpy()
+              author_arr = np.asarray(author_arr, dtype=np.int64)
+              if not np.all(author_arr[1:] > author_arr[:-1]):
+                  raise ValueError("TRAIN author IDs must be strictly ascending")
+              table = pq.read_table(events_path, columns=["user_id", "author_id"])
+              users = np.asarray(table.column("user_id").to_numpy(), dtype=np.int64)
+              raw_items = np.asarray(table.column("author_id").to_numpy(), dtype=np.int64)
+              if len(users) < 100 or len(author_arr) < 3:
+                  if not synthetic:
+                      raise ValueError("Unexpectedly small TRAIN")
+              if np.any(users[1:] < users[:-1]):
+                  raise ValueError("TRAIN must be sorted by user and causal event time")
+              mapped = np.searchsorted(author_arr, raw_items)
+              if np.any(mapped >= len(author_arr)) or np.any(author_arr[mapped] != raw_items):
+                  raise ValueError("TRAIN event contains unknown author")
+              ids = (mapped + 1).astype(np.int32)
+              starts = np.concatenate(([0], np.flatnonzero(users[1:] != users[:-1])+1,
+                                       [len(users)])).astype(np.int64)
+              counts = np.bincount(ids, minlength=len(author_arr)+1).astype(np.float64)
+              weights = np.power(counts[1:], .75)
+              cdf = np.cumsum(weights)
+              cdf /= cdf[-1]
+              for name,array in (
+                  ("authors.npy", author_arr),
+                  ("sequence_ids.npy", ids),
+                  ("user_offsets.npy", starts),
+                  ("popularity_cdf.npy", cdf)
+              ):
+                  np.save(stage/name, array, allow_pickle=False)
+              record = dict(expected)
+              record.update({"schema":"kbs-plan-c-g2-train-index-v1",
+                             "total_training_events":int(len(ids)),
+                             "unique_train_users":int(len(starts)-1),
+                             "unique_train_authors":int(len(author_arr)),
+                             "training_only":True,"dev_labels_used":False,
+                             "test_files_opened":False,
+                             "files_sha256":{n:digest(stage/n) for n in
+                                 ("authors.npy","sequence_ids.npy","user_offsets.npy","popularity_cdf.npy")}})
+              (stage/"index_manifest.json").write_text(json.dumps(record,indent=2)+"\n")
+              stage.rename(cache)
+              return record
+          
+          
+          def draw_contexts(ids, offsets, rng, batch, context=L):
+              # Unbiased random TRAIN event positions conditioned on >=2 prior user events.
+              batchpos = rng.integers(0, len(ids), size=batch*2, dtype=np.int64)
+              out=[]
+              while len(out) < batch:
+                  block=np.asarray(batchpos)
+                  uid=np.searchsorted(offsets,block,side="right")-1
+                  start=offsets[uid]
+                  valid=block >= start+2
+                  out.extend(block[valid].tolist())
+                  if len(out)<batch:
+                      batchpos=rng.integers(0,len(ids),size=batch,dtype=np.int64)
+              positions=np.asarray(out[:batch],dtype=np.int64)
+              groups=np.searchsorted(offsets,positions,side="right")-1
+              first=offsets[groups]
+              indices=positions[:,None]-np.arange(context,0,-1)[None,:]
+              valid=indices >= first[:,None]
+              padded=np.zeros((batch,context),dtype=np.int64)
+              padded[valid]=ids[indices[valid]]
+              return padded, ids[positions].astype(np.int64)
+          
+          
+          def sample_negatives(cdf, rng, positives, contexts, n_neg=32):
+              batch=len(positives)
+              half=n_neg//2
+              uniform=rng.integers(1,len(cdf)+1,size=(batch,n_neg-half),dtype=np.int64)
+              pop=np.searchsorted(cdf,rng.random((batch,half)))+1
+              neg=np.concatenate((uniform,pop),axis=1).astype(np.int64)
+              invalid=(neg==positives[:,None]) | (neg[:,:,None]==contexts[:,None,:]).any(axis=2)
+              # Bounded deterministic repair; extremely rare for million-item vocabulary.
+              for _ in range(3):
+                  if not invalid.any():
+                      break
+                  neg[invalid]=rng.integers(1,len(cdf)+1,size=int(invalid.sum()))
+                  invalid=(neg==positives[:,None]) | (neg[:,:,None]==contexts[:,None,:]).any(axis=2)
+              if invalid.any():
+                  neg[invalid]=((positives[:,None]+np.arange(n_neg)[None,:])%len(cdf)+1)[invalid]
+              return neg
+          
+          
+          def train(args):
+              seed=int(args.seed)
+              random.seed(seed)
+              np.random.seed(seed)
+              torch.manual_seed(seed)
+              if torch.cuda.is_available():
+                  torch.cuda.manual_seed_all(seed)
+              if not args.synthetic and not torch.cuda.is_available():
+                  raise RuntimeError("G2 real pilot/fit needs CUDA GPU")
+              device="cuda" if torch.cuda.is_available() and not args.cpu else "cpu"
+              if not args.synthetic and device!="cuda":
+                  raise RuntimeError("Real G2 must not silently train on CPU")
+              src_manifest=load_or_prepare_train_index(args.g1,args.index,args.synthetic)
+              ids=np.load(args.index/"sequence_ids.npy",mmap_mode="r")
+              offsets=np.load(args.index/"user_offsets.npy",mmap_mode="r")
+              cdf=np.load(args.index/"popularity_cdf.npy",mmap_mode="r")
+              count=src_manifest["unique_train_authors"]
+              model=Encoder(count,args.model).to(device)
+              optimizer=torch.optim.AdamW(model.parameters(),lr=args.learning_rate,weight_decay=1e-4)
+              rng=np.random.default_rng(seed)
+              stats=[]
+              t0=time.monotonic()
+              maxsteps=args.steps_per_epoch
+              if args.mode=="smoke":
+                  maxsteps=min(maxsteps,3)
+              for ep in range(args.epochs):
+                  model.train()
+                  total=0.
+                  for step in range(maxsteps):
+                      seq,pos=draw_contexts(ids,offsets,rng,args.batch,L)
+                      neg=sample_negatives(cdf,rng,pos,seq,args.negatives)
+                      candidates=np.column_stack([pos,neg])
+                      h=torch.as_tensor(seq,device=device,dtype=torch.long)
+                      c=torch.as_tensor(candidates,device=device,dtype=torch.long)
+                      optimizer.zero_grad(set_to_none=True)
+                      logits=model.score(h,c)
+                      loss=F.cross_entropy(logits,torch.zeros(len(seq),device=device,dtype=torch.long))
+                      if not torch.isfinite(loss):
+                          raise FloatingPointError("nonfinite TRAIN loss")
+                      loss.backward()
+                      torch.nn.utils.clip_grad_norm_(model.parameters(),max_norm=1.0)
+                      optimizer.step()
+                      total+=float(loss.detach().item())
+                      if (step+1)%max(1,args.log_interval)==0:
+                          print(json.dumps({"model":args.model,"epoch":ep+1,"steps":step+1,
+                                            "TRAIN_loss":round(total/(step+1),6),
+                                            "time_s":round(time.monotonic()-t0,1)}),flush=True)
+                  record={"epoch":ep+1,"TRAIN_cross_entropy":total/maxsteps,
+                          "elapsed_s":round(time.monotonic()-t0,2)}
+                  stats.append(record)
+                  if args.mode=="train":
+                      args.out.mkdir(parents=True,exist_ok=True)
+                      target=args.out/f"{args.model}_seed{seed}_epoch{ep+1}.pt"
+                      tmp=target.with_suffix(".pt.partial")
+                      torch.save({"model_family":args.model,"model_state":model.state_dict(),
+                                  "optimizer_state":optimizer.state_dict(),"epoch":ep+1,
+                                  "input_manifest":src_manifest,"seed":seed,
+                                  "config":vars(args),"test_used":False,
+                                  "dev_selected":False},tmp)
+                      tmp.rename(target)
+                      record["checkpoint"]=target.name
+                      record["checkpoint_sha256"]=digest(target)
+              device_info={"device":device,"torch":torch.__version__,
+                           "cuda":torch.version.cuda}
+              if device=="cuda":
+                  device_info.update({"gpu":torch.cuda.get_device_name(0),
+                                      "peak_vram_gib":round(
+                                          torch.cuda.max_memory_allocated()/1024**3,3)})
+              result={"schema":"kbs-plan-c-g2-train-only-v1",
+                      "model_family":args.model,"mode":args.mode,
+                      "seed":seed,"index_manifest":src_manifest,
+                      "n_epochs":args.epochs,"steps_per_epoch":maxsteps,
+                      "batch_size":args.batch,"negative_count":args.negatives,
+                      "learning_rate":args.learning_rate,
+                      "train_records":stats,"runtime":device_info,
+                      "elapsed_s":round(time.monotonic()-t0,2),
+                      "status":"TRAIN_CHECKPOINTS_NOT_DEV_SELECTED" if args.mode=="train" else "GPU_PILOT_ONLY",
+                      "dev_outcomes_read":False,"test_outcomes_read":False}
+              args.out.mkdir(parents=True,exist_ok=True)
+              (args.out/f"{args.model}_{args.mode}_report.json").write_text(
+                  json.dumps(result,indent=2,default=str)+"\n")
+              print(json.dumps({"model_family":args.model,"status":result["status"],
+                                "elapsed_s":result["elapsed_s"],
+                                "peak_vram_gib":device_info.get("peak_vram_gib"),
+                                "last_train_loss":stats[-1]["TRAIN_cross_entropy"]}),flush=True)
+              return result
+          
+          
+          def main():
+              p=argparse.ArgumentParser()
+              p.add_argument("--g1",type=Path,required=True)
+              p.add_argument("--index",type=Path,required=True)
+              p.add_argument("--out",type=Path,required=True)
+              p.add_argument("--mode",choices=["smoke","pilot","train"],default="pilot")
+              p.add_argument("--model",choices=["sasrec","gru4rec"],required=True)
+              p.add_argument("--seed",type=int,default=20261012)
+              p.add_argument("--batch",type=int,default=512)
+              p.add_argument("--negatives",type=int,default=32)
+              p.add_argument("--steps-per-epoch",type=int,default=160)
+              p.add_argument("--epochs",type=int,default=1)
+              p.add_argument("--learning-rate",type=float,default=.001)
+              p.add_argument("--log-interval",type=int,default=40)
+              p.add_argument("--synthetic",action="store_true")
+              p.add_argument("--cpu",action="store_true")
+              args=p.parse_args()
+              if args.batch<1 or args.negatives<2 or args.steps_per_epoch<1 or args.epochs<1:
+                  p.error("Invalid model size/step settings")
+              train(args)
+          if __name__=="__main__":
+              main()
+          B4A_H2_MODULE_0
+          cat > "$RUNNER_TEMP/g3_dev_full_active.py" <<'B4A_DEP_G3'
+          #!/usr/bin/env python3
+          """Plan C DEV-only full-active paired Base/Memory scoring with a single room sweep.
+          
+          All event-level artifacts remain in the User-host cache. Never read a TEST file.
+          Follows G0F weights: train-only normalized log popularity (0.10),
+          last-ten exponential short history (0.45), all-prior count/max long history (0.45).
+          """
+          from __future__ import annotations
+          import argparse
+          import collections
+          import csv
+          import hashlib
+          import heapq
+          import json
+          import math
+          import os
+          import time
+          from datetime import datetime
+          from pathlib import Path
+          
+          import numpy as np
+          import torch
+          
+          from g2_train_base import Encoder
+          
+          SHORT_K = 10
+          SHORT_DECAY = 3.0
+          WEIGHTS = (0.10, 0.45, 0.45)
+          
+          
+          def sha(path):
+              h = hashlib.sha256()
+              with path.open("rb") as f:
+                  for block in iter(lambda: f.read(8*1024*1024), b""):
+                      h.update(block)
+              return h.hexdigest()
+          
+          
+          def score_history(candidates, popularity, prior_map, recent):
+              """Fixed target-blind Memory scores in token order (token reflects raw ID)."""
+              candidates = np.asarray(candidates, dtype=np.int32)
+              score = 0.10 * popularity[candidates].astype(np.float64)
+              if prior_map:
+                  keys = np.fromiter(prior_map.keys(), dtype=np.int32, count=len(prior_map))
+                  cnt = np.fromiter(prior_map.values(), dtype=np.float64, count=len(prior_map))
+                  order = np.argsort(keys)
+                  keys, cnt = keys[order], cnt[order]
+                  ix = np.searchsorted(keys, candidates)
+                  valid = ix < len(keys)
+                  valid[valid] &= keys[ix[valid]] == candidates[valid]
+                  score[valid] += 0.45 * cnt[ix[valid]] / cnt.max()
+              if recent:
+                  vals = {}
+                  for dist, author in enumerate(reversed(recent)):
+                      score_t = math.exp(-dist/SHORT_DECAY)
+                      vals[author] = max(vals.get(author, 0.), score_t)
+                  keys = np.array(sorted(vals), dtype=np.int32)
+                  strengths = np.array([vals[k] for k in keys], dtype=np.float64)
+                  ix = np.searchsorted(keys, candidates)
+                  valid = ix < len(keys)
+                  valid[valid] &= keys[ix[valid]] == candidates[valid]
+                  score[valid] += 0.45 * strengths[ix[valid]]
+              return score
+          
+          
+          def memory_rank(candidates, scores, true_id):
+              """Target rank with deterministic author-ID tie break, zero-based 0 is best."""
+              i = np.flatnonzero(candidates == true_id)
+              if len(i) != 1:
+                  raise ValueError("target must occur once in the exact eligible roster")
+              ref = float(scores[i[0]])
+              return 1 + int(np.count_nonzero((scores > ref + 1e-12) |
+                            ((np.abs(scores-ref) <= 1e-12) & (candidates < true_id))))
+          
+          
+          def ndcg(rank):
+              return float(1.0/math.log2(rank+1)) if rank <= 10 else 0.0
+          
+          
+          def build_dev_histories(stream_path, dev_event_ids, known_to_index, stride=2000000):
+              """Replay TRAIN + previous DEV in sorted user-time order; never consume TEST."""
+              import pyarrow.parquet as pq
+              indices = {int(x):i for i,x in enumerate(dev_event_ids)}
+              histories=[None]*len(indices)
+              features=[None]*len(indices)
+              last_user=None
+              count=collections.Counter()
+              recent=collections.deque(maxlen=SHORT_K)
+              warm_hist_total=0
+              all_hist_total=0
+              processed=0
+              captured=0
+              reader=pq.ParquetFile(stream_path)
+              for block in reader.iter_batches(batch_size=262144,
+                        columns=["source_event_id","user_id","author_id","split"]):
+                  d=block.to_pydict()
+                  for e,u,author,split in zip(d["source_event_id"],d["user_id"],
+                                              d["author_id"],d["split"]):
+                      if split=="TEST":
+                          continue
+                      processed+=1
+                      if u != last_user:
+                          last_user=u
+                          count.clear()
+                          recent.clear()
+                          warm_hist_total=0
+                          all_hist_total=0
+                      j=indices.get(int(e))
+                      if j is not None:
+                          if split!="DEV" or histories[j] is not None:
+                              raise ValueError("non-DEV history match or duplicate id")
+                          # Freeze counts and short horizon strictly before this event.
+                          histories[j]=(dict(count), tuple(recent))
+                          captured+=1
+                          features[j]={"hist_events_all":all_hist_total,
+                                       "hist_events_warm":warm_hist_total,
+                                       "hist_distinct_warm":len(count),
+                                       "hist_short_unique":len(set(recent)),
+                                       "hist_max_repeat":max(count.values()) if count else 0}
+                      token=known_to_index.get(int(author))
+                      all_hist_total+=1
+                      if token is not None:
+                          count[token]+=1
+                          recent.append(token)
+                          warm_hist_total+=1
+                      if stride and processed % stride==0:
+                          print(json.dumps({"phase":"memory_history_scan","events":processed,
+                                            "dev_captured":captured}),flush=True)
+              if any(x is None for x in histories):
+                  raise ValueError("Unable to capture all DEV target histories")
+              return histories,features,processed
+          
+          
+          def author_availability(rooms_file, sample_times, token_targets, known_to_index):
+              """Yield (row index, sorted active distinct known-author tokens) once in time order."""
+              import pyarrow.parquet as pq
+              order=sorted(range(len(sample_times)),key=lambda i:(sample_times[i],i))
+              room_file=pq.ParquetFile(rooms_file)
+              def rooms():
+                  for batch in room_file.iter_batches(batch_size=131072,
+                              columns=["open_ts","close_ts","author_id"]):
+                      data=batch.to_pydict()
+                      yield from zip(data["open_ts"],data["close_ts"],data["author_id"])
+              it=iter(rooms())
+              ahead=next(it,None)
+              heap=[]
+              active=collections.Counter()
+              max_rooms=0
+              for ix in order:
+                  t=sample_times[ix]
+                  while ahead is not None and ahead[0] <= t:
+                      start,end,author=ahead
+                      token=known_to_index.get(int(author))
+                      if token is not None and end > t:
+                          active[token]+=1
+                          heapq.heappush(heap,(end,token))
+                      ahead=next(it,None)
+                  while heap and heap[0][0] <= t:
+                      _,token=heapq.heappop(heap)
+                      active[token]-=1
+                      if active[token]==0:
+                          del active[token]
+                  target=int(token_targets[ix])
+                  if target not in active:
+                      raise ValueError("frozen DEV target not available at pretarget clock")
+                  max_rooms=max(max_rooms,len(heap))
+                  yield ix,np.fromiter(sorted(active),dtype=np.int32,count=len(active)),max_rooms
+          
+          
+          def prepare(input_g1, train_idx, dev_cache, dev_select, seed=20261012, limit=None):
+              import pyarrow.parquet as pq
+              a=json.loads((input_g1/"manifest.json").read_text())
+              i=json.loads((train_idx/"index_manifest.json").read_text())
+              d=json.loads((dev_cache/"manifest.json").read_text())
+              s=json.loads(dev_select.read_text())
+              if (a["schema"]!="kbs-plan-c-g1-derived-v1"
+                      or d["schema"]!="kbs-plan-c-g2-dev-screen-v1"
+                      or s["schema"]!="kbs-plan-c-g2-checkpoint-selection-dev-only-v1"
+                      or a["protocol_sha256"]!=d["g1_protocol_sha256"]
+                      or a["protocol_sha256"]!=i["g1_protocol_sha256"]
+                      or s["test_data_opened"] is not False):
+                  raise ValueError("G1/G2 DEV-frozen provenance mismatch")
+              for name in ("dev_contexts.npy","dev_positive_author_tokens.npy",
+                           "dev_source_event_ids.npy"):
+                  if sha(dev_cache/name)!=d["files_sha256"][name]:
+                      raise ValueError("DEV snapshot SHA mismatch")
+              events=np.load(dev_cache/"dev_source_event_ids.npy")
+              positives=np.load(dev_cache/"dev_positive_author_tokens.npy")
+              contexts=np.load(dev_cache/"dev_contexts.npy",mmap_mode="r")
+              author_ids=np.load(train_idx/"authors.npy",mmap_mode="r")
+              known={int(a):j+1 for j,a in enumerate(author_ids)}
+              dev=pq.read_table(input_g1/"dev_cohort.parquet",
+                                columns=["source_event_id","user_id","observed_at"])
+              check=np.asarray(dev.column("source_event_id").to_numpy(),dtype=np.int64)
+              if not np.array_equal(check,events):
+                  raise ValueError("DEV row order mismatch")
+              clock=dev.column("observed_at").to_pylist()
+              users=np.asarray(dev.column("user_id").to_numpy(),dtype=np.int64)
+              if limit is not None:
+                  if not (0 < limit <= len(events)):
+                      raise ValueError("invalid DEV-only evaluation limit")
+                  # Selection is strictly independent of target/rank information.
+                  selected=np.unique(np.linspace(0,len(events)-1,limit,dtype=np.int64))
+              else:
+                  selected=np.arange(len(events),dtype=np.int64)
+              # Histories are built once for exactly the designated DEV events.
+              hist,features,processed=build_dev_histories(
+                  input_g1/"causal_stream_sealed.parquet",events[selected],known)
+              counts=np.bincount(np.load(train_idx/"sequence_ids.npy",mmap_mode="r"),
+                                 minlength=len(author_ids)+1).astype(np.float64)
+              logpop=np.log1p(counts)
+              pmin=np.min(logpop[1:])
+              pmax=np.max(logpop[1:])
+              if not pmax>pmin:
+                  raise ValueError("invalid train-only popularity")
+              popularity=np.zeros(len(counts),dtype=np.float64)
+              popularity[1:] = (logpop[1:]-pmin)/(pmax-pmin)
+              return dict(g1=a,index=i,dev=d,selected=s,
+                          indices=selected,events=events,users=users,clock=clock,
+                          positives=positives,contexts=contexts,
+                          train_counts=counts,popularity=popularity,
+                          histories=hist,features=features,known=known,
+                          history_scanned=processed)
+          
+          
+          def load_models(training_root, index_manifest, dev_selected, device):
+              models={}
+              n=index_manifest["unique_train_authors"]
+              for family in ("sasrec","gru4rec"):
+                  meta=dev_selected["family_results"][family]["selected"]
+                  ck=training_root/family/meta["checkpoint"]
+                  if sha(ck)!=meta["checkpoint_sha256"]:
+                      raise ValueError("DEV-selected checkpoint digest mismatch")
+                  cp=torch.load(ck,map_location="cpu",weights_only=False)
+                  if (cp["model_family"]!=family or cp["test_used"] is not False
+                          or cp["dev_selected"] is not False):
+                      raise ValueError("Unexpected checkpoint identity")
+                  m=Encoder(n,family)
+                  m.load_state_dict(cp["model_state"])
+                  m.to(device).eval()
+                  models[family]=m
+                  del cp
+              return models
+          
+          
+          @torch.inference_mode()
+          def representations(models,context,device,batch=256):
+              ans={}
+              for family,model in models.items():
+                  outputs=[]
+                  for offset in range(0,len(context),batch):
+                      inp=torch.as_tensor(np.asarray(context[offset:offset+batch]),
+                                          dtype=torch.long,device=device)
+                      r=model(inp).detach().cpu().numpy().astype(np.float32)
+                      if not np.isfinite(r).all():
+                          raise FloatingPointError("invalid Base representation")
+                      outputs.append(r)
+                  ans[family]=np.concatenate(outputs)
+              return ans
+          
+          
+          @torch.inference_mode()
+          def score_batch(models, reps, context_ids, candidates, device):
+              """Same candidates, different frozen Base checkpoints; zero TEST access."""
+              array=np.asarray(candidates,dtype=np.int64)
+              candidates_t=torch.as_tensor(array,device=device,dtype=torch.long)
+              output={}
+              for name,model in models.items():
+                  vec=torch.as_tensor(reps[name][context_ids],device=device)
+                  emb=model.item(candidates_t)
+                  pred=torch.einsum("bd,bkd->bk",vec,emb).detach().cpu().numpy()
+                  if not np.isfinite(pred).all():
+                      raise FloatingPointError("nonfinite candidate scores")
+                  output[name]=pred
+              return output
+          
+          
+          def full_dev_scoring(g1, train_idx, dev_cache, selection_file, train_root,
+                               output, limit=None, block=12, progress=500):
+              if output.exists():
+                  raise FileExistsError("Do not overwrite existing DEV evidence")
+              t0=time.monotonic()
+              prepared=prepare(g1,train_idx,dev_cache,selection_file,limit=limit)
+              dev_idx=prepared["indices"]
+              device="cuda"
+              if not torch.cuda.is_available() or "3090" not in torch.cuda.get_device_name(0):
+                  raise RuntimeError("User-host RTX3090 required")
+              models=load_models(train_root,prepared["index"],prepared["selected"],device)
+              reps=representations(models,prepared["contexts"][dev_idx],device)
+              output.mkdir(parents=True,mode=0o700)
+              rows=[]
+              metrics=collections.defaultdict(lambda:collections.Counter())
+              incoming=[]
+              sample_time=[prepared["clock"][i] for i in dev_idx]
+              for event_id,candidates,rooms in author_availability(
+                      g1/"available_room_intervals.parquet",
+                      sample_time,prepared["positives"][dev_idx],prepared["known"]):
+                  incoming.append((event_id,candidates,rooms))
+                  if len(incoming)<block:
+                      continue
+                  # Keep exact per-event candidates (may vary from 14k to >55k).
+                  rows.extend(score_work_block(incoming,models,reps,prepared,dev_idx,device))
+                  incoming.clear()
+                  if progress and len(rows)%progress < block:
+                      print(json.dumps({"stage":"DEV_full_active","rows":len(rows),
+                          "elapsed_s":round(time.monotonic()-t0,1)}),flush=True)
+              if incoming:
+                  rows.extend(score_work_block(incoming,models,reps,prepared,dev_idx,device))
+              if len(rows)!=len(dev_idx):
+                  raise ValueError("incomplete DEV event scoring")
+              rows.sort(key=lambda x:int(x["event_id"]))
+              columns=list(rows[0])
+              out_csv=output/"dev_full_active_pairs.csv"
+              with out_csv.open("w",newline="") as f:
+                  writer=csv.DictWriter(f,fieldnames=columns)
+                  writer.writeheader()
+                  writer.writerows(rows)
+              summary={"schema":"kbs-plan-c-full-active-dev-paired-v1",
+                       "scope":"DEV_ONLY","n_scored":len(rows),
+                       "all_dev_scored":limit is None,
+                       "base_checkpoint_sha":{family:prepared["selected"]["family_results"][family]["selected"]["checkpoint_sha256"] for family in models},
+                       "g1_protocol_sha256":prepared["g1"]["protocol_sha256"],
+                       "event_csv_sha256":sha(out_csv),
+                       "source_test_outcomes_inspected":False,
+                       "test_file_accessed":False,
+                       "gates_fit":False,
+                       "memory_definition":"0.10 train-logpop + 0.45 exp(-distance/3) last10 + 0.45 prior-count/maxcount",
+                       "median_active_candidates":float(np.median([r["candidate_count"] for r in rows])),
+                       "history_events_scanned":prepared["history_scanned"],
+                       "elapsed_seconds":round(time.monotonic()-t0,1),
+                       "aggregate":{}}
+              for label in ("sasrec","gru4rec","memory"):
+                  metric=np.asarray([float(r[label+"_ndcg10"]) for r in rows])
+                  summary["aggregate"][label]={"ndcg10":float(metric.mean()),
+                       "hr10":float(np.mean([int(r[label+"_rank"])<=10 for r in rows]))}
+              for base in ("sasrec","gru4rec"):
+                  delta=np.asarray([float(r["memory_ndcg10"])-float(r[base+"_ndcg10"]) for r in rows])
+                  summary["aggregate"][base]["memory_minus_base_ndcg10"]=float(delta.mean())
+              (output/"summary.json").write_text(json.dumps(summary,indent=2)+"\n")
+              print(json.dumps(summary),flush=True)
+              return summary
+          
+          
+          def score_work_block(block, models, reps, state, selected, device):
+              maxsize=max(len(x[1]) for x in block)
+              padded=np.zeros((len(block),maxsize),dtype=np.int32)
+              for j,(idx,vals,_) in enumerate(block):
+                  padded[j,:len(vals)]=vals
+              raw=score_batch(models,reps,
+                              [x[0] for x in block],padded,device)
+              output=[]
+              for j,(ix,candidate,rooms) in enumerate(block):
+                  original=int(selected[ix])
+                  uid=int(state["users"][original])
+                  true_id=int(state["positives"][original])
+                  past,recent=state["histories"][ix]
+                  mem=score_history(candidate,state["popularity"],past,recent)
+                  m_rank=memory_rank(candidate,mem,true_id)
+                  d={"event_id":int(state["events"][original]),"user_id":uid,
+                     "split":"DEV","candidate_count":len(candidate),
+                     "memory_rank":m_rank,"memory_ndcg10":ndcg(m_rank),
+                     "x_hist_event_count":float(state["features"][ix]["hist_events_all"]),
+                     "x_hist_warm_count":float(state["features"][ix]["hist_events_warm"]),
+                     "x_hist_distinct":float(state["features"][ix]["hist_distinct_warm"]),
+                     "x_hist_repeat_max":float(state["features"][ix]["hist_max_repeat"]),
+                     "x_hist_short_unique":float(state["features"][ix]["hist_short_unique"]),
+                     "x_memory_history_supported_share":float(np.mean((mem-0.10*state["popularity"][candidate])>1e-12)),
+                     "x_candidate_log_count":float(math.log1p(len(candidate)))}
+                  for model in ("sasrec","gru4rec"):
+                      scores=raw[model][j,:len(candidate)]
+                      true_score=float(scores[np.searchsorted(candidate,true_id)])
+                      outrank=(scores>true_score)|((scores==true_score)&(candidate<true_id))
+                      rank=1+int(np.count_nonzero(outrank))
+                      top=np.partition(scores,-min(11,len(scores)))[-min(11,len(scores)):]
+                      top.sort()
+                      top1=float(top[-1])
+                      top2=float(top[-2])
+                      mean=float(np.mean(scores))
+                      std=float(np.std(scores))
+                      d[model+"_rank"]=rank
+                      d[model+"_ndcg10"]=ndcg(rank)
+                      d["x_"+model+"_base_margin"]=top1-top2
+                      d["x_"+model+"_base_std"]=std
+                      d["x_"+model+"_base_top_z"]=(top1-mean)/max(std,1e-8)
+                      d["x_"+model+"_base_top_score"]=top1
+                      d["x_"+model+"_base_score_mean"]=mean
+                  output.append(d)
+              return output
+          
+          
+          def main():
+              p=argparse.ArgumentParser()
+              p.add_argument("--g1",type=Path,required=True)
+              p.add_argument("--train-index",type=Path,required=True)
+              p.add_argument("--dev",type=Path,required=True)
+              p.add_argument("--selected",type=Path,required=True)
+              p.add_argument("--train-root",type=Path,required=True)
+              p.add_argument("--out",type=Path,required=True)
+              p.add_argument("--limit",type=int)
+              p.add_argument("--block",type=int,default=12)
+              a=p.parse_args()
+              full_dev_scoring(a.g1,a.train_index,a.dev,a.selected,a.train_root,
+                               a.out,limit=a.limit,block=a.block)
+          
+          
+          if __name__=="__main__":
+              main()
+          B4A_DEP_G3
+          cat > "$RUNNER_TEMP/g3_replay_correct_memory.py" <<'B4A_H2_MODULE_1'
+          #!/usr/bin/env python3
+          """Exact DEV-only all-history Memory correction; reuse already-computed Base ranks.
+          
+          Old Memory semantics count *every* prior user-author interaction (including
+          authors not present in TRAIN) for short-distance and global long denominator.
+          Only TRAIN-known active authors can be current ranking candidates. The previous
+          full-active GPU Base scores are reused byte-for-byte, never recomputed.
+          """
+          from __future__ import annotations
+          import argparse
+          import collections
+          import csv
+          import hashlib
+          import json
+          import math
+          import time
+          from pathlib import Path
+          
+          import numpy as np
+          
+          from g3_dev_full_active import author_availability,ndcg
+          
+          
+          def file_sha(file):
+              h=hashlib.sha256()
+              with file.open("rb") as f:
+                  for b in iter(lambda:f.read(8*1024*1024),b""):
+                      h.update(b)
+              return h.hexdigest()
+          
+          
+          def replay_all_history(stream_file,targets,known):
+              """Same source-row order as G1; enforce earlier-before-target snapshots."""
+              import pyarrow.parquet as pq
+              requested={int(e):i for i,e in enumerate(targets)}
+              result=[None]*len(targets)
+              last_user=None
+              warm_count=collections.Counter()
+              all_count=collections.Counter()
+              recent=collections.deque(maxlen=10)
+              max_all=0
+              processed=0
+              captured=0
+              for batch in pq.ParquetFile(stream_file).iter_batches(
+                      batch_size=262144,columns=["source_event_id","user_id","author_id","split"]):
+                  data=batch.to_pydict()
+                  for e,user,author,split in zip(data["source_event_id"],
+                                                 data["user_id"],data["author_id"],data["split"]):
+                      if split=="TEST":
+                          continue
+                      processed+=1
+                      if user!=last_user:
+                          last_user=user
+                          warm_count.clear()
+                          all_count.clear()
+                          recent.clear()
+                          max_all=0
+                      position=requested.get(int(e))
+                      if position is not None:
+                          if split!="DEV" or result[position] is not None:
+                              raise ValueError("Wrong DEV identity or duplicate target")
+                          result[position]=(dict(warm_count),tuple(recent),max_all)
+                          captured+=1
+                      key=int(author)
+                      all_count[key]+=1
+                      max_all=max(max_all,all_count[key])
+                      token=known.get(key,0)
+                      # UNKNOWN authors consume recency slots: this is the important
+                      # exact-horizon difference from the provisional v1 scorer.
+                      recent.append(token)
+                      if token:
+                          warm_count[token]+=1
+              if captured!=len(targets) or any(s is None for s in result):
+                  raise ValueError("DEV target snapshots missing from corrected causal history")
+              return result,processed
+          
+          
+          def corrected_memory_score(tokens,pop,warm_counts,recent_with_zero,long_max):
+              toks=np.asarray(tokens,dtype=np.int32)
+              score=.10*pop[toks].astype(np.float64)
+              if warm_counts:
+                  if long_max <= 0:
+                      raise ValueError("long horizon denominator must be positive")
+                  ids=np.fromiter(warm_counts,dtype=np.int32,count=len(warm_counts))
+                  vals=np.fromiter(warm_counts.values(),dtype=np.float64,count=len(warm_counts))
+                  order=np.argsort(ids)
+                  ids,vals=ids[order],vals[order]
+                  loc=np.searchsorted(ids,toks)
+                  selected=(loc<len(ids))
+                  selected &= ids[np.minimum(loc,len(ids)-1)]==toks
+                  score[selected]+=.45*vals[loc[selected]]/long_max
+              if recent_with_zero:
+                  short={}
+                  for distance,token in enumerate(reversed(recent_with_zero)):
+                      if token:  # unknown authors still consume a distance step
+                          short[token]=max(short.get(token,0.),math.exp(-distance/3.0))
+                  if short:
+                      ids=np.fromiter(sorted(short),dtype=np.int32)
+                      vals=np.array([short[k] for k in ids],dtype=np.float64)
+                      loc=np.searchsorted(ids,toks)
+                      selected=(loc<len(ids))
+                      selected &= ids[np.minimum(loc,len(ids)-1)]==toks
+                      score[selected]+=.45*vals[loc[selected]]
+              return score
+          
+          
+          def rank(toks,scores,true_id):
+              p=np.searchsorted(toks,true_id)
+              if p==len(toks) or toks[p]!=true_id:
+                  raise ValueError("True author must appear in available warm candidate set")
+              val=scores[p]
+              return 1+int(np.count_nonzero((scores>val+1e-12) |
+                        ((np.abs(scores-val)<=1e-12)&(toks<true_id))))
+          
+          
+          def main(g1,index,dev,provisional,out):
+              import pyarrow.parquet as pq
+              start=time.monotonic()
+              if out.exists():
+                  raise FileExistsError("Never overwrite an existing Memory correction")
+              stage=out.with_name(out.name+".incomplete")
+              if stage.exists():
+                  raise FileExistsError("Pre-existing partial correction requires investigation")
+              src_report=json.loads((provisional/"summary.json").read_text())
+              if (src_report.get("schema")!="kbs-plan-c-full-active-dev-paired-v1"
+                  or src_report.get("scope")!="DEV_ONLY"
+                  or src_report.get("n_scored")!=50049
+                  or src_report.get("all_dev_scored") is not True
+                  or src_report.get("test_file_accessed") is not False):
+                  raise ValueError("Expected completed first-pass full-active DEV only")
+              original=provisional/"dev_full_active_pairs.csv"
+              if file_sha(original)!=src_report["event_csv_sha256"]:
+                  raise ValueError("Provisional file SHA mismatch")
+              manifest=json.loads((g1/"manifest.json").read_text())
+              idxm=json.loads((index/"index_manifest.json").read_text())
+              if (manifest["schema"]!="kbs-plan-c-g1-derived-v1"
+                  or idxm["g1_protocol_sha256"]!=manifest["protocol_sha256"]
+                  or src_report["g1_protocol_sha256"]!=manifest["protocol_sha256"]):
+                  raise ValueError("Mismatched frozen source G1 identity")
+              with original.open(newline="") as f:
+                  reader=csv.DictReader(f)
+                  fields=list(reader.fieldnames or [])
+                  rows=list(reader)
+              if len(rows)!=50049 or len({x["event_id"] for x in rows})!=len(rows):
+                  raise ValueError("Expected exactly all unique DEV events")
+              by_id={int(x["event_id"]):x for x in rows}
+              ids=np.load(dev/"dev_source_event_ids.npy")
+              targets=np.load(dev/"dev_positive_author_tokens.npy")
+              if len(ids)!=50049 or set(ids.tolist())!=set(by_id):
+                  raise ValueError("Cannot match provisional Base results to all DEV target events")
+              author_ids=np.load(index/"authors.npy",mmap_mode="r")
+              known={int(a):j+1 for j,a in enumerate(author_ids)}
+              times=pq.read_table(g1/"dev_cohort.parquet",
+                                  columns=["source_event_id","observed_at"])
+              if not np.array_equal(np.asarray(times.column("source_event_id").to_numpy()),ids):
+                  raise ValueError("G1 DEV sample order mismatch")
+              clocks=times.column("observed_at").to_pylist()
+              snapshots,processed=replay_all_history(g1/"causal_stream_sealed.parquet",
+                                                      ids,known)
+              counts=np.bincount(np.load(index/"sequence_ids.npy",mmap_mode="r"),
+                                 minlength=len(author_ids)+1).astype(np.float64)
+              logs=np.log1p(counts)
+              pop=np.zeros(len(counts),dtype=np.float64)
+              pop[1:]=(logs[1:]-logs[1:].min())/(logs[1:].max()-logs[1:].min())
+              n=0
+              for i,cands,_ in author_availability(g1/"available_room_intervals.parquet",
+                                                  clocks,targets,known):
+                  e=int(ids[i])
+                  row=by_id[e]
+                  if int(row["candidate_count"])!=len(cands):
+                      raise ValueError("Cannot replay the exact original Base candidate universe")
+                  warm,recent,long_max=snapshots[i]
+                  scores=corrected_memory_score(cands,pop,warm,recent,long_max)
+                  m_rank=rank(cands,scores,int(targets[i]))
+                  row["memory_rank"]=str(m_rank)
+                  row["memory_ndcg10"]=repr(ndcg(m_rank))
+                  history_support=scores-.10*pop[cands]
+                  row["x_memory_history_supported_share"]=repr(float(np.mean(history_support>1e-12)))
+                  n+=1
+                  if n%1000==0:
+                      print(json.dumps({"phase":"DEV_correct_memory_replay",
+                           "processed":n,"elapsed_s":round(time.monotonic()-start,1)}),flush=True)
+              if n!=50049:
+                  raise ValueError("Incomplete exact author roster correction")
+              stage.mkdir(parents=True,mode=0o700)
+              out_file=stage/"dev_full_active_pairs.csv"
+              with out_file.open("w",newline="") as f:
+                  writer=csv.DictWriter(f,fieldnames=fields)
+                  writer.writeheader()
+                  writer.writerows(rows)
+              pairs_sha=file_sha(out_file)
+              metrics={}
+              for family in ("sasrec","gru4rec","memory"):
+                  vals=np.fromiter((float(r[family+"_ndcg10"]) for r in rows),
+                                   dtype=np.float64,count=n)
+                  ranks=np.fromiter((int(r[family+"_rank"]) for r in rows),
+                                    dtype=np.int32,count=n)
+                  metrics[family]={"ndcg10":float(vals.mean()),
+                                   "hr10":float(np.mean(ranks<=10))}
+                  if family!="memory":
+                      before=src_report["aggregate"][family]
+                      if not np.isclose(metrics[family]["ndcg10"],before["ndcg10"],atol=1e-12):
+                          raise ValueError("Base NDCG changed during Memory-only correction")
+              m=np.fromiter((float(r["memory_ndcg10"]) for r in rows),dtype=np.float64,count=n)
+              for base in ("sasrec","gru4rec"):
+                  b=np.fromiter((float(r[base+"_ndcg10"]) for r in rows),dtype=np.float64,count=n)
+                  metrics[base]["memory_minus_base_ndcg10"]=float(np.mean(m-b))
+              summary=dict(src_report)
+              summary.update({
+                  "schema":"kbs-plan-c-full-active-dev-paired-v2",
+                  "memory_corrected_from_all_history":True,
+                  "memory_definition":"0.10 TRAIN-normalized log popularity + 0.45 short last-10 ALL prior author events exp(-distance/3) + 0.45 long prior counts / max across ALL prior authors",
+                  "provisional_dev_pair_sha256":file_sha(original),
+                  "event_csv_sha256":pairs_sha,
+                  "historical_events_replayed":processed,
+                  "aggregate":metrics,
+                  "elapsed_seconds_memory_correction":round(time.monotonic()-start,1),
+                  "test_file_accessed":False,
+                  "source_test_outcomes_inspected":False,
+                  "gates_fit":False})
+              (stage/"summary.json").write_text(json.dumps(summary,indent=2)+"\n")
+              stage.rename(out)
+              print(json.dumps({"state":"DEV_PAIR_FULL_ACTIVE_MEMORY_CORRECTED",
+                  "n_events":n,"aggregate":metrics,"test_unseen":True}),flush=True)
+          
+          
+          if __name__=="__main__":
+              p=argparse.ArgumentParser()
+              p.add_argument("--g1",type=Path,required=True)
+              p.add_argument("--train-index",type=Path,required=True)
+              p.add_argument("--dev",type=Path,required=True)
+              p.add_argument("--provisional",type=Path,required=True)
+              p.add_argument("--out",type=Path,required=True)
+              a=p.parse_args()
+              main(a.g1,a.train_index,a.dev,a.provisional,a.out)
+          B4A_H2_MODULE_1
+          cat > "$RUNNER_TEMP/g4_sparse_gate_features.py" <<'B4A_H2_MODULE_2'
+          #!/usr/bin/env python3
+          """Gate history-support feature with no Memory candidate scoring.
+          
+          For any causal user prefix, positive long Memory support is equivalent to
+          membership in the TRAIN-known historical author keys. This exactly computes
+          the pretarget feature previously obtained by first evaluating all Memory
+          candidate scores and subtracting 0.10*TRAIN popularity, but does so sparsely.
+          
+          Does not read labels, DEV outcomes or TEST. O(#history log #active authors).
+          """
+          from __future__ import annotations
+          import numpy as np
+          
+          
+          def sparse_history_support_share(active_known_author_tokens, prior_warm_author_counts):
+              """Fraction of time-eligible warm authors with strictly prior interactions.
+          
+              Candidate tokens are sorted ascending and unique. Raw histories include
+              unknown TRAIN authors, but only known author tokens are in prior_warm counts.
+              An author in short history necessarily occurs in the long history.
+              """
+              active=np.asarray(active_known_author_tokens,dtype=np.int64)
+              if len(active)==0:
+                  raise ValueError("Empty eligible author candidate roster")
+              if np.any(active[1:]<=active[:-1]):
+                  raise ValueError("Candidates must be distinct and sorted")
+              if not prior_warm_author_counts:
+                  return 0.0
+              previous=np.fromiter(prior_warm_author_counts.keys(),dtype=np.int64,
+                                    count=len(prior_warm_author_counts))
+              if np.any(previous<=0):
+                  raise ValueError("History index 0 is padding and cannot be a known author")
+              positions=np.searchsorted(active,previous)
+              found=positions<len(active)
+              found[found] &= active[positions[found]]==previous[found]
+              return float(np.count_nonzero(found)/len(active))
+          
+          
+          def dense_reference_support_share(active,popularity,prior_warm,recent,all_author_max):
+              """Unit-test-only reference to exactly evaluated Memory component support."""
+              import math
+              ids=np.asarray(active,dtype=np.int32)
+              scores=0.10*popularity[ids].astype(np.float64).copy()
+              rec=list(recent)[-10:]
+              for j,token in enumerate(ids):
+                  if prior_warm:
+                      scores[j]+=0.45*prior_warm.get(int(token),0)/all_author_max
+                  short=max((math.exp(-distance/3.0)
+                             for distance,item in enumerate(reversed(rec))
+                             if int(item)==int(token)),default=0.0)
+                  scores[j]+=0.45*short
+              signal=scores-0.10*popularity[ids]
+              return float(np.mean(signal>1e-12))
+          B4A_H2_MODULE_2
+          cat > "$RUNNER_TEMP/g5_unlabeled_test_score.py" <<'B4A_H2_MODULE_3'
+          #!/usr/bin/env python3
+          """G5-A: prequential, strictly pretarget, *unlabeled* frozen six-model TEST scoring.
+          
+          The TEST cohort is opened ONLY for event ID/user/timestamp (not author label).
+          TEST stream prior observations are allowed as prequential history. Each
+          target's own author is appended only AFTER snapshot creation. All seven
+          rankers store target-blind top10 author-token IDs, not accuracy, target label,
+          rank or per-event NDCG. Frozen gate decisions are made from label-free data.
+          The independent G5-B action later reads the sealed target labels ONCE.
+          """
+          from __future__ import annotations
+          import argparse,collections,hashlib,heapq,json,math,time
+          from pathlib import Path
+          import joblib,numpy as np,pyarrow.parquet as pq,torch
+          from g2_train_base import Encoder
+          from g3_replay_correct_memory import corrected_memory_score
+          from g4_sparse_gate_features import sparse_history_support_share
+          
+          SEEDS=(20261012,20261013,20261014)
+          FAMILIES=("sasrec","gru4rec")
+          METHODS=("utility","difficulty","specialist","uncertainty","history")
+          MODEL_KEYS=tuple((seed,model) for seed in SEEDS for model in FAMILIES)
+          ROW_COUNT=47575
+          L=16
+          
+          def sha(file):
+              h=hashlib.sha256()
+              with Path(file).open("rb") as f:
+                  for b in iter(lambda:f.read(8*1024*1024),b""):
+                      h.update(b)
+              return h.hexdigest()
+          
+          def gate_path(cache,seed,family):
+              root=cache/"klm3_g3_e2_five_gate_DEV_frozen_v1" if seed==20261012 else cache/f"klm3_g4_extra_seed{seed}_five_gate_DEV_frozen_v1"
+              return root/family
+          
+          def active_rosters(path,timestamps,known):
+              # One causal sweep for all 47,575 events: no knowledge of observed target.
+              order=sorted(range(len(timestamps)),key=lambda i:(timestamps[i],i))
+              def rooms():
+                  pf=pq.ParquetFile(path)
+                  for block in pf.iter_batches(batch_size=131072,
+                             columns=["open_ts","close_ts","author_id"]):
+                      d=block.to_pydict()
+                      yield from zip(d["open_ts"],d["close_ts"],d["author_id"])
+              source=iter(rooms())
+              ahead=next(source,None)
+              expires=[]
+              active=collections.Counter()
+              for i in order:
+                  clock=timestamps[i]
+                  while ahead is not None and ahead[0]<=clock:
+                      begin,end,author=ahead
+                      token=known.get(int(author))
+                      if token and end>clock:
+                          active[token]+=1
+                          heapq.heappush(expires,(end,token))
+                      ahead=next(source,None)
+                  while expires and expires[0][0]<=clock:
+                      _,token=heapq.heappop(expires)
+                      active[token]-=1
+                      if not active[token]:
+                          del active[token]
+                  # Author-token order is raw author-ID order, frozen since G1.
+                  yield i,np.fromiter(sorted(active),dtype=np.int32,count=len(active))
+          
+          def histories(stream,requested_ids,known):
+              """All prior eligible TRAIN/DEV/TEST observations; no own/future event in row."""
+              lookup={int(e):i for i,e in enumerate(requested_ids)}
+              if len(lookup)!=len(requested_ids):
+                  raise ValueError("TEST repeated event IDs")
+              snapshots=[None]*len(requested_ids)
+              previous_user=None
+              recent_all=collections.deque(maxlen=10)
+              recent_warm=collections.deque(maxlen=10)
+              last16=collections.deque(maxlen=L)
+              all_count=collections.Counter()
+              warm_count=collections.Counter()
+              all_max=0
+              total=0
+              warm_total=0
+              count=0
+              seen=0
+              for batch in pq.ParquetFile(stream).iter_batches(
+                      batch_size=262144,columns=["source_event_id","user_id","author_id","split"]):
+                  d=batch.to_pydict()
+                  for e,user,author,split in zip(d["source_event_id"],d["user_id"],
+                                                 d["author_id"],d["split"]):
+                      if previous_user!=user:
+                          previous_user=user
+                          recent_all.clear();recent_warm.clear();last16.clear()
+                          all_count.clear();warm_count.clear()
+                          all_max=0;total=0;warm_total=0
+                      i=lookup.get(int(e))
+                      if i is not None:
+                          if split!="TEST" or snapshots[i] is not None:
+                              raise ValueError("Target identity/split mismatch")
+                          if total<2:
+                              raise ValueError("TEST target violates min prior history")
+                          hist=np.zeros(L,dtype=np.int32)
+                          if last16:
+                              hist[-len(last16):]=last16
+                          # Freeze only prior state at this point, before current author.
+                          features={
+                           "x_hist_event_count":float(total),
+                           "x_hist_warm_count":float(warm_total),
+                           "x_hist_distinct":float(len(warm_count)),
+                           "x_hist_repeat_max":float(max(warm_count.values()) if warm_count else 0),
+                           "x_hist_short_unique":float(len(set(recent_warm)))}
+                          snapshots[i]=(hist,dict(warm_count),tuple(recent_all),
+                                        int(all_max),features)
+                          seen+=1
+                      # This observed event is now past relative to later user events,
+                      # including later TEST events, per frozen prequential G5 protocol.
+                      key=int(author)
+                      all_count[key]+=1
+                      all_max=max(all_max,all_count[key])
+                      total+=1
+                      token=known.get(key,0)
+                      recent_all.append(token)
+                      if token:
+                          warm_count[token]+=1
+                          recent_warm.append(token)
+                          last16.append(token)
+                          warm_total+=1
+                      count+=1
+                  if count%1000000<262144:
+                      print(json.dumps({"history_source_events":count,
+                                        "pretarget_TEST_snapshots":seen}),flush=True)
+              if seen!=len(requested_ids) or any(s is None for s in snapshots):
+                  raise ValueError("Not all TEST pretarget contexts captured")
+              return snapshots,count
+          
+          def stable_top10(tokens,scores,k=10):
+              """Exact score rank with ID tie break without sorting all 30k candidates."""
+              tokens=np.asarray(tokens,dtype=np.int32)
+              values=np.asarray(scores)
+              if len(tokens)<k or not np.isfinite(values).all():
+                  raise ValueError("Invalid candidate scores")
+              if np.any(tokens[1:]<=tokens[:-1]):
+                  raise ValueError("Candidate IDs not sorted uniquely")
+              pivot=np.partition(values,len(values)-k)[len(values)-k]
+              strictly=np.flatnonzero(values>pivot)
+              tied=np.flatnonzero(values==pivot)
+              wanted=k-len(strictly)
+              if wanted<0 or wanted>len(tied):
+                  raise ValueError("top-k pivot mismatch")
+              chosen=np.concatenate([strictly,tied[:wanted]])
+              ordered=np.lexsort((tokens[chosen],-values[chosen]))
+              return tokens[chosen][ordered]
+          
+          @torch.inference_mode()
+          def score_block(models,reps,block):
+              n=len(block)
+              maxsize=max(len(r[1]) for r in block)
+              padded=np.zeros((n,maxsize),np.int32)
+              for pos,(_,candidates) in enumerate(block):
+                  padded[pos,:len(candidates)]=candidates
+              item_ids=torch.as_tensor(padded,device="cuda",dtype=torch.long)
+              best={}
+              features={}
+              for key,model in models.items():
+                  vecs=torch.as_tensor(reps[key][[i for i,_ in block]],
+                                       device="cuda",dtype=torch.float32)
+                  pred=(model.item(item_ids)*vecs[:,None,:]).sum(-1).cpu().numpy()
+                  for j,(_,candidates) in enumerate(block):
+                      sc=pred[j,:len(candidates)]
+                      top=np.partition(sc,-2)[-2:];top.sort()
+                      mean=float(sc.mean());std=float(sc.std())
+                      summary={"x_base_margin":float(top[-1]-top[-2]),
+                          "x_base_std":std,
+                          "x_base_top_z":float((top[-1]-mean)/max(std,1e-8)),
+                          "x_base_top_score":float(top[-1]),
+                          "x_base_score_mean":mean}
+                      best[(key,j)]=stable_top10(candidates,sc)
+                      features[(key,j)]=summary
+              return best,features
+          
+          def main(cache,g1,index,registry,preflight,out,block_size=16):
+              if out.exists() or out.with_name(out.name+".incomplete").exists():
+                  raise FileExistsError("G5-A one-shot cache already present; no overwrite")
+              t0=time.monotonic()
+              frozen=json.loads(registry.read_text())
+              locked=json.loads(preflight.read_text())
+              if (locked.get("status")!="ALL_SIX_CHECKPOINT_AND_POLICY_DIGESTS_VERIFIED"
+                 or locked["registry_sha256"]!=sha(registry)
+                 or locked["test_rows_opened"] is not False
+                 or frozen["target_test_events"]!=ROW_COUNT):
+                  raise ValueError("G5 immutable preflight must precede any TEST scoring")
+              if sha(g1/"test_cohort_sealed.parquet")!=frozen["test_cohort_sha256"]:
+                  raise ValueError("TEST cohort byte digest mismatch")
+              source=pq.read_table(g1/"test_cohort_sealed.parquet",
+                                   columns=["source_event_id","user_id","observed_at"])
+              events=np.asarray(source.column("source_event_id").to_numpy(),np.int64)
+              users=np.asarray(source.column("user_id").to_numpy(),np.int64)
+              timestamps=source.column("observed_at").to_pylist()
+              if len(events)!=ROW_COUNT or len(set(events.tolist()))!=len(events):
+                  raise ValueError("Frozen TEST event identity not intact")
+              authors=np.load(index/"authors.npy",mmap_mode="r")
+              known={int(a):i+1 for i,a in enumerate(authors)}
+              snapshots,stream_events=histories(g1/"causal_stream_sealed.parquet",
+                                                events,known)
+              contexts=np.stack([x[0] for x in snapshots])
+              n_authors=len(authors)
+              if not torch.cuda.is_available() or "3090" not in torch.cuda.get_device_name(0):
+                  raise RuntimeError("Expected pre-authorized RTX 3090")
+              models={}
+              representations={}
+              frozen_policies={}
+              gates={}
+              for seed,family in MODEL_KEYS:
+                  key=f"{seed}_{family}"
+                  doc=(cache/"klm3_g2_checkpoint_dev_selected_v1.json"
+                       if seed==20261012 else cache/f"klm3_g2_seed{seed}_dev_selected_v1.json")
+                  meta=json.loads(doc.read_text())["family_results"][family]["selected"]
+                  ck=cache/f"klm3_g2_seed{seed}_epoch3_v1"/family/meta["checkpoint"]
+                  if sha(ck)!=frozen["checkpoint_sha256"][str(seed)][family]:
+                      raise ValueError("G5-A selected Base model changed "+key)
+                  payload=torch.load(ck,map_location="cpu",weights_only=False)
+                  m=Encoder(n_authors,family)
+                  m.load_state_dict(payload["model_state"])
+                  m.cuda().eval()
+                  models[key]=m
+                  del payload
+                  all_vectors=[]
+                  with torch.inference_mode():
+                      for j in range(0,len(events),256):
+                          features=torch.as_tensor(contexts[j:j+256],device="cuda",dtype=torch.long)
+                          vectors=m(features).detach().cpu().numpy().astype(np.float32)
+                          if not np.isfinite(vectors).all():
+                              raise FloatingPointError("Base representation invalid")
+                          all_vectors.append(vectors)
+                  representations[key]=np.concatenate(all_vectors)
+                  pdir=gate_path(cache,seed,family)
+                  threshold_file=pdir/"frozen_thresholds.json"
+                  if sha(threshold_file)!=frozen["policy_frozen_threshold_sha256"][str(seed)][family]:
+                      raise ValueError("G5-A policy file changed")
+                  p=json.loads(threshold_file.read_text())
+                  if p["state"]!="DEV_FROZEN_POINTWISE" or p["test_outcomes_seen"] is not False:
+                      raise ValueError("Bad DEV frozen policy")
+                  frozen_policies[key]=p
+                  mmanifest=json.loads((pdir/"models"/"oof_manifest.json").read_text())
+                  feats=mmanifest["feature_columns"]
+                  if len(feats)!=12:
+                      raise ValueError("Expected exact frozen 12 pretarget features")
+                  for obj in ("utility","difficulty","specialist"):
+                      path=pdir/"models"/(obj+".joblib")
+                      if sha(path)!=frozen["supervised_gate_model_sha256"][str(seed)][family][obj]:
+                          raise ValueError("Frozen HGB model file changed")
+                      gates[(key,obj)]=(joblib.load(path),feats)
+              del authors
+              counts=np.bincount(np.load(index/"sequence_ids.npy",mmap_mode="r"),
+                                 minlength=n_authors+1).astype(np.float64)
+              logs=np.log1p(counts)
+              popularity=np.zeros(len(logs))
+              popularity[1:]=(logs[1:]-logs[1:].min())/(logs[1:].max()-logs[1:].min())
+              npkeys=[f"{seed}_{family}" for seed,family in MODEL_KEYS]
+              top10=np.empty((len(events),7,10),dtype=np.int32)
+              feature_matrix=np.empty((len(events),6,12),dtype=np.float64)
+              candidate_counts=np.empty(len(events),dtype=np.int32)
+              incoming=[]
+              count=0
+              names=tuple(npkeys)
+              feature_names=tuple(gates[(names[0],"utility")][1])
+              if not all(tuple(gates[(key,obj)][1])==feature_names for key in names
+                 for obj in ("utility","difficulty","specialist")):
+                  raise ValueError("Frozen gate feature column order differs")
+              def consume(block):
+                  nonlocal count
+                  ranks,score_feats=score_block(models,representations,block)
+                  for k,(i,candidate) in enumerate(block):
+                      seq,prior,recent,max_all,shared=snapshots[i]
+                      fixed=corrected_memory_score(candidate,popularity,prior,recent,max_all)
+                      top10[i,6]=stable_top10(candidate,fixed)
+                      support=sparse_history_support_share(candidate,prior)
+                      for m,key in enumerate(names):
+                          top10[i,m]=ranks[(key,k)]
+                          fields={**shared,**score_feats[(key,k)],
+                                  "x_memory_history_supported_share":support,
+                                  "x_candidate_log_count":math.log1p(len(candidate))}
+                          feature_matrix[i,m]=[fields[c] for c in feature_names]
+                      candidate_counts[i]=len(candidate)
+                  count+=len(block)
+                  if count%1000<block_size:
+                      print(json.dumps({"state":"G5_A_unlabeled_TEST_feature_scoring",
+                                        "n":count,"elapsed_s":round(time.monotonic()-t0,1)}),flush=True)
+              for i,candidates in active_rosters(g1/"available_room_intervals.parquet",timestamps,known):
+                  if len(candidates)<10:
+                      raise ValueError("Empty/inadequate active warm author roster")
+                  incoming.append((i,candidates))
+                  if len(incoming)>=block_size:
+                      consume(incoming);incoming=[]
+              if incoming: consume(incoming)
+              if count!=ROW_COUNT or np.any(candidate_counts<10):
+                  raise ValueError("Incomplete TEST feature calculation")
+              scores=np.empty((ROW_COUNT,6,5),dtype=np.float64)
+              masks=np.empty((ROW_COUNT,6,5),dtype=np.bool_)
+              for family_idx,key in enumerate(names):
+                  x=feature_matrix[:,family_idx]
+                  for method_idx,method in enumerate(METHODS):
+                      if method in ("utility","difficulty","specialist"):
+                          value=gates[(key,method)][0].predict(x)
+                      elif method=="uncertainty":
+                          value=-x[:,feature_names.index("x_base_margin")]
+                      else:
+                          value=x[:,feature_names.index("x_hist_event_count")]
+                      if not np.isfinite(value).all():
+                          raise ValueError("Nonfinite frozen TEST gate score")
+                      scores[:,family_idx,method_idx]=value
+                      threshold=frozen_policies[key]["methods"][method]["threshold"]
+                      masks[:,family_idx,method_idx]=(value>=threshold if threshold is not None
+                                                      else False)
+              staging=out.with_name(out.name+".incomplete")
+              staging.mkdir(parents=True,mode=0o700)
+              for name,data in (("event_ids.npy",events),("user_ids.npy",users),
+                                ("top10_author_tokens.npy",top10),
+                                ("gate_score.npy",scores),("gate_calls.npy",masks),
+                                ("candidate_counts.npy",candidate_counts)):
+                  np.save(staging/name,data,allow_pickle=False)
+              manifest={
+                  "schema":"kbs-plan-c-g5-unlabeled-target-blind-test-v1",
+                  "status":"FROZEN_SIX_BASE_TEST_DECISIONS_BEFORE_OUTCOME_EVALUATION",
+                  "registry_sha256":sha(registry),
+                  "preflight_sha256":sha(preflight),
+                  "test_cohort_sha256":frozen["test_cohort_sha256"],
+                  "models":names,"methods":METHODS,
+                  "n_events":ROW_COUNT,
+                  "mean_active_warm_authors":float(candidate_counts.mean()),
+                  "median_active_warm_authors":float(np.median(candidate_counts)),
+                  "test_target_author_labels_loaded":False,
+                  "test_ranks_computed":False,
+                  "test_ndcg_computed":False,
+                  "unlabeled_prequential_prior_TEST_history_used":True,
+                  "no_TEST_model_or_threshold_fit":True,
+                  "file_sha256":{p.name:sha(p) for p in staging.glob("*.npy")},
+                  "elapsed_seconds":round(time.monotonic()-t0,1)}
+              (staging/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n")
+              staging.rename(out)
+              print(json.dumps({"status":manifest["status"],"n_events":ROW_COUNT,
+                 "elapsed_seconds":manifest["elapsed_seconds"],
+                 "test_metrics_computed":False}),flush=True)
+          
+          if __name__=="__main__":
+              p=argparse.ArgumentParser()
+              for opt in ("cache","g1","index","registry","preflight","out"):
+                  p.add_argument("--"+opt,type=Path,required=True)
+              p.add_argument("--block-size",type=int,default=16)
+              a=p.parse_args()
+              main(a.cache,a.g1,a.index,a.registry,a.preflight,a.out,a.block_size)
+          B4A_H2_MODULE_3
+          cat > "$RUNNER_TEMP/n9_b4a_a3_h2_private_null_structure.py" <<'B4A_H2_MODULE_4'
+          #!/usr/bin/env python3
+          """B4-A A3 H2: create three real-historical, closed-hour source swaps before outcomes.
+          
+          Private TEST-period history may include previously observed authors; no ranking,
+          current-label lookup, target ranks or NDCG are performed by this script.
+          Each hour gets its random seed from frozen seed+hour alone; a swap becomes
+          visible to predictions only after its source hour ends. Never publish maps.
+          """
+          from __future__ import annotations
+          import argparse,hashlib,json,random,time
+          from pathlib import Path
+          import numpy as np,pandas as pd,pyarrow.parquet as pq
+          
+          HOUR=3_600_000_000_000
+          SEEDS=(20261014,20261015,20261016)
+          MAIN_SHA="be96c9dbf13a14e0db85df24202e318b691b41a4250a3f5e9bc877d4e28d1e14"
+          SUB_SHA="40c950e6a9d79ce3e4330b8b8f434dda764570fd369bdeb83a7b4d587c00d059"
+          
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open("rb") as f:
+                  for b in iter(lambda:f.read(8<<20),b""):h.update(b)
+              return h.hexdigest()
+          
+          def ns(v):
+              a=pd.to_datetime(pd.Series(v),utc=True)
+              if a.isna().any():raise ValueError("missing clock")
+              return a.dt.as_unit("ns").astype("int64").to_numpy()
+          
+          def main(a1,g1,preflight,out):
+              if out.exists() or out.with_name(out.name+".incomplete").exists():
+                  raise FileExistsError("Original H2 null structure immutable")
+              t0=time.monotonic()
+              report=json.loads((preflight/"summary.json").read_text())
+              if report["status"]!="PASS_INPUT_ONLY_NOT_PRODUCTION_SCORER":
+                  raise RuntimeError("A3 metadata preflight missing")
+              sample=a1/"B4A_IDENTITY_4096_PRIVATE.parquet"
+              if sha(sample)!=SUB_SHA or sha(a1/"B4A_MAIN_30000_PRIVATE.parquet")!=MAIN_SHA:
+                  raise RuntimeError("A1 frozen sample changed")
+              s=pq.read_table(sample,columns=["source_event_id","user_id","observed_at"])
+              selected_id=s.column("source_event_id").to_numpy().astype(np.int64)
+              selected_user=s.column("user_id").to_numpy().astype(np.int64)
+              target_time=ns(s.column("observed_at").to_pylist())
+              if len(selected_id)!=4096 or len(np.unique(selected_id))!=4096:
+                  raise RuntimeError("invalid H2 target ID list")
+              last_by_user={}
+              for u,t in zip(selected_user,target_time):
+                  last_by_user[int(u)]=max(last_by_user.get(int(u),-1),int(t))
+              allowed=set(last_by_user)
+              # Extract the observed stream for target users only, through their last
+              # selected request. Reading an edge's historical author is required for
+              # later causal histories; the same edge cannot affect its own prediction.
+              Es=[];Us=[];As=[];Ts=[]
+              previous=None;last_time=None;observed_users=set()
+              for batch in pq.ParquetFile(g1/"causal_stream_sealed.parquet").iter_batches(
+                      batch_size=262144,
+                      columns=["source_event_id","user_id","author_id","observed_at"]):
+                  d=batch.to_pandas()
+                  d=d.loc[d.user_id.isin(allowed)]
+                  if d.empty:continue
+                  times=ns(d.observed_at)
+                  m=np.fromiter((tt<=last_by_user[int(u)] for u,tt in
+                                 zip(d.user_id.to_numpy(),times)),dtype=bool,count=len(d))
+                  d=d.loc[m];times=times[m]
+                  if d.empty:continue
+                  Es.append(d.source_event_id.to_numpy(dtype=np.int64))
+                  Us.append(d.user_id.to_numpy(dtype=np.int64))
+                  As.append(d.author_id.to_numpy(dtype=np.int64))
+                  Ts.append(times)
+              if not Es:raise RuntimeError("No causal history for frozen H2 users")
+              E=np.concatenate(Es);U=np.concatenate(Us);A=np.concatenate(As);T=np.concatenate(Ts)
+              if len(set(E.tolist()))!=len(E):raise RuntimeError("repeated causal source event IDs")
+              boundary=np.r_[0,np.flatnonzero(U[1:]!=U[:-1])+1,len(E)]
+              if len(boundary)-1!=len(allowed) or len(set(U[boundary[:-1]].tolist()))!=len(allowed):
+                  raise RuntimeError("source stream not contiguous per frozen H2 users")
+              for lo,hi in zip(boundary[:-1],boundary[1:]):
+                  if np.any(np.diff(T[lo:hi])<0):raise RuntimeError("within-user clock backwards")
+              # All H2 events must actually occur in this source stream at their A1
+              # time; a target may be included in a source stream for *later* requests.
+              idx={int(e):i for i,e in enumerate(E)}
+              if any(int(e) not in idx or int(U[idx[int(e)]])!=int(u) or
+                     int(T[idx[int(e)]])!=int(t) for e,u,t in
+                     zip(selected_id,selected_user,target_time)):
+                  raise RuntimeError("frozen H2 target source identity/clock mismatch")
+              authors=set(A.tolist())
+              intervals=[]
+              for batch in pq.ParquetFile(g1/"available_room_intervals.parquet").iter_batches(
+                      batch_size=262144,columns=["author_id","open_ts","close_ts"]):
+                  d=batch.to_pandas();d=d.loc[d.author_id.isin(authors)]
+                  if len(d):intervals.append(d)
+              if not intervals:raise RuntimeError("source author active intervals unavailable")
+              f=pd.concat(intervals,ignore_index=True)
+              begin=ns(f.open_ts);end=ns(f.close_ts)
+              good=end>begin
+              actor=f.author_id.to_numpy(np.int64)[good];begin=begin[good];end=end[good]
+              order=np.lexsort((begin,actor))
+              actor=actor[order];begin=begin[order];end=end[order]
+              segments=np.r_[0,np.flatnonzero(actor[1:]!=actor[:-1])+1,len(actor)]
+              intervals_by_author={}
+              for lo,hi in zip(segments[:-1],segments[1:]):
+                  intervals_by_author[int(actor[lo])]=(begin[lo:hi],np.maximum.accumulate(end[lo:hi]))
+              def active(author,t):
+                  v=intervals_by_author.get(int(author))
+                  if v is None:return False
+                  j=int(np.searchsorted(v[0],t,side="right"))-1
+                  return j>=0 and v[1][j]>t
+              hours=T//HOUR
+              order=np.argsort(hours,kind="stable")
+              sorted_hours=hours[order]
+              borders=np.r_[0,np.flatnonzero(sorted_hours[1:]!=sorted_hours[:-1])+1,len(E)]
+              staging=out.with_name(out.name+".incomplete")
+              staging.mkdir(parents=True,mode=0o700)
+              # Private causal-history rows allow all three H2 scoring passes to reuse
+              # one audited source extraction rather than repeatedly scan the full M3 file.
+              np.savez_compressed(staging/"H2_HISTORY_PRIVATE.npz",
+                                  source_event_ids=E,user_ids=U,author_ids=A,source_time_ns=T)
+              history_sha=sha(staging/"H2_HISTORY_PRIVATE.npz")
+              results=[]
+              try:
+                  for seed in SEEDS:
+                      revised=A.copy();changed=np.zeros(len(E),dtype=bool)
+                      attempts=0;swaps=0
+                      for lo,hi in zip(borders[:-1],borders[1:]):
+                          chunk=order[lo:hi];size=len(chunk)
+                          if size<2:continue
+                          hour=int(sorted_hours[lo])
+                          raw=f"n9-route-b-null-v1:{seed}:{hour}".encode("ascii")
+                          rng=random.Random(int.from_bytes(hashlib.blake2b(raw,digest_size=8).digest(),"little"))
+                          occupied=set()
+                          for _ in range(min(size*3,75000)):
+                              if len(occupied)>=size-1:break
+                              i=rng.randrange(size);j=rng.randrange(size-1)
+                              if j>=i:j+=1
+                              x=int(chunk[i]);y=int(chunk[j]);attempts+=1
+                              if i in occupied or j in occupied or U[x]==U[y] or A[x]==A[y]:continue
+                              if not(active(A[x],int(T[x])) and active(A[y],int(T[y]))
+                                     and active(A[y],int(T[x])) and active(A[x],int(T[y]))):continue
+                              revised[x]=A[y];revised[y]=A[x]
+                              changed[x]=changed[y]=True
+                              occupied.add(i);occupied.add(j);swaps+=1
+                      if swaps==0 or np.count_nonzero(changed)!=2*swaps:
+                          raise RuntimeError("invalid or empty null pair changes")
+                      # Author/hour count marginals, excluding unchanged edges as they
+                      # cancel exactly from the before/after difference.
+                      b=pd.DataFrame({"h":hours[changed],"a":A[changed]}).groupby(["h","a"]).size()
+                      c=pd.DataFrame({"h":hours[changed],"a":revised[changed]}).groupby(["h","a"]).size()
+                      if not b.equals(c):raise RuntimeError("hourly author activity marginals changed")
+                      if not all(active(revised[i],int(T[i])) for i in np.flatnonzero(changed)):
+                          raise RuntimeError("ineligible source-time swapped author")
+                      filename=f"null_seed_{seed}_PRIVATE.npz"
+                      np.savez_compressed(staging/filename,
+                          source_event_ids=E[changed],swapped_author_ids=revised[changed])
+                      results.append({"seed":seed,"swap_pairs":swaps,
+                          "changed_edges":int(changed.sum()),
+                          "source_histories_examined":int(len(E)),
+                          "fraction_changed":float(changed.mean()),
+                          "marginal_and_source_availability_preserved":True,
+                          "strict_source_hour_closure_required_during_scoring":True,
+                          "private_map_sha256":sha(staging/filename)})
+                      print(json.dumps({"H2_NULL_SOURCE_PASS_SEED":seed,
+                              "changed_fraction":round(float(changed.mean()),4)}),flush=True)
+                  manifest={"schema":"kbs-b4a-a3-h2-three-null-structure-v1",
+                       "status":"THREE_SOURCE_VALID_NULL_MAPS_PRIVATE_NO_RANKS",
+                       "main_SHA256":MAIN_SHA,"subset_SHA256":SUB_SHA,
+                       "n_targets":4096,"n_users":len(allowed),
+                       "source_history_rows":len(E),
+                       "private_history_sha256":history_sha,
+                       "null_seed_registry":SEEDS,"seed_results":results,
+                       "target_NDCG_ranks_labels_read":False,
+                       "target_blind_top10_completed":False,
+                       "A4_authorized":False,
+                       "wall_seconds":round(time.monotonic()-t0,1)}
+                  (staging/"summary.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+                  staging.rename(out)
+              except Exception:
+                  # Preserve incomplete private staging to prevent silent do-over.
+                  raise
+              print(json.dumps({"status":manifest["status"],"n_targets":4096,
+                                "A4_authorized":False}),flush=True)
+          
+          if __name__=="__main__":
+              p=argparse.ArgumentParser()
+              for name in ("a1","g1","preflight","out"):
+                  p.add_argument("--"+name,type=Path,required=True)
+              a=p.parse_args();main(a.a1,a.g1,a.preflight,a.out)
+          B4A_H2_MODULE_4
+          cat > "$RUNNER_TEMP/n9_b4a_a3_h2_blind_score.py" <<'B4A_H2_MODULE_5'
+          #!/usr/bin/env python3
+          """B4-A A3 H2: original and per-seed null Top-10 on sealed 4096 requests.
+          
+          No current target author is read as a ranking label. Author stream values are
+          used only AFTER each source event is observed; swaps from an hour are applied
+          only AFTER its hour has fully closed. No NDCG/HR/rank is computed here.
+          """
+          from __future__ import annotations
+          import argparse,collections,hashlib,json,time
+          from pathlib import Path
+          import numpy as np,pyarrow.parquet as pq
+          from g3_replay_correct_memory import corrected_memory_score
+          from g5_unlabeled_test_score import active_rosters,stable_top10
+          
+          HOUR=3_600_000_000_000
+          SEEDS=(20261014,20261015,20261016)
+          MAIN_SHA="be96c9dbf13a14e0db85df24202e318b691b41a4250a3f5e9bc877d4e28d1e14"
+          SUB_SHA="40c950e6a9d79ce3e4330b8b8f434dda764570fd369bdeb83a7b4d587c00d059"
+          
+          def sha(path):
+              h=hashlib.sha256()
+              with path.open("rb") as f:
+                  for x in iter(lambda:f.read(8<<20),b""):h.update(x)
+              return h.hexdigest()
+          
+          class History:
+              def __init__(self,known):
+                  self.raw=collections.Counter()
+                  self.warm=collections.Counter()
+                  self.recent=collections.deque(maxlen=10)
+                  self.max_raw=0
+                  self.known=known
+              def add(self,author):
+                  raw=int(author)
+                  self.raw[raw]+=1
+                  self.max_raw=max(self.max_raw,self.raw[raw])
+                  tok=self.known.get(raw,0)
+                  self.recent.append(tok)
+                  if tok:self.warm[tok]+=1
+              def snapshot_with_open_hour(self,buffer):
+                  # Buffered current-hour authors are always original, because their
+                  # swaps cannot be activated before this whole hour closes.
+                  w=self.warm.copy();r=collections.deque(self.recent,maxlen=10)
+                  raw=self.raw.copy();largest=self.max_raw
+                  for _,author in buffer:
+                      a=int(author);raw[a]+=1;largest=max(largest,raw[a])
+                      t=self.known.get(a,0);r.append(t)
+                      if t:w[t]+=1
+                  return dict(w),tuple(r),largest
+          
+          def main(cache,g1,index,a1,source,h1,seed,out):
+              if seed not in SEEDS:raise ValueError("unregistered H2 seed")
+              if out.exists() or out.with_name(out.name+".incomplete").exists():
+                  raise FileExistsError("Immutable A3 H2 scorer output cannot be overwritten")
+              started=time.monotonic()
+              prior=json.loads((source/"summary.json").read_text())
+              h1manifest=json.loads((h1/"manifest.json").read_text())
+              if prior["status"]!="THREE_SOURCE_VALID_NULL_MAPS_PRIVATE_NO_RANKS":
+                  raise RuntimeError("H2 three-null structural SHA gate failed")
+              if h1manifest["status"]!="H1_30000_FROZEN_PREDICTIONS_A4_HARD_HOLD":
+                  raise RuntimeError("H1 Top-10 must be sealed first")
+              if prior["main_SHA256"]!=MAIN_SHA or prior["subset_SHA256"]!=SUB_SHA or (
+                      h1manifest["source_sample_SHA256"]!=MAIN_SHA):
+                  raise RuntimeError("H1/H2 sample identity changed")
+              source_file=source/"H2_HISTORY_PRIVATE.npz"
+              if sha(source_file)!=prior["private_history_sha256"]:
+                  raise RuntimeError("H2 preserved input history byte SHA mismatch")
+              entry=next(x for x in prior["seed_results"] if x["seed"]==seed)
+              map_file=source/f"null_seed_{seed}_PRIVATE.npz"
+              if sha(map_file)!=entry["private_map_sha256"]:
+                  raise RuntimeError("H2 private null mapping SHA mismatch")
+              m=np.load(map_file,allow_pickle=False)
+              swap={int(e):int(a) for e,a in zip(m["source_event_ids"],m["swapped_author_ids"])}
+              history=np.load(source_file,allow_pickle=False)
+              E=history["source_event_ids"];U=history["user_ids"]
+              A=history["author_ids"];T=history["source_time_ns"]
+              if len(E)!=prior["source_history_rows"]:
+                  raise RuntimeError("stored causal source length mismatch")
+              sub=a1/"B4A_IDENTITY_4096_PRIVATE.parquet"
+              if sha(sub)!=SUB_SHA:raise RuntimeError("H2 frozen target list SHA mismatch")
+              targets=pq.read_table(sub,columns=["source_event_id","user_id","observed_at"])
+              ids=targets.column("source_event_id").to_numpy().astype(np.int64)
+              users=targets.column("user_id").to_numpy().astype(np.int64)
+              clocks=targets.column("observed_at").to_pylist()
+              if len(ids)!=4096:raise RuntimeError("wrong H2 target size")
+              wanted={int(e):i for i,e in enumerate(ids)}
+              known_ids=np.load(index/"authors.npy",mmap_mode="r")
+              known={int(a):i+1 for i,a in enumerate(known_ids)}
+              n_auth=len(known_ids)
+              counts=np.bincount(np.load(index/"sequence_ids.npy",mmap_mode="r"),
+                                 minlength=n_auth+1).astype(np.float64)
+              logs=np.log1p(counts);pop=np.zeros(len(logs),dtype=np.float64)
+              pop[1:]=(logs[1:]-logs[1:].min())/(logs[1:].max()-logs[1:].min())
+              original=[None]*4096;altered=[None]*4096
+              last_user=None;hour=None;buffer=[];received=set()
+              realstate=None;nullstate=None;num_changed_source=0
+              def close_hour():
+                  nonlocal buffer,num_changed_source
+                  for eid,raw in buffer:
+                      realstate.add(raw)
+                      a=swap.get(eid,raw)
+                      nullstate.add(a)
+                      num_changed_source+=int(a!=raw)
+                  buffer=[]
+              for eid,u,raw,t in zip(E,U,A,T):
+                  eid=int(eid);u=int(u);raw=int(raw);t=int(t)
+                  if u!=last_user:
+                      if last_user is not None and buffer:close_hour()
+                      last_user=u;hour=None;buffer=[]
+                      realstate=History(known);nullstate=History(known)
+                  this_hour=t//HOUR
+                  if hour is not None and this_hour<hour:
+                      raise RuntimeError("causal source time went backward")
+                  if hour is not None and this_hour!=hour:
+                      close_hour()
+                  hour=this_hour
+                  k=wanted.get(eid)
+                  if k is not None:
+                      if k in received or u!=int(users[k]):
+                          raise RuntimeError("duplicate/incorrect H2 request")
+                      # Current author "raw" does not enter either snapshot here.
+                      original[k]=realstate.snapshot_with_open_hour(buffer)
+                      altered[k]=nullstate.snapshot_with_open_hour(buffer)
+                      received.add(k)
+                  buffer.append((eid,raw))
+              if len(received)!=4096 or any(x is None for x in altered):
+                  raise RuntimeError("Missing A3 H2 snapshots")
+              # Cross-check same original Full Memory top ten as already sealed H1.
+              priorids=np.load(h1/"event_ids.npy",allow_pickle=False)
+              prevtop=np.load(h1/"top10_base_and_memory_author_tokens.npy",allow_pickle=False)
+              if sha(h1/"event_ids.npy")!=h1manifest["private_files_sha256"]["event_ids.npy"]:
+                  raise RuntimeError("H1 event SHA mismatch")
+              if sha(h1/"top10_base_and_memory_author_tokens.npy")!=h1manifest["private_files_sha256"]["top10_base_and_memory_author_tokens.npy"]:
+                  raise RuntimeError("H1 predicted Memory SHA mismatch")
+              lookup={int(e):i for i,e in enumerate(priorids)}
+              if any(int(e) not in lookup for e in ids):
+                  raise RuntimeError("mechanism subset not covered by sealed H1")
+              orig_top=np.empty((4096,10),dtype=np.int32)
+              null_top=np.empty((4096,10),dtype=np.int32)
+              active_counts=np.empty(4096,dtype=np.int32)
+              for k,candidates in active_rosters(g1/"available_room_intervals.parquet",clocks,known):
+                  if len(candidates)<10:raise RuntimeError("invalid full F roster for H2")
+                  warm,recent,maximum=original[k]
+                  raw=corrected_memory_score(candidates,pop,warm,recent,maximum)
+                  orig_top[k]=stable_top10(candidates,raw)
+                  if not np.array_equal(orig_top[k],prevtop[lookup[int(ids[k])],2]):
+                      raise RuntimeError("H1 versus H2 original rank parity mismatch")
+                  warm,recent,maximum=altered[k]
+                  new=corrected_memory_score(candidates,pop,warm,recent,maximum)
+                  null_top[k]=stable_top10(candidates,new)
+                  active_counts[k]=len(candidates)
+              if not np.all(active_counts>=10):raise RuntimeError("missing active roster")
+              stage=out.with_name(out.name+".incomplete")
+              stage.mkdir(parents=True,mode=0o700)
+              for filename,arr in (("event_ids.npy",ids),("original_full_f_top10.npy",orig_top),
+                                   ("null_full_f_top10.npy",null_top)):
+                  np.save(stage/filename,arr,allow_pickle=False)
+              summary={"schema":"kbs-b4a-a3-h2-one-null-target-blind-v1",
+                  "status":"H2_SEED_FROZEN_4096_UNLABELED_TOP10",
+                  "seed":seed,"n_events":4096,"source_sample_SHA256":SUB_SHA,
+                  "private_null_map_SHA256":sha(map_file),
+                  "H1_original_memory_top10_exact_match":True,
+                  "original_and_null_rankings_same_F_roster":True,
+                  "source_hour_rewire_applied_after_closed":True,
+                  "n_changed_completed_hour_historical_edges":num_changed_source,
+                  "target_author_from_same_request_as_prediction":False,
+                  "target_ndcg_rank_hr_computed":False,"A4_authorized":False,
+                  "files_sha256":{p.name:sha(p) for p in stage.glob("*.npy")},
+                  "wall_seconds":round(time.monotonic()-started,2)}
+              (stage/"manifest.json").write_text(json.dumps(summary,indent=2,sort_keys=True)+"\n")
+              stage.rename(out)
+              print(json.dumps({"status":summary["status"],"seed":seed,
+                                "n_events":4096,"A4_authorized":False}),flush=True)
+          
+          if __name__=="__main__":
+              p=argparse.ArgumentParser()
+              for name in ("cache","g1","index","a1","source","h1","out"):
+                  p.add_argument("--"+name,type=Path,required=True)
+              p.add_argument("--seed",type=int,required=True)
+              a=p.parse_args()
+              main(a.cache,a.g1,a.index,a.a1,a.source,a.h1,a.seed,a.out)
+          B4A_H2_MODULE_5
+          cat > "$RUNNER_TEMP/n9_b4a_a3_final_lock.py" <<'B4A_H2_MODULE_6'
+          #!/usr/bin/env python3
+          """A3 H1/H2 final private SHA-only, no-label sealing gate; does not unblind A4."""
+          from __future__ import annotations
+          import argparse,hashlib,json
+          from pathlib import Path
+          import numpy as np
+          
+          SEEDS=(20261014,20261015,20261016)
+          H1_SHA="be96c9dbf13a14e0db85df24202e318b691b41a4250a3f5e9bc877d4e28d1e14"
+          H2_SHA="40c950e6a9d79ce3e4330b8b8f434dda764570fd369bdeb83a7b4d587c00d059"
+          
+          def digest(p):
+              h=hashlib.sha256()
+              with p.open("rb") as f:
+                  for b in iter(lambda:f.read(8<<20),b""):h.update(b)
+              return h.hexdigest()
+          
+          def checked(folder,filename,registered):
+              p=folder/filename
+              if digest(p)!=registered:
+                  raise RuntimeError("private predicted file SHA differs: "+str(p))
+              return np.load(p,allow_pickle=False)
+          
+          def main(h1,mechanism_root,out):
+              if out.exists():raise FileExistsError("A3 final SHA seal immutable")
+              a=json.loads((h1/"manifest.json").read_text())
+              if not(a["status"]=="H1_30000_FROZEN_PREDICTIONS_A4_HARD_HOLD"
+                     and a["source_sample_SHA256"]==H1_SHA
+                     and a["nested_H2_SHA256"]==H2_SHA
+                     and a["n_events"]==30000
+                     and not a["test_rank_ndcg_hr_computed"]
+                     and not a["A4_unseal_authorized"]):
+                  raise RuntimeError("H1 is not an unblinded-safe 30k frozen ranking")
+              h1_ids=checked(h1,"event_ids.npy",a["private_files_sha256"]["event_ids.npy"])
+              h1_top=checked(h1,"top10_base_and_memory_author_tokens.npy",
+                             a["private_files_sha256"]["top10_base_and_memory_author_tokens.npy"])
+              h1_calls=checked(h1,"gate_calls.npy",a["private_files_sha256"]["gate_calls.npy"])
+              if h1_ids.shape!=(30000,) or h1_top.shape!=(30000,3,10) or h1_calls.shape!=(30000,2,2):
+                  raise RuntimeError("H1 frozen array dimensions wrong")
+              if len(set(h1_ids.tolist()))!=30000:
+                  raise RuntimeError("H1 repeated ID")
+              reference_ids=None;reference_real=None;null_hashes={}
+              for seed in SEEDS:
+                  folder=mechanism_root/f"null_seed_{seed}_frozen_top10_v1"
+                  b=json.loads((folder/"manifest.json").read_text())
+                  if not(b["status"]=="H2_SEED_FROZEN_4096_UNLABELED_TOP10"
+                         and b["seed"]==seed and b["n_events"]==4096
+                         and b["source_sample_SHA256"]==H2_SHA
+                         and b["H1_original_memory_top10_exact_match"]
+                         and b["original_and_null_rankings_same_F_roster"]
+                         and b["source_hour_rewire_applied_after_closed"]
+                         and not b["target_ndcg_rank_hr_computed"]
+                         and not b["A4_authorized"]):
+                      raise RuntimeError("H2 seed incomplete or not target blind")
+                  ids=checked(folder,"event_ids.npy",b["files_sha256"]["event_ids.npy"])
+                  original=checked(folder,"original_full_f_top10.npy",
+                                  b["files_sha256"]["original_full_f_top10.npy"])
+                  null=checked(folder,"null_full_f_top10.npy",
+                               b["files_sha256"]["null_full_f_top10.npy"])
+                  if ids.shape!=(4096,) or original.shape!=(4096,10) or null.shape!=(4096,10):
+                      raise RuntimeError("H2 shape wrong")
+                  if reference_ids is None:
+                      reference_ids=ids.copy();reference_real=original.copy()
+                  elif not (np.array_equal(ids,reference_ids) and
+                            np.array_equal(original,reference_real)):
+                      raise RuntimeError("H2 seed targets or original ranker differ")
+                  null_hashes[str(seed)]=b["files_sha256"]["null_full_f_top10.npy"]
+              if not set(reference_ids.tolist()).issubset(set(h1_ids.tolist())):
+                  raise RuntimeError("H2 subset not contained in H1")
+              # Locked A3 only; target labels remain inaccessible.
+              manifest={"schema":"kbs-b4a-a3-complete-blind-prediction-lock-v1",
+                 "status":"A3_H1_H2_PREDICTIONS_SHA_LOCKED_A4_NOT_OPENED",
+                 "main_events":30000,"mechanism_events":4096,
+                 "frozen_H1_manifest_SHA256":digest(h1/"manifest.json"),
+                 "frozen_H2_manifests_SHA256":{
+                     str(seed):digest(mechanism_root/f"null_seed_{seed}_frozen_top10_v1"/"manifest.json")
+                     for seed in SEEDS},
+                 "frozen_H2_null_top10_SHA256":null_hashes,
+                 "H2_all_seed_ID_and_real_score_parity":True,
+                 "H2_nested_in_H1":True,"no_target_label_or_metric_read":True,
+                 "A4_authorized_by_A3_lock":False,
+                 "note":"A4 still requires an independent scientific protocol and no-current-target-access audit."}
+              out.mkdir(parents=True,mode=0o700)
+              (out/"manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n")
+              print(json.dumps({"status":manifest["status"],"main":30000,
+                                "mechanism":4096,"A4_authorized":False}),flush=True)
+          
+          if __name__=="__main__":
+              p=argparse.ArgumentParser()
+              p.add_argument("--h1",type=Path,required=True)
+              p.add_argument("--mechanism-root",type=Path,required=True)
+              p.add_argument("--out",type=Path,required=True)
+              a=p.parse_args()
+              main(a.h1,a.mechanism_root,a.out)
+          B4A_H2_MODULE_6
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'H2_SHA'
+          import os,pathlib,hashlib
+          r=pathlib.Path(os.environ["RUNNER_TEMP"])
+          expected={
+              "g2_train_base.py": "1d8c26c637e8779143882e1e9f7dab8610ab5fd7",
+              "g3_dev_full_active.py": "741f15244471d521054d89675904dfb2c76c7d5c",
+              "g3_replay_correct_memory.py": "04b35990db15ebbddcc8f787979e8c0eee0c3bb1",
+              "g4_sparse_gate_features.py": "b45d083445e562ab17dd5ada7fb1bdcde10cafe8",
+              "g5_unlabeled_test_score.py": "ac66a8a8a0a16537890308e67aa81c709872ff7d",
+              "n9_b4a_a3_h2_private_null_structure.py": "2f4788b39fa784626c46540d764ab774de277874",
+              "n9_b4a_a3_h2_blind_score.py": "a9ec803fdd156cbbfa3aef82e60657b40aec7529",
+              "n9_b4a_a3_final_lock.py": "7ae83ac437075086ec348cd212a9bac5c9b4a101",
+          }
+          for name,want in expected.items():
+              data=(r/name).read_bytes()
+              got=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              assert got==want,(name,got,want)
+          print('H2 scripts SHA locked; no event labels opened',flush=True)
+          H2_SHA
+      - name: Construct original-source closed-hour relation nulls for exactly 4096 targets
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$RUNNER_TEMP:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OMP_NUM_THREADS=3 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          mkdir -p -m 700 "$ROOT/klm3_n9_b4a_a3_h2_v1"
+          "$HOME/venvs/kuailive-gpu/bin/python" "$RUNNER_TEMP/n9_b4a_a3_h2_private_null_structure.py" \
+            --a1 "$ROOT/klm3_n9_route_b_b4a_a1_30000_4096_v1" \
+            --g1 "$ROOT/klm3_plan_c_g1_v1" \
+            --preflight "$ROOT/klm3_n9_b4a_a3_private_source_preflight_v1" \
+            --out "$ROOT/klm3_n9_b4a_a3_h2_v1/structure_v1"
+      - name: Original-memory parity and three never-recalibrated target-blind null Top-10 arrays
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$RUNNER_TEMP:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OMP_NUM_THREADS=3 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          for seed in 20261014 20261015 20261016; do
+            "$HOME/venvs/kuailive-gpu/bin/python" "$RUNNER_TEMP/n9_b4a_a3_h2_blind_score.py" \
+              --cache "$ROOT" --g1 "$ROOT/klm3_plan_c_g1_v1" \
+              --index "$ROOT/klm3_g2_train_index_v1" \
+              --a1 "$ROOT/klm3_n9_route_b_b4a_a1_30000_4096_v1" \
+              --source "$ROOT/klm3_n9_b4a_a3_h2_v1/structure_v1" \
+              --h1 "$ROOT/klm3_n9_b4a_a3_h1_frozen_30000_v1" \
+              --seed "$seed" \
+              --out "$ROOT/klm3_n9_b4a_a3_h2_v1/null_seed_${seed}_frozen_top10_v1"
+          done
+      - name: Seal H1 and all three H2 private Top-10 SHAs with no target labels
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$RUNNER_TEMP:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          "$HOME/venvs/kuailive-gpu/bin/python" "$RUNNER_TEMP/n9_b4a_a3_final_lock.py" \
+            --h1 "$ROOT/klm3_n9_b4a_a3_h1_frozen_30000_v1" \
+            --mechanism-root "$ROOT/klm3_n9_b4a_a3_h2_v1" \
+            --out "$ROOT/klm3_n9_b4a_a3_final_lock_v1"
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'A3_HARD_HOLD'
+          import json,pathlib
+          p=pathlib.Path.home()/'.cache/kuailive-agent-kbs/klm3_n9_b4a_a3_final_lock_v1/manifest.json'
+          j=json.loads(p.read_text())
+          assert j['status']=='A3_H1_H2_PREDICTIONS_SHA_LOCKED_A4_NOT_OPENED'
+          assert j['H2_all_seed_ID_and_real_score_parity']
+          assert not j['A4_authorized_by_A3_lock'] and j['no_target_label_or_metric_read']
+          print('A3 H1/H2 SEALED, A4 hard HOLD pending independent audit',flush=True)
+          A3_HARD_HOLD

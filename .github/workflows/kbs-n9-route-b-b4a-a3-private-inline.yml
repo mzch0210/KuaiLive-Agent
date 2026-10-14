@@ -1,0 +1,157 @@
+name: KBS B4-A A3 pinned private source preflight no checkout
+on:
+  push:
+    branches: [kbs-b4a-a3-synthetic-preflight-20261014]
+    paths: ['.github/workflows/kbs-n9-route-b-b4a-a3-private-inline.yml']
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b4a-a3-private-metadata-inline
+  cancel-in-progress: false
+jobs:
+  private-a1-g1-provenance:
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 35
+    steps:
+      - name: Verify restricted input presence without touching data
+        run: |
+          set -euo pipefail
+          umask 077
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test -s "$ROOT/klm3_n9_route_b_b4a_a1_30000_4096_v1/summary.json"
+          test -s "$ROOT/klm3_plan_c_g1_v1/manifest.json"
+          test ! -e "$ROOT/klm3_n9_b4a_a3_private_source_preflight_v1"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+      - name: Run Git-blob-pinned source metadata projection (not TEST scoring)
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/b4a_a3_source.py" <<'FROZEN_SCRIPT'
+          #!/usr/bin/env python3
+          """B4-A A3 private INPUT-ONLY qualification. Reads A1 metadata, never current target author.
+          This program must NOT compute a ranking, a target rank, an NDCG or alter existing data.
+          """
+          from __future__ import annotations
+          import argparse,hashlib,json,stat
+          from pathlib import Path
+          import numpy as np
+          import pyarrow.parquet as pq
+          
+          SAMPLES = {
+              "B4A_MAIN_30000_PRIVATE.parquet": ("be96c9dbf13a14e0db85df24202e318b691b41a4250a3f5e9bc877d4e28d1e14",30000),
+              "B4A_IDENTITY_4096_PRIVATE.parquet": ("40c950e6a9d79ce3e4330b8b8f434dda764570fd369bdeb83a7b4d587c00d059",4096)
+          }
+          ALLOWED=("source_event_id","user_id","observed_at","prior_events","day","history_group")
+          
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open("rb") as f:
+                  for b in iter(lambda:f.read(8<<20),b""):h.update(b)
+              return h.hexdigest()
+          
+          def check_table(p,expected,n):
+              if sha(p)!=expected:raise ValueError("sample SHA changed")
+              meta=pq.ParquetFile(p)
+              if tuple(meta.schema_arrow.names)!=ALLOWED or meta.metadata.num_rows!=n:
+                  raise ValueError("A1 sample contains unapproved column or count")
+              arr=pq.read_table(p,columns=["source_event_id","user_id","observed_at","prior_events"])
+              ids=arr.column("source_event_id").to_numpy().astype(np.int64)
+              us=arr.column("user_id").to_numpy().astype(np.int64)
+              prior=arr.column("prior_events").to_numpy().astype(np.int64)
+              clocks=arr.column("observed_at").to_pylist()
+              if len(set(ids.tolist()))!=n or any(t is None for t in clocks) or np.any(prior<2):
+                  raise ValueError("sample identity/time/history invalid")
+              # Crucial: no target_author or author_id can enter any return value.
+              return ids,us,clocks
+          
+          def main(root,g1,out):
+              if out.exists():raise FileExistsError("No overwrite")
+              a1=json.loads((root/"summary.json").read_text())
+              if a1.get("target_author_labels_in_frozen_files") is not False or a1.get("model_predictions_computed") is not False:
+                  raise RuntimeError("A1 label freeze invalid")
+              if {k:v[0] for k,v in SAMPLES.items()} != {
+                  "B4A_MAIN_30000_PRIVATE.parquet":a1["main_private_SHA256"],
+                  "B4A_IDENTITY_4096_PRIVATE.parquet":a1["mechanism_private_SHA256"]
+              }:raise RuntimeError("A1 manifest sample digests invalid")
+              main_ids,main_u,main_t=check_table(root/"B4A_MAIN_30000_PRIVATE.parquet",*SAMPLES["B4A_MAIN_30000_PRIVATE.parquet"])
+              mech_ids,mech_u,mech_t=check_table(root/"B4A_IDENTITY_4096_PRIVATE.parquet",*SAMPLES["B4A_IDENTITY_4096_PRIVATE.parquet"])
+              if not set(mech_ids.tolist()).issubset(set(main_ids.tolist())):
+                  raise RuntimeError("H2 subset is not nested in H1")
+              allmeta=dict(zip(main_ids.tolist(),zip(main_u.tolist(),main_t)))
+              if any(allmeta[int(e)]!=(int(u),t) for e,u,t in zip(mech_ids,mech_u,mech_t)):
+                  raise RuntimeError("H2 ID/user/time inconsistent with H1")
+              manifest=json.loads((g1/"manifest.json").read_text())
+              for file in ["causal_stream_sealed.parquet","test_cohort_sealed.parquet","train_known_authors.parquet","available_room_intervals.parquet"]:
+                  if sha(g1/file)!=manifest["generated_files_sha256"][file]:
+                      raise RuntimeError("G1 source SHA mismatch "+file)
+              old=pq.read_table(g1/"test_cohort_sealed.parquet",columns=["source_event_id"])
+              old_ids=set(old.column("source_event_id").to_numpy().tolist())
+              if not set(main_ids.tolist()).isdisjoint(old_ids):
+                  raise RuntimeError("B4-A main includes existing G5 original evaluation event")
+              # Strict projection reads event ID/user/clock/split only, no current author.
+              requested=set(main_ids.tolist());seen={}
+              source_count=0;previous_user=None;last_clock=None;source_order=0;duplicate=0;nonmonotone=0
+              for block in pq.ParquetFile(g1/"causal_stream_sealed.parquet").iter_batches(
+                      batch_size=262144,columns=["source_event_id","user_id","observed_at","split"]):
+                  d=block.to_pydict()
+                  for e,u,t,s in zip(d["source_event_id"],d["user_id"],d["observed_at"],d["split"]):
+                      source_count+=1;source_order+=1
+                      if u != previous_user:
+                          previous_user=u;last_clock=None
+                      if last_clock is not None and t<last_clock:nonmonotone+=1
+                      last_clock=t
+                      if int(e) not in requested:continue
+                      if int(e) in seen:duplicate+=1
+                      if s!="TEST" or (int(u),t)!=allmeta[int(e)]:
+                          raise RuntimeError("A1 chosen request identity/time/split not source-identical")
+                      seen[int(e)]=(int(u),t,source_order)
+              if len(seen)!=30000 or duplicate or nonmonotone:
+                  raise RuntimeError("A3 source coverage, duplication or time monotonicity failed")
+              report={"schema":"kbs-b4a-a3-private-source-input-preflight-v1",
+                  "status":"PASS_INPUT_ONLY_NOT_PRODUCTION_SCORER",
+                  "main_sample_SHA256":SAMPLES["B4A_MAIN_30000_PRIVATE.parquet"][0],
+                  "mechanism_subset_SHA256":SAMPLES["B4A_IDENTITY_4096_PRIVATE.parquet"][0],
+                  "n_main_events":30000,"n_mechanism_events":4096,
+                  "n_main_users":int(len(np.unique(main_u))),
+                  "n_mechanism_users":int(len(np.unique(mech_u))),
+                  "source_stream_projected_columns":["source_event_id","user_id","observed_at","split"],
+                  "source_event_rows_scanned":source_count,
+                  "source_G1_hashes_pass":True,"old_G5_target_overlap":0,
+                  "source_clock_user_order_monotone":True,
+                  "main_mechanism_nested_user_clock_identity":True,
+                  "same_clock_stable_source_row_order_preserved_in_private_memory_only":True,
+                  "current_request_author_column_read":False,
+                  "new_TEST_target_rank_or_ndcg_computed":False,
+                  "new_TEST_predictions_computed":False,
+                  "A3_ranking_authorized_by_this_report":False,
+                  "A4_label_unseal_authorized":False}
+              out.mkdir(mode=0o700,parents=True)
+              (out/"summary.json").write_text(json.dumps(report,indent=2,sort_keys=True)+"\n")
+              print(json.dumps(report,sort_keys=True),flush=True)
+          
+          if __name__=="__main__":
+              p=argparse.ArgumentParser()
+              p.add_argument("--a1",type=Path,required=True)
+              p.add_argument("--g1",type=Path,required=True)
+              p.add_argument("--out",type=Path,required=True)
+              a=p.parse_args()
+              main(a.a1,a.g1,a.out)
+          FROZEN_SCRIPT
+          export EXPECTED_BLOB="128bc4e7dc447ecef3d257d12fcc6fb6a137d96b"
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'VERIFY_CODE'
+          import os,hashlib,pathlib
+          p=pathlib.Path(os.environ["RUNNER_TEMP"])/"b4a_a3_source.py"
+          s=p.read_bytes()
+          got=hashlib.sha1(b"blob "+str(len(s)).encode()+b"\0"+s).hexdigest()
+          assert got==os.environ["EXPECTED_BLOB"], "A3 private source code SHA mismatch"
+          print("Private source preflight code Git blob verified; no data opened",flush=True)
+          VERIFY_CODE
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          "$HOME/venvs/kuailive-gpu/bin/python" -c 'import pyarrow, numpy; print("A3 private parquet dependencies available", flush=True)'
+          export OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 OMP_NUM_THREADS=2 PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          "$HOME/venvs/kuailive-gpu/bin/python" "$RUNNER_TEMP/b4a_a3_source.py" \
+            --a1 "$ROOT/klm3_n9_route_b_b4a_a1_30000_4096_v1" \
+            --g1 "$ROOT/klm3_plan_c_g1_v1" \
+            --out "$ROOT/klm3_n9_b4a_a3_private_source_preflight_v1"

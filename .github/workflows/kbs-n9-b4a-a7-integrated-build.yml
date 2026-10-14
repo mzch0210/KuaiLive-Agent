@@ -1,0 +1,130 @@
+name: KBS B4-A A7 updated paper and supplement PDF
+on:
+  push:
+    branches: [kbs-b4a-a3-synthetic-preflight-20261014]
+    paths:
+      - '.github/workflows/kbs-n9-b4a-a7-integrated-build.yml'
+      - 'manuscript/kbs_latex/main.tex'
+      - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md'
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b4a-a7-pdfs
+  cancel-in-progress: false
+jobs:
+  main-paper:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Main and S10 cross source consistency
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          main=Path('manuscript/kbs_latex/main.tex').read_text()
+          supp=Path('manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md').read_text()
+          assert 'S10.15--S10.16' in main
+          assert 'tab:results-m3-b4a-supervision' in main
+          for v in ['0.005391','0.003585','0.031145','0.334942']:
+              assert v in main and v in supp,v
+          for v in ['S10.15','S10.16','Table S10.9','Table S10.10','NOT VERIFIED','1.337','1.797']:
+              assert v in supp,v
+          sections=[int(s) for s in re.findall(r'^# S(10|[1-9])\.',supp,re.M)]
+          assert sections==list(range(1,11)),sections
+          secs=[int(s) for s in re.findall(r'^## S10\.(\d+) ',supp,re.M)]
+          assert secs==list(range(1,17)),secs
+          print('B4A main and supplement protocol/results/limitations PASS')
+          PY
+      - name: Install PDF extraction for manuscript QA
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+      - name: Compile updated LaTeX paper
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: main.tex
+          working_directory: manuscript/kbs_latex
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
+      - name: Verify current main manuscript PDF
+        run: |
+          set -euo pipefail
+          test -s manuscript/kbs_latex/main.pdf
+          pdftotext -layout manuscript/kbs_latex/main.pdf main-a7.txt
+          grep -F '0.005391' main-a7.txt
+          grep -F '0.031145' main-a7.txt
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('manuscript/kbs_latex/main.log').read_text(errors='replace')
+          assert not any(e in s for e in ['! LaTeX Error:','! Undefined control sequence.','Missing $ inserted.','Emergency stop','Fatal error occurred','There were undefined references'])
+          print('Main PDF PASS')
+          PY
+      - name: Archive revised manuscript PDF
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-b4a-a7-main
+          path: |
+            manuscript/kbs_latex/main.pdf
+            manuscript/kbs_latex/main.log
+            manuscript/kbs_latex/main.blg
+          if-no-files-found: warn
+          retention-days: 60
+  complete-supplement:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Install pandoc
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq pandoc poppler-utils
+      - name: Convert and postprocess S1-S10.16 Markdown
+        run: |
+          set -euo pipefail
+          cd manuscript/kbs_latex
+          pandoc SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md \
+            -f markdown+pipe_tables+raw_tex+tex_math_dollars+yaml_metadata_block \
+            -t latex -s --toc --toc-depth=1 \
+            -V documentclass=article -V fontsize=10pt \
+            -V mainfont='DejaVu Serif' -V sansfont='DejaVu Sans' -V monofont='DejaVu Sans Mono' \
+            -V geometry:margin=0.75in -V colorlinks=true -V urlcolor=blue \
+            --pdf-engine=xelatex -o supplementary_information_n9.tex
+          cd ../..
+          python analysis/kbs_n9_supplement_tex_postprocess.py manuscript/kbs_latex/supplementary_information_n9.tex
+          test -s manuscript/kbs_latex/supplementary_information_n9.tex
+      - name: Compile revised S1-S10.16 PDF
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: supplementary_information_n9.tex
+          working_directory: manuscript/kbs_latex
+          args: -pdfxe -file-line-error -halt-on-error -interaction=nonstopmode
+      - name: Validate supplement PDF
+        run: |
+          set -euo pipefail
+          test -s manuscript/kbs_latex/supplementary_information_n9.pdf
+          pdftotext -layout manuscript/kbs_latex/supplementary_information_n9.pdf supp-a7.txt
+          grep -F '0.005391' supp-a7.txt
+          grep -F '0.031145' supp-a7.txt
+          grep -F 'S10.15' supp-a7.txt
+          grep -F 'S10.16' supp-a7.txt
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('manuscript/kbs_latex/supplementary_information_n9.log').read_text(errors='replace')
+          assert not any(e in s for e in ['! LaTeX Error:','! Undefined control sequence.','Missing $ inserted.','Emergency stop','Fatal error occurred'])
+          print('S10.15/16 PDF PASS')
+          PY
+      - name: Archive revised supplement PDF
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-b4a-a7-supplement
+          path: |
+            manuscript/kbs_latex/supplementary_information_n9.pdf
+            manuscript/kbs_latex/supplementary_information_n9.tex
+            manuscript/kbs_latex/supplementary_information_n9.log
+          if-no-files-found: warn
+          retention-days: 60

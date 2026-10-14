@@ -1,0 +1,2200 @@
+name: KBS B4-A A4 independent strict input preflight NO label read
+on:
+  push:
+    branches: [kbs-b4a-a3-synthetic-preflight-20261014]
+    paths: ['.github/workflows/kbs-n9-route-b-b4a-a4-strict-prereveal.yml']
+permissions:
+  contents: read
+concurrency:
+  group: kbs-b4a-a4-strict-no-label-read
+  cancel-in-progress: false
+jobs:
+  prereveal-frozen-A3-sha-verification:
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 18
+    steps:
+      - name: Verify A3 seals and absence of earlier A4 attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test -s "$ROOT/klm3_n9_b4a_a3_final_lock_v1/manifest.json"
+          test -s "$ROOT/klm3_n9_b4a_a3_h1_frozen_30000_v1/manifest.json"
+          test ! -e "$ROOT/klm3_n9_b4a_a4_one_shot_v1"
+          test ! -e "$ROOT/klm3_n9_b4a_a4_one_shot_v1.unseal_in_progress"
+          test ! -e "$ROOT/klm3_n9_b4a_a4_strict_prereveal_v1"
+      - name: Restore exact SHA-pinned A4 source and A2 frozen weight sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/g2_train_base.py" <<'A4PREREVEAL_FILE_0'
+          #!/usr/bin/env python3
+          """KBS Plan C G2: train-only GPU baselines and reusable author sequence index.
+          
+          No TEST file is opened. Training is not DEV model selection. This module only
+          produces TRAIN checkpoints and pilot throughput/memory observations. Models
+          must be evaluated/selected on a frozen DEV protocol before TEST.
+          """
+          from __future__ import annotations
+          import argparse
+          import hashlib
+          import json
+          import os
+          import random
+          import time
+          from pathlib import Path
+          
+          import numpy as np
+          import torch
+          from torch import nn
+          import torch.nn.functional as F
+          
+          L = 16
+          D = 64
+          
+          
+          def digest(file: Path):
+              h = hashlib.sha256()
+              with file.open("rb") as stream:
+                  for chunk in iter(lambda: stream.read(8 * 1024 * 1024), b""):
+                      h.update(chunk)
+              return h.hexdigest()
+          
+          
+          class Encoder(nn.Module):
+              def __init__(self, items, kind):
+                  super().__init__()
+                  if kind not in ("sasrec", "gru4rec"):
+                      raise ValueError("unknown Base family")
+                  self.kind = kind
+                  self.item = nn.Embedding(items + 1, D, padding_idx=0)
+                  nn.init.normal_(self.item.weight, 0, .02)
+                  with torch.no_grad():
+                      self.item.weight[0].zero_()
+                  if kind == "sasrec":
+                      self.pos = nn.Embedding(L, D)
+                      self.norm = nn.LayerNorm(D)
+                      block = nn.TransformerEncoderLayer(
+                          D, nhead=4, dim_feedforward=D * 4, dropout=.1,
+                          activation="gelu", batch_first=True, norm_first=True)
+                      self.encoder = nn.TransformerEncoder(block, num_layers=1, enable_nested_tensor=False)
+                      self.dropout = nn.Dropout(.1)
+                      self.register_buffer(
+                          "causal", torch.triu(torch.ones(L, L, dtype=torch.bool), 1),
+                          persistent=False)
+                  else:
+                      self.encoder = nn.GRU(D, D, num_layers=1, batch_first=True)
+                      self.norm = nn.LayerNorm(D)
+          
+              def forward(self, history):
+                  # Histories are left-padded and nonempty; latest event is rightmost.
+                  if self.kind == "sasrec":
+                      # IMPORTANT: left padding plus a causal mask can leave an all-masked
+                      # query row (NaNs in SDPA). Shift valid ids to the LEFT so the
+                      # earliest query always has a legal self-attention key. Padding is
+                      # now on the RIGHT and the last valid state is gathered explicitly.
+                      count = history.ne(0).sum(1)
+                      if torch.any(count == 0):
+                          raise ValueError("SASRec requires a nonempty causal history")
+                      steps = torch.arange(history.shape[1], device=history.device)
+                      gather_idx = (steps[None, :] + history.shape[1] - count[:, None]) % history.shape[1]
+                      right = history.gather(1, gather_idx)
+                      x = self.item(right)
+                      x = self.dropout(x + self.pos(steps))
+                      x = self.encoder(x, mask=self.causal[:history.shape[1], :history.shape[1]],
+                                       src_key_padding_mask=right.eq(0))
+                      last=x[torch.arange(history.shape[0],device=history.device), count-1]
+                      return self.norm(last)
+                  x = self.item(history)
+                  # Right-aligned sequences; a single GRU applied to all positions
+                  # handles left padding consistently across train and DEV.
+                  x, _ = self.encoder(x)
+                  return self.norm(x[:, -1])
+          
+              def score(self, history, candidate_ids):
+                  rep = self(history)
+                  return (rep.unsqueeze(-2) * self.item(candidate_ids)).sum(-1)
+          
+          
+          def load_or_prepare_train_index(g1: Path, cache: Path, synthetic=False):
+              import pyarrow.parquet as pq
+              manifest = json.loads((g1/"manifest.json").read_text())
+              if (manifest["schema"] != "kbs-plan-c-g1-derived-v1"
+                      or manifest["test_outcomes_inspected"] is not False):
+                  raise ValueError("wrong G1 source: expected TEST-unseen TRAIN bundle")
+              authors_path = g1 / "train_known_authors.parquet"
+              events_path = g1 / "train_author_events.parquet"
+              for path in (authors_path, events_path):
+                  if not path.is_file():
+                      raise FileNotFoundError(path)
+                  if not synthetic and digest(path) != manifest["generated_files_sha256"][path.name]:
+                      raise ValueError("train input digest mismatch " + path.name)
+              expected = {"g1_protocol_sha256": manifest["protocol_sha256"],
+                          "train_author_sha256": manifest["generated_files_sha256"][authors_path.name],
+                          "train_events_sha256": manifest["generated_files_sha256"][events_path.name],
+                          "item_index_zero_reserved": True}
+              idx_manifest = cache / "index_manifest.json"
+              if idx_manifest.exists():
+                  record = json.loads(idx_manifest.read_text())
+                  if any(record.get(k) != v for k, v in expected.items()):
+                      raise ValueError("TRAIN index manifest does not match source/protocol")
+                  for name in ("authors.npy", "sequence_ids.npy", "user_offsets.npy", "popularity_cdf.npy"):
+                      if digest(cache/name) != record["files_sha256"][name]:
+                          raise ValueError("TRAIN index was modified " + name)
+                  return record
+              if cache.exists():
+                  raise FileExistsError("Incomplete existing TRAIN index; inspect, never overwrite")
+              stage = cache.with_name(cache.name+".partial")
+              if stage.exists():
+                  raise FileExistsError("Interrupted stage exists; do not overwrite")
+              stage.mkdir(parents=True, mode=0o700)
+              author_arr = pq.read_table(authors_path, columns=["author_id"]).column("author_id").to_numpy()
+              author_arr = np.asarray(author_arr, dtype=np.int64)
+              if not np.all(author_arr[1:] > author_arr[:-1]):
+                  raise ValueError("TRAIN author IDs must be strictly ascending")
+              table = pq.read_table(events_path, columns=["user_id", "author_id"])
+              users = np.asarray(table.column("user_id").to_numpy(), dtype=np.int64)
+              raw_items = np.asarray(table.column("author_id").to_numpy(), dtype=np.int64)
+              if len(users) < 100 or len(author_arr) < 3:
+                  if not synthetic:
+                      raise ValueError("Unexpectedly small TRAIN")
+              if np.any(users[1:] < users[:-1]):
+                  raise ValueError("TRAIN must be sorted by user and causal event time")
+              mapped = np.searchsorted(author_arr, raw_items)
+              if np.any(mapped >= len(author_arr)) or np.any(author_arr[mapped] != raw_items):
+                  raise ValueError("TRAIN event contains unknown author")
+              ids = (mapped + 1).astype(np.int32)
+              starts = np.concatenate(([0], np.flatnonzero(users[1:] != users[:-1])+1,
+                                       [len(users)])).astype(np.int64)
+              counts = np.bincount(ids, minlength=len(author_arr)+1).astype(np.float64)
+              weights = np.power(counts[1:], .75)
+              cdf = np.cumsum(weights)
+              cdf /= cdf[-1]
+              for name,array in (
+                  ("authors.npy", author_arr),
+                  ("sequence_ids.npy", ids),
+                  ("user_offsets.npy", starts),
+                  ("popularity_cdf.npy", cdf)
+              ):
+                  np.save(stage/name, array, allow_pickle=False)
+              record = dict(expected)
+              record.update({"schema":"kbs-plan-c-g2-train-index-v1",
+                             "total_training_events":int(len(ids)),
+                             "unique_train_users":int(len(starts)-1),
+                             "unique_train_authors":int(len(author_arr)),
+                             "training_only":True,"dev_labels_used":False,
+                             "test_files_opened":False,
+                             "files_sha256":{n:digest(stage/n) for n in
+                                 ("authors.npy","sequence_ids.npy","user_offsets.npy","popularity_cdf.npy")}})
+              (stage/"index_manifest.json").write_text(json.dumps(record,indent=2)+"\n")
+              stage.rename(cache)
+              return record
+          
+          
+          def draw_contexts(ids, offsets, rng, batch, context=L):
+              # Unbiased random TRAIN event positions conditioned on >=2 prior user events.
+              batchpos = rng.integers(0, len(ids), size=batch*2, dtype=np.int64)
+              out=[]
+              while len(out) < batch:
+                  block=np.asarray(batchpos)
+                  uid=np.searchsorted(offsets,block,side="right")-1
+                  start=offsets[uid]
+                  valid=block >= start+2
+                  out.extend(block[valid].tolist())
+                  if len(out)<batch:
+                      batchpos=rng.integers(0,len(ids),size=batch,dtype=np.int64)
+              positions=np.asarray(out[:batch],dtype=np.int64)
+              groups=np.searchsorted(offsets,positions,side="right")-1
+              first=offsets[groups]
+              indices=positions[:,None]-np.arange(context,0,-1)[None,:]
+              valid=indices >= first[:,None]
+              padded=np.zeros((batch,context),dtype=np.int64)
+              padded[valid]=ids[indices[valid]]
+              return padded, ids[positions].astype(np.int64)
+          
+          
+          def sample_negatives(cdf, rng, positives, contexts, n_neg=32):
+              batch=len(positives)
+              half=n_neg//2
+              uniform=rng.integers(1,len(cdf)+1,size=(batch,n_neg-half),dtype=np.int64)
+              pop=np.searchsorted(cdf,rng.random((batch,half)))+1
+              neg=np.concatenate((uniform,pop),axis=1).astype(np.int64)
+              invalid=(neg==positives[:,None]) | (neg[:,:,None]==contexts[:,None,:]).any(axis=2)
+              # Bounded deterministic repair; extremely rare for million-item vocabulary.
+              for _ in range(3):
+                  if not invalid.any():
+                      break
+                  neg[invalid]=rng.integers(1,len(cdf)+1,size=int(invalid.sum()))
+                  invalid=(neg==positives[:,None]) | (neg[:,:,None]==contexts[:,None,:]).any(axis=2)
+              if invalid.any():
+                  neg[invalid]=((positives[:,None]+np.arange(n_neg)[None,:])%len(cdf)+1)[invalid]
+              return neg
+          
+          
+          def train(args):
+              seed=int(args.seed)
+              random.seed(seed)
+              np.random.seed(seed)
+              torch.manual_seed(seed)
+              if torch.cuda.is_available():
+                  torch.cuda.manual_seed_all(seed)
+              if not args.synthetic and not torch.cuda.is_available():
+                  raise RuntimeError("G2 real pilot/fit needs CUDA GPU")
+              device="cuda" if torch.cuda.is_available() and not args.cpu else "cpu"
+              if not args.synthetic and device!="cuda":
+                  raise RuntimeError("Real G2 must not silently train on CPU")
+              src_manifest=load_or_prepare_train_index(args.g1,args.index,args.synthetic)
+              ids=np.load(args.index/"sequence_ids.npy",mmap_mode="r")
+              offsets=np.load(args.index/"user_offsets.npy",mmap_mode="r")
+              cdf=np.load(args.index/"popularity_cdf.npy",mmap_mode="r")
+              count=src_manifest["unique_train_authors"]
+              model=Encoder(count,args.model).to(device)
+              optimizer=torch.optim.AdamW(model.parameters(),lr=args.learning_rate,weight_decay=1e-4)
+              rng=np.random.default_rng(seed)
+              stats=[]
+              t0=time.monotonic()
+              maxsteps=args.steps_per_epoch
+              if args.mode=="smoke":
+                  maxsteps=min(maxsteps,3)
+              for ep in range(args.epochs):
+                  model.train()
+                  total=0.
+                  for step in range(maxsteps):
+                      seq,pos=draw_contexts(ids,offsets,rng,args.batch,L)
+                      neg=sample_negatives(cdf,rng,pos,seq,args.negatives)
+                      candidates=np.column_stack([pos,neg])
+                      h=torch.as_tensor(seq,device=device,dtype=torch.long)
+                      c=torch.as_tensor(candidates,device=device,dtype=torch.long)
+                      optimizer.zero_grad(set_to_none=True)
+                      logits=model.score(h,c)
+                      loss=F.cross_entropy(logits,torch.zeros(len(seq),device=device,dtype=torch.long))
+                      if not torch.isfinite(loss):
+                          raise FloatingPointError("nonfinite TRAIN loss")
+                      loss.backward()
+                      torch.nn.utils.clip_grad_norm_(model.parameters(),max_norm=1.0)
+                      optimizer.step()
+                      total+=float(loss.detach().item())
+                      if (step+1)%max(1,args.log_interval)==0:
+                          print(json.dumps({"model":args.model,"epoch":ep+1,"steps":step+1,
+                                            "TRAIN_loss":round(total/(step+1),6),
+                                            "time_s":round(time.monotonic()-t0,1)}),flush=True)
+                  record={"epoch":ep+1,"TRAIN_cross_entropy":total/maxsteps,
+                          "elapsed_s":round(time.monotonic()-t0,2)}
+                  stats.append(record)
+                  if args.mode=="train":
+                      args.out.mkdir(parents=True,exist_ok=True)
+                      target=args.out/f"{args.model}_seed{seed}_epoch{ep+1}.pt"
+                      tmp=target.with_suffix(".pt.partial")
+                      torch.save({"model_family":args.model,"model_state":model.state_dict(),
+                                  "optimizer_state":optimizer.state_dict(),"epoch":ep+1,
+                                  "input_manifest":src_manifest,"seed":seed,
+                                  "config":vars(args),"test_used":False,
+                                  "dev_selected":False},tmp)
+                      tmp.rename(target)
+                      record["checkpoint"]=target.name
+                      record["checkpoint_sha256"]=digest(target)
+              device_info={"device":device,"torch":torch.__version__,
+                           "cuda":torch.version.cuda}
+              if device=="cuda":
+                  device_info.update({"gpu":torch.cuda.get_device_name(0),
+                                      "peak_vram_gib":round(
+                                          torch.cuda.max_memory_allocated()/1024**3,3)})
+              result={"schema":"kbs-plan-c-g2-train-only-v1",
+                      "model_family":args.model,"mode":args.mode,
+                      "seed":seed,"index_manifest":src_manifest,
+                      "n_epochs":args.epochs,"steps_per_epoch":maxsteps,
+                      "batch_size":args.batch,"negative_count":args.negatives,
+                      "learning_rate":args.learning_rate,
+                      "train_records":stats,"runtime":device_info,
+                      "elapsed_s":round(time.monotonic()-t0,2),
+                      "status":"TRAIN_CHECKPOINTS_NOT_DEV_SELECTED" if args.mode=="train" else "GPU_PILOT_ONLY",
+                      "dev_outcomes_read":False,"test_outcomes_read":False}
+              args.out.mkdir(parents=True,exist_ok=True)
+              (args.out/f"{args.model}_{args.mode}_report.json").write_text(
+                  json.dumps(result,indent=2,default=str)+"\n")
+              print(json.dumps({"model_family":args.model,"status":result["status"],
+                                "elapsed_s":result["elapsed_s"],
+                                "peak_vram_gib":device_info.get("peak_vram_gib"),
+                                "last_train_loss":stats[-1]["TRAIN_cross_entropy"]}),flush=True)
+              return result
+          
+          
+          def main():
+              p=argparse.ArgumentParser()
+              p.add_argument("--g1",type=Path,required=True)
+              p.add_argument("--index",type=Path,required=True)
+              p.add_argument("--out",type=Path,required=True)
+              p.add_argument("--mode",choices=["smoke","pilot","train"],default="pilot")
+              p.add_argument("--model",choices=["sasrec","gru4rec"],required=True)
+              p.add_argument("--seed",type=int,default=20261012)
+              p.add_argument("--batch",type=int,default=512)
+              p.add_argument("--negatives",type=int,default=32)
+              p.add_argument("--steps-per-epoch",type=int,default=160)
+              p.add_argument("--epochs",type=int,default=1)
+              p.add_argument("--learning-rate",type=float,default=.001)
+              p.add_argument("--log-interval",type=int,default=40)
+              p.add_argument("--synthetic",action="store_true")
+              p.add_argument("--cpu",action="store_true")
+              args=p.parse_args()
+              if args.batch<1 or args.negatives<2 or args.steps_per_epoch<1 or args.epochs<1:
+                  p.error("Invalid model size/step settings")
+              train(args)
+          if __name__=="__main__":
+              main()
+          A4PREREVEAL_FILE_0
+          cat > "$RUNNER_TEMP/g3_dev_full_active.py" <<'A4PREREVEAL_FILE_1'
+          #!/usr/bin/env python3
+          """Plan C DEV-only full-active paired Base/Memory scoring with a single room sweep.
+          
+          All event-level artifacts remain in the User-host cache. Never read a TEST file.
+          Follows G0F weights: train-only normalized log popularity (0.10),
+          last-ten exponential short history (0.45), all-prior count/max long history (0.45).
+          """
+          from __future__ import annotations
+          import argparse
+          import collections
+          import csv
+          import hashlib
+          import heapq
+          import json
+          import math
+          import os
+          import time
+          from datetime import datetime
+          from pathlib import Path
+          
+          import numpy as np
+          import torch
+          
+          from g2_train_base import Encoder
+          
+          SHORT_K = 10
+          SHORT_DECAY = 3.0
+          WEIGHTS = (0.10, 0.45, 0.45)
+          
+          
+          def sha(path):
+              h = hashlib.sha256()
+              with path.open("rb") as f:
+                  for block in iter(lambda: f.read(8*1024*1024), b""):
+                      h.update(block)
+              return h.hexdigest()
+          
+          
+          def score_history(candidates, popularity, prior_map, recent):
+              """Fixed target-blind Memory scores in token order (token reflects raw ID)."""
+              candidates = np.asarray(candidates, dtype=np.int32)
+              score = 0.10 * popularity[candidates].astype(np.float64)
+              if prior_map:
+                  keys = np.fromiter(prior_map.keys(), dtype=np.int32, count=len(prior_map))
+                  cnt = np.fromiter(prior_map.values(), dtype=np.float64, count=len(prior_map))
+                  order = np.argsort(keys)
+                  keys, cnt = keys[order], cnt[order]
+                  ix = np.searchsorted(keys, candidates)
+                  valid = ix < len(keys)
+                  valid[valid] &= keys[ix[valid]] == candidates[valid]
+                  score[valid] += 0.45 * cnt[ix[valid]] / cnt.max()
+              if recent:
+                  vals = {}
+                  for dist, author in enumerate(reversed(recent)):
+                      score_t = math.exp(-dist/SHORT_DECAY)
+                      vals[author] = max(vals.get(author, 0.), score_t)
+                  keys = np.array(sorted(vals), dtype=np.int32)
+                  strengths = np.array([vals[k] for k in keys], dtype=np.float64)
+                  ix = np.searchsorted(keys, candidates)
+                  valid = ix < len(keys)
+                  valid[valid] &= keys[ix[valid]] == candidates[valid]
+                  score[valid] += 0.45 * strengths[ix[valid]]
+              return score
+          
+          
+          def memory_rank(candidates, scores, true_id):
+              """Target rank with deterministic author-ID tie break, zero-based 0 is best."""
+              i = np.flatnonzero(candidates == true_id)
+              if len(i) != 1:
+                  raise ValueError("target must occur once in the exact eligible roster")
+              ref = float(scores[i[0]])
+              return 1 + int(np.count_nonzero((scores > ref + 1e-12) |
+                            ((np.abs(scores-ref) <= 1e-12) & (candidates < true_id))))
+          
+          
+          def ndcg(rank):
+              return float(1.0/math.log2(rank+1)) if rank <= 10 else 0.0
+          
+          
+          def build_dev_histories(stream_path, dev_event_ids, known_to_index, stride=2000000):
+              """Replay TRAIN + previous DEV in sorted user-time order; never consume TEST."""
+              import pyarrow.parquet as pq
+              indices = {int(x):i for i,x in enumerate(dev_event_ids)}
+              histories=[None]*len(indices)
+              features=[None]*len(indices)
+              last_user=None
+              count=collections.Counter()
+              recent=collections.deque(maxlen=SHORT_K)
+              warm_hist_total=0
+              all_hist_total=0
+              processed=0
+              captured=0
+              reader=pq.ParquetFile(stream_path)
+              for block in reader.iter_batches(batch_size=262144,
+                        columns=["source_event_id","user_id","author_id","split"]):
+                  d=block.to_pydict()
+                  for e,u,author,split in zip(d["source_event_id"],d["user_id"],
+                                              d["author_id"],d["split"]):
+                      if split=="TEST":
+                          continue
+                      processed+=1
+                      if u != last_user:
+                          last_user=u
+                          count.clear()
+                          recent.clear()
+                          warm_hist_total=0
+                          all_hist_total=0
+                      j=indices.get(int(e))
+                      if j is not None:
+                          if split!="DEV" or histories[j] is not None:
+                              raise ValueError("non-DEV history match or duplicate id")
+                          # Freeze counts and short horizon strictly before this event.
+                          histories[j]=(dict(count), tuple(recent))
+                          captured+=1
+                          features[j]={"hist_events_all":all_hist_total,
+                                       "hist_events_warm":warm_hist_total,
+                                       "hist_distinct_warm":len(count),
+                                       "hist_short_unique":len(set(recent)),
+                                       "hist_max_repeat":max(count.values()) if count else 0}
+                      token=known_to_index.get(int(author))
+                      all_hist_total+=1
+                      if token is not None:
+                          count[token]+=1
+                          recent.append(token)
+                          warm_hist_total+=1
+                      if stride and processed % stride==0:
+                          print(json.dumps({"phase":"memory_history_scan","events":processed,
+                                            "dev_captured":captured}),flush=True)
+              if any(x is None for x in histories):
+                  raise ValueError("Unable to capture all DEV target histories")
+              return histories,features,processed
+          
+          
+          def author_availability(rooms_file, sample_times, token_targets, known_to_index):
+              """Yield (row index, sorted active distinct known-author tokens) once in time order."""
+              import pyarrow.parquet as pq
+              order=sorted(range(len(sample_times)),key=lambda i:(sample_times[i],i))
+              room_file=pq.ParquetFile(rooms_file)
+              def rooms():
+                  for batch in room_file.iter_batches(batch_size=131072,
+                              columns=["open_ts","close_ts","author_id"]):
+                      data=batch.to_pydict()
+                      yield from zip(data["open_ts"],data["close_ts"],data["author_id"])
+              it=iter(rooms())
+              ahead=next(it,None)
+              heap=[]
+              active=collections.Counter()
+              max_rooms=0
+              for ix in order:
+                  t=sample_times[ix]
+                  while ahead is not None and ahead[0] <= t:
+                      start,end,author=ahead
+                      token=known_to_index.get(int(author))
+                      if token is not None and end > t:
+                          active[token]+=1
+                          heapq.heappush(heap,(end,token))
+                      ahead=next(it,None)
+                  while heap and heap[0][0] <= t:
+                      _,token=heapq.heappop(heap)
+                      active[token]-=1
+                      if active[token]==0:
+                          del active[token]
+                  target=int(token_targets[ix])
+                  if target not in active:
+                      raise ValueError("frozen DEV target not available at pretarget clock")
+                  max_rooms=max(max_rooms,len(heap))
+                  yield ix,np.fromiter(sorted(active),dtype=np.int32,count=len(active)),max_rooms
+          
+          
+          def prepare(input_g1, train_idx, dev_cache, dev_select, seed=20261012, limit=None):
+              import pyarrow.parquet as pq
+              a=json.loads((input_g1/"manifest.json").read_text())
+              i=json.loads((train_idx/"index_manifest.json").read_text())
+              d=json.loads((dev_cache/"manifest.json").read_text())
+              s=json.loads(dev_select.read_text())
+              if (a["schema"]!="kbs-plan-c-g1-derived-v1"
+                      or d["schema"]!="kbs-plan-c-g2-dev-screen-v1"
+                      or s["schema"]!="kbs-plan-c-g2-checkpoint-selection-dev-only-v1"
+                      or a["protocol_sha256"]!=d["g1_protocol_sha256"]
+                      or a["protocol_sha256"]!=i["g1_protocol_sha256"]
+                      or s["test_data_opened"] is not False):
+                  raise ValueError("G1/G2 DEV-frozen provenance mismatch")
+              for name in ("dev_contexts.npy","dev_positive_author_tokens.npy",
+                           "dev_source_event_ids.npy"):
+                  if sha(dev_cache/name)!=d["files_sha256"][name]:
+                      raise ValueError("DEV snapshot SHA mismatch")
+              events=np.load(dev_cache/"dev_source_event_ids.npy")
+              positives=np.load(dev_cache/"dev_positive_author_tokens.npy")
+              contexts=np.load(dev_cache/"dev_contexts.npy",mmap_mode="r")
+              author_ids=np.load(train_idx/"authors.npy",mmap_mode="r")
+              known={int(a):j+1 for j,a in enumerate(author_ids)}
+              dev=pq.read_table(input_g1/"dev_cohort.parquet",
+                                columns=["source_event_id","user_id","observed_at"])
+              check=np.asarray(dev.column("source_event_id").to_numpy(),dtype=np.int64)
+              if not np.array_equal(check,events):
+                  raise ValueError("DEV row order mismatch")
+              clock=dev.column("observed_at").to_pylist()
+              users=np.asarray(dev.column("user_id").to_numpy(),dtype=np.int64)
+              if limit is not None:
+                  if not (0 < limit <= len(events)):
+                      raise ValueError("invalid DEV-only evaluation limit")
+                  # Selection is strictly independent of target/rank information.
+                  selected=np.unique(np.linspace(0,len(events)-1,limit,dtype=np.int64))
+              else:
+                  selected=np.arange(len(events),dtype=np.int64)
+              # Histories are built once for exactly the designated DEV events.
+              hist,features,processed=build_dev_histories(
+                  input_g1/"causal_stream_sealed.parquet",events[selected],known)
+              counts=np.bincount(np.load(train_idx/"sequence_ids.npy",mmap_mode="r"),
+                                 minlength=len(author_ids)+1).astype(np.float64)
+              logpop=np.log1p(counts)
+              pmin=np.min(logpop[1:])
+              pmax=np.max(logpop[1:])
+              if not pmax>pmin:
+                  raise ValueError("invalid train-only popularity")
+              popularity=np.zeros(len(counts),dtype=np.float64)
+              popularity[1:] = (logpop[1:]-pmin)/(pmax-pmin)
+              return dict(g1=a,index=i,dev=d,selected=s,
+                          indices=selected,events=events,users=users,clock=clock,
+                          positives=positives,contexts=contexts,
+                          train_counts=counts,popularity=popularity,
+                          histories=hist,features=features,known=known,
+                          history_scanned=processed)
+          
+          
+          def load_models(training_root, index_manifest, dev_selected, device):
+              models={}
+              n=index_manifest["unique_train_authors"]
+              for family in ("sasrec","gru4rec"):
+                  meta=dev_selected["family_results"][family]["selected"]
+                  ck=training_root/family/meta["checkpoint"]
+                  if sha(ck)!=meta["checkpoint_sha256"]:
+                      raise ValueError("DEV-selected checkpoint digest mismatch")
+                  cp=torch.load(ck,map_location="cpu",weights_only=False)
+                  if (cp["model_family"]!=family or cp["test_used"] is not False
+                          or cp["dev_selected"] is not False):
+                      raise ValueError("Unexpected checkpoint identity")
+                  m=Encoder(n,family)
+                  m.load_state_dict(cp["model_state"])
+                  m.to(device).eval()
+                  models[family]=m
+                  del cp
+              return models
+          
+          
+          @torch.inference_mode()
+          def representations(models,context,device,batch=256):
+              ans={}
+              for family,model in models.items():
+                  outputs=[]
+                  for offset in range(0,len(context),batch):
+                      inp=torch.as_tensor(np.asarray(context[offset:offset+batch]),
+                                          dtype=torch.long,device=device)
+                      r=model(inp).detach().cpu().numpy().astype(np.float32)
+                      if not np.isfinite(r).all():
+                          raise FloatingPointError("invalid Base representation")
+                      outputs.append(r)
+                  ans[family]=np.concatenate(outputs)
+              return ans
+          
+          
+          @torch.inference_mode()
+          def score_batch(models, reps, context_ids, candidates, device):
+              """Same candidates, different frozen Base checkpoints; zero TEST access."""
+              array=np.asarray(candidates,dtype=np.int64)
+              candidates_t=torch.as_tensor(array,device=device,dtype=torch.long)
+              output={}
+              for name,model in models.items():
+                  vec=torch.as_tensor(reps[name][context_ids],device=device)
+                  emb=model.item(candidates_t)
+                  pred=torch.einsum("bd,bkd->bk",vec,emb).detach().cpu().numpy()
+                  if not np.isfinite(pred).all():
+                      raise FloatingPointError("nonfinite candidate scores")
+                  output[name]=pred
+              return output
+          
+          
+          def full_dev_scoring(g1, train_idx, dev_cache, selection_file, train_root,
+                               output, limit=None, block=12, progress=500):
+              if output.exists():
+                  raise FileExistsError("Do not overwrite existing DEV evidence")
+              t0=time.monotonic()
+              prepared=prepare(g1,train_idx,dev_cache,selection_file,limit=limit)
+              dev_idx=prepared["indices"]
+              device="cuda"
+              if not torch.cuda.is_available() or "3090" not in torch.cuda.get_device_name(0):
+                  raise RuntimeError("User-host RTX3090 required")
+              models=load_models(train_root,prepared["index"],prepared["selected"],device)
+              reps=representations(models,prepared["contexts"][dev_idx],device)
+              output.mkdir(parents=True,mode=0o700)
+              rows=[]
+              metrics=collections.defaultdict(lambda:collections.Counter())
+              incoming=[]
+              sample_time=[prepared["clock"][i] for i in dev_idx]
+              for event_id,candidates,rooms in author_availability(
+                      g1/"available_room_intervals.parquet",
+                      sample_time,prepared["positives"][dev_idx],prepared["known"]):
+                  incoming.append((event_id,candidates,rooms))
+                  if len(incoming)<block:
+                      continue
+                  # Keep exact per-event candidates (may vary from 14k to >55k).
+                  rows.extend(score_work_block(incoming,models,reps,prepared,dev_idx,device))
+                  incoming.clear()
+                  if progress and len(rows)%progress < block:
+                      print(json.dumps({"stage":"DEV_full_active","rows":len(rows),
+                          "elapsed_s":round(time.monotonic()-t0,1)}),flush=True)
+              if incoming:
+                  rows.extend(score_work_block(incoming,models,reps,prepared,dev_idx,device))
+              if len(rows)!=len(dev_idx):
+                  raise ValueError("incomplete DEV event scoring")
+              rows.sort(key=lambda x:int(x["event_id"]))
+              columns=list(rows[0])
+              out_csv=output/"dev_full_active_pairs.csv"
+              with out_csv.open("w",newline="") as f:
+                  writer=csv.DictWriter(f,fieldnames=columns)
+                  writer.writeheader()
+                  writer.writerows(rows)
+              summary={"schema":"kbs-plan-c-full-active-dev-paired-v1",
+                       "scope":"DEV_ONLY","n_scored":len(rows),
+                       "all_dev_scored":limit is None,
+                       "base_checkpoint_sha":{family:prepared["selected"]["family_results"][family]["selected"]["checkpoint_sha256"] for family in models},
+                       "g1_protocol_sha256":prepared["g1"]["protocol_sha256"],
+                       "event_csv_sha256":sha(out_csv),
+                       "source_test_outcomes_inspected":False,
+                       "test_file_accessed":False,
+                       "gates_fit":False,
+                       "memory_definition":"0.10 train-logpop + 0.45 exp(-distance/3) last10 + 0.45 prior-count/maxcount",
+                       "median_active_candidates":float(np.median([r["candidate_count"] for r in rows])),
+                       "history_events_scanned":prepared["history_scanned"],
+                       "elapsed_seconds":round(time.monotonic()-t0,1),
+                       "aggregate":{}}
+              for label in ("sasrec","gru4rec","memory"):
+                  metric=np.asarray([float(r[label+"_ndcg10"]) for r in rows])
+                  summary["aggregate"][label]={"ndcg10":float(metric.mean()),
+                       "hr10":float(np.mean([int(r[label+"_rank"])<=10 for r in rows]))}
+              for base in ("sasrec","gru4rec"):
+                  delta=np.asarray([float(r["memory_ndcg10"])-float(r[base+"_ndcg10"]) for r in rows])
+                  summary["aggregate"][base]["memory_minus_base_ndcg10"]=float(delta.mean())
+              (output/"summary.json").write_text(json.dumps(summary,indent=2)+"\n")
+              print(json.dumps(summary),flush=True)
+              return summary
+          
+          
+          def score_work_block(block, models, reps, state, selected, device):
+              maxsize=max(len(x[1]) for x in block)
+              padded=np.zeros((len(block),maxsize),dtype=np.int32)
+              for j,(idx,vals,_) in enumerate(block):
+                  padded[j,:len(vals)]=vals
+              raw=score_batch(models,reps,
+                              [x[0] for x in block],padded,device)
+              output=[]
+              for j,(ix,candidate,rooms) in enumerate(block):
+                  original=int(selected[ix])
+                  uid=int(state["users"][original])
+                  true_id=int(state["positives"][original])
+                  past,recent=state["histories"][ix]
+                  mem=score_history(candidate,state["popularity"],past,recent)
+                  m_rank=memory_rank(candidate,mem,true_id)
+                  d={"event_id":int(state["events"][original]),"user_id":uid,
+                     "split":"DEV","candidate_count":len(candidate),
+                     "memory_rank":m_rank,"memory_ndcg10":ndcg(m_rank),
+                     "x_hist_event_count":float(state["features"][ix]["hist_events_all"]),
+                     "x_hist_warm_count":float(state["features"][ix]["hist_events_warm"]),
+                     "x_hist_distinct":float(state["features"][ix]["hist_distinct_warm"]),
+                     "x_hist_repeat_max":float(state["features"][ix]["hist_max_repeat"]),
+                     "x_hist_short_unique":float(state["features"][ix]["hist_short_unique"]),
+                     "x_memory_history_supported_share":float(np.mean((mem-0.10*state["popularity"][candidate])>1e-12)),
+                     "x_candidate_log_count":float(math.log1p(len(candidate)))}
+                  for model in ("sasrec","gru4rec"):
+                      scores=raw[model][j,:len(candidate)]
+                      true_score=float(scores[np.searchsorted(candidate,true_id)])
+                      outrank=(scores>true_score)|((scores==true_score)&(candidate<true_id))
+                      rank=1+int(np.count_nonzero(outrank))
+                      top=np.partition(scores,-min(11,len(scores)))[-min(11,len(scores)):]
+                      top.sort()
+                      top1=float(top[-1])
+                      top2=float(top[-2])
+                      mean=float(np.mean(scores))
+                      std=float(np.std(scores))
+                      d[model+"_rank"]=rank
+                      d[model+"_ndcg10"]=ndcg(rank)
+                      d["x_"+model+"_base_margin"]=top1-top2
+                      d["x_"+model+"_base_std"]=std
+                      d["x_"+model+"_base_top_z"]=(top1-mean)/max(std,1e-8)
+                      d["x_"+model+"_base_top_score"]=top1
+                      d["x_"+model+"_base_score_mean"]=mean
+                  output.append(d)
+              return output
+          
+          
+          def main():
+              p=argparse.ArgumentParser()
+              p.add_argument("--g1",type=Path,required=True)
+              p.add_argument("--train-index",type=Path,required=True)
+              p.add_argument("--dev",type=Path,required=True)
+              p.add_argument("--selected",type=Path,required=True)
+              p.add_argument("--train-root",type=Path,required=True)
+              p.add_argument("--out",type=Path,required=True)
+              p.add_argument("--limit",type=int)
+              p.add_argument("--block",type=int,default=12)
+              a=p.parse_args()
+              full_dev_scoring(a.g1,a.train_index,a.dev,a.selected,a.train_root,
+                               a.out,limit=a.limit,block=a.block)
+          
+          
+          if __name__=="__main__":
+              main()
+          A4PREREVEAL_FILE_1
+          cat > "$RUNNER_TEMP/g3_replay_correct_memory.py" <<'A4PREREVEAL_FILE_2'
+          #!/usr/bin/env python3
+          """Exact DEV-only all-history Memory correction; reuse already-computed Base ranks.
+          
+          Old Memory semantics count *every* prior user-author interaction (including
+          authors not present in TRAIN) for short-distance and global long denominator.
+          Only TRAIN-known active authors can be current ranking candidates. The previous
+          full-active GPU Base scores are reused byte-for-byte, never recomputed.
+          """
+          from __future__ import annotations
+          import argparse
+          import collections
+          import csv
+          import hashlib
+          import json
+          import math
+          import time
+          from pathlib import Path
+          
+          import numpy as np
+          
+          from g3_dev_full_active import author_availability,ndcg
+          
+          
+          def file_sha(file):
+              h=hashlib.sha256()
+              with file.open("rb") as f:
+                  for b in iter(lambda:f.read(8*1024*1024),b""):
+                      h.update(b)
+              return h.hexdigest()
+          
+          
+          def replay_all_history(stream_file,targets,known):
+              """Same source-row order as G1; enforce earlier-before-target snapshots."""
+              import pyarrow.parquet as pq
+              requested={int(e):i for i,e in enumerate(targets)}
+              result=[None]*len(targets)
+              last_user=None
+              warm_count=collections.Counter()
+              all_count=collections.Counter()
+              recent=collections.deque(maxlen=10)
+              max_all=0
+              processed=0
+              captured=0
+              for batch in pq.ParquetFile(stream_file).iter_batches(
+                      batch_size=262144,columns=["source_event_id","user_id","author_id","split"]):
+                  data=batch.to_pydict()
+                  for e,user,author,split in zip(data["source_event_id"],
+                                                 data["user_id"],data["author_id"],data["split"]):
+                      if split=="TEST":
+                          continue
+                      processed+=1
+                      if user!=last_user:
+                          last_user=user
+                          warm_count.clear()
+                          all_count.clear()
+                          recent.clear()
+                          max_all=0
+                      position=requested.get(int(e))
+                      if position is not None:
+                          if split!="DEV" or result[position] is not None:
+                              raise ValueError("Wrong DEV identity or duplicate target")
+                          result[position]=(dict(warm_count),tuple(recent),max_all)
+                          captured+=1
+                      key=int(author)
+                      all_count[key]+=1
+                      max_all=max(max_all,all_count[key])
+                      token=known.get(key,0)
+                      # UNKNOWN authors consume recency slots: this is the important
+                      # exact-horizon difference from the provisional v1 scorer.
+                      recent.append(token)
+                      if token:
+                          warm_count[token]+=1
+              if captured!=len(targets) or any(s is None for s in result):
+                  raise ValueError("DEV target snapshots missing from corrected causal history")
+              return result,processed
+          
+          
+          def corrected_memory_score(tokens,pop,warm_counts,recent_with_zero,long_max):
+              toks=np.asarray(tokens,dtype=np.int32)
+              score=.10*pop[toks].astype(np.float64)
+              if warm_counts:
+                  if long_max <= 0:
+                      raise ValueError("long horizon denominator must be positive")
+                  ids=np.fromiter(warm_counts,dtype=np.int32,count=len(warm_counts))
+                  vals=np.fromiter(warm_counts.values(),dtype=np.float64,count=len(warm_counts))
+                  order=np.argsort(ids)
+                  ids,vals=ids[order],vals[order]
+                  loc=np.searchsorted(ids,toks)
+                  selected=(loc<len(ids))
+                  selected &= ids[np.minimum(loc,len(ids)-1)]==toks
+                  score[selected]+=.45*vals[loc[selected]]/long_max
+              if recent_with_zero:
+                  short={}
+                  for distance,token in enumerate(reversed(recent_with_zero)):
+                      if token:  # unknown authors still consume a distance step
+                          short[token]=max(short.get(token,0.),math.exp(-distance/3.0))
+                  if short:
+                      ids=np.fromiter(sorted(short),dtype=np.int32)
+                      vals=np.array([short[k] for k in ids],dtype=np.float64)
+                      loc=np.searchsorted(ids,toks)
+                      selected=(loc<len(ids))
+                      selected &= ids[np.minimum(loc,len(ids)-1)]==toks
+                      score[selected]+=.45*vals[loc[selected]]
+              return score
+          
+          
+          def rank(toks,scores,true_id):
+              p=np.searchsorted(toks,true_id)
+              if p==len(toks) or toks[p]!=true_id:
+                  raise ValueError("True author must appear in available warm candidate set")
+              val=scores[p]
+              return 1+int(np.count_nonzero((scores>val+1e-12) |
+                        ((np.abs(scores-val)<=1e-12)&(toks<true_id))))
+          
+          
+          def main(g1,index,dev,provisional,out):
+              import pyarrow.parquet as pq
+              start=time.monotonic()
+              if out.exists():
+                  raise FileExistsError("Never overwrite an existing Memory correction")
+              stage=out.with_name(out.name+".incomplete")
+              if stage.exists():
+                  raise FileExistsError("Pre-existing partial correction requires investigation")
+              src_report=json.loads((provisional/"summary.json").read_text())
+              if (src_report.get("schema")!="kbs-plan-c-full-active-dev-paired-v1"
+                  or src_report.get("scope")!="DEV_ONLY"
+                  or src_report.get("n_scored")!=50049
+                  or src_report.get("all_dev_scored") is not True
+                  or src_report.get("test_file_accessed") is not False):
+                  raise ValueError("Expected completed first-pass full-active DEV only")
+              original=provisional/"dev_full_active_pairs.csv"
+              if file_sha(original)!=src_report["event_csv_sha256"]:
+                  raise ValueError("Provisional file SHA mismatch")
+              manifest=json.loads((g1/"manifest.json").read_text())
+              idxm=json.loads((index/"index_manifest.json").read_text())
+              if (manifest["schema"]!="kbs-plan-c-g1-derived-v1"
+                  or idxm["g1_protocol_sha256"]!=manifest["protocol_sha256"]
+                  or src_report["g1_protocol_sha256"]!=manifest["protocol_sha256"]):
+                  raise ValueError("Mismatched frozen source G1 identity")
+              with original.open(newline="") as f:
+                  reader=csv.DictReader(f)
+                  fields=list(reader.fieldnames or [])
+                  rows=list(reader)
+              if len(rows)!=50049 or len({x["event_id"] for x in rows})!=len(rows):
+                  raise ValueError("Expected exactly all unique DEV events")
+              by_id={int(x["event_id"]):x for x in rows}
+              ids=np.load(dev/"dev_source_event_ids.npy")
+              targets=np.load(dev/"dev_positive_author_tokens.npy")
+              if len(ids)!=50049 or set(ids.tolist())!=set(by_id):
+                  raise ValueError("Cannot match provisional Base results to all DEV target events")
+              author_ids=np.load(index/"authors.npy",mmap_mode="r")
+              known={int(a):j+1 for j,a in enumerate(author_ids)}
+              times=pq.read_table(g1/"dev_cohort.parquet",
+                                  columns=["source_event_id","observed_at"])
+              if not np.array_equal(np.asarray(times.column("source_event_id").to_numpy()),ids):
+                  raise ValueError("G1 DEV sample order mismatch")
+              clocks=times.column("observed_at").to_pylist()
+              snapshots,processed=replay_all_history(g1/"causal_stream_sealed.parquet",
+                                                      ids,known)
+              counts=np.bincount(np.load(index/"sequence_ids.npy",mmap_mode="r"),
+                                 minlength=len(author_ids)+1).astype(np.float64)
+              logs=np.log1p(counts)
+              pop=np.zeros(len(counts),dtype=np.float64)
+              pop[1:]=(logs[1:]-logs[1:].min())/(logs[1:].max()-logs[1:].min())
+              n=0
+              for i,cands,_ in author_availability(g1/"available_room_intervals.parquet",
+                                                  clocks,targets,known):
+                  e=int(ids[i])
+                  row=by_id[e]
+                  if int(row["candidate_count"])!=len(cands):
+                      raise ValueError("Cannot replay the exact original Base candidate universe")
+                  warm,recent,long_max=snapshots[i]
+                  scores=corrected_memory_score(cands,pop,warm,recent,long_max)
+                  m_rank=rank(cands,scores,int(targets[i]))
+                  row["memory_rank"]=str(m_rank)
+                  row["memory_ndcg10"]=repr(ndcg(m_rank))
+                  history_support=scores-.10*pop[cands]
+                  row["x_memory_history_supported_share"]=repr(float(np.mean(history_support>1e-12)))
+                  n+=1
+                  if n%1000==0:
+                      print(json.dumps({"phase":"DEV_correct_memory_replay",
+                           "processed":n,"elapsed_s":round(time.monotonic()-start,1)}),flush=True)
+              if n!=50049:
+                  raise ValueError("Incomplete exact author roster correction")
+              stage.mkdir(parents=True,mode=0o700)
+              out_file=stage/"dev_full_active_pairs.csv"
+              with out_file.open("w",newline="") as f:
+                  writer=csv.DictWriter(f,fieldnames=fields)
+                  writer.writeheader()
+                  writer.writerows(rows)
+              pairs_sha=file_sha(out_file)
+              metrics={}
+              for family in ("sasrec","gru4rec","memory"):
+                  vals=np.fromiter((float(r[family+"_ndcg10"]) for r in rows),
+                                   dtype=np.float64,count=n)
+                  ranks=np.fromiter((int(r[family+"_rank"]) for r in rows),
+                                    dtype=np.int32,count=n)
+                  metrics[family]={"ndcg10":float(vals.mean()),
+                                   "hr10":float(np.mean(ranks<=10))}
+                  if family!="memory":
+                      before=src_report["aggregate"][family]
+                      if not np.isclose(metrics[family]["ndcg10"],before["ndcg10"],atol=1e-12):
+                          raise ValueError("Base NDCG changed during Memory-only correction")
+              m=np.fromiter((float(r["memory_ndcg10"]) for r in rows),dtype=np.float64,count=n)
+              for base in ("sasrec","gru4rec"):
+                  b=np.fromiter((float(r[base+"_ndcg10"]) for r in rows),dtype=np.float64,count=n)
+                  metrics[base]["memory_minus_base_ndcg10"]=float(np.mean(m-b))
+              summary=dict(src_report)
+              summary.update({
+                  "schema":"kbs-plan-c-full-active-dev-paired-v2",
+                  "memory_corrected_from_all_history":True,
+                  "memory_definition":"0.10 TRAIN-normalized log popularity + 0.45 short last-10 ALL prior author events exp(-distance/3) + 0.45 long prior counts / max across ALL prior authors",
+                  "provisional_dev_pair_sha256":file_sha(original),
+                  "event_csv_sha256":pairs_sha,
+                  "historical_events_replayed":processed,
+                  "aggregate":metrics,
+                  "elapsed_seconds_memory_correction":round(time.monotonic()-start,1),
+                  "test_file_accessed":False,
+                  "source_test_outcomes_inspected":False,
+                  "gates_fit":False})
+              (stage/"summary.json").write_text(json.dumps(summary,indent=2)+"\n")
+              stage.rename(out)
+              print(json.dumps({"state":"DEV_PAIR_FULL_ACTIVE_MEMORY_CORRECTED",
+                  "n_events":n,"aggregate":metrics,"test_unseen":True}),flush=True)
+          
+          
+          if __name__=="__main__":
+              p=argparse.ArgumentParser()
+              p.add_argument("--g1",type=Path,required=True)
+              p.add_argument("--train-index",type=Path,required=True)
+              p.add_argument("--dev",type=Path,required=True)
+              p.add_argument("--provisional",type=Path,required=True)
+              p.add_argument("--out",type=Path,required=True)
+              a=p.parse_args()
+              main(a.g1,a.train_index,a.dev,a.provisional,a.out)
+          A4PREREVEAL_FILE_2
+          cat > "$RUNNER_TEMP/g4_sparse_gate_features.py" <<'A4PREREVEAL_FILE_3'
+          #!/usr/bin/env python3
+          """Gate history-support feature with no Memory candidate scoring.
+          
+          For any causal user prefix, positive long Memory support is equivalent to
+          membership in the TRAIN-known historical author keys. This exactly computes
+          the pretarget feature previously obtained by first evaluating all Memory
+          candidate scores and subtracting 0.10*TRAIN popularity, but does so sparsely.
+          
+          Does not read labels, DEV outcomes or TEST. O(#history log #active authors).
+          """
+          from __future__ import annotations
+          import numpy as np
+          
+          
+          def sparse_history_support_share(active_known_author_tokens, prior_warm_author_counts):
+              """Fraction of time-eligible warm authors with strictly prior interactions.
+          
+              Candidate tokens are sorted ascending and unique. Raw histories include
+              unknown TRAIN authors, but only known author tokens are in prior_warm counts.
+              An author in short history necessarily occurs in the long history.
+              """
+              active=np.asarray(active_known_author_tokens,dtype=np.int64)
+              if len(active)==0:
+                  raise ValueError("Empty eligible author candidate roster")
+              if np.any(active[1:]<=active[:-1]):
+                  raise ValueError("Candidates must be distinct and sorted")
+              if not prior_warm_author_counts:
+                  return 0.0
+              previous=np.fromiter(prior_warm_author_counts.keys(),dtype=np.int64,
+                                    count=len(prior_warm_author_counts))
+              if np.any(previous<=0):
+                  raise ValueError("History index 0 is padding and cannot be a known author")
+              positions=np.searchsorted(active,previous)
+              found=positions<len(active)
+              found[found] &= active[positions[found]]==previous[found]
+              return float(np.count_nonzero(found)/len(active))
+          
+          
+          def dense_reference_support_share(active,popularity,prior_warm,recent,all_author_max):
+              """Unit-test-only reference to exactly evaluated Memory component support."""
+              import math
+              ids=np.asarray(active,dtype=np.int32)
+              scores=0.10*popularity[ids].astype(np.float64).copy()
+              rec=list(recent)[-10:]
+              for j,token in enumerate(ids):
+                  if prior_warm:
+                      scores[j]+=0.45*prior_warm.get(int(token),0)/all_author_max
+                  short=max((math.exp(-distance/3.0)
+                             for distance,item in enumerate(reversed(rec))
+                             if int(item)==int(token)),default=0.0)
+                  scores[j]+=0.45*short
+              signal=scores-0.10*popularity[ids]
+              return float(np.mean(signal>1e-12))
+          A4PREREVEAL_FILE_3
+          cat > "$RUNNER_TEMP/g5_unlabeled_test_score.py" <<'A4PREREVEAL_FILE_4'
+          #!/usr/bin/env python3
+          """G5-A: prequential, strictly pretarget, *unlabeled* frozen six-model TEST scoring.
+          
+          The TEST cohort is opened ONLY for event ID/user/timestamp (not author label).
+          TEST stream prior observations are allowed as prequential history. Each
+          target's own author is appended only AFTER snapshot creation. All seven
+          rankers store target-blind top10 author-token IDs, not accuracy, target label,
+          rank or per-event NDCG. Frozen gate decisions are made from label-free data.
+          The independent G5-B action later reads the sealed target labels ONCE.
+          """
+          from __future__ import annotations
+          import argparse,collections,hashlib,heapq,json,math,time
+          from pathlib import Path
+          import joblib,numpy as np,pyarrow.parquet as pq,torch
+          from g2_train_base import Encoder
+          from g3_replay_correct_memory import corrected_memory_score
+          from g4_sparse_gate_features import sparse_history_support_share
+          
+          SEEDS=(20261012,20261013,20261014)
+          FAMILIES=("sasrec","gru4rec")
+          METHODS=("utility","difficulty","specialist","uncertainty","history")
+          MODEL_KEYS=tuple((seed,model) for seed in SEEDS for model in FAMILIES)
+          ROW_COUNT=47575
+          L=16
+          
+          def sha(file):
+              h=hashlib.sha256()
+              with Path(file).open("rb") as f:
+                  for b in iter(lambda:f.read(8*1024*1024),b""):
+                      h.update(b)
+              return h.hexdigest()
+          
+          def gate_path(cache,seed,family):
+              root=cache/"klm3_g3_e2_five_gate_DEV_frozen_v1" if seed==20261012 else cache/f"klm3_g4_extra_seed{seed}_five_gate_DEV_frozen_v1"
+              return root/family
+          
+          def active_rosters(path,timestamps,known):
+              # One causal sweep for all 47,575 events: no knowledge of observed target.
+              order=sorted(range(len(timestamps)),key=lambda i:(timestamps[i],i))
+              def rooms():
+                  pf=pq.ParquetFile(path)
+                  for block in pf.iter_batches(batch_size=131072,
+                             columns=["open_ts","close_ts","author_id"]):
+                      d=block.to_pydict()
+                      yield from zip(d["open_ts"],d["close_ts"],d["author_id"])
+              source=iter(rooms())
+              ahead=next(source,None)
+              expires=[]
+              active=collections.Counter()
+              for i in order:
+                  clock=timestamps[i]
+                  while ahead is not None and ahead[0]<=clock:
+                      begin,end,author=ahead
+                      token=known.get(int(author))
+                      if token and end>clock:
+                          active[token]+=1
+                          heapq.heappush(expires,(end,token))
+                      ahead=next(source,None)
+                  while expires and expires[0][0]<=clock:
+                      _,token=heapq.heappop(expires)
+                      active[token]-=1
+                      if not active[token]:
+                          del active[token]
+                  # Author-token order is raw author-ID order, frozen since G1.
+                  yield i,np.fromiter(sorted(active),dtype=np.int32,count=len(active))
+          
+          def histories(stream,requested_ids,known):
+              """All prior eligible TRAIN/DEV/TEST observations; no own/future event in row."""
+              lookup={int(e):i for i,e in enumerate(requested_ids)}
+              if len(lookup)!=len(requested_ids):
+                  raise ValueError("TEST repeated event IDs")
+              snapshots=[None]*len(requested_ids)
+              previous_user=None
+              recent_all=collections.deque(maxlen=10)
+              recent_warm=collections.deque(maxlen=10)
+              last16=collections.deque(maxlen=L)
+              all_count=collections.Counter()
+              warm_count=collections.Counter()
+              all_max=0
+              total=0
+              warm_total=0
+              count=0
+              seen=0
+              for batch in pq.ParquetFile(stream).iter_batches(
+                      batch_size=262144,columns=["source_event_id","user_id","author_id","split"]):
+                  d=batch.to_pydict()
+                  for e,user,author,split in zip(d["source_event_id"],d["user_id"],
+                                                 d["author_id"],d["split"]):
+                      if previous_user!=user:
+                          previous_user=user
+                          recent_all.clear();recent_warm.clear();last16.clear()
+                          all_count.clear();warm_count.clear()
+                          all_max=0;total=0;warm_total=0
+                      i=lookup.get(int(e))
+                      if i is not None:
+                          if split!="TEST" or snapshots[i] is not None:
+                              raise ValueError("Target identity/split mismatch")
+                          if total<2:
+                              raise ValueError("TEST target violates min prior history")
+                          hist=np.zeros(L,dtype=np.int32)
+                          if last16:
+                              hist[-len(last16):]=last16
+                          # Freeze only prior state at this point, before current author.
+                          features={
+                           "x_hist_event_count":float(total),
+                           "x_hist_warm_count":float(warm_total),
+                           "x_hist_distinct":float(len(warm_count)),
+                           "x_hist_repeat_max":float(max(warm_count.values()) if warm_count else 0),
+                           "x_hist_short_unique":float(len(set(recent_warm)))}
+                          snapshots[i]=(hist,dict(warm_count),tuple(recent_all),
+                                        int(all_max),features)
+                          seen+=1
+                      # This observed event is now past relative to later user events,
+                      # including later TEST events, per frozen prequential G5 protocol.
+                      key=int(author)
+                      all_count[key]+=1
+                      all_max=max(all_max,all_count[key])
+                      total+=1
+                      token=known.get(key,0)
+                      recent_all.append(token)
+                      if token:
+                          warm_count[token]+=1
+                          recent_warm.append(token)
+                          last16.append(token)
+                          warm_total+=1
+                      count+=1
+                  if count%1000000<262144:
+                      print(json.dumps({"history_source_events":count,
+                                        "pretarget_TEST_snapshots":seen}),flush=True)
+              if seen!=len(requested_ids) or any(s is None for s in snapshots):
+                  raise ValueError("Not all TEST pretarget contexts captured")
+              return snapshots,count
+          
+          def stable_top10(tokens,scores,k=10):
+              """Exact score rank with ID tie break without sorting all 30k candidates."""
+              tokens=np.asarray(tokens,dtype=np.int32)
+              values=np.asarray(scores)
+              if len(tokens)<k or not np.isfinite(values).all():
+                  raise ValueError("Invalid candidate scores")
+              if np.any(tokens[1:]<=tokens[:-1]):
+                  raise ValueError("Candidate IDs not sorted uniquely")
+              pivot=np.partition(values,len(values)-k)[len(values)-k]
+              strictly=np.flatnonzero(values>pivot)
+              tied=np.flatnonzero(values==pivot)
+              wanted=k-len(strictly)
+              if wanted<0 or wanted>len(tied):
+                  raise ValueError("top-k pivot mismatch")
+              chosen=np.concatenate([strictly,tied[:wanted]])
+              ordered=np.lexsort((tokens[chosen],-values[chosen]))
+              return tokens[chosen][ordered]
+          
+          @torch.inference_mode()
+          def score_block(models,reps,block):
+              n=len(block)
+              maxsize=max(len(r[1]) for r in block)
+              padded=np.zeros((n,maxsize),np.int32)
+              for pos,(_,candidates) in enumerate(block):
+                  padded[pos,:len(candidates)]=candidates
+              item_ids=torch.as_tensor(padded,device="cuda",dtype=torch.long)
+              best={}
+              features={}
+              for key,model in models.items():
+                  vecs=torch.as_tensor(reps[key][[i for i,_ in block]],
+                                       device="cuda",dtype=torch.float32)
+                  pred=(model.item(item_ids)*vecs[:,None,:]).sum(-1).cpu().numpy()
+                  for j,(_,candidates) in enumerate(block):
+                      sc=pred[j,:len(candidates)]
+                      top=np.partition(sc,-2)[-2:];top.sort()
+                      mean=float(sc.mean());std=float(sc.std())
+                      summary={"x_base_margin":float(top[-1]-top[-2]),
+                          "x_base_std":std,
+                          "x_base_top_z":float((top[-1]-mean)/max(std,1e-8)),
+                          "x_base_top_score":float(top[-1]),
+                          "x_base_score_mean":mean}
+                      best[(key,j)]=stable_top10(candidates,sc)
+                      features[(key,j)]=summary
+              return best,features
+          
+          def main(cache,g1,index,registry,preflight,out,block_size=16):
+              if out.exists() or out.with_name(out.name+".incomplete").exists():
+                  raise FileExistsError("G5-A one-shot cache already present; no overwrite")
+              t0=time.monotonic()
+              frozen=json.loads(registry.read_text())
+              locked=json.loads(preflight.read_text())
+              if (locked.get("status")!="ALL_SIX_CHECKPOINT_AND_POLICY_DIGESTS_VERIFIED"
+                 or locked["registry_sha256"]!=sha(registry)
+                 or locked["test_rows_opened"] is not False
+                 or frozen["target_test_events"]!=ROW_COUNT):
+                  raise ValueError("G5 immutable preflight must precede any TEST scoring")
+              if sha(g1/"test_cohort_sealed.parquet")!=frozen["test_cohort_sha256"]:
+                  raise ValueError("TEST cohort byte digest mismatch")
+              source=pq.read_table(g1/"test_cohort_sealed.parquet",
+                                   columns=["source_event_id","user_id","observed_at"])
+              events=np.asarray(source.column("source_event_id").to_numpy(),np.int64)
+              users=np.asarray(source.column("user_id").to_numpy(),np.int64)
+              timestamps=source.column("observed_at").to_pylist()
+              if len(events)!=ROW_COUNT or len(set(events.tolist()))!=len(events):
+                  raise ValueError("Frozen TEST event identity not intact")
+              authors=np.load(index/"authors.npy",mmap_mode="r")
+              known={int(a):i+1 for i,a in enumerate(authors)}
+              snapshots,stream_events=histories(g1/"causal_stream_sealed.parquet",
+                                                events,known)
+              contexts=np.stack([x[0] for x in snapshots])
+              n_authors=len(authors)
+              if not torch.cuda.is_available() or "3090" not in torch.cuda.get_device_name(0):
+                  raise RuntimeError("Expected pre-authorized RTX 3090")
+              models={}
+              representations={}
+              frozen_policies={}
+              gates={}
+              for seed,family in MODEL_KEYS:
+                  key=f"{seed}_{family}"
+                  doc=(cache/"klm3_g2_checkpoint_dev_selected_v1.json"
+                       if seed==20261012 else cache/f"klm3_g2_seed{seed}_dev_selected_v1.json")
+                  meta=json.loads(doc.read_text())["family_results"][family]["selected"]
+                  ck=cache/f"klm3_g2_seed{seed}_epoch3_v1"/family/meta["checkpoint"]
+                  if sha(ck)!=frozen["checkpoint_sha256"][str(seed)][family]:
+                      raise ValueError("G5-A selected Base model changed "+key)
+                  payload=torch.load(ck,map_location="cpu",weights_only=False)
+                  m=Encoder(n_authors,family)
+                  m.load_state_dict(payload["model_state"])
+                  m.cuda().eval()
+                  models[key]=m
+                  del payload
+                  all_vectors=[]
+                  with torch.inference_mode():
+                      for j in range(0,len(events),256):
+                          features=torch.as_tensor(contexts[j:j+256],device="cuda",dtype=torch.long)
+                          vectors=m(features).detach().cpu().numpy().astype(np.float32)
+                          if not np.isfinite(vectors).all():
+                              raise FloatingPointError("Base representation invalid")
+                          all_vectors.append(vectors)
+                  representations[key]=np.concatenate(all_vectors)
+                  pdir=gate_path(cache,seed,family)
+                  threshold_file=pdir/"frozen_thresholds.json"
+                  if sha(threshold_file)!=frozen["policy_frozen_threshold_sha256"][str(seed)][family]:
+                      raise ValueError("G5-A policy file changed")
+                  p=json.loads(threshold_file.read_text())
+                  if p["state"]!="DEV_FROZEN_POINTWISE" or p["test_outcomes_seen"] is not False:
+                      raise ValueError("Bad DEV frozen policy")
+                  frozen_policies[key]=p
+                  mmanifest=json.loads((pdir/"models"/"oof_manifest.json").read_text())
+                  feats=mmanifest["feature_columns"]
+                  if len(feats)!=12:
+                      raise ValueError("Expected exact frozen 12 pretarget features")
+                  for obj in ("utility","difficulty","specialist"):
+                      path=pdir/"models"/(obj+".joblib")
+                      if sha(path)!=frozen["supervised_gate_model_sha256"][str(seed)][family][obj]:
+                          raise ValueError("Frozen HGB model file changed")
+                      gates[(key,obj)]=(joblib.load(path),feats)
+              del authors
+              counts=np.bincount(np.load(index/"sequence_ids.npy",mmap_mode="r"),
+                                 minlength=n_authors+1).astype(np.float64)
+              logs=np.log1p(counts)
+              popularity=np.zeros(len(logs))
+              popularity[1:]=(logs[1:]-logs[1:].min())/(logs[1:].max()-logs[1:].min())
+              npkeys=[f"{seed}_{family}" for seed,family in MODEL_KEYS]
+              top10=np.empty((len(events),7,10),dtype=np.int32)
+              feature_matrix=np.empty((len(events),6,12),dtype=np.float64)
+              candidate_counts=np.empty(len(events),dtype=np.int32)
+              incoming=[]
+              count=0
+              names=tuple(npkeys)
+              feature_names=tuple(gates[(names[0],"utility")][1])
+              if not all(tuple(gates[(key,obj)][1])==feature_names for key in names
+                 for obj in ("utility","difficulty","specialist")):
+                  raise ValueError("Frozen gate feature column order differs")
+              def consume(block):
+                  nonlocal count
+                  ranks,score_feats=score_block(models,representations,block)
+                  for k,(i,candidate) in enumerate(block):
+                      seq,prior,recent,max_all,shared=snapshots[i]
+                      fixed=corrected_memory_score(candidate,popularity,prior,recent,max_all)
+                      top10[i,6]=stable_top10(candidate,fixed)
+                      support=sparse_history_support_share(candidate,prior)
+                      for m,key in enumerate(names):
+                          top10[i,m]=ranks[(key,k)]
+                          fields={**shared,**score_feats[(key,k)],
+                                  "x_memory_history_supported_share":support,
+                                  "x_candidate_log_count":math.log1p(len(candidate))}
+                          feature_matrix[i,m]=[fields[c] for c in feature_names]
+                      candidate_counts[i]=len(candidate)
+                  count+=len(block)
+                  if count%1000<block_size:
+                      print(json.dumps({"state":"G5_A_unlabeled_TEST_feature_scoring",
+                                        "n":count,"elapsed_s":round(time.monotonic()-t0,1)}),flush=True)
+              for i,candidates in active_rosters(g1/"available_room_intervals.parquet",timestamps,known):
+                  if len(candidates)<10:
+                      raise ValueError("Empty/inadequate active warm author roster")
+                  incoming.append((i,candidates))
+                  if len(incoming)>=block_size:
+                      consume(incoming);incoming=[]
+              if incoming: consume(incoming)
+              if count!=ROW_COUNT or np.any(candidate_counts<10):
+                  raise ValueError("Incomplete TEST feature calculation")
+              scores=np.empty((ROW_COUNT,6,5),dtype=np.float64)
+              masks=np.empty((ROW_COUNT,6,5),dtype=np.bool_)
+              for family_idx,key in enumerate(names):
+                  x=feature_matrix[:,family_idx]
+                  for method_idx,method in enumerate(METHODS):
+                      if method in ("utility","difficulty","specialist"):
+                          value=gates[(key,method)][0].predict(x)
+                      elif method=="uncertainty":
+                          value=-x[:,feature_names.index("x_base_margin")]
+                      else:
+                          value=x[:,feature_names.index("x_hist_event_count")]
+                      if not np.isfinite(value).all():
+                          raise ValueError("Nonfinite frozen TEST gate score")
+                      scores[:,family_idx,method_idx]=value
+                      threshold=frozen_policies[key]["methods"][method]["threshold"]
+                      masks[:,family_idx,method_idx]=(value>=threshold if threshold is not None
+                                                      else False)
+              staging=out.with_name(out.name+".incomplete")
+              staging.mkdir(parents=True,mode=0o700)
+              for name,data in (("event_ids.npy",events),("user_ids.npy",users),
+                                ("top10_author_tokens.npy",top10),
+                                ("gate_score.npy",scores),("gate_calls.npy",masks),
+                                ("candidate_counts.npy",candidate_counts)):
+                  np.save(staging/name,data,allow_pickle=False)
+              manifest={
+                  "schema":"kbs-plan-c-g5-unlabeled-target-blind-test-v1",
+                  "status":"FROZEN_SIX_BASE_TEST_DECISIONS_BEFORE_OUTCOME_EVALUATION",
+                  "registry_sha256":sha(registry),
+                  "preflight_sha256":sha(preflight),
+                  "test_cohort_sha256":frozen["test_cohort_sha256"],
+                  "models":names,"methods":METHODS,
+                  "n_events":ROW_COUNT,
+                  "mean_active_warm_authors":float(candidate_counts.mean()),
+                  "median_active_warm_authors":float(np.median(candidate_counts)),
+                  "test_target_author_labels_loaded":False,
+                  "test_ranks_computed":False,
+                  "test_ndcg_computed":False,
+                  "unlabeled_prequential_prior_TEST_history_used":True,
+                  "no_TEST_model_or_threshold_fit":True,
+                  "file_sha256":{p.name:sha(p) for p in staging.glob("*.npy")},
+                  "elapsed_seconds":round(time.monotonic()-t0,1)}
+              (staging/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n")
+              staging.rename(out)
+              print(json.dumps({"status":manifest["status"],"n_events":ROW_COUNT,
+                 "elapsed_seconds":manifest["elapsed_seconds"],
+                 "test_metrics_computed":False}),flush=True)
+          
+          if __name__=="__main__":
+              p=argparse.ArgumentParser()
+              for opt in ("cache","g1","index","registry","preflight","out"):
+                  p.add_argument("--"+opt,type=Path,required=True)
+              p.add_argument("--block-size",type=int,default=16)
+              a=p.parse_args()
+              main(a.cache,a.g1,a.index,a.registry,a.preflight,a.out,a.block_size)
+          A4PREREVEAL_FILE_4
+          cat > "$RUNNER_TEMP/n9_b4a_a4_weighted_stat_contract.py" <<'A4PREREVEAL_FILE_5'
+          #!/usr/bin/env python3
+          """B4-A A4/A5 pre-reveal statistical contract functions.
+          
+          Pure numerical routines only. Never reads datasets or reveals TARGET labels.
+          Do not import this in the A3 pipeline, and do not use it to reoptimize gates.
+          """
+          from __future__ import annotations
+          import numpy as np
+          
+          BOOTSTRAPS = 5000
+          PRIMARY = ("sasrec_F_minus_S", "gru4rec_F_minus_S", "original_Full_minus_mean_three_nulls")
+          NULL_SEEDS = (20261014, 20261015, 20261016)
+          
+          
+          def holm3(raw):
+              """Return Holm-adjusted p-values in original three-contrast order."""
+              p=np.asarray(raw,dtype=np.float64)
+              if p.shape!=(3,) or not np.isfinite(p).all() or np.any((p<0)|(p>1)):
+                  raise ValueError("Exactly three frozen primary directional p-values required")
+              ranked=np.argsort(p,kind="stable")
+              out=np.empty(3,dtype=np.float64)
+              running=0.
+              for k,i in enumerate(ranked):
+                  running=max(running,min(1.0,(3-k)*p[i]))
+                  out[i]=running
+              return out
+          
+          
+          def weighted_paired_user_cluster(delta, user, weight, *, seed=20261014, reps=BOOTSTRAPS):
+              """User-cluster paired 95% percentile CI plus user-level signflip p.
+          
+              The null signflip test assumes symmetric user-cluster weighted outcome
+              contributions; Holm correction across the three primary contrasts happens
+              OUTSIDE this routine. Weighted event means target the pre-frozen eligible
+              source event population, not 20 equally frequent sample design cells.
+              """
+              delta=np.asarray(delta,dtype=np.float64)
+              user=np.asarray(user)
+              weight=np.asarray(weight,dtype=np.float64)
+              if delta.ndim!=1 or user.ndim!=1 or weight.ndim!=1:
+                  raise ValueError("Expected one event column per argument")
+              n=len(delta)
+              if n==0 or len(user)!=n or len(weight)!=n:
+                  raise ValueError("Paired arrays must have same positive number of events")
+              if not np.isfinite(delta).all() or not np.isfinite(weight).all() or np.any(weight<=0):
+                  raise ValueError("Finite positive pretarget weights required")
+              if reps!=5000:raise ValueError("A2 preregistered exactly 5000 resamples")
+              ids,inv=np.unique(user,return_inverse=True)
+              if len(ids)<2:raise ValueError("At least two independent user clusters needed")
+              numerator=np.bincount(inv,weights=weight*delta,minlength=len(ids))
+              denom=np.bincount(inv,weights=weight,minlength=len(ids))
+              if np.any(denom<=0):raise ValueError("empty user cluster")
+              point=float(numerator.sum()/denom.sum())
+              samples=np.empty(reps,dtype=np.float64)
+              signs=np.empty(reps,dtype=np.float64)
+              rng=np.random.default_rng(seed)
+              # Chunked resampling bounds temporary RAM for >10,000 users.
+              m=len(ids)
+              for offset in range(0,reps,24):
+                  k=min(24,reps-offset)
+                  chosen=rng.integers(m,size=(k,m),dtype=np.int32)
+                  samples[offset:offset+k]=numerator[chosen].sum(axis=1)/denom[chosen].sum(axis=1)
+                  flip=2*rng.integers(0,2,size=(k,m),dtype=np.int8).astype(np.float64)-1
+                  signs[offset:offset+k]=(flip*numerator).sum(axis=1)/denom.sum()
+              lo,hi=np.quantile(samples,[.025,.975])
+              # Strictly one-sided: positive effect is the predeclared direction.
+              p=float((1+np.sum(signs>=point))/(reps+1))
+              return {"weighted_effect":point,"cluster_ci95":[float(lo),float(hi)],
+                      "one_sided_cluster_signflip_p":p,"cluster_users":int(m),
+                      "n_events":int(n),"bootstrap_and_null_draws":reps,
+                      "null_sign_symmetry_required":True}
+          
+          
+          def h2_eventwise_difference(real_ndcg, three_null_ndcg):
+              """Average the three predeclared nulls WITHIN event, before any cluster CI."""
+              r=np.asarray(real_ndcg,dtype=np.float64)
+              null=np.asarray(three_null_ndcg,dtype=np.float64)
+              if r.ndim!=1 or null.shape!=(len(r),3):
+                  raise ValueError("H2 must be events x exactly three fixed null arms")
+              if not np.isfinite(r).all() or not np.isfinite(null).all():
+                  raise ValueError("nonfinite H2 NDCG")
+              if np.any((r<0)|(r>1)) or np.any((null<0)|(null>1)):
+                  raise ValueError("NDCG not in [0,1]")
+              return r-null.mean(axis=1)
+          
+          
+          def expected_cell_weights(cell_labels, frozen_cell_population, frozen_sample_count):
+              """Look up PRETARGET registered post-stratification weights only."""
+              labels=list(cell_labels)
+              if set(frozen_cell_population)!=set(frozen_sample_count):
+                  raise ValueError("Unmatched original 20 design-cell population counts")
+              if len(frozen_cell_population)!=20:
+                  raise ValueError("Original 20-cell design must be frozen")
+              for key in frozen_cell_population:
+                  if not (frozen_cell_population[key]>0 and frozen_sample_count[key]>0):
+                      raise ValueError("Invalid frozen cell counts")
+              if any(label not in frozen_cell_population for label in labels):
+                  raise ValueError("Test record not in frozen cell registry")
+              return np.asarray(
+                  [frozen_cell_population[c]/frozen_sample_count[c] for c in labels],
+                  dtype=np.float64)
+          A4PREREVEAL_FILE_5
+          cat > "$RUNNER_TEMP/n9_b4a_a4_one_shot_unseal.py" <<'A4PREREVEAL_FILE_6'
+          #!/usr/bin/env python3
+          """B4-A A4 single outcome reveal, AFTER A3 H1/H2 SHA lock and independent audit.
+          
+          The data stem is the SAME March-2026 collection period, newly sealed target IDs.
+          No model fit, threshold update, outcome-driven exclusion or second unseal allowed.
+          Only publish anonymized aggregates; raw identifiers / event utilities stay private.
+          """
+          from __future__ import annotations
+          import argparse,hashlib,json,math,time
+          from pathlib import Path
+          import numpy as np,pyarrow.parquet as pq
+          from g5_unlabeled_test_score import active_rosters
+          from n9_b4a_a4_weighted_stat_contract import (
+              weighted_paired_user_cluster, h2_eventwise_difference, holm3,
+              expected_cell_weights, PRIMARY, BOOTSTRAPS, NULL_SEEDS,
+          )
+          
+          A1_MAIN_SHA="be96c9dbf13a14e0db85df24202e318b691b41a4250a3f5e9bc877d4e28d1e14"
+          A1_H2_SHA="40c950e6a9d79ce3e4330b8b8f434dda764570fd369bdeb83a7b4d587c00d059"
+          N=30000;N_H2=4096;FAMILIES=("sasrec","gru4rec")
+          ARMS=("S_aligned","F_aligned")
+          
+          def sha(p):
+              h=hashlib.sha256()
+              with p.open("rb") as f:
+                  for part in iter(lambda:f.read(8<<20),b""):h.update(part)
+              return h.hexdigest()
+          
+          def require(cond,why):
+              if not cond:raise RuntimeError(why)
+          
+          def checked_array(root,filename,registered):
+              path=root/filename
+              require(sha(path)==registered,"frozen A3 output byte SHA changed: "+filename)
+              return np.load(path,allow_pickle=False)
+          
+          def ndcg_from_top10(top,truth):
+              """Top-10 metric is zero outside first ten; no rank-11 inference."""
+              top=np.asarray(top)
+              truth=np.asarray(truth)
+              require(top.ndim==2 and top.shape[1]==10 and truth.shape==(top.shape[0],),
+                      "Top-10/label shape mismatch")
+              match=top==truth[:,None]
+              require(np.all(match.sum(axis=1)<=1),"duplicate target in one fixed Top-10")
+              rank=match.argmax(axis=1)+1
+              return np.where(match.any(axis=1),1.0/np.log2(rank+1),0.0)
+          
+          def verify_sealed_inputs(a1,h1,h2_root,lock,weights):
+              """EVERY input and comparison must be verified before calling label vault."""
+              final=json.loads((lock/"manifest.json").read_text())
+              require(final["status"]=="A3_H1_H2_PREDICTIONS_SHA_LOCKED_A4_NOT_OPENED"
+                      and final["main_events"]==N and final["mechanism_events"]==N_H2
+                      and final["H2_all_seed_ID_and_real_score_parity"]
+                      and not final["A4_authorized_by_A3_lock"]
+                      and final["no_target_label_or_metric_read"],
+                      "A3 final lock not blind/complete")
+              h1m=json.loads((h1/"manifest.json").read_text())
+              require(sha(h1/"manifest.json")==final["frozen_H1_manifest_SHA256"]
+                      and h1m["status"]=="H1_30000_FROZEN_PREDICTIONS_A4_HARD_HOLD"
+                      and not h1m["test_rank_ndcg_hr_computed"]
+                      and not h1m["A4_unseal_authorized"]
+                      and not h1m["retrospective_target_retained_S_candidate_used"]
+                      and not h1m["thresholds_recalibrated_on_TEST"],
+                      "H1 not eligible for frozen A4")
+              require(sha(a1/"B4A_MAIN_30000_PRIVATE.parquet")==A1_MAIN_SHA
+                      and sha(a1/"B4A_IDENTITY_4096_PRIVATE.parquet")==A1_H2_SHA,
+                      "A1 source samples unexpectedly changed")
+              obj=json.loads(weights.read_text())
+              require(obj["sample_main_SHA256"]==A1_MAIN_SHA
+                      and obj["sample_mechanism_SHA256"]==A1_H2_SHA
+                      and obj["population_total"]==4723652
+                      and obj["all_B4A_target_labels_read"] is False,
+                      "A2 original population weights not still frozen")
+              h1_ids=checked_array(h1,"event_ids.npy",h1m["private_files_sha256"]["event_ids.npy"])
+              h1_users=checked_array(h1,"user_ids.npy",h1m["private_files_sha256"]["user_ids.npy"])
+              h1_top=checked_array(h1,"top10_base_and_memory_author_tokens.npy",
+                                   h1m["private_files_sha256"]["top10_base_and_memory_author_tokens.npy"])
+              calls=checked_array(h1,"gate_calls.npy",h1m["private_files_sha256"]["gate_calls.npy"])
+              counts=checked_array(h1,"candidate_counts.npy",h1m["private_files_sha256"]["candidate_counts.npy"])
+              require(h1_ids.shape==(N,) and h1_top.shape==(N,3,10)
+                      and calls.shape==(N,2,2) and counts.shape==(N,)
+                      and np.all(counts>=10),"frozen H1 dimensions/candidates invalid")
+              require(len(set(h1_ids.tolist()))==N,"repeated H1 event IDs")
+              for family in FAMILIES:
+                  require(family in h1m["frozen_gate_model_SHA256"] and
+                          set(h1m["frozen_gate_model_SHA256"][family])==set(ARMS),
+                          "H1 original F/S frozen gate source missing")
+              h2_arrays=[];reference=None;original_top=None
+              for seed in NULL_SEEDS:
+                  folder=h2_root/f"null_seed_{seed}_frozen_top10_v1"
+                  m=json.loads((folder/"manifest.json").read_text())
+                  require(sha(folder/"manifest.json")==final["frozen_H2_manifests_SHA256"][str(seed)]
+                          and m["status"]=="H2_SEED_FROZEN_4096_UNLABELED_TOP10"
+                          and m["seed"]==seed and m["n_events"]==N_H2
+                          and m["H1_original_memory_top10_exact_match"]
+                          and not m["target_ndcg_rank_hr_computed"]
+                          and not m["A4_authorized"],
+                          "H2 sealed null invalid")
+                  ids=checked_array(folder,"event_ids.npy",m["files_sha256"]["event_ids.npy"])
+                  orig=checked_array(folder,"original_full_f_top10.npy",
+                                     m["files_sha256"]["original_full_f_top10.npy"])
+                  null=checked_array(folder,"null_full_f_top10.npy",
+                                     m["files_sha256"]["null_full_f_top10.npy"])
+                  require(ids.shape==(N_H2,) and orig.shape==(N_H2,10) and null.shape==(N_H2,10),
+                          "H2 Top-10 shape changed")
+                  if reference is None:reference=ids;original_top=orig
+                  else:require(np.array_equal(ids,reference) and
+                               np.array_equal(orig,original_top),"H2 arms don't share requests")
+                  h2_arrays.append(null)
+              require(set(reference.tolist()).issubset(set(h1_ids.tolist())),
+                      "H2 target ID not nested in main H1 targets")
+              # A1 metadata only, never read target author yet.
+              mainmeta=pq.read_table(a1/"B4A_MAIN_30000_PRIVATE.parquet",
+                       columns=["source_event_id","user_id","observed_at","day","history_group"])
+              subset=pq.read_table(a1/"B4A_IDENTITY_4096_PRIVATE.parquet",
+                       columns=["source_event_id","user_id","observed_at","day","history_group"])
+              require(np.array_equal(mainmeta.column("source_event_id").to_numpy(),h1_ids)
+                      and np.array_equal(mainmeta.column("user_id").to_numpy(),h1_users)
+                      and np.array_equal(subset.column("source_event_id").to_numpy(),reference),
+                      "A3/A1 metadata row ordering mismatch")
+              def cell_weights(table,kind):
+                  rows=obj[kind]["strata"]
+                  population={(x["date"],x["history_q"]):int(x["population_n"]) for x in rows}
+                  sample={(x["date"],x["history_q"]):int(x["sample_n"]) for x in rows}
+                  labels=[(str(d),str(q)) for d,q in zip(
+                      table.column("day").to_pylist(),table.column("history_group").to_pylist())]
+                  w=expected_cell_weights(labels,population,sample)
+                  require(math.isclose(float(w.sum()),4723652.,rel_tol=1e-10),
+                          "original population weights not recovered")
+                  return w
+              w_main=cell_weights(mainmeta,"main")
+              w_h2=cell_weights(subset,"mechanism")
+              return (h1m,final,h1_ids,h1_users,h1_top,calls,counts,
+                      mainmeta,reference,subset,original_top,np.stack(h2_arrays,axis=1),
+                      w_main,w_h2)
+          
+          
+          def main(cache,g1,index,a1,h1,h2_root,lock,weights,out):
+              # Fresh lock artifact may NOT preexist. Once first unseal begins, preserve
+              # an attempt marker, and refuse reruns even after technical exceptions.
+              if out.exists() or out.with_name(out.name+".unseal_in_progress").exists():
+                  raise FileExistsError("B4-A A4 can only unseal ONCE")
+              start=time.monotonic()
+              (h1m,final,ids,users,top,calls,counts,mainmeta,
+               mechanism_ids,subset,real_top,null_top,w,w2)=verify_sealed_inputs(
+                   a1,h1,h2_root,lock,weights)
+              # Up to this line all data were TARGET-BLIND. Seal A4 attempt before
+              # the first current author label from causal source can be accessed.
+              pending=out.with_name(out.name+".unseal_in_progress")
+              pending.mkdir(parents=True,mode=0o700,exist_ok=False)
+              attempt={"state":"A4_STARTED_EXACT_ONCE_UNSEAL_ATTEMPT",
+                       "frozen_A3_manifest_SHA256":sha(lock/"manifest.json"),
+                       "A1_main_SHA256":A1_MAIN_SHA,"A1_nested_SHA256":A1_H2_SHA,
+                       "statistical_test_family":PRIMARY,"null_seeds":NULL_SEEDS,
+                       "bootstrap_draws":BOOTSTRAPS,"raw_labels_logged_or_published":False}
+              (pending/"attempt.json").write_text(json.dumps(attempt,sort_keys=True,indent=2)+"\n")
+              # SINGLE authorized projection containing selected current authors.
+              requested={int(e):i for i,e in enumerate(ids)}
+              target_raw=np.full(N,-1,dtype=np.int64)
+              expected_users=users
+              expected_clocks=mainmeta.column("observed_at").to_pylist()
+              seen=0
+              for block in pq.ParquetFile(g1/"causal_stream_sealed.parquet").iter_batches(
+                  batch_size=262144,
+                  columns=["source_event_id","user_id","author_id","observed_at","split"]):
+                  d=block.to_pydict()
+                  for eid,user,author,clock,split in zip(d["source_event_id"],
+                                                          d["user_id"],d["author_id"],
+                                                          d["observed_at"],d["split"]):
+                      i=requested.get(int(eid))
+                      if i is None:continue
+                      require(target_raw[i]==-1,"duplicate target author or source event in unseal")
+                      require(split=="TEST" and int(user)==int(expected_users[i])
+                              and clock==expected_clocks[i],
+                              "A4 label source did not align with the original blind request")
+                      target_raw[i]=int(author);seen+=1
+              require(seen==N and np.all(target_raw>=0),"incomplete one-shot TEST target author reveal")
+              warm=np.load(index/"authors.npy",mmap_mode="r")
+              token_pos=np.searchsorted(warm,target_raw)
+              require(np.all(token_pos<len(warm)),"unsealed target not TRAIN-known")
+              require(np.all(warm[token_pos]==target_raw),"unsealed author not in TRAIN-known fixed universe")
+              truth=token_pos.astype(np.int32)+1
+              # Explicitly validate each target is in the original Full-F eligible roster,
+              # not merely absent from a Top-10 ranking. Never outcome-selectively exclude.
+              known={int(a):i+1 for i,a in enumerate(warm)}
+              for i,roster in active_rosters(g1/"available_room_intervals.parquet",
+                                             expected_clocks,known):
+                  require(len(roster)==int(counts[i]),"A4 active author roster differs from A3")
+                  p=int(np.searchsorted(roster,int(truth[i])))
+                  require(p<len(roster) and roster[p]==int(truth[i]),
+                          "A4 author not eligible in precommitted Full-F roster")
+              # The target was never passed to the A3 scorer. At this point the reveal
+              # is irrevocable; no ML fitting or policy calibration is permitted.
+              base=np.column_stack([ndcg_from_top10(top[:,j,:],truth) for j in (0,1)])
+              mem=ndcg_from_top10(top[:,2,:],truth)
+              policy=np.empty((N,2,2),dtype=np.float64)
+              quality={}
+              delta=[]
+              for j,family in enumerate(FAMILIES):
+                  arms={}
+                  for k,arm in enumerate(ARMS):
+                      policy[:,j,k]=base[:,j]+calls[:,j,k]*(mem-base[:,j])
+                      arms[arm]={"F_weighted_NDCG10":float(np.average(policy[:,j,k],weights=w)),
+                                 "realized_weighted_call_fraction":float(np.average(calls[:,j,k],weights=w)),
+                                 "realized_unweighted_call_fraction":float(calls[:,j,k].mean()),
+                                 "n_calls":int(calls[:,j,k].sum())}
+                  quality[family]={"base_F_weighted_NDCG10":float(np.average(base[:,j],weights=w)),
+                      "always_memory_F_weighted_NDCG10":float(np.average(mem,weights=w)),
+                      "frozen_arms":arms,
+                      "raw_call_rate_gap":abs(arms["F_aligned"]["realized_unweighted_call_fraction"]-
+                                              arms["S_aligned"]["realized_unweighted_call_fraction"]),
+                      "not_strict_equal_budget":abs(arms["F_aligned"]["realized_unweighted_call_fraction"]-
+                                                    arms["S_aligned"]["realized_unweighted_call_fraction"])>0.01}
+                  delta.append(policy[:,j,1]-policy[:,j,0])
+              subset_index={int(e):i for i,e in enumerate(ids)}
+              selection=np.asarray([subset_index[int(e)] for e in mechanism_ids],dtype=np.int64)
+              require(len(np.unique(selection))==N_H2,"H2 repeated index")
+              truth2=truth[selection]
+              users2=users[selection]
+              real_ndcg=ndcg_from_top10(real_top,truth2)
+              three_null=np.column_stack([
+                  ndcg_from_top10(null_top[:,k,:],truth2) for k in range(3)])
+              diffs=h2_eventwise_difference(real_ndcg,three_null)
+              delta.append(diffs)
+              results=[
+                  weighted_paired_user_cluster(delta[0],users,w,seed=20261014),
+                  weighted_paired_user_cluster(delta[1],users,w,seed=20261014),
+                  weighted_paired_user_cluster(delta[2],users2,w2,seed=20261014),
+              ]
+              raw_p=[x["one_sided_cluster_signflip_p"] for x in results]
+              adjusted=holm3(raw_p)
+              primaries={}
+              for i,k in enumerate(PRIMARY):
+                  primaries[k]={**results[i],"holm3_adjusted_one_sided_p":float(adjusted[i]),
+                                "directional_reject_at_0_05":bool(adjusted[i]<.05)}
+              manifest={"schema":"kbs-b4a-a4-first-and-only-same-period-target-heldout-v1",
+                  "status":"A4_ONE_SHOT_FROZEN_TARGETS_EVALUATED_NEVER_REOPTIMIZED",
+                  "A3_complete_lock_SHA256":sha(lock/"manifest.json"),
+                  "A1_main_and_H2_sample_SHA256":[A1_MAIN_SHA,A1_H2_SHA],
+                  "n_main_requests":N,"n_main_users":int(len(np.unique(users))),
+                  "n_mechanism_requests":N_H2,"n_mechanism_users":int(len(np.unique(users2))),
+                  "source_period":"MARCH_2026_SAME_COLLECTION_AS_G5_NOT_NEW_CHRONOLOGICAL_PERIOD",
+                  "statistical_design":"20_CELL_NATURAL_ELIGIBLE_SOURCE_POPULATION_WEIGHTED_RATIO",
+                  "main_Kish_n_eff":float(w.sum()**2/np.square(w).sum()),
+                  "h2_Kish_n_eff":float(w2.sum()**2/np.square(w2).sum()),
+                  "main_calls_and_quality":quality,"H2_full_real_vs_null":{
+                    "real_weighted_NDCG10":float(np.average(real_ndcg,weights=w2)),
+                    "seed_null_weighted_NDCG10":{
+                       str(seed):float(np.average(three_null[:,k],weights=w2))
+                       for k,seed in enumerate(NULL_SEEDS)},
+                    "mean_three_null_weighted_NDCG10":float(np.average(three_null.mean(axis=1),weights=w2))},
+                  "frozen_primary_comparisons":primaries,
+                  "one_sided_familywise_method":"HOLM_3",
+                  "bootstrap_and_signflip_user_cluster_draws":5000,
+                  "signflip_reliance":"USER_CLUSTER_SIGN_SYMMETRY_ASSUMPTION",
+                  "TEST_policies_recalibrated":False,
+                  "true_same_candidate_control":True,
+                  "three_seed_nulls_not_three_independent_TESTS":True,
+                  "any_success_claim_prior_to_this_A4":False,
+                  "author_IDs_or_private_edge_data_public":False,
+                  "unfavorable_effects_also_reported":True,
+                  "wall_seconds":round(time.monotonic()-start,2)}
+              # Preserve full paired result for author-only audit; not exported to public repo.
+              np.savez_compressed(pending/"private_paired_event_metrics.npz",
+                  event_ids=ids,user_ids=users,weights=w,
+                  base_F=base,memory_F=mem,H1_gate_calls=calls,H1_gate_ndcg=policy,
+                  mechanism_ids=mechanism_ids,mechanism_weights=w2,
+                  mechanism_real_ndcg=real_ndcg,mechanism_null_ndcg=three_null)
+              manifest["private_audit_SHA256"]=sha(pending/"private_paired_event_metrics.npz")
+              (pending/"aggregate.json").write_text(json.dumps(manifest,sort_keys=True,indent=2)+"\n")
+              pending.rename(out)
+              # Print only safe aggregates, never event/user/author IDs or private metrics rows.
+              print(json.dumps({"status":manifest["status"],"n_main":N,
+                  "n_mechanism":N_H2,
+                  "primary_effects":{k:{"effect":v["weighted_effect"],
+                      "ci95":v["cluster_ci95"],"Holm_p":v["holm3_adjusted_one_sided_p"]}
+                      for k,v in primaries.items()},
+                  "TEST_model_or_threshold_updates":False},sort_keys=True),flush=True)
+          
+          if __name__=="__main__":
+              p=argparse.ArgumentParser()
+              for name in ("cache","g1","index","a1","h1","h2-root","lock","weights","out"):
+                  p.add_argument("--"+name,type=Path,required=True)
+              a=p.parse_args()
+              main(a.cache,a.g1,a.index,a.a1,a.h1,a.h2_root,a.lock,a.weights,a.out)
+          A4PREREVEAL_FILE_6
+          cat > "$RUNNER_TEMP/n9_b4a_a4_strict_prereveal.py" <<'A4PREREVEAL_FILE_7'
+          #!/usr/bin/env python3
+          """A4 stand-alone read-only pre-reveal verification: ZERO access to current authors."""
+          from __future__ import annotations
+          import argparse,json
+          from pathlib import Path
+          import numpy as np
+          from n9_b4a_a4_one_shot_unseal import (
+              verify_sealed_inputs,ndcg_from_top10,sha,PRIMARY,NULL_SEEDS
+          )
+          
+          def main(a1,h1,h2_root,lock,weights,out):
+              if out.exists():raise FileExistsError("Do not overwrite prereveal verification")
+              (h1m,final,ids,users,top,calls,counts,mainmeta,
+               mechanism_ids,subset,original,null,w,w2) = verify_sealed_inputs(
+                      a1,h1,h2_root,lock,weights)
+              if not (len(ids)==30000 and len(mechanism_ids)==4096
+                      and top.shape==(30000,3,10)
+                      and null.shape==(4096,3,10)
+                      and calls.shape==(30000,2,2)):
+                  raise RuntimeError("A4 frozen input shape violation")
+              if np.any(np.diff(np.sort(ids))==0) or np.any(np.diff(np.sort(mechanism_ids))==0):
+                  raise RuntimeError("duplicate frozen prediction identity")
+              if (len(PRIMARY)!=3 or tuple(NULL_SEEDS)!=(20261014,20261015,20261016)):
+                  raise RuntimeError("A4 primary analysis family changed")
+              # Synthetic-only boundary: no real target token is available to this script.
+              fake_top=np.array([[2,5,6,7,8,9,10,11,12,13],
+                                 [3,4,5,6,7,8,9,10,11,12]],dtype=np.int32)
+              fake=np.array([2,100],dtype=np.int32)
+              if not np.allclose(ndcg_from_top10(fake_top,fake),[1,0]):
+                  raise RuntimeError("Top-10 metric synthetic sanity failed")
+              report={"schema":"kbs-b4a-a4-strict-prereveal-input-verification-v1",
+                  "status":"PASS_ALL_A3_SHA_AND_FROZEN_PRIMARY_ESTIMANDS_NO_LABELS_READ",
+                  "A3_final_lock_SHA256":sha(lock/"manifest.json"),
+                  "A3_main_SHA256":h1m["source_sample_SHA256"],
+                  "main_events":len(ids),
+                  "H2_events":len(mechanism_ids),
+                  "null_seed_count":3,
+                  "Kish_n_eff_main":float(w.sum()**2/(w@w)),
+                  "Kish_n_eff_mechanism":float(w2.sum()**2/(w2@w2)),
+                  "A4_primary_comparisons":PRIMARY,
+                  "frozen_seed_nulls":NULL_SEEDS,
+                  "target_author_column_opened":False,
+                  "A4_NDCG_computed_from_real_targets":False,
+                  "A4_unseal_approved_by_technical_preflight":False}
+              out.mkdir(parents=True,mode=0o700)
+              (out/"summary.json").write_text(json.dumps(report,sort_keys=True,indent=2)+"\n")
+              print(json.dumps(report,sort_keys=True),flush=True)
+          
+          if __name__=="__main__":
+              p=argparse.ArgumentParser()
+              for name in ("a1","h1","h2-root","lock","weights","out"):
+                  p.add_argument("--"+name,type=Path,required=True)
+              a=p.parse_args()
+              main(a.a1,a.h1,a.h2_root,a.lock,a.weights,a.out)
+          A4PREREVEAL_FILE_7
+          cat > "$RUNNER_TEMP/N9_ROUTE_B_B4A_A2_POPULATION_WEIGHTS_2026-10-14.json" <<'A4PREREVEAL_FILE_8'
+          {
+            "all_B4A_target_labels_read": false,
+            "balanced_cell_secondary": true,
+            "cluster_bootstrap": "5000 paired users, weighted ratio per draw",
+            "estimand": "eligible_population_date_by_history_quartile_ratio_weighted_NDCG",
+            "main": {
+              "N": 30000,
+              "N_effective_kish_for_population_weights": 26849.293759053424,
+              "max_weight": 203.008,
+              "min_weight": 63.73466666666667,
+              "strata": [
+                {
+                  "base_poststratification_weight": 63.73466666666667,
+                  "date": "2026-03-27",
+                  "history_q": "q1",
+                  "population_n": 95602,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 63.73466666666667,
+                  "date": "2026-03-27",
+                  "history_q": "q2",
+                  "population_n": 95602,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 63.73466666666667,
+                  "date": "2026-03-27",
+                  "history_q": "q3",
+                  "population_n": 95602,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 63.73466666666667,
+                  "date": "2026-03-27",
+                  "history_q": "q4",
+                  "population_n": 95602,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 201.83133333333333,
+                  "date": "2026-03-28",
+                  "history_q": "q1",
+                  "population_n": 302747,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 201.83133333333333,
+                  "date": "2026-03-28",
+                  "history_q": "q2",
+                  "population_n": 302747,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 201.83133333333333,
+                  "date": "2026-03-28",
+                  "history_q": "q3",
+                  "population_n": 302747,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 201.83133333333333,
+                  "date": "2026-03-28",
+                  "history_q": "q4",
+                  "population_n": 302747,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 203.008,
+                  "date": "2026-03-29",
+                  "history_q": "q1",
+                  "population_n": 304512,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 203.008,
+                  "date": "2026-03-29",
+                  "history_q": "q2",
+                  "population_n": 304512,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 203.008,
+                  "date": "2026-03-29",
+                  "history_q": "q3",
+                  "population_n": 304512,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 203.00733333333332,
+                  "date": "2026-03-29",
+                  "history_q": "q4",
+                  "population_n": 304511,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 188.604,
+                  "date": "2026-03-30",
+                  "history_q": "q1",
+                  "population_n": 282906,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 188.604,
+                  "date": "2026-03-30",
+                  "history_q": "q2",
+                  "population_n": 282906,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 188.604,
+                  "date": "2026-03-30",
+                  "history_q": "q3",
+                  "population_n": 282906,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 188.60333333333332,
+                  "date": "2026-03-30",
+                  "history_q": "q4",
+                  "population_n": 282905,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 130.098,
+                  "date": "2026-03-31",
+                  "history_q": "q1",
+                  "population_n": 195147,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 130.098,
+                  "date": "2026-03-31",
+                  "history_q": "q2",
+                  "population_n": 195147,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 130.09733333333332,
+                  "date": "2026-03-31",
+                  "history_q": "q3",
+                  "population_n": 195146,
+                  "sample_n": 1500
+                },
+                {
+                  "base_poststratification_weight": 130.09733333333332,
+                  "date": "2026-03-31",
+                  "history_q": "q4",
+                  "population_n": 195146,
+                  "sample_n": 1500
+                }
+              ]
+            },
+            "mechanism": {
+              "N": 4096,
+              "N_effective_kish_for_population_weights": 3659.4205434193127,
+              "max_weight": 1577.782383419689,
+              "min_weight": 436.53881278538813,
+              "strata": [
+                {
+                  "base_poststratification_weight": 470.9458128078818,
+                  "date": "2026-03-27",
+                  "history_q": "q1",
+                  "population_n": 95602,
+                  "sample_n": 203
+                },
+                {
+                  "base_poststratification_weight": 453.09004739336496,
+                  "date": "2026-03-27",
+                  "history_q": "q2",
+                  "population_n": 95602,
+                  "sample_n": 211
+                },
+                {
+                  "base_poststratification_weight": 470.9458128078818,
+                  "date": "2026-03-27",
+                  "history_q": "q3",
+                  "population_n": 95602,
+                  "sample_n": 203
+                },
+                {
+                  "base_poststratification_weight": 436.53881278538813,
+                  "date": "2026-03-27",
+                  "history_q": "q4",
+                  "population_n": 95602,
+                  "sample_n": 219
+                },
+                {
+                  "base_poststratification_weight": 1462.5458937198068,
+                  "date": "2026-03-28",
+                  "history_q": "q1",
+                  "population_n": 302747,
+                  "sample_n": 207
+                },
+                {
+                  "base_poststratification_weight": 1498.7475247524753,
+                  "date": "2026-03-28",
+                  "history_q": "q2",
+                  "population_n": 302747,
+                  "sample_n": 202
+                },
+                {
+                  "base_poststratification_weight": 1448.5502392344497,
+                  "date": "2026-03-28",
+                  "history_q": "q3",
+                  "population_n": 302747,
+                  "sample_n": 209
+                },
+                {
+                  "base_poststratification_weight": 1401.6064814814815,
+                  "date": "2026-03-28",
+                  "history_q": "q4",
+                  "population_n": 302747,
+                  "sample_n": 216
+                },
+                {
+                  "base_poststratification_weight": 1577.782383419689,
+                  "date": "2026-03-29",
+                  "history_q": "q1",
+                  "population_n": 304512,
+                  "sample_n": 193
+                },
+                {
+                  "base_poststratification_weight": 1450.057142857143,
+                  "date": "2026-03-29",
+                  "history_q": "q2",
+                  "population_n": 304512,
+                  "sample_n": 210
+                },
+                {
+                  "base_poststratification_weight": 1409.7777777777778,
+                  "date": "2026-03-29",
+                  "history_q": "q3",
+                  "population_n": 304512,
+                  "sample_n": 216
+                },
+                {
+                  "base_poststratification_weight": 1507.480198019802,
+                  "date": "2026-03-29",
+                  "history_q": "q4",
+                  "population_n": 304511,
+                  "sample_n": 202
+                },
+                {
+                  "base_poststratification_weight": 1450.8,
+                  "date": "2026-03-30",
+                  "history_q": "q1",
+                  "population_n": 282906,
+                  "sample_n": 195
+                },
+                {
+                  "base_poststratification_weight": 1235.3973799126638,
+                  "date": "2026-03-30",
+                  "history_q": "q2",
+                  "population_n": 282906,
+                  "sample_n": 229
+                },
+                {
+                  "base_poststratification_weight": 1414.53,
+                  "date": "2026-03-30",
+                  "history_q": "q3",
+                  "population_n": 282906,
+                  "sample_n": 200
+                },
+                {
+                  "base_poststratification_weight": 1481.1780104712043,
+                  "date": "2026-03-30",
+                  "history_q": "q4",
+                  "population_n": 282905,
+                  "sample_n": 191
+                },
+                {
+                  "base_poststratification_weight": 956.6029411764706,
+                  "date": "2026-03-31",
+                  "history_q": "q1",
+                  "population_n": 195147,
+                  "sample_n": 204
+                },
+                {
+                  "base_poststratification_weight": 985.5909090909091,
+                  "date": "2026-03-31",
+                  "history_q": "q2",
+                  "population_n": 195147,
+                  "sample_n": 198
+                },
+                {
+                  "base_poststratification_weight": 1078.1546961325967,
+                  "date": "2026-03-31",
+                  "history_q": "q3",
+                  "population_n": 195146,
+                  "sample_n": 181
+                },
+                {
+                  "base_poststratification_weight": 942.7342995169082,
+                  "date": "2026-03-31",
+                  "history_q": "q4",
+                  "population_n": 195146,
+                  "sample_n": 207
+                }
+              ]
+            },
+            "new_test_ranking_scores_computed": false,
+            "population_total": 4723652,
+            "raw_event_or_author_ids_public": false,
+            "sample_main_SHA256": "be96c9dbf13a14e0db85df24202e318b691b41a4250a3f5e9bc877d4e28d1e14",
+            "sample_mechanism_SHA256": "40c950e6a9d79ce3e4330b8b8f434dda764570fd369bdeb83a7b4d587c00d059",
+            "schema": "kbs-n9-b4a-a2-population-weight-freeze-v1",
+            "state": "FROZEN_BEFORE_TARGET_OUTCOME_REVEAL",
+            "github_actions_run_id": 38506781299
+          }
+          A4PREREVEAL_FILE_8
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'CHECK_CODE'
+          import os,pathlib,hashlib
+          d=pathlib.Path(os.environ['RUNNER_TEMP'])
+          expected={
+              "g2_train_base.py": "1d8c26c637e8779143882e1e9f7dab8610ab5fd7",
+              "g3_dev_full_active.py": "741f15244471d521054d89675904dfb2c76c7d5c",
+              "g3_replay_correct_memory.py": "04b35990db15ebbddcc8f787979e8c0eee0c3bb1",
+              "g4_sparse_gate_features.py": "b45d083445e562ab17dd5ada7fb1bdcde10cafe8",
+              "g5_unlabeled_test_score.py": "ac66a8a8a0a16537890308e67aa81c709872ff7d",
+              "n9_b4a_a4_weighted_stat_contract.py": "c050d0247713179f269b0022f1d76a896ddb9203",
+              "n9_b4a_a4_one_shot_unseal.py": "ce3896505472e3f680c8e0fda8720f12a74aa900",
+              "n9_b4a_a4_strict_prereveal.py": "efbbaa1eabc1334881f894067eac0889532bffdc",
+              "N9_ROUTE_B_B4A_A2_POPULATION_WEIGHTS_2026-10-14.json": "fd8d0f73c8d95e3e6504b40be20a8fa2d26f699f",
+          }
+          for name,expected_sha in expected.items():
+              raw=(d/name).read_bytes()
+              got=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              assert got==expected_sha,(name,got,expected_sha)
+          print("A4 all source code and original population weights SHA validated; labels unopened",flush=True)
+          CHECK_CODE
+      - name: Run A4 formal prereveal complete SHA, frozen stats and synthetic rank test
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$RUNNER_TEMP:$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFERED=1
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          "$HOME/venvs/kuailive-gpu/bin/python" "$RUNNER_TEMP/n9_b4a_a4_strict_prereveal.py" \
+            --a1 "$ROOT/klm3_n9_route_b_b4a_a1_30000_4096_v1" \
+            --h1 "$ROOT/klm3_n9_b4a_a3_h1_frozen_30000_v1" \
+            --h2-root "$ROOT/klm3_n9_b4a_a3_h2_v1" \
+            --lock "$ROOT/klm3_n9_b4a_a3_final_lock_v1" \
+            --weights "$RUNNER_TEMP/N9_ROUTE_B_B4A_A2_POPULATION_WEIGHTS_2026-10-14.json" \
+            --out "$ROOT/klm3_n9_b4a_a4_strict_prereveal_v1"
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'GATE'
+          import pathlib,json
+          p=pathlib.Path.home()/'.cache/kuailive-agent-kbs/klm3_n9_b4a_a4_strict_prereveal_v1/summary.json'
+          s=json.loads(p.read_text())
+          assert s['status']=='PASS_ALL_A3_SHA_AND_FROZEN_PRIMARY_ESTIMANDS_NO_LABELS_READ'
+          assert not s['target_author_column_opened'] and not s['A4_NDCG_computed_from_real_targets']
+          assert not s['A4_unseal_approved_by_technical_preflight']
+          print("A4 PRE-REVEAL pass only; no author target opened",flush=True)
+          GATE

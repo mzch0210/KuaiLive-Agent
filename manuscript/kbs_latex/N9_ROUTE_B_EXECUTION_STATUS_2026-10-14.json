@@ -15,9 +15,9 @@
     "B1B": "PASS_PUBLIC_CALL_BALANCE_AND_INFORMATION_SCOPE_AUDIT",
     "B2": "PASS_PRETARGET_1024_EVENTS_THREE_SEED_TIME_VALID_NONFLOOR_RELATION_ID_NULL_AND_SELF_SCORER_PARITY",
     "B3": "PASS_R1_BOUNDED_IMPROVED_R2_BOUNDED_R3_STRONG_WITHIN_DEV_NULL_DESIGN_GENERALIZATION_BOUNDED",
-    "B4": "B4A_A0_A1_A2_TECHNICAL_PASS_A3_HOLD_RIGHTS_BLIND_A4_HARD_HOLD",
-    "B5": "PASS_8_SECTION_MAIN_UPDATED_12_TABLES_SUPPLEMENT_S10_TO_14_SUBSECTIONS",
-    "B6": "PASS_MAIN_37P_SUPPLEMENT_PDF_TECHNICAL_QA_AUTHOR_RIGHTS_AND_DECLARATIONS_HOLD"
+    "B4": "B4A_A0_A1_A2_A3_A4_A5_A6_PASS_ONE_SHOT_SAME_PERIOD_FROZEN_H1_H2; A7_SOURCE_AND_PDF_TECH_QA_PASS",
+    "B5": "A7_INTEGRATION_PASS_MAIN_S10_15_16_RESULT_CLAIM_AND_SOURCE_PARITY",
+    "B6": "A7_UPDATED_MAIN_40P_SUPPLEMENT_44P_PDF_TECHNICAL_QA_PASS_AUTHOR_FINAL_SIGNOFF_PENDING"
   },
   "runs": {
     "B1A": 38498422665,
@@ -80,33 +80,34 @@
     "B5_B6_QA": "manuscript/kbs_latex/N9_ROUTE_B_B5_B6_MANUSCRIPT_AND_KBS_QA_2026-10-14.md"
   },
   "risks": {
-    "R1": "BOUNDED_BUT_KNOWLEDGE_IDENTITY_CONTROL_IS_NOT_REDUCIBLE_TO_SAMPLED_METRIC",
-    "R2": "BOUNDED_HYPOTHETICAL_CALL_COST_NOT_DEPLOYMENT_SAVING",
-    "R3": "STRONG_IN_EXPLORATORY_TIME_DEGREE_AVAILABILITY_PRESERVED_1024_DEV_CONTROL_EXTERNAL_VALIDITY_BOUNDED"
+    "R1": "MATERIALLY_STRENGTHENED_CANDIDATE_RELATIVE_SUPERVISION_AND_RELATION_IDENTITY_CONTROL_ORIGINALITY_STILL_EDITORIAL_BOUNDED",
+    "R2": "BOUNDED_F_SUPERVISION_IMPROVES_NDCG_AND_FEWER_REALIZED_CALLS_BUT_NOT_EQUAL_1PP_BUDGET_NO_DEPLOYMENT_COST_EVIDENCE_ALWAYS_MEMORY_BETTER",
+    "R3": "STRONG_WITHIN_FROZEN_ADDITIONAL_SAME_PERIOD_TARGETS_H2_POPULARITY_NONFLOOR_NOT_VERIFIED_UNIQUE_CAUSALITY_AND_EXTERNAL_TIME_TRANSFER_BOUNDED"
   },
   "submission": "HOLD",
-  "next_gate": "Independent human authorization of exact M3 release and new B4A restricted data processing plus final A3 target-blind source/clock/feature audit; only then run one-shot 30000 and 4096 A3 predictions, freeze SHA before A4 label reveal.",
-  "dataset_rights": "M3 PAPER NONCOMMERCIAL_SHAREALIKE_VS_HUGGINGFACE_BY_SHAREALIKE_METADATA_DISCREPANCY_AUTHORS_TO_RESOLVE",
+  "next_gate": "Human KBS-submission reviewer signoff: author/affiliation, bibliography, journal formatting, CRediT/COI/funding/AI-assistance, source license/disclosure and the cover letter. B4-A A4 must NOT be rerun; unmeasured H2 popularity floor and unequal H1 call rates remain reported.",
+  "dataset_rights": "PERMISSION_METADATA_DIFFERENCE_DOCUMENTED; NOT_A_TECHNICAL_A3_BLOCK; PRIVACY_DERIVED_DATA_REDISTRIBUTION_AND_FINAL_AUTHOR_ATTESTATION_OPEN",
   "current_paper_blobs": {
-    "main_tex_git_blob": "f5cd5aa5f24133b858e370fdbdda661261582e4d",
-    "s10_integrated_git_blob": "905931da96424a92d8a298d1cb6041667b20ac41"
+    "main_tex_git_blob": "6183e76e9985aff9995196187bcaa2e8a156bf98",
+    "s10_integrated_git_blob": "1fecd9d9f6bc76b7322645deac6ca41e8e0ea515"
   },
   "final_builds": {
     "main": {
-      "run": 38501940137,
-      "artifact": 11865942763,
+      "run": 38523544564,
+      "artifact": 11874448417,
       "status": "SUCCESS",
-      "pdf_pages": 37
+      "pdf_pages": 40
     },
     "supplement": {
-      "run": 38502043249,
-      "artifact": 11866397339,
+      "run": 38523544564,
+      "artifact": 11875151972,
       "status": "SUCCESS",
-      "pdf_pages": "not independently counted"
-    }
+      "pdf_pages": 44
+    },
+    "note": "Both current A7 revised PDFs were independently built and inspected after S10.15/S10.16 source and long-path formatting corrections. Source and full workflow evidence locked at action 38523544564."
   },
   "B4A": {
-    "status": "A0_A1_A2_TECHNICAL_PASS_B4A_TARGET_OUTCOMES_UNOPENED",
+    "status": "A0_A1_A2_A3_A4_A5_A6_PASS_A7_MAIN_AND_S10_COMPLETE_CURRENT_PDF_QA_PENDING",
     "plan": "manuscript/kbs_latex/N9_ROUTE_B_B4A_ADDITIONAL_TARGET_HOLDOUT_EXECUTION_PLAN_2026-10-14.md",
     "execution_report": "manuscript/kbs_latex/N9_ROUTE_B_B4A_A0_A1_ELIGIBILITY_AND_BLIND_FREEZE_REPORT_2026-10-14.md",
     "A0_report": "experiments/kbs_plan_c/N9_ROUTE_B_B4A_A0_AGGREGATE_ELIGIBILITY_2026-10-14.json",
@@ -123,13 +124,13 @@
     "sampling": "5 source dates x 4 pretarget within-day history rank quartiles; 1500/cell",
     "A0_run": 38505464173,
     "A1_run": 38505873258,
-    "A2_model_frozen": false,
-    "A3_target_blind_prediction_completed": false,
-    "A4_outcomes_opened": false,
+    "A2_model_frozen": true,
+    "A3_target_blind_prediction_completed": true,
+    "A4_outcomes_opened": true,
     "rights_human_attestation": "PENDING",
-    "estimand_weights": "A2_PREREGISTRATION_PENDING_NATURAL_CELL_POPULATION_WEIGHTS",
+    "estimand_weights": "A2_FROZEN_ORIGINAL_20_CELL_ELIGIBLE_POPULATION_POSTSTRATIFICATION",
     "new_independent_time_test": false,
-    "manuscript_modified_for_B4A": false,
+    "manuscript_modified_for_B4A": true,
     "A2_report": "manuscript/kbs_latex/N9_ROUTE_B_B4A_A2_DEV_FROZEN_MODELS_AND_STATISTICAL_CONTRACT_2026-10-14.md",
     "A2_model_aggregate": "experiments/kbs_plan_c/N9_ROUTE_B_B4A_A2_DEV_FINAL_GATE_AGGREGATE_2026-10-14.json",
     "A2_population_weights": "experiments/kbs_plan_c/N9_ROUTE_B_B4A_A2_POPULATION_WEIGHTS_2026-10-14.json",
@@ -143,6 +144,39 @@
     "A2_main_effective_weighted_sample": 26849.293759053424,
     "A2_mechanism_effective_weighted_sample": 3659.4205434193127,
     "A2_primary_estimand": "eligible_source_population_20cell_poststratification",
-    "A3_authorized": false
-  }
+    "A3_authorized": true,
+    "A3_preflight_synthetic_only": "PASS_PUBLIC_FREEZE_AND_7_SYNTHETIC_TESTS_ACTION_38515403899",
+    "A3_production_pipeline_validated": true,
+    "A3_H1_sealed_run": 38517170015,
+    "A3_H2_sealed_run": 38517502835,
+    "A4_independent_pre_reveal_run": 38518563975,
+    "A4_one_shot_executed": true,
+    "A4_first_and_only_successful_run": 38518785650,
+    "A4_rerun_permitted": false,
+    "A5_paired_source_audit_run": 38519174441,
+    "A5_safe_aggregate_run": 38519266946,
+    "A6_scientific_risk_status": "R1_STRENGTHENED_EDITORIAL_BOUNDED_R2_DEPLOYMENT_CLAIM_HOLD_R3_STRONG_SAME_PERIOD_TARGETS_NULL_POPULARITY_FLOOR_UNVERIFIED",
+    "A6_report": "manuscript/kbs_latex/N9_ROUTE_B_B4A_A6_REFEREE_RISK_ADJUDICATION_2026-10-14.md",
+    "A7_main_and_supplement_integrated": true,
+    "A7_supplement_sections": [
+      "S10.15",
+      "S10.16"
+    ],
+    "H1_SASRec_F_minus_S_weighted_NDCG": 0.005391,
+    "H1_GRU4Rec_F_minus_S_weighted_NDCG": 0.003585,
+    "H2_real_minus_mean_null_weighted_NDCG": 0.031145,
+    "H1_equal_1pp_budget_interpretation": false,
+    "H2_TRAIN_popularity_floor_confirmed": false,
+    "A7_current_main_PDF_compiled": true,
+    "A7_current_supplement_PDF_compiled": true,
+    "A7_pdf_QA_success_run": 38523544564,
+    "A7_main_pdf_pages": 40,
+    "A7_supplement_pdf_pages": 44,
+    "A7_main_pdf_artifact_id": 11874448417,
+    "A7_supplement_pdf_artifact_id": 11875151972,
+    "A7_submission_QA_report": "manuscript/kbs_latex/N9_ROUTE_B_B4A_A7_POSTINTEGRATION_SUBMISSION_QA_2026-10-14.md",
+    "A7_final_status": "PASS_TECHNICAL_SOURCE_NUMERIC_AND_PDF_QA_AUTHOR_SIGNOFF_PENDING",
+    "A7_human_submission_signoff": false
+  },
+  "current_paper_blobs_previous_build_only": false
 }
