@@ -15,7 +15,7 @@
     "B1B": "PASS_PUBLIC_CALL_BALANCE_AND_INFORMATION_SCOPE_AUDIT",
     "B2": "PASS_PRETARGET_1024_EVENTS_THREE_SEED_TIME_VALID_NONFLOOR_RELATION_ID_NULL_AND_SELF_SCORER_PARITY",
     "B3": "PASS_R1_BOUNDED_IMPROVED_R2_BOUNDED_R3_STRONG_WITHIN_DEV_NULL_DESIGN_GENERALIZATION_BOUNDED",
-    "B4": "HOLD_NO_AUTHORIZED_NEW_PERIOD; B4A_ADDITIONAL_SAME_PERIOD_TARGET_EVALUATION_PLAN_ONLY",
+    "B4": "B4A_A0_TECHNICAL_ELIGIBILITY_PASS_A1_BLIND_SHA_SAMPLE_SEALED_A2_A3_A4_HOLD",
     "B5": "PASS_8_SECTION_MAIN_UPDATED_12_TABLES_SUPPLEMENT_S10_TO_14_SUBSECTIONS",
     "B6": "PASS_MAIN_37P_SUPPLEMENT_PDF_TECHNICAL_QA_AUTHOR_RIGHTS_AND_DECLARATIONS_HOLD"
   },
@@ -85,7 +85,7 @@
     "R3": "STRONG_IN_EXPLORATORY_TIME_DEGREE_AVAILABILITY_PRESERVED_1024_DEV_CONTROL_EXTERNAL_VALIDITY_BOUNDED"
   },
   "submission": "HOLD",
-  "next_gate": "Execute B4A A0 rights + target-blind eligibility/provenance audit, confirm sample counts, freeze A1/A2 without any B4A outcomes; old G5 and main manuscript unchanged.",
+  "next_gate": "Freeze B4A A2 20-cell population weighting estimand, DEV-only 2x2 trained gate/prediction model hashes, original G5 scorer alignment and owner license permission; A3 blind predictions then one-shot A4 reveal. No B4-A outcomes yet.",
   "dataset_rights": "M3 PAPER NONCOMMERCIAL_SHAREALIKE_VS_HUGGINGFACE_BY_SHAREALIKE_METADATA_DISCREPANCY_AUTHORS_TO_RESOLVE",
   "current_paper_blobs": {
     "main_tex_git_blob": "f5cd5aa5f24133b858e370fdbdda661261582e4d",
@@ -106,14 +106,29 @@
     }
   },
   "B4A": {
-    "status": "PLAN_ONLY_A0_METADATA_AUDIT_NOT_RUN",
+    "status": "A0_A1_TECHNICAL_PASS_OUTCOMES_UNOPENED_RIGHTS_REVIEW_PENDING",
     "plan": "manuscript/kbs_latex/N9_ROUTE_B_B4A_ADDITIONAL_TARGET_HOLDOUT_EXECUTION_PLAN_2026-10-14.md",
-    "evidence_tier": "ADDITIONAL_HELDOUT_TARGET_SAME_COLLECTION_PERIOD_NOT_NEW_TIME_TEST",
-    "provisional_primary_size": 30000,
-    "provisional_relation_null_subset": 4096,
-    "prior_G5_scored_targets_excluded": 47575,
-    "new_labels_revealed": false,
-    "manuscript_modified": false,
-    "human_data_rights_approval": "PENDING"
+    "execution_report": "manuscript/kbs_latex/N9_ROUTE_B_B4A_A0_A1_ELIGIBILITY_AND_BLIND_FREEZE_REPORT_2026-10-14.md",
+    "A0_report": "experiments/kbs_plan_c/N9_ROUTE_B_B4A_A0_AGGREGATE_ELIGIBILITY_2026-10-14.json",
+    "A1_report": "experiments/kbs_plan_c/N9_ROUTE_B_B4A_A1_SEALED_SAMPLE_PUBLIC_2026-10-14.json",
+    "eligible_source_targets": 4723652,
+    "eligible_users": 21565,
+    "prior_G5_ID_overlap": 0,
+    "sealed_main_events": 30000,
+    "sealed_main_users": 10387,
+    "sealed_identity_subset": 4096,
+    "sealed_identity_users": 3059,
+    "main_sha256": "be96c9dbf13a14e0db85df24202e318b691b41a4250a3f5e9bc877d4e28d1e14",
+    "identity_sha256": "40c950e6a9d79ce3e4330b8b8f434dda764570fd369bdeb83a7b4d587c00d059",
+    "sampling": "5 source dates x 4 pretarget within-day history rank quartiles; 1500/cell",
+    "A0_run": 38505464173,
+    "A1_run": 38505873258,
+    "A2_model_frozen": false,
+    "A3_target_blind_prediction_completed": false,
+    "A4_outcomes_opened": false,
+    "rights_human_attestation": "PENDING",
+    "estimand_weights": "A2_PREREGISTRATION_PENDING_NATURAL_CELL_POPULATION_WEIGHTS",
+    "new_independent_time_test": false,
+    "manuscript_modified_for_B4A": false
   }
 }
