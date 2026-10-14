@@ -380,7 +380,7 @@ The original KuaiLive room/creator Base uses 64-dimensional ReChorus SASRec bran
 \section{Experimental Results}
 \label{sec:results}
 
-The results connect three aspects of relationship knowledge: its conditional ranking contribution, the decision value of predicting that contribution and its dependence on the candidate regime. Developmental diagnostics and execution-path measurements clarify their interpretation.
+The results proceed from the incremental value of fixed relationship evidence, to the role of candidate availability in defining that value, to the consequences for pre-outcome selection and the authenticity of the historical source. Resource-constrained allocation and measured execution costs complete the empirical account.
 
 \subsection{Heterogeneous Utility of Relationship Memory}
 \label{sec:results-heterogeneity}
@@ -441,10 +441,58 @@ Unavailable & 14,397 & 0.21948 & 0.03734 & $-0.18215$ & $[-0.18681,-0.17715]$ \\
 \end{table}
 
 \FloatBarrier
+\subsection{Candidate-Regime Dependence of Relative Utility}
+\label{sec:results-regimes}
+
+Because ranking utility is defined over competing alternatives, the candidate environment is part of the value being estimated. On the original KuaiLive \emph{room}-ranking task, 10,222 identical user--time--target events yield opposite Memory--Base results when the same fixed raw ranker scores are evaluated under sampled-active and full-active candidates. Among 575 sampled-active rooms, the mean difference is $-0.04120$ (Base $0.60709$, Memory $0.56589$); among full-active rooms, it is $+0.04631$ (Base $0.38571$, Memory $0.43202$). The paired change is $+0.08751$ (95\% CI $[+0.08210,+0.09326]$, 3,000 paired user bootstrap resamples). Neither the interaction histories nor the target event identities change.
+
+The crossed candidate-membership and Base score-normalization reference accounting in Table~\ref{tab:results-factorial} attributes $+0.08827$ of this paired contrast to the membership dimension (95\% CI $[+0.08287,+0.09397]$) and $-0.00076$ to the normalization reference (95\% CI $[-0.00117,-0.00036]$). Membership combines candidate count, identity and rank competition; the contrast does not isolate a causal effect of list length.
+
+\begin{table}[!htbp]
+\centering
+\caption{KuaiLive Memory-minus-Base NDCG@10 under crossed ranked-candidate and score-normalization reference sets ($n=10{,}222$ paired events; checkpoint seed 20260918). $S$ and $F$ denote sampled-active and full-active sets. Diagonal cells are native protocols; off-diagonal cells are analytical score configurations.}
+\label{tab:results-factorial}
+\footnotesize
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Ranked candidates & Sampled reference ($S$) & Full-active reference ($F$) \\
+\midrule
+Sampled-active ($S$) & $-0.04120$ & $-0.04142$ \\
+Full-active ($F$) & $+0.04761$ & $+0.04631$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The reversal remains directionally stable across three separately trained KuaiLive checkpoint pairs and nine sampled-candidate draws at sizes 128, 256 and 575 on the same inspected cohort (Supplementary S5 and S8). The retrospective history-state composition remains 4,589 represented, 206 recoverable and 5,427 unavailable events in the paired regimes. The result therefore motivates candidate-conditioned specialist-value supervision, while remaining a retrospective room-ranking diagnostic rather than an independent M3 author-ranking intervention.
+
+The matched M3 author-ranking development analysis tests the decision consequence of this label dependence on the \emph{same} held-out full-active events (Table~\ref{tab:results-m3-dev-regime-transfer}). Policies fitted and calibrated from sampled-candidate labels obtain lower full-active NDCG@10 than policies using full-active supervision: $0.296499$ versus $0.302658$ for SASRec (paired user difference $+0.006159$, 95\% CI $[+0.004835,+0.007543]$) and $0.298123$ versus $0.303093$ for GRU4Rec ($+0.004970$, CI $[+0.003550,+0.006369]$). Realized Memory calls are similar but not identical. A regime-adapted condition uses full-active labels on outer-training users and does not improve on direct full-active supervision. The request-level allocation analysis explains the corresponding quality difference. Although sampled- and full-supervised policies invoke Memory on nearly the same number of requests, they disagree on 10,672 of 50,049 decisions (21.32\%) for SASRec and 11,517 (23.01\%) for GRU4Rec. Among requests added by full-candidate supervision, the observed full-ranking Memory--Base advantage averages 0.133417 and 0.126600, versus 0.076194 and 0.079135 among requests no longer selected. The positive paired utility difference is consequently attributable to allocating a similar invocation budget to higher-value requests, not primarily to changing the overall call fraction (Supplementary S10). These are explanatory post-G5 development results, not a new sampling theorem or independent test.
+
+\begin{table}[!htbp]
+\centering
+\caption{Post-primary exploratory M3 DEV policy transfer on the same 50,049 full-active author-ranking events (12,628 users; one primary seed per Base). $S$ denotes retrospective target-retained sampled-candidate supervision; $F$ denotes full-active supervision and evaluation. The adapted condition includes $F$ labels from outer-training users. Calls are naturally realized outer-fold counts, not an equal-count intervention.}
+\label{tab:results-m3-dev-regime-transfer}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llrr@{}}
+\toprule
+Base & Supervision $\rightarrow$ evaluation & F NDCG@10 & Memory calls \\
+\midrule
+SASRec & $S\rightarrow F$ & 0.296499 & 14,988 \\
+SASRec & $F\rightarrow F$ & \textbf{0.302658} & 15,016 \\
+SASRec & Adapted $\rightarrow F$ & 0.301847 & 14,954 \\
+\addlinespace
+GRU4Rec & $S\rightarrow F$ & 0.298123 & 15,001 \\
+GRU4Rec & $F\rightarrow F$ & \textbf{0.303093} & 14,762 \\
+GRU4Rec & Adapted $\rightarrow F$ & 0.303000 & 14,989 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Decision Value of Predicting Relative Utility}
 \label{sec:results-decision}
 
-Given heterogeneous specialist value, the relevant decision signal is the predicted improvement of \emph{this} Memory over \emph{this} Base, rather than predicted Base difficulty alone. On Twitch, a DEV-frozen Utility rule selects Memory on 6,650 of 44,221 TEST requests ($15.04\%$) and improves NDCG@10 from Base $0.58211$ to $0.58983$ (paired gain $+0.00772$, 95\% CI $[+0.00641,+0.00903]$). HR@10 increases by $+0.00945$ (95\% CI $[+0.00776,+0.01117]$). The DEV-trained Difficulty score reaches NDCG@10 $0.58340$ at the retrospectively matched TEST count, producing a Utility advantage of $+0.00644$ (95\% CI $[+0.00528,+0.00762]$). Unlike Utility's frozen pointwise threshold, Difficulty retrospectively ranks the entire TEST batch to achieve the same call count.
+The candidate comparisons motivate a consequential test: whether a selector guided by the incremental value of \emph{this} Memory over \emph{this} Base makes better choices than one guided by general request difficulty or specialist quality. On Twitch, a DEV-frozen Utility rule selects Memory on 6,650 of 44,221 TEST requests ($15.04\%$) and improves NDCG@10 from Base $0.58211$ to $0.58983$ (paired gain $+0.00772$, 95\% CI $[+0.00641,+0.00903]$). HR@10 increases by $+0.00945$ (95\% CI $[+0.00776,+0.01117]$). The DEV-trained Difficulty score reaches NDCG@10 $0.58340$ at the retrospectively matched TEST count, producing a Utility advantage of $+0.00644$ (95\% CI $[+0.00528,+0.00762]$). Unlike Utility's frozen pointwise threshold, Difficulty retrospectively ranks the entire TEST batch to achieve the same call count.
 
 Memory contributes $+0.05136$ NDCG@10 on Utility-selected Twitch requests but $-0.05890$ on the remaining requests, whereas Difficulty's count-matched selections gain only $+0.00855$ on average. The nondeployable outcome-informed Oracle yields $0.64806$ NDCG@10 at the same call count. These observations establish decision relevance while leaving considerable predictive headroom.
 
@@ -467,7 +515,7 @@ Oracle (hindsight) & 0.64806 & 0.80455 & 6,650 \\
 \end{tabular}
 \end{table}
 
-On the independently frozen KuaiLive-M3 full-active author TEST, Utility obtains NDCG@10 $0.30287$ with $29.21\%$ realized Memory calls for the primary SASRec fit, versus Base $0.25800$. It exceeds each of the four alternative selector objectives in NDCG while invoking Memory less often (Table~\ref{tab:results-m3-policy}). All policies were calibrated under a maximum $30\%$ DEV call fraction; the observed TEST fractions are reported without retroactive adjustment.
+On the prospectively frozen KuaiLive-M3 full-active author TEST, Utility obtains NDCG@10 $0.30287$ with $29.21\%$ realized Memory calls for the primary SASRec fit, versus Base $0.25800$. It exceeds each of the four alternative selector objectives in NDCG while invoking Memory less often (Table~\ref{tab:results-m3-policy}). All policies were calibrated under a maximum $30\%$ DEV call fraction; the observed TEST fractions are reported without retroactive adjustment.
 
 This advantage extends across the three independently trained seeds of both SASRec and GRU4Rec (Table~\ref{tab:results-m3-robustness}; Supplementary S7--S8). In all six fits, Utility has higher TEST NDCG and fewer realized Memory calls than each of the four specified alternative rules. Utility NDCG@10 ranges from $0.30177$ to $0.30400$, its improvement over the corresponding Base from $+0.04237$ to $+0.04515$, and its TEST Memory invocation rate from $27.72\%$ to $29.21\%$. This is joint dominance on the two \emph{observed metrics} for the tested policies, not a claim of identical TEST quotas, lower total serving cost or universal optimality.
 
@@ -535,54 +583,6 @@ GRU4Rec & 0.300945 & \textbf{0.304530} & $+0.003585$ $[0.001599,0.005576]$ & 8,6
 \end{table}
 
 \FloatBarrier
-\subsection{Candidate-Regime Dependence of Relative Utility}
-\label{sec:results-regimes}
-
-The candidate environment is part of the value being estimated. On the original KuaiLive \emph{room}-ranking task, 10,222 identical user--time--target events yield opposite Memory--Base results when the same fixed raw ranker scores are evaluated under sampled-active and full-active candidates. Among 575 sampled-active rooms, the mean difference is $-0.04120$ (Base $0.60709$, Memory $0.56589$); among full-active rooms, it is $+0.04631$ (Base $0.38571$, Memory $0.43202$). The paired change is $+0.08751$ (95\% CI $[+0.08210,+0.09326]$, 3,000 paired user bootstrap resamples). Neither the interaction histories nor the target event identities change.
-
-The crossed candidate-membership and Base score-normalization reference accounting in Table~\ref{tab:results-factorial} attributes $+0.08827$ of this paired contrast to the membership dimension (95\% CI $[+0.08287,+0.09397]$) and $-0.00076$ to the normalization reference (95\% CI $[-0.00117,-0.00036]$). Membership combines candidate count, identity and rank competition; the contrast does not isolate a causal effect of list length.
-
-\begin{table}[!htbp]
-\centering
-\caption{KuaiLive Memory-minus-Base NDCG@10 under crossed ranked-candidate and score-normalization reference sets ($n=10{,}222$ paired events; checkpoint seed 20260918). $S$ and $F$ denote sampled-active and full-active sets. Diagonal cells are native protocols; off-diagonal cells are analytical score configurations.}
-\label{tab:results-factorial}
-\footnotesize
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{@{}lrr@{}}
-\toprule
-Ranked candidates & Sampled reference ($S$) & Full-active reference ($F$) \\
-\midrule
-Sampled-active ($S$) & $-0.04120$ & $-0.04142$ \\
-Full-active ($F$) & $+0.04761$ & $+0.04631$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The reversal remains directionally stable across three separately trained KuaiLive checkpoint pairs and nine sampled-candidate draws at sizes 128, 256 and 575 on the same inspected cohort (Supplementary S5 and S8). The retrospective history-state composition remains 4,589 represented, 206 recoverable and 5,427 unavailable events in the paired regimes. The result therefore motivates candidate-conditioned specialist-value supervision, while remaining a retrospective room-ranking diagnostic rather than an independent M3 author-ranking intervention.
-
-The matched M3 author-ranking development analysis tests the decision consequence of this label dependence on the \emph{same} held-out full-active events (Table~\ref{tab:results-m3-dev-regime-transfer}). Policies fitted and calibrated from sampled-candidate labels obtain lower full-active NDCG@10 than policies using full-active supervision: $0.296499$ versus $0.302658$ for SASRec (paired user difference $+0.006159$, 95\% CI $[+0.004835,+0.007543]$) and $0.298123$ versus $0.303093$ for GRU4Rec ($+0.004970$, CI $[+0.003550,+0.006369]$). Realized Memory calls are similar but not identical. A regime-adapted condition uses full-active labels on outer-training users and does not improve on direct full-active supervision. The request-level allocation analysis explains the corresponding quality difference. Although sampled- and full-supervised policies invoke Memory on nearly the same number of requests, they disagree on 10,672 of 50,049 decisions (21.32\%) for SASRec and 11,517 (23.01\%) for GRU4Rec. Among requests added by full-candidate supervision, the observed full-ranking Memory--Base advantage averages 0.133417 and 0.126600, versus 0.076194 and 0.079135 among requests no longer selected. The positive paired utility difference is consequently attributable to allocating a similar invocation budget to higher-value requests, not primarily to changing the overall call fraction (Supplementary S10). These are explanatory post-G5 development results, not a new sampling theorem or independent test.
-
-\begin{table}[!htbp]
-\centering
-\caption{Post-primary exploratory M3 DEV policy transfer on the same 50,049 full-active author-ranking events (12,628 users; one primary seed per Base). $S$ denotes retrospective target-retained sampled-candidate supervision; $F$ denotes full-active supervision and evaluation. The adapted condition includes $F$ labels from outer-training users. Calls are naturally realized outer-fold counts, not an equal-count intervention.}
-\label{tab:results-m3-dev-regime-transfer}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}llrr@{}}
-\toprule
-Base & Supervision $\rightarrow$ evaluation & F NDCG@10 & Memory calls \\
-\midrule
-SASRec & $S\rightarrow F$ & 0.296499 & 14,988 \\
-SASRec & $F\rightarrow F$ & \textbf{0.302658} & 15,016 \\
-SASRec & Adapted $\rightarrow F$ & 0.301847 & 14,954 \\
-\addlinespace
-GRU4Rec & $S\rightarrow F$ & 0.298123 & 15,001 \\
-GRU4Rec & $F\rightarrow F$ & \textbf{0.303093} & 14,762 \\
-GRU4Rec & Adapted $\rightarrow F$ & 0.303000 & 14,989 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 \subsection{Relationship Sources and Observable Signals}
 \label{sec:results-robustness}
 
