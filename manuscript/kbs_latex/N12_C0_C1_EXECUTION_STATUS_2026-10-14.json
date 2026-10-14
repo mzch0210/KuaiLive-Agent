@@ -1,23 +1,31 @@
 {
-  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v1",
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v2",
   "date": "2026-10-14",
   "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
   "draft_pr": 6,
   "base_branch": "kbs-n11-final-editorial-polish-20261014",
-  "current_stage": "N12_C0_C1_COMPLETED_READY_FOR_N12_C2",
+  "current_stage": "N12_C0_C1_C2_COMPLETED_READY_FOR_N12_C3",
   "CI": {
-    "run": 38546213364,
-    "conclusion": "success"
+    "C0C1": {
+      "run": 38546213364,
+      "conclusion": "success"
+    },
+    "C2": {
+      "run": 38547234449,
+      "conclusion": "success"
+    }
   },
   "frozen_source": {
     "main_git_blob": "8ca7dc67ade90048eb0b12059ec8bec75c85194f",
     "supplement_git_blob": "9b83a31d82f08d1a212f59f99b60975ad902e8e6",
     "N11_main_pages": 39,
     "N11_supp_pages": 45,
-    "main_rewritten": false,
+    "main_rewritten": true,
     "supp_rewritten": false,
     "A4_rerun": false,
-    "private_TEST_labels_read": false
+    "private_TEST_labels_read": false,
+    "main_rewrite_scope": "ONLY_Introduction_Related_Work_and_Figure1",
+    "original_main_blob_still_available_as_N11": "8ca7dc67ade90048eb0b12059ec8bec75c85194f"
   },
   "stages": {
     "N12-0": {
@@ -41,11 +49,26 @@
       "blueprint": "N12_C1_RQ_ARGUMENT_AND_EVIDENCE_BLUEPRINT_2026-10-14.md"
     },
     "N12-2": {
-      "status": "NEXT_not_started",
-      "task": "Rewrite Introduction and Related Work against frozen C1 thesis"
+      "status": "PASS",
+      "task": "Introduction and Related Work rewritten; noncausal parallel RQ2-RQ3 fig; 3 literature axes; publisher-verified 2026 KBS sources; original abstract and Sections 3-8 untouched",
+      "run": 38547234449,
+      "main_pdf_pages": 39,
+      "supplement_pdf_pages": 45,
+      "main_artifact_id": 11885411283,
+      "supplement_artifact_id": 11885046843,
+      "main_pdf_sha256": "2d76b6f026ddff2dd8de64ea7a3261aca0dbad345dd438d8cdc363abfa79318c",
+      "supplement_pdf_sha256": "0e5ca6bd42e8ac59dcdd66f7bcc0c27dd83f136013f30c518f0505012f391611",
+      "pdf_main_text_and_figure_visual_qa": "PASS",
+      "latex_overfull_boxes_main": 0,
+      "latex_overfull_boxes_supplement": 0,
+      "unresolved_citations": 0,
+      "c0_c1_original_baseline_not_modified": true,
+      "revised_intro_related": true,
+      "existing_10_experiment_families_in_main": true
     },
     "N12-3": {
-      "status": "NOT_STARTED"
+      "status": "NEXT",
+      "task": "Merge original Problem Formulation and Base-Relative Framework into Knowledge Valuation and Selective Use with no changed target leakage contract; update seven-section scientific checks."
     },
     "N12-4": {
       "status": "NOT_STARTED"
