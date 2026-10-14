@@ -1,0 +1,46 @@
+{
+  "schema": "route-b-b4a-a0-v1",
+  "technical_status": "PASS",
+  "source_sha256_verified": true,
+  "test_eligible_source": 5124893,
+  "g5_excluded": 47575,
+  "residual_warm_history_eligible_events": 4723652,
+  "residual_users": 21565,
+  "G5_event_overlap": 0,
+  "G5_user_disjoint_events": 437049,
+  "G5_user_disjoint_users": 9033,
+  "days": [
+    {
+      "date": "2026-03-27",
+      "events": 382408,
+      "users": 14883
+    },
+    {
+      "date": "2026-03-28",
+      "events": 1210988,
+      "users": 19777
+    },
+    {
+      "date": "2026-03-29",
+      "events": 1218047,
+      "users": 19665
+    },
+    {
+      "date": "2026-03-30",
+      "events": 1131623,
+      "users": 19128
+    },
+    {
+      "date": "2026-03-31",
+      "events": 780586,
+      "users": 18313
+    }
+  ],
+  "unseen_future_time_period": false,
+  "new_target_sample_frozen": false,
+  "target_ranking_metrics_computed": false,
+  "data_license_confirmed": false,
+  "run_id": 38505464173,
+  "source_script": "analysis/kbs_plan_c/n9_b4a_a0_counts.py",
+  "license_review": "PENDING"
+}
