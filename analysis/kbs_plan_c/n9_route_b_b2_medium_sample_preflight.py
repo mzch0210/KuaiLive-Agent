@@ -35,7 +35,7 @@ def main():
   and dat.split.eq('DEV').all()):raise RuntimeError('B2 B1 source identity invalid')
  frame=clocks.merge(dat,left_on='source_event_id',right_on='event_id',
      validate='one_to_one',suffixes=('_clock','_B1'))
- if len(frame)!=N or not(frame.user_id_clock.astype(str)==frame.user_id_B1.astype(str)).all():
+ if len(frame)!=N or not np.array_equal(frame.source_event_id.to_numpy(),clocks.source_event_id.to_numpy()) or not(frame.user_id_clock.astype(str)==frame.user_id_B1.astype(str)).all():
   raise RuntimeError('B2 user ID mismatch')
  frame['ts']=pd.to_datetime(frame.observed_at,utc=True)
  if frame.ts.isna().any() or frame.x_hist_event_count.isna().any():
