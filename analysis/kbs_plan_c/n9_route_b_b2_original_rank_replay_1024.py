@@ -175,7 +175,8 @@ def main():
         if not np.array_equal(c[loc],S):raise RuntimeError("S candidates invalid")
         warm,recent,den=snapshots[k]
         f=score(c,pop,warm,recent,den,with_short=True)
-        l=score(c,pop,warm,(),den,with_short=False)
+        # Original B2 Long-only deliberately excludes popularity and short-term terms.
+        l=score(c,np.zeros_like(pop),warm,(),den,with_short=False)
         vals={"full_F":ndcg(rank(c,f,true)),
               "full_S":ndcg(rank(S,f[loc],true)),
               "long_F":ndcg(rank(c,l,true)),
