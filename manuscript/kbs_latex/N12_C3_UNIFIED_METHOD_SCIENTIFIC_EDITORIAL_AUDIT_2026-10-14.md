@@ -33,3 +33,17 @@ All original frozen TEST/30k H1/4096 H2 effects and comparisons remain unchanged
 This form improves scholarly coherence by consolidating definitions rather than presenting existing math identities as novel theory. A KBS methodology reviewer can locate rank utility, fixed specialist, relative value, pre-outcome features and the decision rule in a single progressively defined sequence.
 
 N12-C4 remains responsible for evidence hierarchy, chronology, sampling weights and hypothesis testing. N12-C5 will reorganize Results, and N12-C6 will finish Abstract/Discussion/Conclusion when evidence presentation is stable. No author approval, final submission or new experiment is implied.
+
+
+## Final dual-PDF quality assurance (post-float and overfull corrections)
+
+**Full Actions run #38549828504: BOTH JOBS SUCCESS.**
+https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38549828504
+
+- Main manuscript **38 pages** (N12-C2 predecessor 39), GitHub artifact **11885972844**, PDF SHA-256 **773ecfe60b0d1410728e29575deb88075315dab1438ee662b8ddb702c83a1038**.
+- Supplement S1–S10.18 **45 pages**, artifact **11886356772**, PDF SHA-256 **032b1c96353029294bd3d2bc9768c15e34247d53144d313dc1ae9f8237f33448**.
+- Both logs have zero overfull boxes or unresolved citation warnings. Main PDF scientific text extraction passed; 9 original equation environments and 22 labels compared to frozen source fixture.
+- A small 3.13pt methods paragraph overflow was removed by shortening explanatory prose only. An online/offline framework figure floated between parts of an expected-value sentence in the first compiled version; adding a FloatBarrier now places it **before** Section 3.5. Final PDF text check confirms Figure 2 precedes Section 3.5, and selection utility/expected gain read continuously.
+- This is the N12-C3 interim method draft. Experimental Setup (future Experimental Design), Results, Abstract, Discussion and Conclusion still await their individually scheduled N12 stages. No complete seven-section submission manuscript is asserted.
+
+**C3 result:** academically coherent single methods section accepted for the next N12-C4 writing stage, subject to later cross-section editorial pass. This is not independent peer review or author signoff.
