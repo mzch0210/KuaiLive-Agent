@@ -1,0 +1,107 @@
+name: KBS N10 C2-B real DEV matched cost accounting
+on:
+  push:
+    branches: [kbs-n10-route-c-c0-c1-20261014]
+    paths: ['.github/workflows/kbs-n10-c2b-dev-matched-cost.yml']
+permissions:
+  contents: read
+concurrency:
+  group: kbs-n10-c2b-3090
+  cancel-in-progress: false
+jobs:
+  safety-and-syntax:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Sanity check N10 script and no-private-A4 path
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/n10_c2b_dev_matched_cost.py
+          python - <<'PY'
+          import ast,pathlib
+          p=pathlib.Path('analysis/kbs_plan_c/n10_c2b_dev_matched_cost.py')
+          t=ast.parse(p.read_text())
+          src=p.read_text()
+          assert 'dev_cohort.parquet' in src
+          assert 'active_rosters(' in src
+          assert 'replay_all_history(' in src
+          assert 'torch.cuda.synchronize()' in src
+          assert 'test_cohort_sealed' not in src
+          assert 'B4A_MAIN_' not in src and 'B4A_IDENTITY_' not in src
+          assert 'A4_PRIVATE' not in src
+          assert 'np.linspace(0,len(ids)-1,EVENTS' in src
+          assert 'with source.open(newline="")' in src
+          print('N10 C2-B DEV-only scripts syntactically validated, no A4 private target lookup')
+          PY
+  dev-hardware-benchmark:
+    needs: safety-and-syntax
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 75
+    concurrency:
+      group: kuailive-gpu-3090
+      cancel-in-progress: false
+    steps:
+      - name: Private DEV runner validation, no TEST access and immutable output path
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REPOSITORY" = mzch0210/KuaiLive-Agent
+          test "$GITHUB_REF" = refs/heads/kbs-n10-route-c-c0-c1-20261014
+          export ROOT="$HOME/.cache/kuailive-agent-kbs"
+          test -s "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1/summary.json"
+          test -s "$ROOT/klm3_g3_e2_five_gate_DEV_frozen_v1/sasrec/frozen_thresholds.json"
+          test -s "$ROOT/klm3_g2_checkpoint_dev_selected_v1.json"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          test ! -e "$ROOT/klm3_n10_c2b_dev_matched_offline_v1.json"
+          nvidia-smi --query-gpu=name,memory.total,utilization.gpu --format=csv,noheader
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Execute repeated counterbalanced matched DEV branches
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          export PYTHONPATH="$PWD/analysis/kbs_plan_c:$ROOT/e2-py312-sklearn-v1:$ROOT/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFERED=1
+          "$HOME/venvs/kuailive-gpu/bin/python" analysis/kbs_plan_c/n10_c2b_dev_matched_cost.py \
+            --g1 "$ROOT/klm3_plan_c_g1_v1" \
+            --index "$ROOT/klm3_g2_train_index_v1" \
+            --dev "$ROOT/klm3_g2_dev_checkpoint_screen_v1" \
+            --corrected "$ROOT/klm3_g3_dev_fullactive_base_memory_corrected_v1" \
+            --g2 "$ROOT/klm3_g2_seed20261012_epoch3_v1" \
+            --selected "$ROOT/klm3_g2_checkpoint_dev_selected_v1.json" \
+            --e2 "$ROOT/klm3_g3_e2_five_gate_DEV_frozen_v1" \
+            --out "$ROOT/klm3_n10_c2b_dev_matched_offline_v1.json"
+      - name: Validate safe aggregate and scientific limits
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          mkdir -p n10-c2b-safe
+          cp "$ROOT/klm3_n10_c2b_dev_matched_offline_v1.json" n10-c2b-safe/aggregate.json
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json
+          s=json.load(open('n10-c2b-safe/aggregate.json'))
+          assert s['status']=='PASS_DEV_ONLY_NO_ONLINE_COST_CLAIM'
+          assert s['n_distinct_DEV_requests']==256
+          assert s['repeated_passes']==3
+          assert s['frozen_selector_output_parity_verified_n']==768
+          assert not s['data_scope']['B4A_labels_read']
+          assert not s['data_scope']['A4_rerun']
+          assert not s['data_scope']['new_gate_threshold_tuned']
+          assert set(s['warm_path_ms'])=={'base_only','memory_only','frozen_utility_selector'}
+          assert s['device_synchronized_before_and_after_each_branch']
+          print('SAFE_DEV_ONLY_C2B_COMPLETE',json.dumps(s['warm_path_ms']))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: kbs-n10-c2b-dev-safe-cost-aggregates
+          path: n10-c2b-safe/aggregate.json
+          if-no-files-found: warn
+          retention-days: 60

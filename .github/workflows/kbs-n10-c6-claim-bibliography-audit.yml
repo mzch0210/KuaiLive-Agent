@@ -1,0 +1,25 @@
+name: KBS N10 C6 claims and bibliography audit
+on:
+  push:
+    branches: [kbs-n10-route-c-c0-c1-20261014]
+    paths:
+      - '.github/workflows/kbs-n10-c6-claim-bibliography-audit.yml'
+      - 'analysis/kbs_plan_c/n10_c6_claim_citation_audit.py'
+      - 'analysis/kbs_plan_c/test_n10_c6_claim_citation_audit.py'
+      - 'manuscript/kbs_latex/main.tex'
+      - 'manuscript/kbs_latex/kbs_references.bib'
+      - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md'
+permissions:
+  contents: read
+jobs:
+  literature-and-claims:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Source claims, full citation key reconciliation and unit tests
+        run: |
+          set -euo pipefail
+          python analysis/kbs_plan_c/n10_c6_claim_citation_audit.py
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n10_c6_claim_citation_audit.py' -v

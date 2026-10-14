@@ -1,0 +1,31 @@
+name: KBS N10 Route C C0 frozen public evidence audit
+on:
+  push:
+    branches: [kbs-n10-route-c-c0-c1-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/n10_c0_public_freeze_audit.py'
+      - 'analysis/kbs_plan_c/test_n10_c0_public_freeze_audit.py'
+      - 'analysis/kbs_plan_c/test_n10_c1_literature_contract.py'
+      - 'manuscript/kbs_latex/kbs_references.bib'
+      - 'manuscript/kbs_latex/N10_C1_KBS_NOVELTY_BOUNDARY_MATRIX_2026-10-14.md'
+      - '.github/workflows/kbs-n10-c0-public-freeze-audit.yml'
+      - 'manuscript/kbs_latex/main.tex'
+      - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md'
+permissions:
+  contents: read
+jobs:
+  source-immutability:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Public frozen source regression guard (A7 initial baseline sealed in earlier success)
+        run: |
+          set -euo pipefail
+          python analysis/kbs_plan_c/n10_c0_public_freeze_audit.py
+      - name: Public evidence unit tests and no-private-access contract
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n10_c0_public_freeze_audit.py' -v
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n10_c1_literature_contract.py' -v
