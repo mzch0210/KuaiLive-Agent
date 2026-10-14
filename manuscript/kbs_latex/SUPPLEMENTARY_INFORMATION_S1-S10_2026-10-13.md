@@ -1078,22 +1078,22 @@ The earlier single-pass warmed G4 DEV microbenchmark reported means of 1.4245/0.
 
 The B2 1,024-request/992-user post-G5 exploratory DEV historical-null study and the B4-A 4,096-request/3,059-user presealed additional-target H2 analysis use the same family of fixed-F candidate-preserving, time-valid, author-hour-margin-preserving, closed-hour activated historical-source permutations. Both use fixed original Full Memory scoring and the three null seeds 20261014, 20261015 and 20261016. The seeds are three interventions on one cohort in each study, not three independent cohorts.
 
-**Table S10.12. Structural and nonfloor source validity on the two distinct cohorts.**
+**Table S10.12. Historical-null validity and popularity diagnostics on the two distinct cohorts.**
 
-| Check | B2 exploratory DEV, 1,024 | B4-A H2 additional same-period targets, 4,096 |
+| Validity check | DEV (1,024) | Added targets (4,096) |
 | --- | --- | --- |
-| Identical Full-F candidate roster across arms | PASS | PASS |
-| Same original scorer / frozen Top-10 parity | PASS | PASS |
-| Preserved source event times, hourly author counts, source-time availability | PASS | PASS |
-| Source swaps activate only after an hour closes | PASS | PASS |
-| Historical source edges rewired | ~78.62% | ~76.78–76.80% |
-| Original Full-F NDCG@10 | 0.339348 | 0.334942 (weighted) |
-| Null seed 20261014 | 0.306491 | 0.303905 (weighted) |
-| Null seed 20261015 | 0.303804 | 0.304689 (weighted) |
-| Null seed 20261016 | 0.305321 | 0.302796 (weighted) |
-| Same-cohort TRAIN-only Popularity F NDCG@10 | **0.021867**, verified | **NOT scored/sealed prior to A4** |
-| Preregistered null-above-popularity acceptance | **PASS under DEV protocol** | **NOT VERIFIED AS PREDECLARED** |
-| New independent later recording-period TEST | No | No |
+| Fixed Full-F candidates | PASS | PASS |
+| Scorer / Top-10 parity | PASS | PASS |
+| Time, hourly margin, active | PASS | PASS |
+| Post-hour-only swaps | PASS | PASS |
+| History edges rewired | ~78.62% | ~76.78–76.80% |
+| Original Full-F NDCG | 0.339348 | 0.334942 (weighted) |
+| Null 20261014 | 0.306491 | 0.303905 (weighted) |
+| Null 20261015 | 0.303804 | 0.304689 (weighted) |
+| Null 20261016 | 0.305321 | 0.302796 (weighted) |
+| Cohort TRAIN Popularity | **0.021867, verified** | **Not frozen before A4** |
+| Null above Popularity | **PASS (DEV)** | **NOT VERIFIED AS PREDECLARED** |
+| Independent later TEST | No | No |
 
 The B4-A Null rankings retain 1,903–1,913 positive Top-10 outcomes and each has weighted Full-F NDCG above 0.10, but these **partial nondegeneracy indicators do not establish the missing same-cohort TRAIN-popularity margin**. The B2 completed control cannot be imported to certify B4-A. Any check performed for this missing B4-A margin after A4's first reveal would be post hoc and cannot retroactively establish a pre-unseal acceptance condition.
 
