@@ -85,7 +85,7 @@ A0 PASS 的可审计产物：合法余量与排除原因的**聚合计数**、�
 1. SASRec 主 seed：F-aligned − S-aligned 的 30%-DEV-cap gate full F NDCG@10；
 2. GRU4Rec 主 seed：同一比较；
 3. 4,096 关系子集：真实 Full − **逐请求三个 null NDCG 的预先取平均** under identical F。
-采用 **按 user 的 5,000 次配对 cluster bootstrap 95% two-sided CI**，并对上述三项预先指定的正向假设使用 Holm familywise 校正；同时披露未经校正的区间/原始 p、全部检验/无效结果、请求/用户数、效应方向和异质性。三个 null seed 对同一目标的随机化**不是三个独立 TEST**；对 H2 先在每请求内平均 null 分数再进行用户聚类推断，另报告三 seed 单独数值和 bootstrap 描述性区间。整体分析经过原 G5、B1/B2 多轮研究提出，因此即使 A2 现在冻结，也应保守称为 **预先锁定的追加测试**，而非最初全项目先验注册。
+采用 **按 user 的 5,000 次配对 cluster bootstrap 95% two-sided CI**；主假设方向若预先声明为单侧，用原 G5 相同的 **5,000 次 user-cluster sign-randomization** 估计原始单侧 p 值，明确其聚类差值符号对称性假设，再对三项主假设的 p 值使用 Holm familywise 校正；同时披露未经校正的区间/原始 p、全部检验/无效结果、请求/用户数、效应方向和异质性。三个 null seed 对同一目标的随机化**不是三个独立 TEST**；对 H2 先在每请求内平均 null 分数再进行用户聚类推断，另报告三 seed 单独数值和 bootstrap 描述性区间。整体分析经过原 G5、B1/B2 多轮研究提出，因此即使 A2 现在冻结，也应保守称为 **预先锁定的追加测试**，而非最初全项目先验注册。
 
 ## 6. A3/A4：必须坚持 one-shot prediction-before-outcome
 
@@ -97,7 +97,7 @@ A0 PASS 的可审计产物：合法余量与排除原因的**聚合计数**、�
 - GPU 利用率优化以 **真实吞吐、总 wall-clock 与 source stream IO** 为准：单次 CPU historical roll-forward + active roster sweep，GPU 批处理固定 SASRec/GRU4Rec；避免对同一 30k 队列重复扫描全 35M 事件，避免六颗 seed 无效重算；先在**无标签的合成数据**验证代码 parity。
 - A3 验收：每目标完整预测/决策覆盖、无未来历史和 source clock 错位、原 G5 共用 scorer 规则通过 synthetic tests、全部文件 SHA 冻结、所有 blind columns 白名单、null 三种子非 floor 的**目标盲态代理检查**通过（真实 NDCG floor只能在 A4 后验证，不能在 A3 声称通过）。
 
-**A4（单次揭盲）：** 独立程序先确认 A3 SHA、目标不可见日志及 frozen comparisons，再从受限 label vault 只读 `author_id` 映射到预先固定目标 ID，计算原封不动的 full F top-10 rank、NDCG/HR 和所有 frozen policies。zero rank when target outside top10/available candidate, eligible-consistency errors按 A2 事前规定完整报告；不能按结果剔除病例、改变模型或再次揭盲并称第二次独立 TEST。即使方向不利，也保留结果。
+**A4（单次揭盲）：** 独立程序先确认 A3 SHA、目标不可见日志及 frozen comparisons，再从受限 label vault 只读 `author_id` 映射到预先固定目标 ID，计算原封不动的 full F top-10 rank、NDCG/HR 和所有 frozen policies。目标属于有效 F roster 而不在 top-10 时，NDCG/HR 计为零；**目标不属于应有的 F roster 则属于资格／实现矛盾，必须触发完整性错误和显式审计，不能简单计零或根据结果删除**；不能按结果剔除病例、改变模型或再次揭盲并称第二次独立 TEST。即使方向不利，也保留结果。
 
 ## 7. A5/A6：报告、失败分支和论文使用规则
 
