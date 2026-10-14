@@ -1045,3 +1045,48 @@ The last paired effect has 95% user-cluster CI **[+0.027389,+0.035098]**, Holm-a
 The observed null histories are not collapsed controls: each retains **1,903–1,913** top-ten positive targets across the 4,096 requests, Full-F NDCG above **0.10** and above **30%** of the authentic reference, and substantial time/availability-valid rewiring. **One prespecified control diagnostic remains NOT VERIFIED:** the planned margin between each null's F NDCG and a fixed TRAIN-popularity-only ranker on *these same newly evaluated targets*. This popularity benchmark was not sealed or scored before the A4 label reveal. The complete original nonfloor acceptance family therefore cannot be described as fully passed; we do not retrospectively change scores, seeds or thresholds to repair this limitation.
 
 This historical intervention is strong and changes higher-order relations along with identity assignments; it is not an isolated treatment effect for a single relation semantics. The same-period B4-A evidence improves frozen target-specific confirmation of candidate-aligned supervision and authentic relational history value, **not** independent future-time validation, user-disjoint replication, causal identification of a unique microscopic relation property, or a demonstrated economic/latency advantage of selective Memory over Always Memory. Private event, user, author and edge-level outputs remain restricted to the secure analysis cache and are not part of the public supplement.
+
+## S10.17 DEV-only counterbalanced Base, Memory and Utility path timing
+
+A post-B4-A **exploratory DEV-only** cost audit evaluates the previously frozen G3/E2 SASRec Utility selector alongside Always Base and Always Memory, without reopening any B4-A A4 outcomes. The cohort comprises **256 distinct DEV requests** at predetermined positions in the 50,049-request cohort, each with its causal pretarget historical state and contemporaneous Full-F TRAIN-known active-author roster. The same requests, original Base checkpoint, original Utility model and original DEV OOF threshold were reused. A target author's identity was not an input to the full-F candidate construction. The history-support gate feature matched the existing corrected DEV feature for each request. The selected Top-10 was exactly the corresponding Base or Memory Top-10 in all **768** replays.
+
+Each request underwent the three paths in cyclically rotated order over **three repetitions**, with CUDA synchronization on an RTX 3090 before and after each scored branch; 16 warmup events were excluded. The resulting 768 timings *per path* are repetitions on only 256 requests, not 768 independently sampled requests. This benchmark concerns the **original pointwise Utility gate**, not a timed version of the newer B4-A vectorized F-aligned gate.
+
+**Table S10.11. Full-F original SASRec DEV warmed offline path time in milliseconds, 256 requests × three counterbalanced repetitions.**
+
+| Frozen path | Mean | Median | P95 | P99 |
+| --- | ---: | ---: | ---: | ---: |
+| Always Base | 0.72759 | 0.72228 | 0.87052 | 0.92766 |
+| Always Memory | **0.69165** | **0.65672** | 1.08878 | 1.45743 |
+| Frozen Utility selective | 1.76941 | 1.70132 | 2.29003 | 2.52290 |
+
+The selector made **80/256 = 31.25%** Memory calls per repetition, or 240/768 across repeated paths. Component means were 0.49876 ms Base scoring, 0.37267 ms feature construction, 0.55889 ms HGB inference, and 0.13205 ms conditional Memory work (including no-call events). Python, ranking and synchronization overhead mean these component subtotals should not be confused with the complete path latency.
+
+**Offline source setup is measured separately**, not converted into online per-request latency: the source scan of 30,307,513 G1 causal rows and historical snapshot preparation took 36,365.796 ms for the batch; sweeping all room-author activity intervals and constructing the 256 candidate lists took 10,808.702 ms. Warmup cost was 156.526 ms and excluded. Peak allocated GPU memory was 254,739,968 bytes and the measured process RSS peak was 2,003,344 kB (PyTorch 2.4.1+cu124). These metrics do not measure online incremental state maintenance, production batching, network/queueing, energy, or money.
+
+The underlying original G3 replay projects the author column while scanning a G1 stream with TRAIN/DEV/TEST-marked rows, **skipping TEST-marked rows before adding authors to any DEV historical state**. No private B4-A A1/A4 outcomes were accessed and no new TEST event ranking metrics calculated. Accordingly, do not claim no TEST-tagged source column was *physically projected* during the global scan; the supported claim is no B4-A target outcome use or TEST evaluation.
+
+The earlier single-pass warmed G4 DEV microbenchmark reported means of 1.4245/0.8033/1.8018 ms for Always Base/Memory/Utility. Its order sensitivity and incomplete source accounting differ, but both real timing exercises show that fewer calls do not automatically make this Utility implementation faster than unconditional Memory. The new [C2-B Actions run](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38530526158) and the audit report N10_ROUTE_C_C2B_MATCHED_DEV_COST_AND_R2_VERDICT_2026-10-14.md identify exact source SHAs, device, full warm execution and limitations. Thus the supported decision claim concerns **quality under a stated specialist-call budget**, not proven online resource savings.
+
+## S10.18 Frozen relation-history null controls: B2 DEV versus B4-A H2
+
+The B2 1,024-request/992-user post-G5 exploratory DEV historical-null study and the B4-A 4,096-request/3,059-user presealed additional-target H2 analysis use the same family of fixed-F candidate-preserving, time-valid, author-hour-margin-preserving, closed-hour activated historical-source permutations. Both use fixed original Full Memory scoring and the three null seeds 20261014, 20261015 and 20261016. The seeds are three interventions on one cohort in each study, not three independent cohorts.
+
+**Table S10.12. Structural and nonfloor source validity on the two distinct cohorts.**
+
+| Check | B2 exploratory DEV, 1,024 | B4-A H2 additional same-period targets, 4,096 |
+| --- | --- | --- |
+| Identical Full-F candidate roster across arms | PASS | PASS |
+| Same original scorer / frozen Top-10 parity | PASS | PASS |
+| Preserved source event times, hourly author counts, source-time availability | PASS | PASS |
+| Source swaps activate only after an hour closes | PASS | PASS |
+| Historical source edges rewired | ~78.62% | ~76.78–76.80% |
+| Original Full-F NDCG@10 | 0.339348 | 0.334942 (weighted) |
+| Null 20261014 / 20261015 / 20261016 | 0.306491 / 0.303804 / 0.305321 | 0.303905 / 0.304689 / 0.302796 (weighted) |
+| Same-cohort TRAIN-only Popularity F NDCG@10 | **0.021867**, verified | **NOT scored/sealed prior to A4** |
+| Preregistered null-above-popularity acceptance | **PASS under DEV protocol** | **NOT VERIFIED AS PREDECLARED** |
+| New independent later recording-period TEST | No | No |
+
+The B4-A Null rankings retain 1,903–1,913 positive Top-10 outcomes and each has weighted Full-F NDCG above 0.10, but these **partial nondegeneracy indicators do not establish the missing same-cohort TRAIN-popularity margin**. The B2 completed control cannot be imported to certify B4-A. Any check performed for this missing B4-A margin after A4's first reveal would be post hoc and cannot retroactively establish a pre-unseal acceptance condition.
+
+The historical intervention also changes repeated viewer–creator pairs and higher-order structures, not solely a single semantic relation. The measured original-versus-null contrast establishes nontrivial value of the *whole authentic source arrangement* under strong constrained rewiring, not the unique causal effect of one relation feature. Both cohorts are from an already accessed overall M3 source; the B4-A additional targets do not provide future-period transfer. Independent [C3-A frozen public audit #38530145391](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38530145391) supports the distinctions without additional TEST evaluation.
