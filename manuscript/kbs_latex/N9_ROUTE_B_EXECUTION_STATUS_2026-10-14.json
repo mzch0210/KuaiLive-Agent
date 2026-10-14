@@ -15,7 +15,7 @@
     "B1B": "PASS_PUBLIC_CALL_BALANCE_AND_INFORMATION_SCOPE_AUDIT",
     "B2": "PASS_PRETARGET_1024_EVENTS_THREE_SEED_TIME_VALID_NONFLOOR_RELATION_ID_NULL_AND_SELF_SCORER_PARITY",
     "B3": "PASS_R1_BOUNDED_IMPROVED_R2_BOUNDED_R3_STRONG_WITHIN_DEV_NULL_DESIGN_GENERALIZATION_BOUNDED",
-    "B4": "B4A_A0_TECHNICAL_ELIGIBILITY_PASS_A1_BLIND_SHA_SAMPLE_SEALED_A2_A3_A4_HOLD",
+    "B4": "B4A_A0_A1_A2_TECHNICAL_PASS_A3_HOLD_RIGHTS_BLIND_A4_HARD_HOLD",
     "B5": "PASS_8_SECTION_MAIN_UPDATED_12_TABLES_SUPPLEMENT_S10_TO_14_SUBSECTIONS",
     "B6": "PASS_MAIN_37P_SUPPLEMENT_PDF_TECHNICAL_QA_AUTHOR_RIGHTS_AND_DECLARATIONS_HOLD"
   },
@@ -85,7 +85,7 @@
     "R3": "STRONG_IN_EXPLORATORY_TIME_DEGREE_AVAILABILITY_PRESERVED_1024_DEV_CONTROL_EXTERNAL_VALIDITY_BOUNDED"
   },
   "submission": "HOLD",
-  "next_gate": "Freeze B4A A2 20-cell population weighting estimand, DEV-only 2x2 trained gate/prediction model hashes, original G5 scorer alignment and owner license permission; A3 blind predictions then one-shot A4 reveal. No B4-A outcomes yet.",
+  "next_gate": "Independent human authorization of exact M3 release and new B4A restricted data processing plus final A3 target-blind source/clock/feature audit; only then run one-shot 30000 and 4096 A3 predictions, freeze SHA before A4 label reveal.",
   "dataset_rights": "M3 PAPER NONCOMMERCIAL_SHAREALIKE_VS_HUGGINGFACE_BY_SHAREALIKE_METADATA_DISCREPANCY_AUTHORS_TO_RESOLVE",
   "current_paper_blobs": {
     "main_tex_git_blob": "f5cd5aa5f24133b858e370fdbdda661261582e4d",
@@ -106,7 +106,7 @@
     }
   },
   "B4A": {
-    "status": "A0_A1_TECHNICAL_PASS_OUTCOMES_UNOPENED_RIGHTS_REVIEW_PENDING",
+    "status": "A0_A1_A2_TECHNICAL_PASS_B4A_TARGET_OUTCOMES_UNOPENED",
     "plan": "manuscript/kbs_latex/N9_ROUTE_B_B4A_ADDITIONAL_TARGET_HOLDOUT_EXECUTION_PLAN_2026-10-14.md",
     "execution_report": "manuscript/kbs_latex/N9_ROUTE_B_B4A_A0_A1_ELIGIBILITY_AND_BLIND_FREEZE_REPORT_2026-10-14.md",
     "A0_report": "experiments/kbs_plan_c/N9_ROUTE_B_B4A_A0_AGGREGATE_ELIGIBILITY_2026-10-14.json",
@@ -129,6 +129,20 @@
     "rights_human_attestation": "PENDING",
     "estimand_weights": "A2_PREREGISTRATION_PENDING_NATURAL_CELL_POPULATION_WEIGHTS",
     "new_independent_time_test": false,
-    "manuscript_modified_for_B4A": false
+    "manuscript_modified_for_B4A": false,
+    "A2_report": "manuscript/kbs_latex/N9_ROUTE_B_B4A_A2_DEV_FROZEN_MODELS_AND_STATISTICAL_CONTRACT_2026-10-14.md",
+    "A2_model_aggregate": "experiments/kbs_plan_c/N9_ROUTE_B_B4A_A2_DEV_FINAL_GATE_AGGREGATE_2026-10-14.json",
+    "A2_population_weights": "experiments/kbs_plan_c/N9_ROUTE_B_B4A_A2_POPULATION_WEIGHTS_2026-10-14.json",
+    "A2_model_contract": "experiments/kbs_plan_c/N9_ROUTE_B_B4A_A2_MODEL_CONTRACT_PUBLIC_2026-10-14.json",
+    "A2_spec": "manuscript/kbs_latex/N9_ROUTE_B_B4A_A2_FROZEN_ESTIMANDS_AND_DEV_GATE_SPEC_2026-10-14.md",
+    "A2_four_models_DEV_frozen": true,
+    "A2_four_model_SHA_pass": true,
+    "A2_model_run": 38506691232,
+    "A2_weights_run": 38506781299,
+    "A2_model_contract_run": 38506978008,
+    "A2_main_effective_weighted_sample": 26849.293759053424,
+    "A2_mechanism_effective_weighted_sample": 3659.4205434193127,
+    "A2_primary_estimand": "eligible_source_population_20cell_poststratification",
+    "A3_authorized": false
   }
 }
