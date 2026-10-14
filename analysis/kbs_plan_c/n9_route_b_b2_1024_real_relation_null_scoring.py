@@ -217,11 +217,39 @@ def main():
         loc=np.searchsorted(c,S)
         if not np.array_equal(c[loc],S):raise RuntimeError("S candidate membership invalid")
         rosters[k]=c;sampled[k]=S;select[k]=loc
+    # Critical: the exact SAME hourly snapshot builder and ranker must reproduce
+    # the historical Full/Long F/S labels when no relationship edges are changed.
+    # A separate original replay script passing is insufficient for this gate.
+    untouched, nochange_history, nochange_used = snapshots_from_causal_stream(
+        g/"causal_stream_sealed.parquet",ids,users,targetns,{},known)
+    if nochange_used:
+        raise RuntimeError("Empty author map unexpectedly changed original history")
+    nochange_errors=[]
+    nochange_maxerr=0.
+    for k,(warm,recent,den) in enumerate(untouched):
+        c=rosters[k];S=sampled[k];loc=select[k];true=int(positive[k])
+        full=score(c,pop,warm,recent,den)
+        long=score(c,pop,warm,(),den,short=False)
+        for name,v,candidates in [
+            ("full_F",full,c),("full_S",full[loc],S),
+            ("long_F",long,c),("long_S",long[loc],S)]:
+            val=ndcg(rank(candidates,v,true))
+            err=abs(val-float(original_values[name][k]))
+            nochange_maxerr=max(nochange_maxerr,err)
+            if err>1e-12:nochange_errors.append(name)
+    if nochange_errors:
+        raise RuntimeError("SELF-CONTROL rank scoring parity FAILURE "+
+                           str(collections.Counter(nochange_errors)))
+    print(json.dumps({"B2_SAME_SCORER_UNALTERED_CONTROL":"PASS",
+        "n_events":EVENTS,"max_ndcg_error":nochange_maxerr,
+        "no_G5_TEST":True},sort_keys=True),flush=True)
     result={"schema":"kbs-route-b-b2-m3-dev-1024-coactive-null-scores-v1",
         "evidence":"POST_G5_DEV_EXPLORATORY_SAME_1024_EVENTS_992_USERS",
         "n_events":EVENTS,"n_users":USERS,"null_seeds":list(SEEDS),
         "original_Full_Long_source_SHA256":bm["private_event_source_csv_sha256"],
         "frozen_DEV_sample_SHA256":SAMPLE_SHA,
+        "same_scorer_empty_null_original_Full_Long_F_S_parity":True,
+        "same_scorer_unaltered_max_absolute_NDCG_error":nochange_maxerr,
         "G5_TEST_opened":False,"Base_models_retrained":False,
         "private_history_edges_exported":False,"seeds":[]}
     for n,seed in enumerate(SEEDS):
