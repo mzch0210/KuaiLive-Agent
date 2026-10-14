@@ -2126,7 +2126,7 @@ jobs:
               assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==expected,n
           print('A4 source/weight SHA equal to successful independent pre-reveal audit',flush=True)
           CODE_A4
-      - name: ONE SHOT A4: verify A3 SHAs before first author label; evaluate frozen H1/H2
+      - name: One-shot A4 frozen-label evaluation after all pre-reveal SHA checks
         shell: bash
         run: |
           set -euo pipefail
