@@ -1,0 +1,77 @@
+{
+  "schema": "kbs-route-b-b1b-fairness-audit-v1",
+  "source_git_blobs": {
+    "experiments/kbs_plan_c/N9_G2_E1_SUPERVISION_DECISION_SWITCHES_PUBLIC_AGGREGATE_2026-10-13.json": "4d49fcd1cd0209de30a845c2d0d65dd4f8a16990",
+    "experiments/kbs_plan_c/N9_G1_E2_SHADOW_PRICE_ENVELOPE_PUBLIC_AGGREGATE_2026-10-13.json": "047411dfd4b6554e0601c60bf5787dac249da7c3",
+    "experiments/kbs_plan_c/N9_A1_DECISION_FRONTIER_PUBLIC_AGGREGATE_2026-10-13.json": "a40aed41a4217220db9024aa667107ba1ff8eb66"
+  },
+  "data_tier": "POST_G5_EXPLORATORY_DEV_50049_EVENTS_12628_USERS",
+  "fairness": "actual outer calls not exactly equal; diagnostic only; no matched outcome inference",
+  "families": {
+    "gru4rec": {
+      "observed_S_calls": 15001,
+      "observed_F_calls": 14762,
+      "difference_F_minus_S_calls": -239,
+      "abs_net_call_rate_difference": 0.004775320186217507,
+      "possible_max_one_action_per_unmatched_call_NDCG_shift": 0.004775320186217507,
+      "call_mismatch_upper_bound_fraction_of_original_gain": 0.9608463415754589,
+      "observed_switches": 11517,
+      "observed_switch_disagreement_rate": 0.2301144878019541,
+      "switch_on": 5639,
+      "switch_off": 5878,
+      "net_gain": 0.004969910358806818,
+      "paired_user_ci": [
+        0.003550090790878693,
+        0.006368715906666234
+      ],
+      "value_on_F_only": 0.12659990351263423,
+      "value_on_S_only": 0.07913538828850322,
+      "average_value_gap_on_minus_off": 0.047464515224131004,
+      "sourced_contributions": [
+        0.014263958438884781,
+        -0.009294048080077963
+      ],
+      "identity_reproduced": true,
+      "shadow_price_best30_interval": [
+        0.08311878446583011,
+        0.10437936376122295
+      ],
+      "same_trained_information": false,
+      "outer_post_hoc_budget_matching_performed": false,
+      "interpretation_note": "Largest possible direct contribution of unmatched NET actions smaller than observed gain, but opposite switches dominate; does not prove causal equal-budget gain"
+    },
+    "sasrec": {
+      "observed_S_calls": 14988,
+      "observed_F_calls": 15016,
+      "difference_F_minus_S_calls": 28,
+      "abs_net_call_rate_difference": 0.0005594517372974486,
+      "possible_max_one_action_per_unmatched_call_NDCG_shift": 0.0005594517372974486,
+      "call_mismatch_upper_bound_fraction_of_original_gain": 0.09082826345153211,
+      "observed_switches": 10672,
+      "observed_switch_disagreement_rate": 0.21323103358708465,
+      "switch_on": 5350,
+      "switch_off": 5322,
+      "net_gain": 0.006159445485776395,
+      "paired_user_ci": [
+        0.004835203927918851,
+        0.0075427277029243775
+      ],
+      "value_on_F_only": 0.13341659983752427,
+      "value_on_S_only": 0.07619404772888617,
+      "average_value_gap_on_minus_off": 0.057222552108638094,
+      "sourced_contributions": [
+        0.014261599814796598,
+        -0.008102154329020204
+      ],
+      "identity_reproduced": true,
+      "shadow_price_best30_interval": [
+        0.08451613506513507,
+        0.11132075869860728
+      ],
+      "same_trained_information": false,
+      "outer_post_hoc_budget_matching_performed": false,
+      "interpretation_note": "Largest possible direct contribution of unmatched NET actions smaller than observed gain, but opposite switches dominate; does not prove causal equal-budget gain"
+    }
+  },
+  "real_access_cost_measured": false
+}
