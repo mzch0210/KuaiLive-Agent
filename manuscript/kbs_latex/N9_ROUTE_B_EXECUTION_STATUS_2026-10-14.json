@@ -123,11 +123,11 @@
     "sampling": "5 source dates x 4 pretarget within-day history rank quartiles; 1500/cell",
     "A0_run": 38505464173,
     "A1_run": 38505873258,
-    "A2_model_frozen": false,
+    "A2_model_frozen": true,
     "A3_target_blind_prediction_completed": false,
     "A4_outcomes_opened": false,
     "rights_human_attestation": "PENDING",
-    "estimand_weights": "A2_PREREGISTRATION_PENDING_NATURAL_CELL_POPULATION_WEIGHTS",
+    "estimand_weights": "A2_FROZEN_ORIGINAL_20_CELL_ELIGIBLE_POPULATION_POSTSTRATIFICATION",
     "new_independent_time_test": false,
     "manuscript_modified_for_B4A": false,
     "A2_report": "manuscript/kbs_latex/N9_ROUTE_B_B4A_A2_DEV_FROZEN_MODELS_AND_STATISTICAL_CONTRACT_2026-10-14.md",
@@ -143,6 +143,8 @@
     "A2_main_effective_weighted_sample": 26849.293759053424,
     "A2_mechanism_effective_weighted_sample": 3659.4205434193127,
     "A2_primary_estimand": "eligible_source_population_20cell_poststratification",
-    "A3_authorized": false
+    "A3_authorized": false,
+    "A3_preflight_synthetic_only": "PASS_PUBLIC_FREEZE_AND_7_SYNTHETIC_TESTS_ACTION_38515403899",
+    "A3_production_pipeline_validated": false
   }
 }
