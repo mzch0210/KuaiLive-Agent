@@ -1,0 +1,78 @@
+{
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v1",
+  "date": "2026-10-14",
+  "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
+  "draft_pr": 6,
+  "base_branch": "kbs-n11-final-editorial-polish-20261014",
+  "current_stage": "N12_C0_C1_COMPLETED_READY_FOR_N12_C2",
+  "CI": {
+    "run": 38546213364,
+    "conclusion": "success"
+  },
+  "frozen_source": {
+    "main_git_blob": "8ca7dc67ade90048eb0b12059ec8bec75c85194f",
+    "supplement_git_blob": "9b83a31d82f08d1a212f59f99b60975ad902e8e6",
+    "N11_main_pages": 39,
+    "N11_supp_pages": 45,
+    "main_rewritten": false,
+    "supp_rewritten": false,
+    "A4_rerun": false,
+    "private_TEST_labels_read": false
+  },
+  "stages": {
+    "N12-0": {
+      "status": "PASS",
+      "main_source_blocks": 152,
+      "latex_labels": 59,
+      "main_tables": 13,
+      "main_figures": 3,
+      "source_map": "N12_C0_SOURCE_BLOCK_MIGRATION_MAP_2026-10-14.md",
+      "machine_manifest": "N12_C0_SOURCE_BLOCK_MIGRATION_MANIFEST_2026-10-14.json"
+    },
+    "N12-1": {
+      "status": "PASS",
+      "three_rq": [
+        "RQ1_incumbent_and_candidate_relative_knowledge_value",
+        "RQ2_candidate_aligned_supervision_decision",
+        "RQ3_fixed_F_authentic_historical_source_validity"
+      ],
+      "RQ3_relation_to_RQ2": "parallel_validation_not_causal_successor",
+      "new_outline_sections": 7,
+      "blueprint": "N12_C1_RQ_ARGUMENT_AND_EVIDENCE_BLUEPRINT_2026-10-14.md"
+    },
+    "N12-2": {
+      "status": "NEXT_not_started",
+      "task": "Rewrite Introduction and Related Work against frozen C1 thesis"
+    },
+    "N12-3": {
+      "status": "NOT_STARTED"
+    },
+    "N12-4": {
+      "status": "NOT_STARTED"
+    },
+    "N12-5": {
+      "status": "NOT_STARTED"
+    },
+    "N12-6": {
+      "status": "NOT_STARTED"
+    },
+    "N12-7": {
+      "status": "NOT_STARTED"
+    },
+    "N12-8": {
+      "status": "NOT_STARTED"
+    }
+  },
+  "fixed_scientific_constraints": [
+    "N9_A4_original_one_shot_not_reopened",
+    "B4A_30000_same_source_period_not_future_new_TEST",
+    "F_vs_S_policy_calls_unequal_1p337pp_1p797pp",
+    "Always_Memory_higher_unconstrained_F_NDCG",
+    "Original_Utility_DEV_latency_slower_than_Always_Memory",
+    "Historical_null_strong_composite_not_isolated_single_relation",
+    "B4A_H2_prereveal_same_cohort_TRAIN_popularity_floor_NOT_VERIFIED"
+  ],
+  "merged_to_main": false,
+  "KBS_submission": false,
+  "author_approval": false
+}
