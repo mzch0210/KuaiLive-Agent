@@ -52,3 +52,19 @@ This is a positive machine check on named changes, not an assertion that every s
 R1: empirical novelty is better framed, KBS editor still decides its importance. R2: invocation allocation is supported conditional on a real external restriction, not a demonstrated cheaper production system. R3: history arrangement signal survives fixed candidate sets but the perturbation is composite and the original B4-A same-cohort popularity-floor acceptance was not completed prereveal. True independent future-period validation remains absent. These are research boundaries, not obsolete language to be silently scrubbed.
 
 **Final submission gate:** human authors must verify affiliations/CRediT/funding/COI/data-use and sharing rights, manuscript/Methods AI assistance disclosure and current KBS author's instructions. No author-approved publication or merge to main implied. Publisher official KBS scope: https://shop.elsevier.com/journals/knowledge-based-systems/0950-7051 .
+
+
+## 6. Final N11 technical PDF acceptance (locked after final typesetting)
+
+Latest full source-and-PDF GitHub Actions run: https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38536501139 ; **MAIN PDF PASS, SUPPLEMENT PDF PASS**. The final PDFs are sourced from *this* run, not from preliminary earlier N11 builds.
+
+| Final deliverable | Pages | Verified artifact ID | Exact PDF SHA-256 | Technical acceptance |
+| --- | ---: | ---: | --- | --- |
+| Main paper | **39** (baseline N10 42) | 11879409973 | 0a7f5e2fc0320a7647c3ac23d686f5a3a829eccc287e00ba7494efd8c1f9499b | PASS |
+| Supplement S1–S10.18 | **45** (baseline N10 46) | 11880073679 | 1d0e65ac04532fe8ed0276f134483e66eb2c423e0e770d1d2aa81067deac8548 | PASS |
+
+- Complete N11 public source-only check and adversarial unit tests executed in the same workflow: all ten prior scientific revisions are present in main.tex rather than only past plans/reports; exactly eight article sections and the revised five-part Results order; original B4-A values unchanged across main, frozen report and supplement; S10.1–S10.18 present; no project-phase labels in main.
+- Both compiled PDF logs: **zero overfull boxes, zero missing LaTeX references, zero unresolved citation warnings**.
+- PDF text extraction verifies SAS/GRU H1 values 0.005391/0.003585, weighted source H2 authentic 0.334942 versus per-request null mean 0.303797 and paired effect 0.031145, later measured Utility 1.769ms versus Memory 0.692ms, SAMD citation and S10.17–S10.18 control text.
+- Page-level PDF render reviewed main source framework p4, full H1 p26–27, frozen H2 p28–29, measured cost p31 and final bibliography; supplementary last source-control table p45. Shortening labels removed crowded cells and also reduced supplementary by one page. No visible clipping or orphaned title from checked pages.
+- N11 is **technically reviewer-ready for human final scientific approval**. No proof of KBS editorial acceptance, online cost saving, independent out-of-period TEST or a fully verified original H2 popularity control is claimed.
