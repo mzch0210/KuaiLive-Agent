@@ -7,7 +7,7 @@ from n10_c0_public_freeze_audit import git_blob_sha, check, FROZEN_GIT_BLOBS
 class AuditSafety(unittest.TestCase):
     def test_frozen_public_baseline(self):
         root=Path(__file__).resolve().parents[2]
-        x=check(root,True)
+        x=check(root,False)
         self.assertEqual(x["status"],"C0_PUBLIC_READ_ONLY_PASS")
         self.assertFalse(x["privacy"]["reran_A4"])
         self.assertFalse(x["H2_popularity_floor_predeclared_verified"])
