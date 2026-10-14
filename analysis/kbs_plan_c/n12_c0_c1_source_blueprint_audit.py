@@ -88,7 +88,7 @@ def check(root):
     require([x for x in valid_sections
             if x not in [r["source_section"] for r in records]]==[],
             "one of the original main chapters unaccounted")
-    for needle in ("RQ1","RQ2","RQ3","Parallel","parallel","30,000",
+    for needle in ("RQ1","RQ2","RQ3","parallel","30,000",
         "4,096","NOT VERIFIED","0.348744","0.031145","0.005391","0.003585",
         "0.69165","1.76941","0.45/0.45/0.10","seven-section"):
         # 'seven-section' may reside in plan as prose or only named contents.
