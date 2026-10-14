@@ -88,8 +88,6 @@ def main(a):
     chosen=np.unique(np.linspace(0,len(ids)-1,EVENTS,dtype=np.int64))
     require(len(chosen)==EVENTS,"sample count")
     request_ids=ids[chosen].astype(np.int64)
-    with pq.ParquetFile(a.g1/"dev_cohort.parquet") as pf if False else open(__file__) as _:
-        pass
     dev=pq.read_table(a.g1/"dev_cohort.parquet",columns=["source_event_id","observed_at"])
     require(np.array_equal(dev.column("source_event_id").to_numpy(),ids),
             "DEV cohort identity/source order")
