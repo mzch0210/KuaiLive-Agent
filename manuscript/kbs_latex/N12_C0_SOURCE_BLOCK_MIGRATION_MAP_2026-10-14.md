@@ -53,7 +53,7 @@
 | N11-043 | Problem Formulation / Selective Invocation and Invocation-Count Constraints | 163 | `eq:utility-threshold` | 3.5 Invocation and eligibility policy | MERGE_3_4 |
 | N11-044 | Problem Formulation / Regime-Level Utility Decomposition | 172 | `sec:regime-decomposition` | 3.5 Diagnostic-only decomposition; S10 expanded | CONDENSE_SUPPLEMENT |
 | N11-045 | Problem Formulation / Regime-Level Utility Decomposition | 175 | `eq:regime-decomposition` | 3.5 Diagnostic-only decomposition; S10 expanded | CONDENSE_SUPPLEMENT |
-| N11-046 | Base-Relative Evidence Valuation Framework | 184 | `sec:framework` | 3.5 Invocation and policy comparators | MERGE_3_4 |
+| N11-046 | Base-Relative Evidence Valuation Framework | 184 | `sec:framework` | undefined | REWRITE_SECTION_TRANSITION |
 | N11-047 | Base-Relative Evidence Valuation Framework | 188 | The framework connects a trained sequential incumbent, an explicit fix | 3.5 Invocation and policy comparators | MERGE_3_4 |
 | N11-048 | Base-Relative Evidence Valuation Framework | 190 | `fig:framework` | 3.5 Selective knowledge-use architecture, online/offline separation | KEEP_EDIT_CAPTION |
 | N11-049 | Base-Relative Evidence Valuation Framework / Strong Sequential Base Recommenders | 216 | `sec:framework-base` | 3.2 Fixed base and explicit Memory | MERGE_3_4 |
@@ -68,7 +68,7 @@
 | N11-058 | Base-Relative Evidence Valuation Framework / Observable Features and Conditional Relative-Utility Estimation | 255 | The Twitch implementation uses six history and eight Base-score descri | 3.4 Decision-time observable features and estimator | MERGE_3_4 |
 | N11-059 | Base-Relative Evidence Valuation Framework / Specialist Selection and Comparator Policies | 257 | `sec:framework-controls` | 3.5 Invocation and policy comparators | MERGE_3_4 |
 | N11-060 | Base-Relative Evidence Valuation Framework / Specialist Selection and Comparator Policies | 260 | At inference, the Base produces the default ranking and its observable | 3.5 Invocation and policy comparators | MERGE_3_4 |
-| N11-061 | Experimental Setup | 262 | `sec:experimental-setup` | 4.6 Implementation summary; Supplement exact settings | CONDENSE_SUPPLEMENT |
+| N11-061 | Experimental Setup | 262 | `sec:experimental-setup` | undefined | REWRITE_SECTION_TRANSITION |
 | N11-062 | Experimental Setup | 266 | Table~\ref{tab:exp-datasets} defines the distinct ranked units, candid | 4.6 Implementation summary; Supplement exact settings | CONDENSE_SUPPLEMENT |
 | N11-063 | Experimental Setup / Datasets and Prediction Tasks | 268 | `sec:exp-data` | 4.1 Dataset task and evidence-tier protocol | RESTRUCTURE |
 | N11-064 | Experimental Setup / Datasets and Prediction Tasks | 271 | \paragraph{Twitch/LiveRec.} We use the availability-aware LiveRec prot | 4.1 Dataset task and evidence-tier protocol | RESTRUCTURE |
@@ -96,7 +96,7 @@
 | N11-086 | Experimental Setup / Evaluation Metrics and Statistical Analysis | 373 | Twitch TEST confidence intervals are based on 5,000 user-paired bootst | 4.4 Evaluation weights and inference | RESTRUCTURE |
 | N11-087 | Experimental Setup / Implementation Details | 375 | `sec:exp-implementation` | 4.6 Implementation summary; Supplement exact settings | CONDENSE_SUPPLEMENT |
 | N11-088 | Experimental Setup / Implementation Details | 378 | The original KuaiLive room/creator Base uses 64-dimensional ReChorus S | 4.6 Implementation summary; Supplement exact settings | CONDENSE_SUPPLEMENT |
-| N11-089 | Experimental Results | 380 | `sec:results` | 5.4 Operational conditions and measured costs | CONDENSE |
+| N11-089 | Experimental Results | 380 | `sec:results` | undefined | REWRITE_SECTION_TRANSITION |
 | N11-090 | Experimental Results | 383 | The results proceed from the incremental value of fixed relationship e | 5.4 Operational conditions and measured costs | CONDENSE |
 | N11-091 | Experimental Results / Heterogeneous Utility of Relationship Memory | 385 | `sec:results-heterogeneity` | 5.1 RQ1 history and candidates | RESTRUCTURE |
 | N11-092 | Experimental Results / Heterogeneous Utility of Relationship Memory | 388 | The ranking contribution of relationship memory is heterogeneous rathe | 5.1 RQ1 history and candidates | RESTRUCTURE |
@@ -139,7 +139,7 @@
 | N11-129 | Experimental Results / Invocation Constraints and Measured Scoring Cost | 667 | A second, counterbalanced DEV measurement repeats the same 256 full-ac | 5.4 Operational conditions and measured costs | CONDENSE |
 | N11-130 | Experimental Results / Invocation Constraints and Measured Scoring Cost | 669 | `tab:results-n10-cost` | 5.4 Operating conditions short cost summary; full S10.17 | CONDENSE_MAIN_DETAIL_SUPPLEMENT |
 | N11-131 | Experimental Results / Invocation Constraints and Measured Scoring Cost | 687 | The selector invokes Memory on 80 of 256 distinct DEV requests (31.25\ | 5.4 Operational conditions and measured costs | CONDENSE |
-| N11-132 | Discussion | 689 | `sec:discussion` | 6.3 Source validity, policy and transfer conditions | CONSOLIDATE |
+| N11-132 | Discussion | 689 | `sec:discussion` | undefined | REWRITE_SECTION_TRANSITION |
 | N11-133 | Discussion / The Relative Value of Relationship Knowledge | 692 | `sec:discussion-operational-value` | 6.1 Knowledge system contribution | CONSOLIDATE |
 | N11-134 | Discussion / The Relative Value of Relationship Knowledge | 695 | The central object of this study is the incremental utility of an expl | 6.1 Knowledge system contribution | CONSOLIDATE |
 | N11-135 | Discussion / The Relative Value of Relationship Knowledge | 697 | This contribution complements prior work on scene-conditioned memory a | 6.1 Knowledge system contribution | CONSOLIDATE |
