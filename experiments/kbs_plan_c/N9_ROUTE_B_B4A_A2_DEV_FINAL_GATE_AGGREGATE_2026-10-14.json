@@ -1,0 +1,195 @@
+{
+  "B4A_sample_read": false,
+  "base_or_memory_retrained": false,
+  "dev_source_SHA256": "37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea",
+  "elapsed_seconds": 1.94,
+  "group_oof_folds": 4,
+  "max_OOF_call_fraction": 0.3,
+  "model_family": "HistGradientBoostingRegressor",
+  "models": {
+    "gru4rec": {
+      "F_aligned": {
+        "feature_count": 12,
+        "features": [
+          "x_hist_event_count",
+          "x_hist_warm_count",
+          "x_hist_distinct",
+          "x_hist_repeat_max",
+          "x_hist_short_unique",
+          "x_memory_history_supported_share",
+          "x_candidate_log_count",
+          "x_gru4rec_base_margin",
+          "x_gru4rec_base_std",
+          "x_gru4rec_base_top_z",
+          "x_gru4rec_base_top_score",
+          "x_gru4rec_base_score_mean"
+        ],
+        "final_model_fitted_DEV_call_rate_diagnostic": 0.2976283242422426,
+        "label_count": 50049,
+        "label_regime": "full_active_DEV",
+        "model_hyperparameters": {
+          "early_stopping": false,
+          "l2_regularization": 1,
+          "learning_rate": 0.05,
+          "max_depth": 3,
+          "max_iter": 120,
+          "min_samples_leaf": 50
+        },
+        "model_name": "gru4rec_F_aligned_HGB.joblib",
+        "model_private_SHA256": "b06c27223b32934a21c17c7ad0e9006deec92012b406b6716f778f85b8b63fda",
+        "oof_DEV_full_F_NDCG_diagnostic": 0.30376243372170564,
+        "oof_DEV_signed_label_gain_diagnostic": 0.04479096244651948,
+        "oof_budget": {
+          "calls": 15014,
+          "dev_oof_call_rate": 0.2999860137065676,
+          "dev_oof_gain": 0.044790962446519526,
+          "threshold": 0.09697994457012703
+        },
+        "oof_threshold": 0.09697994457012703,
+        "oof_user_disjoint": true,
+        "regressor_training_seed": 20261012,
+        "training_sample_count": 50049
+      },
+      "OOF_decision_disagreement_fraction": 0.23013446822114328,
+      "S_aligned": {
+        "feature_count": 12,
+        "features": [
+          "x_hist_event_count",
+          "x_hist_warm_count",
+          "x_hist_distinct",
+          "x_hist_repeat_max",
+          "x_hist_short_unique",
+          "x_memory_history_supported_share",
+          "x_candidate_log_count",
+          "x_gru4rec_base_margin",
+          "x_gru4rec_base_std",
+          "x_gru4rec_base_top_z",
+          "x_gru4rec_base_top_score",
+          "x_gru4rec_base_score_mean"
+        ],
+        "final_model_fitted_DEV_call_rate_diagnostic": 0.29850746268656714,
+        "label_count": 50049,
+        "label_regime": "retrospective_sampled_target_retained_DEV",
+        "model_hyperparameters": {
+          "early_stopping": false,
+          "l2_regularization": 1,
+          "learning_rate": 0.05,
+          "max_depth": 3,
+          "max_iter": 120,
+          "min_samples_leaf": 50
+        },
+        "model_name": "gru4rec_S_aligned_HGB.joblib",
+        "model_private_SHA256": "3d9dae323ba0111a298e803618827cfe223a7d8da190cdf43f6ebefb32022e88",
+        "oof_DEV_full_F_NDCG_diagnostic": 0.29732286171556643,
+        "oof_DEV_signed_label_gain_diagnostic": 0.03160718789897772,
+        "oof_budget": {
+          "calls": 15000,
+          "dev_oof_call_rate": 0.29970628783791886,
+          "dev_oof_gain": 0.03160718789897719,
+          "threshold": 0.04922859072480728
+        },
+        "oof_threshold": 0.04922859072480728,
+        "oof_user_disjoint": true,
+        "regressor_training_seed": 20261012,
+        "training_sample_count": 50049
+      }
+    },
+    "sasrec": {
+      "F_aligned": {
+        "feature_count": 12,
+        "features": [
+          "x_hist_event_count",
+          "x_hist_warm_count",
+          "x_hist_distinct",
+          "x_hist_repeat_max",
+          "x_hist_short_unique",
+          "x_memory_history_supported_share",
+          "x_candidate_log_count",
+          "x_sasrec_base_margin",
+          "x_sasrec_base_std",
+          "x_sasrec_base_top_z",
+          "x_sasrec_base_top_score",
+          "x_sasrec_base_score_mean"
+        ],
+        "final_model_fitted_DEV_call_rate_diagnostic": 0.30194409478710865,
+        "label_count": 50049,
+        "label_regime": "full_active_DEV",
+        "model_hyperparameters": {
+          "early_stopping": false,
+          "l2_regularization": 1,
+          "learning_rate": 0.05,
+          "max_depth": 3,
+          "max_iter": 120,
+          "min_samples_leaf": 50
+        },
+        "model_name": "sasrec_F_aligned_HGB.joblib",
+        "model_private_SHA256": "4af0daae533c7856cca6c7df6a8cf022cbc29e161de9aed3bb4ecdfdadd359da",
+        "oof_DEV_full_F_NDCG_diagnostic": 0.30198497458782053,
+        "oof_DEV_signed_label_gain_diagnostic": 0.04381753651468045,
+        "oof_budget": {
+          "calls": 15011,
+          "dev_oof_call_rate": 0.299926072449,
+          "dev_oof_gain": 0.043817536514680545,
+          "threshold": 0.10069330711084817
+        },
+        "oof_threshold": 0.10069330711084817,
+        "oof_user_disjoint": true,
+        "regressor_training_seed": 20261012,
+        "training_sample_count": 50049
+      },
+      "OOF_decision_disagreement_fraction": 0.2131311314911387,
+      "S_aligned": {
+        "feature_count": 12,
+        "features": [
+          "x_hist_event_count",
+          "x_hist_warm_count",
+          "x_hist_distinct",
+          "x_hist_repeat_max",
+          "x_hist_short_unique",
+          "x_memory_history_supported_share",
+          "x_candidate_log_count",
+          "x_sasrec_base_margin",
+          "x_sasrec_base_std",
+          "x_sasrec_base_top_z",
+          "x_sasrec_base_top_score",
+          "x_sasrec_base_score_mean"
+        ],
+        "final_model_fitted_DEV_call_rate_diagnostic": 0.30186417311035185,
+        "label_count": 50049,
+        "label_regime": "retrospective_sampled_target_retained_DEV",
+        "model_hyperparameters": {
+          "early_stopping": false,
+          "l2_regularization": 1,
+          "learning_rate": 0.05,
+          "max_depth": 3,
+          "max_iter": 120,
+          "min_samples_leaf": 50
+        },
+        "model_name": "sasrec_S_aligned_HGB.joblib",
+        "model_private_SHA256": "3d31df6148222a7702c2dab050c8d09aac9b84c30306c1815069a9141e02fd61",
+        "oof_DEV_full_F_NDCG_diagnostic": 0.2969794887862437,
+        "oof_DEV_signed_label_gain_diagnostic": 0.03121336311095037,
+        "oof_budget": {
+          "calls": 15012,
+          "dev_oof_call_rate": 0.29994605286818915,
+          "dev_oof_gain": 0.03121336311094976,
+          "threshold": 0.04608267059403858
+        },
+        "oof_threshold": 0.04608267059403858,
+        "oof_user_disjoint": true,
+        "regressor_training_seed": 20261012,
+        "training_sample_count": 50049
+      }
+    }
+  },
+  "n_dev_events": 50049,
+  "n_dev_users": 12628,
+  "schema": "kbs-route-b-b4a-a2-dev-final-gates-v1",
+  "status": "DEV_ONLY_GATE_MODELS_AND_THRESHOLDS_FROZEN",
+  "test_labels_or_ranking_metrics_opened": false,
+  "threshold_rule": "frozen_gate.select_threshold, OOF signed gain, tied scores indivisible",
+  "training_seed": 20261012,
+  "provenance_run": 38506691232,
+  "private_model_artifacts_only": true,
+  "scientific_evidence_tier": "DEV_ONLY_OOF_TRAINING_DIAGNOSTIC_NOT_B4A_HELDOUT"
+}
