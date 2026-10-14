@@ -956,3 +956,47 @@ To examine whether a credible historical-identity placebo could avoid the near-z
 For these **pilot events only**, Full Memory under full-active F yielded 0.396585 NDCG@10 before the relation-identity intervention and 0.384386 afterward. Under retrospective sampled S the corresponding values were 0.661360 and 0.669835. The latter comparison reverses direction and is not evidence of a uniform identity-specific advantage. The placebo remained far above the F popularity-only 0.037155 baseline, with positive full-ranking NDCG on 68 of 128 null-scored requests (72 of 128 original). Thus the predeclared non-floor feasibility gate passed.
 
 The intervention is restricted to an historical prefix of selected users, and these 128 late-period DEV requests have no independent inferential interval or independent TEST status. A full 50,049-event relation-identity study would need to prevent same-hour future-history swaps from affecting earlier requests; such a temporally valid full-cohort analysis was **not performed**. The pilot confirms control feasibility, not causal historical relation-identity specificity. These scope restrictions are essential when interpreting the aggregate source interaction above.
+
+## S10.13 Exact-zero contribution to candidate-regime source interaction
+
+To distinguish candidate-set-induced top-ten truncation effects from strict source preference reversals, we analyze the **same 50,049 M3 author DEV requests and 12,628 users** underlying B2 and E3a. Let $d_F(i)=u_{10}(M_{\mathrm{Full}},F,i)-u_{10}(M_{\mathrm{Long}},F,i)$, $d_S(i)=u_{10}(M_{\mathrm{Full}},S,i)-u_{10}(M_{\mathrm{Long}},S,i)$ and $I_i=d_F(i)-d_S(i)$. Each request is assigned to one of nine cells according to the exact signs of $d_F$ and $d_S$. Each signed contribution equals the sum of $I_i$ in the cell divided by **all 50,049 requests**.
+
+**Table S10.7. Nine-cell decomposition of Full-minus-Long knowledge utility, fixed source under full-active F versus offline target-retained sampled S candidates.**
+
+| Sign under F | Sign under S | Number of events | Contribution to mean $I$ |
+|:---:|:---:|---:|---:|
+| − | − | 1,927 | +0.010020 |
+| − | 0 | 10,542 | -0.050444 |
+| − | + | 25 | -0.000248 |
+| 0 | − | 8,524 | +0.104801 |
+| 0 | 0 | 18,728 | +0.000000 |
+| 0 | + | 1,101 | -0.009706 |
+| + | − | 41 | +0.000457 |
+| + | 0 | 7,567 | +0.056234 |
+| + | + | 1,594 | +0.004268 |
+
+The nine contributions sum exactly to **+0.115382**. The paired 2,000-resample user-cluster 95% interval for the total is **[0.111573, 0.119111]**. In **46,462 requests (92.83%)**, $d_F$ or $d_S$ is zero, and their signed contributions sum to **+0.100885 (87.44% of the net positive mean)**. This 87.44% is a **signed net-accounting share**, not the proportion of absolute effects or an estimated causal mediation fraction. In contrast, 66 requests exhibit opposite strictly nonzero signs. Nonzero-gap requests contribute the remaining +0.014497. The large net interaction largely reflects support changes and signed cancellation across regimes. It cannot be used alone to establish uniquely relational identity effects or a new sampled-ranking metric inconsistency theorem.
+
+## S10.14 Time-valid historical identity perturbation on a stratified M3 DEV sample
+
+An additional analysis tests the role of **historically correct user--creator pairing** while holding each request's full-active candidate roster fixed. Before observing these perturbation outcomes, **1,024 requests from 992 distinct M3 DEV users** were frozen in a 4×4 stratification of recorded time and pretarget interaction-history activity (64 requests per cell), excluding 128 events previously examined during feasibility testing. These requests are a subset of the *same post-G5 DEV cohort*, **not a new TEST population**. Original Full and Long-only F/S ranking scores were regenerated event by event, with maximum absolute NDCG deviation $5.55\times10^{-17}$ from the frozen B1/B2 labels.
+
+A relationship-null swaps historical author labels across *different users* within recorded-time hourly windows. Each substitution requires two distinct authors available at **both original event times**, and maintains each user's interaction count and timestamps as well as each author's per-hour event count. Substitutions in an hour are **activated only after that hour ends**; requests inside the currently open hour retain their unchanged prior events. Original target identity, Base checkpoints and both F/S candidate rosters are fixed, with S retained only as a retrospective target-containing evaluation protocol. The same historical scoring code, run with an **empty substitution mapping**, exactly reproduced original Full and Long-only NDCG for all 1,024 requests; thus the effect below is not an artifact of switching rank implementations.
+
+Three random null seeds were fixed before score inspection (20261014, 20261015, 20261016). They draw from the **same users and requests** and should not be counted as independent holdouts. A total of 4,276,963 selected-user pretarget historical records were eligible; each seed rewired approximately **3.36 million (78.6%)** with per-hour activity and cross-author availability checks, and every request had at least one activated changed historical relation. Bootstrap confidence intervals use **2,000 paired user-cluster samples per seed**.
+
+**Table S10.8. Ranking quality under original relationship identity and non-floor time-/activity-preserving controls.**
+
+| Fixed null seed | Null Full F NDCG | Original−null F | 95% user-cluster CI for F gain | Null Full S NDCG | Original−null S | Null F top-10 hits |
+|---|---:|---:|---|---:|---:|---:|
+| 20261014 | 0.306491 | 0.032858 | [0.023317, 0.042538] | 0.622740 | 0.041156 | 487 |
+| 20261015 | 0.303804 | 0.035544 | [0.026723, 0.045122] | 0.623869 | 0.040027 | 481 |
+| 20261016 | 0.305321 | 0.034027 | [0.023890, 0.044384] | 0.618221 | 0.045675 | 476 |
+
+Original Full Memory obtains **0.339348** under F and **0.663896** under S on these identical requests. The full-active real-minus-null effect averages **+0.034143** across the three *null assignments*, with seed-specific estimates ranging **+0.032858 to +0.035544**. It has no CI obtained by pretending the three assignments are independent datasets. All three single-seed paired-user 95% interval half-widths are below the prespecified **0.015** analysis-precision target, so the planned optional 2,048-event expansion was not undertaken.
+
+The controls remain meaningful: their Full F NDCG is **0.303804–0.306491**, well above popularity-only **0.021867**, with **476–487** target-hit events in the top ten. Null Full S is **0.618221–0.623869**. Each seed passed the prespecified non-floor checks, including coverage and perturbation strength. The Long-only original-minus-null F effect is **+0.030490 to +0.035344**. These effects demonstrate the ranking consequences of disturbing historical author identity *under a fixed current candidate universe*, rather than relying solely on comparing sampled and full-ranking metrics.
+
+The intervention is deliberately strong and disrupts repeated user--author pairs and higher-order co-interaction patterns despite preserving the stated temporal/degree/availability marginals. The **78.6% change fraction** is notably greater than the earlier 128-event pilot's 23.2%; those results are not direct replications under identical intervention intensity. No relation-identity average treatment effect under all possible alternative nulls, new independent chronological TEST, or operational resource saving is established. The user- and author-linked private exchange maps were retained in restricted analysis storage and were not redistributed. Dataset-version terms and any release of derived interaction records remain subject to author review.
+
+Reproduction code and privacy-safe aggregates: `analysis/kbs_plan_c/n9_route_b_b2_real_closed_hour_swap_dev.py`, `analysis/kbs_plan_c/n9_route_b_b2_1024_real_relation_null_scoring.py`, `experiments/kbs_plan_c/N9_ROUTE_B_B2_1024_THREE_SEED_SAME_SCORER_VERIFIED_2026-10-14.json`. Source parity, chronological gates and no TEST access were checked in the stored provenance manifests.
