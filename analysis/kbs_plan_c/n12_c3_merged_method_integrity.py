@@ -56,7 +56,7 @@ def check(root=ROOT):
        "last ten \\emph{all-author} interactions",
        "strictly before",
        "it is \\emph{not} itself a decision-time feature",
-       "neither $S_L$ nor target-specific",
+       "they are \\emph{never} features",
        "may be retained in a retrospectively constructed sampled",
        "not a guaranteed", # original exact phrasing not needed; see guard below
     ):
