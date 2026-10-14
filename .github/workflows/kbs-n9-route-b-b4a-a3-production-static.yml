@@ -27,7 +27,8 @@ jobs:
             analysis/kbs_plan_c/n9_b4a_a3_private_source_preflight.py \
             analysis/kbs_plan_c/n9_b4a_a3_h1_blind_score.py \
             analysis/kbs_plan_c/n9_b4a_a3_h2_private_null_structure.py \
-            analysis/kbs_plan_c/n9_b4a_a3_h2_blind_score.py
+            analysis/kbs_plan_c/n9_b4a_a3_h2_blind_score.py \
+            analysis/kbs_plan_c/n9_b4a_a3_final_lock.py
           python - <<'PY'
           import ast
           from pathlib import Path
@@ -51,3 +52,24 @@ jobs:
               assert 'A4' in src and 'ndcg' in src.lower(), 'Explicit no-outcome contract missing'
           print('A3 production sources parse; no A4 label evaluator imported; no source data read')
           PY
+      - name: Pure-Python H2 same-hour source identity and snapshot causal isolation regression
+        run: |
+          python - <<'HISTORY_TEST'
+          import ast,collections
+          p='analysis/kbs_plan_c/n9_b4a_a3_h2_blind_score.py'
+          tree=ast.parse(open(p).read())
+          cls=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='History')
+          s=ast.Module(body=[cls],type_ignores=[])
+          ns={'collections':collections}
+          exec(compile(ast.fix_missing_locations(s),p,'exec'),ns)
+          History=ns['History']
+          r=History({3:1,4:2,5:3})
+          r.add(3)
+          old=r.snapshot_with_open_hour([])
+          with_hour=r.snapshot_with_open_hour([(2,4)])
+          assert old[0]=={1:1} and with_hour[0]=={1:1,2:1}
+          assert r.warm=={1:1},'Source-hour future should not mutate completed-hour state'
+          r.add(5)
+          assert r.snapshot_with_open_hour([])[0]=={1:1,3:1}
+          print('H2 open-hour prefix isolation and subsequent observation PASS')
+          HISTORY_TEST
