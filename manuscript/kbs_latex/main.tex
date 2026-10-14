@@ -657,31 +657,16 @@ The M3 Utility rules realize $27.72$--$29.21\%$ Memory calls on TEST after the D
 
 In a matched, exploratory nested M3 DEV sensitivity analysis, raising the inner specialist-call limit from $30\%$ to $50\%$ increases SASRec policy NDCG@10 from $0.302658$ to $0.319654$ and GRU4Rec from $0.303093$ to $0.320478$; at a $90\%$ limit both approach $0.34105$. Without any cap, the learned policies invoke Memory on $99.91\%$ (SASRec) and $99.44\%$ (GRU4Rec) of events, giving NDCG@10 $0.343495$ and $0.343363$, marginally below Always Memory $0.343509$. All limits are calibrated on inner DEV and actual outer rates may differ. An accompanying matched DEV comparison finds Direct relative-utility and separate two-stage utility prediction close, whereas predicting Base difficulty or Memory quality alone gives lower NDCG over $10\%$, $30\%$ and $50\%$ inner limits. These exploratory comparisons strengthen the interpretation of \emph{which decision target} is informative; they do not establish a new routing algorithm or measured saving in production resources (Supplementary S10). An additional decision-value analysis evaluates $J_{\lambda}(\pi)=V_F(\pi)-\lambda q(\pi)$, where $q$ is the \emph{actual outer} Memory-call fraction and $\lambda$ is a hypothetical disutility measured in expected event NDCG per specialist invocation. Among all A1 budget strategies and fixed Base/Memory endpoints, the 30\%-inner-cap policy maximizes this idealized objective only for $\lambda\in[0.084516,0.111321]$ with SASRec and $\lambda\in[0.083119,0.104379]$ with GRU4Rec; at $\lambda=0$, Always Memory remains preferable. These point-estimate ranges assume zero incremental gate overhead and should not be interpreted as observed monetary or latency costs.
 
-On 256 prespecified DEV events in a separate warmed RTX 3090 offline replay, Always Memory averages $0.803$\,ms per event and Always Base $1.425$\,ms, while the Utility selective path averages $1.802$\,ms despite calling Memory on only 80 events ($31.25\%$; Table~\ref{tab:results-m3-cost}). In the older 575-room warmed CPU replay, Base takes $0.991$\,ms and the selective path $2.007$\,ms (Supplementary S9). These are different tasks and devices and should not be directly compared.
+A first warmed RTX 3090 DEV replay on 256 M3 requests found a faster unconditional Memory scorer (mean $0.803$\,ms) than the Utility path ($1.802$\,ms), even at only 31.25\% Memory calls; the room-ranking CPU experiment reports a similar qualitative limitation under a different workload (Supplementary S9--S10). These distinct timing protocols are not directly comparable.
 
-\begin{table}[!htbp]
-\centering
-\caption{KuaiLive-M3 warmed offline DEV replay ($n=256$, fixed primary-seed SASRec and RTX 3090). Timings are per event; all inputs and relevant histories are already prepared. The values are not production end-to-end latency.}
-\label{tab:results-m3-cost}
-\footnotesize
-\setlength{\tabcolsep}{7pt}
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-Execution path & Mean (ms) & Median (ms) & Memory call rate (\%) \\
-\midrule
-Always Base & 1.425 & 0.832 & 0.00 \\
-Always Memory & \textbf{0.803} & \textbf{0.774} & 100.00 \\
-Utility selective & 1.802 & 1.678 & 31.25 \\
-\bottomrule
-\end{tabular}
-\end{table}
 
-The original M3 replay excludes preparation of histories and live author rosters, network transfer and production scheduling, and its means depend on the stipulated warm execution order. A subsequent post-B4-A, \emph{DEV-only} cost verification evaluates the unchanged primary-seed SASRec Utility implementation on the same 256 target-blind full-active requests in three counterbalanced, CUDA-synchronized repetitions. It measures the complete warmed per-request Base, Memory and Utility ranking branches and separately accounts for the original batch history-source scan and candidate-availability sweep (Table~\ref{tab:results-n10-cost}; Supplementary S10.17). This repeated offline accounting supports the earlier negative cost interpretation but is neither a new TEST experiment nor online serving telemetry. Consequently, the observed routing improvement under a given Memory-call restriction does not establish economic or latency superiority. Together with the greater M3 TEST accuracy of Always Memory, the measured cost evidence identifies a substantive boundary: an operational reason to restrict specialist invocations would require independent proof of external scarcity, permissions or serving cost.
+
+A second, counterbalanced DEV measurement repeats the same 256 full-active requests three times, using synchronized Base, Memory and the original frozen Utility gate branches (Table~\ref{tab:results-n10-cost}). It confirms that the gate's Base, feature and prediction overhead exceeds the avoided specialist-scoring work in this measured implementation. Full source-history reconstruction and availability-roster sweeps were timed separately rather than assigned to per-request online latency (Supplementary S10.17).
 
 
 \begin{table}[!htbp]
 \centering
-\caption{Post-B4-A matched, counterbalanced full-$F$ \emph{DEV-only} warmed offline path timing on one RTX 3090. The same 256 distinct requests are repeated three times ($768$ timings per path, not 768 independent users); pretarget history and active-candidate batch construction, measured separately, are excluded from each row. Frozen original SASRec Utility gate; this is not the newer B4-A F-aligned vectorized gate or production end-to-end latency.}
+\caption{Matched, counterbalanced \emph{DEV-only} full-active ranking-path timing on RTX 3090 (256 requests, each repeated three times). History and candidate preparation are reported separately; the timed selector is the original pointwise SASRec Utility gate, not the full-aligned vectorized gate or an online deployed system.}
 \label{tab:results-n10-cost}
 \footnotesize
 \setlength{\tabcolsep}{8pt}
@@ -696,7 +681,7 @@ Frozen Utility selective & 1.769 & 1.701 & 2.290 \\
 \end{tabular}
 \end{table}
 
-The repeated Utility route invokes Memory on 80 of 256 distinct DEV events (31.25\%); its measured component means are 0.499\,ms Base scoring, 0.373\,ms feature assembly and 0.559\,ms gate inference, while conditional Memory scoring contributes 0.132\,ms averaged over skipped and accepted requests. Source-history reconstruction (36.37\,s for a full offline batch scan) and candidate-interval roster materialization (10.81\,s) are reported separately, not divided by 256 to fabricate per-request online latency. Neither test measures queueing, stateful incremental updates, throughput at concurrency or monetary costs.
+The selector invokes Memory on 80 of 256 distinct DEV requests (31.25\%). Its mean Base, feature and gate costs are 0.499, 0.373 and 0.559\,ms, respectively, versus 0.132\,ms for Memory scoring averaged over all decisions. Batch preparation takes 36.37\,s for source-history reconstruction and 10.81\,s for available-candidate materialization; these full-source scans are not per-request online latency. The experiment does not estimate concurrency, network delays or monetary costs.
 
 \section{Discussion}
 \label{sec:discussion}
