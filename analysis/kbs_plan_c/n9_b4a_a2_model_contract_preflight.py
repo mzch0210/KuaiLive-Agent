@@ -31,9 +31,8 @@ def main(root,source,out):
         raise RuntimeError("A2 manifest invalid")
     manifest=json.loads((source/"summary.json").read_text())
     csv=source/"dev_pair_candidate_labels.csv"
-    if sha(csv)!=manifest["private_event_source_csv_sha256"]!=SRC:
-        raise RuntimeError("DEV source SHA invalid")
-    if sha(csv)!=SRC:raise RuntimeError("DEV SHA differs")
+    if not (sha(csv)==manifest["private_event_source_csv_sha256"]==SRC):
+        raise RuntimeError("DEV SHA differs")
     sample=pd.read_csv(csv,nrows=256)
     evidence={}
     for family in ("sasrec","gru4rec"):
