@@ -147,6 +147,8 @@ jobs:
           assert got==os.environ["EXPECTED_BLOB"], "A3 private source code SHA mismatch"
           print("Private source preflight code Git blob verified; no data opened",flush=True)
           VERIFY_CODE
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          "$HOME/venvs/kuailive-gpu/bin/python" -c 'import pyarrow, numpy; print("A3 private parquet dependencies available", flush=True)'
           export OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 OMP_NUM_THREADS=2 PYTHONUNBUFFERED=1
           ROOT="$HOME/.cache/kuailive-agent-kbs"
           "$HOME/venvs/kuailive-gpu/bin/python" "$RUNNER_TEMP/b4a_a3_source.py" \
