@@ -1080,20 +1080,20 @@ The B2 1,024-request/992-user post-G5 exploratory DEV historical-null study and 
 
 **Table S10.12. Historical-null validity and popularity diagnostics on the two distinct cohorts.**
 
-| Audit property | Exploratory DEV (1,024) | Additional targets (4,096) |
+| Validity check | DEV (1,024) | Added targets (4,096) |
 | --- | --- | --- |
 | Fixed Full-F candidates | PASS | PASS |
-| Same scorer and original Top-10 parity | PASS | PASS |
-| Source times, author-hour margins, active authors | PASS | PASS |
-| Swaps activated only after source-hour closure | PASS | PASS |
-| Rewired historical edges | ~78.62% | ~76.78–76.80% |
-| Authentic Full-F NDCG@10 | 0.339348 | 0.334942 (weighted) |
+| Scorer / Top-10 parity | PASS | PASS |
+| Time, hourly margin, active | PASS | PASS |
+| Post-hour-only swaps | PASS | PASS |
+| History edges rewired | ~78.62% | ~76.78–76.80% |
+| Original Full-F NDCG | 0.339348 | 0.334942 (weighted) |
 | Null 20261014 | 0.306491 | 0.303905 (weighted) |
 | Null 20261015 | 0.303804 | 0.304689 (weighted) |
 | Null 20261016 | 0.305321 | 0.302796 (weighted) |
-| Same-cohort TRAIN-only Popularity NDCG@10 | **0.021867, verified** | **Not frozen before A4** |
-| Null-above-popularity acceptance | **PASS (DEV)** | **NOT VERIFIED AS PREDECLARED** |
-| Independent later-period TEST | No | No |
+| Cohort TRAIN Popularity | **0.021867, verified** | **Not frozen before A4** |
+| Null above Popularity | **PASS (DEV)** | **NOT VERIFIED AS PREDECLARED** |
+| Independent later TEST | No | No |
 
 The B4-A Null rankings retain 1,903–1,913 positive Top-10 outcomes and each has weighted Full-F NDCG above 0.10, but these **partial nondegeneracy indicators do not establish the missing same-cohort TRAIN-popularity margin**. The B2 completed control cannot be imported to certify B4-A. Any check performed for this missing B4-A margin after A4's first reveal would be post hoc and cannot retroactively establish a pre-unseal acceptance condition.
 
