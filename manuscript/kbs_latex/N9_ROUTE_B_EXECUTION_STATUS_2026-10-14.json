@@ -15,7 +15,7 @@
     "B1B": "PASS_PUBLIC_CALL_BALANCE_AND_INFORMATION_SCOPE_AUDIT",
     "B2": "PASS_PRETARGET_1024_EVENTS_THREE_SEED_TIME_VALID_NONFLOOR_RELATION_ID_NULL_AND_SELF_SCORER_PARITY",
     "B3": "PASS_R1_BOUNDED_IMPROVED_R2_BOUNDED_R3_STRONG_WITHIN_DEV_NULL_DESIGN_GENERALIZATION_BOUNDED",
-    "B4": "HOLD_NO_NEW_AUTHORIZED_BLIND_CHRONOLOGICAL_TEST",
+    "B4": "HOLD_NO_AUTHORIZED_NEW_PERIOD; B4A_ADDITIONAL_SAME_PERIOD_TARGET_EVALUATION_PLAN_ONLY",
     "B5": "PASS_8_SECTION_MAIN_UPDATED_12_TABLES_SUPPLEMENT_S10_TO_14_SUBSECTIONS",
     "B6": "PASS_MAIN_37P_SUPPLEMENT_PDF_TECHNICAL_QA_AUTHOR_RIGHTS_AND_DECLARATIONS_HOLD"
   },
@@ -85,7 +85,7 @@
     "R3": "STRONG_IN_EXPLORATORY_TIME_DEGREE_AVAILABILITY_PRESERVED_1024_DEV_CONTROL_EXTERNAL_VALIDITY_BOUNDED"
   },
   "submission": "HOLD",
-  "next_gate": "Responsible human authors verify the exact M3 license and data lineage, AI-method/writing declarations, CRediT/COI/funding/data availability and live KBS Guide for Authors; external unseen TEST not established; no further unplanned DEV seed fishing.",
+  "next_gate": "Execute B4A A0 rights + target-blind eligibility/provenance audit, confirm sample counts, freeze A1/A2 without any B4A outcomes; old G5 and main manuscript unchanged.",
   "dataset_rights": "M3 PAPER NONCOMMERCIAL_SHAREALIKE_VS_HUGGINGFACE_BY_SHAREALIKE_METADATA_DISCREPANCY_AUTHORS_TO_RESOLVE",
   "current_paper_blobs": {
     "main_tex_git_blob": "f5cd5aa5f24133b858e370fdbdda661261582e4d",
@@ -104,5 +104,16 @@
       "status": "SUCCESS",
       "pdf_pages": "not independently counted"
     }
+  },
+  "B4A": {
+    "status": "PLAN_ONLY_A0_METADATA_AUDIT_NOT_RUN",
+    "plan": "manuscript/kbs_latex/N9_ROUTE_B_B4A_ADDITIONAL_TARGET_HOLDOUT_EXECUTION_PLAN_2026-10-14.md",
+    "evidence_tier": "ADDITIONAL_HELDOUT_TARGET_SAME_COLLECTION_PERIOD_NOT_NEW_TIME_TEST",
+    "provisional_primary_size": 30000,
+    "provisional_relation_null_subset": 4096,
+    "prior_G5_scored_targets_excluded": 47575,
+    "new_labels_revealed": false,
+    "manuscript_modified": false,
+    "human_data_rights_approval": "PENDING"
   }
 }
