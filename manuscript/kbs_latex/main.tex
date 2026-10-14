@@ -269,21 +269,21 @@ A separate pre-outcome freeze selected 30,000 additional author-ranking targets 
 
 \begin{table}[t]
 \centering
-\caption{Ranking units and evidence tiers. Original M3 TEST and additional frozen M3 targets refer to distinct evaluated event IDs within the same recording period; DEV studies and GPU timing are supporting diagnostics. Counts are selected requests, not independent users.}
+\caption{Evaluation tasks and evidence tiers. The original and additional M3 target IDs are disjoint as evaluated events within the same recorded period. DEV source controls and device timing are supporting analyses; counts refer to selected events unless users are specified.}
 \label{tab:exp-datasets}
 \footnotesize
-\setlength{\tabcolsep}{2pt}
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{1.85cm}>{\raggedright\arraybackslash}p{1.50cm}X>{\raggedright\arraybackslash}p{1.90cm}@{}}
+\setlength{\tabcolsep}{5pt}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.65cm}X>{\raggedright\arraybackslash}p{2.50cm}@{}}
 \toprule
-Setting & Ranking unit & Evaluated cohort and candidates & Inferential role \\
+Setting and ranked unit & Evaluated cohort and candidate universe & Evidence role \\
 \midrule
-Twitch & Streamer & 46,878 DEV; 44,221 TEST; available streamers & Frozen choice; RQ1/RQ2 \\
-Original KuaiLive & Live room & 10,222 previously evaluated paired targets; sampled 575 vs full-active rooms & Paired RQ1 \\
-M3 initial & Author & 50,049 DEV; 47,575 forward-time TEST; full-active authors & Frozen RQ2 selection \\
-M3 additional & Author & 30,000 presealed same-period targets; full-active authors & Frozen RQ2 supervision \\
-M3 nested & Author & 4,096 of the 30,000; fixed candidates, authentic vs three null histories & Frozen RQ3 source \\
-M3 auxiliary DEV & Author & Original 50,049 DEV; separate 1,024 historical-null DEV cohort & Exploratory RQ2/RQ3 \\
-M3 device & Author & 256 fixed DEV requests, three repeated measured passes & Cost diagnostic \\
+Twitch (streamer) & 46,878 DEV; 44,221 held-out TEST; recorded active streamers & Frozen RQ1/RQ2 \\
+Original KuaiLive (room) & 10,222 previously examined paired targets; sampled 575 versus full-active rooms & Paired RQ1 diagnostic \\
+M3 initial (author) & 50,049 DEV; 47,575 forward-time TEST; full-active TRAIN-known authors & Frozen RQ2 decision \\
+M3 additional (author) & 30,000 same-period targets (10,387 users); full-active authors & Frozen RQ2 labels \\
+M3 nested (author) & 4,096 nested targets (3,059 users); fixed candidates, authentic versus three null histories & Frozen RQ3 source \\
+M3 DEV studies (author) & 50,049 DEV transfer requests and 1,024 DEV source-null requests & Exploratory RQ2/RQ3 \\
+M3 device (author) & 256 distinct DEV requests, three repeated passes & Cost diagnostic \\
 \bottomrule
 \end{tabularx}
 \end{table}
