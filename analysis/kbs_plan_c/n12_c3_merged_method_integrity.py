@@ -63,7 +63,7 @@ def check(root=ROOT):
         if s=="not a guaranteed":continue
         ensure(s in method,"fixed Memory or causal visibility lost: "+s)
     for s in ("not guarantee an identical realized fraction",
-               "not a decision-time feature",
+               "it is \\emph{not} itself a decision-time feature",
                "never", "TRAIN-split", "Short uses", "Long's history"):
         ensure(s in method,"missing essential provenance/invocation wording "+s)
     ensure("the current target" not in method or "target" in method,
