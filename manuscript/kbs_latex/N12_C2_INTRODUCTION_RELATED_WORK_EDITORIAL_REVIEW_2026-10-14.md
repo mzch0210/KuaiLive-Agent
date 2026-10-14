@@ -1,6 +1,6 @@
 # N12-C2 | Introduction + Related Work revision and internal editor checkpoint
 
-Date: 2026-10-14 | Status: source rewrite submitted, scientific source audit passed; latest dual PDF artifact / rendering status is recorded in a separate QA entry once both jobs complete.
+Date: 2026-10-14 | Status: **C2 COMPLETE AND PDF VERIFIED**. Main + Supplement GitHub Actions #38547234449 both jobs SUCCESS; main 39p PDF (artifact 11885411283; SHA-256 2d76b6f026ddff2dd8de64ea7a3261aca0dbad345dd438d8cdc363abfa79318), unchanged S1–S10.18 45p PDF (artifact 11885046843; SHA-256 0e5ca6bd42e8ac59dcdd66f7bcc0c27dd83f136013f30c518f0505012f391611). Main and supplement logs: 0 overfull, 0 unresolved citations or references. Figure page 4 visually reviewed: clear side-by-side branches and labels. Original abstract and Sections 3–8 unchanged.
 
 ## Why this differs from N11
 
