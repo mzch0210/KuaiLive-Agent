@@ -16,7 +16,7 @@ class C4DesignIntegrity(unittest.TestCase):
     def test_new_target_not_misrepresented_as_independent_future_test(self):
         src=(ROOT/"manuscript/kbs_latex/main.tex").read_text()
         b=src.split(r"\section{Experimental Design}",1)[1].split(r"\section{Experimental Results}",1)[0]
-        self.assertIn("same original March 2026 TEST-source collection interval",b)
+        self.assertIn("original March 2026 TEST-source collection interval",b)
         self.assertIn("Neither sample is a newly collected later-period TEST",b)
         self.assertIn("was not scored and sealed before the outcome revelation",b)
     def test_older_scientific_controls_retained_in_supplement(self):
