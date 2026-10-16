@@ -17,7 +17,7 @@ def assert_ok(v,msg):
 def fnv32(t):
     buf=t.encode("utf-16-le",errors="surrogatepass");h=2166136261
     for i in range(0,len(buf),2):
-        h=((h^(buf[i]|(buf[i+1]<<8))*16777619)&0xffffffff
+        h=((h^(buf[i]|(buf[i+1]<<8)))*16777619)&0xffffffff
     return f"{h:08x}"
 def check(root=ROOT):
     main=(root/BASE/"main.tex").read_text()
