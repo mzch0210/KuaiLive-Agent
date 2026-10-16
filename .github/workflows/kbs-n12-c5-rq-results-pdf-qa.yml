@@ -78,7 +78,7 @@ jobs:
           sections=[int(s) for s in re.findall(r'^# S(10|[1-9])\.',supp,re.M)]
           assert sections==list(range(1,11)),sections
           secs=[int(s) for s in re.findall(r'^## S10\.(\d+) ',supp,re.M)]
-          assert secs==list(range(1,19)),secs
+          assert secs==list(range(1,20)),secs
           bib=Path('manuscript/kbs_latex/kbs_references.bib').read_text()
           assert '@article{zhong2026samd,' in bib
           for number in ('0.692','1.769','0.334942'):
