@@ -372,19 +372,19 @@ For the 30,000 additional M3 target events, the twenty-cell poststratification e
 The original KuaiLive Base comprises 64-dimensional ReChorus SASRec room/creator branches, one attention layer, four heads and maximum input length 50. LiveRec uses context length 16; M3 Base models use 64-dimensional embeddings, 16-item histories and one SASRec self-attention or GRU4Rec recurrent layer. Original Twitch and M3 supervised gates use histogram gradient boosting (200 iterations, learning rate 0.05, depth 3, minimum leaf size 50 and $\ell_2$ penalty 1); the later exploratory DEV gates use the explicitly different capacity reported above. Full training, history processing and reproducibility specifications remain in Supplementary S1--S3 and S7--S10.
 
 A separately timed \emph{DEV-only} scoring experiment executes the original primary-seed SASRec pointwise Utility selector, Always Base and Always Memory on the same 256 distinct author-ranking requests, each repeated three times in counterbalanced order on an RTX 3090, with CUDA synchronization. Pretarget history-source scanning and author-roster construction are timed separately from the warmed per-request scoring paths (Supplementary S10.17). This is neither production end-to-end serving latency nor a timing evaluation of the additional-target vectorized F-aligned gate. Memory-call constraints, absolute ranking utility and realized computation time are therefore reported as different outcomes.
-\section{Experimental Results}
+\section{Results}
 \label{sec:results}
 
-The results proceed from the incremental value of fixed relationship evidence, to the role of candidate availability in defining that value, to the consequences for pre-outcome selection and the authenticity of the historical source. Resource-constrained allocation and measured execution costs complete the empirical account.
+The evaluation addresses three successive research questions about one fixed relationship-knowledge source: the context in which its incremental ranking value arises (RQ1), the consequences of predicting that value for selecting between two rankers (RQ2), and the contribution of authentic historical relationships when current candidates remain unchanged (RQ3). We then examine invocation limits and measured ranking-path costs as conditions on practical use. All comparisons retain the ranked units, frozen models and evidence classifications of Section~\ref{sec:experimental-setup}.
 
-\subsection{Heterogeneous Utility of Relationship Memory}
+\subsection{RQ1: When Is Relationship Knowledge Incrementally Valuable?}
 \label{sec:results-heterogeneity}
+\label{sec:results-regimes}
 
-The ranking contribution of relationship memory is heterogeneous rather than uniformly positive. On 44,221 Twitch held-out streamer-ranking requests, unconditional Memory obtains NDCG@10 $0.53980$, below LiveRec Base at $0.58211$ (paired difference $-0.04232$, 95\% CI $[-0.04521,-0.03950]$). Yet the negative aggregate masks a substantial positive contribution for previously encountered creators outside the incumbent's visible input window.
+\paragraph{Complementarity depends on the incumbent's usable historical context.}
+On 44,221 held-out Twitch streamer-ranking requests, unconditional Memory obtains NDCG@10 $0.53980$, below the LiveRec incumbent's $0.58211$ (paired difference $-0.04232$, 95\% user-bootstrap CI $[-0.04521,-0.03950]$). The aggregate, however, combines different historical situations. On 5,539 \emph{recoverable-but-unrepresented} events—where the relevant creator is present in accessible earlier history but absent from the Base input—Memory contributes $+0.22045$ NDCG@10 relative to Base (95\% CI $[+0.21140,+0.23001]$). The corresponding gains are $-0.01935$ for 24,285 represented events and $-0.18215$ for 14,397 events without prior accessible target history. Figure~\ref{fig:results-evidence-states} presents this stable pattern across DEV and frozen TEST; all group-specific Base/Memory means, counts and uncertainty intervals are preserved in Supplementary Table S10.13. These are \emph{outcome-defined diagnostic groups}, not labels supplied to the online selector.
 
-Figure~\ref{fig:results-evidence-states} and Table~\ref{tab:results-evidence-states} show that Memory improves NDCG@10 by $+0.22045$ on the 5,539 \emph{recoverable-but-unrepresented} TEST events. Its contribution is $-0.01935$ on 24,285 represented events and $-0.18215$ on 14,397 unavailable events. These target-defined groups identify the conditional pattern after the outcome is observed; the online selector does not receive their labels. The recoverable-group gain demonstrates that older observed relationships can add ranking information even when the same fixed specialist underperforms on average.
-
-In the distinct KuaiLive-M3 author-ranking TEST, Memory reaches NDCG@10 $0.34679$ on 47,575 events, exceeding each of six fitted SASRec and GRU4Rec incumbents ($0.25800$--$0.26065$). For the primary SASRec fit its advantage is $+0.08879$. Thus, the sign of aggregate Memory--Base value changes across the two held-out tasks. Because Base design, ranking unit, candidates and time protocol differ together, this contrast characterizes incumbent- and setting-relative knowledge value without assigning the difference to one isolated cause.
+In the distinct M3 full-active \emph{author}-ranking TEST, fixed Memory attains NDCG@10 $0.34679$ on 47,575 requests, exceeding each of the six trained SASRec/GRU4Rec incumbents ($0.25800$--$0.26065$), including a $+0.08879$ advantage over the primary SASRec Base. The difference between aggregate Twitch and M3 values is consistent with the definition of knowledge value as \emph{incumbent-relative}, while the protocols change Base architecture, ranking unit, source history and candidate universe together. It is not an isolated treatment effect of any one of those factors.
 
 \begin{figure}[!htbp]
 \centering
@@ -418,30 +418,8 @@ In the distinct KuaiLive-M3 author-ranking TEST, Memory reaches NDCG@10 $0.34679
 \label{fig:results-evidence-states}
 \end{figure}
 
-\begin{table}[!htbp]
-\centering
-\caption{Memory and Base NDCG@10 by retrospective evidence state on frozen Twitch TEST ($n=44{,}221$). The 95\% intervals are from 5,000 user-paired bootstrap resamples within each state.}
-\label{tab:results-evidence-states}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lrrrrl@{}}
-\toprule
-Evidence state & Events & Base & Memory & $\Delta_M$ & 95\% CI for $\Delta_M$ \\
-\midrule
-Represented & 24,285 & 0.86102 & 0.84167 & $-0.01935$ & $[-0.02234,-0.01633]$ \\
-Recoverable & 5,539 & 0.30181 & 0.52225 & $+0.22045$ & $[+0.21140,+0.23001]$ \\
-Unavailable & 14,397 & 0.21948 & 0.03734 & $-0.18215$ & $[-0.18681,-0.17715]$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\FloatBarrier
-\subsection{Candidate-Regime Dependence of Relative Utility}
-\label{sec:results-regimes}
-
-Because ranking utility is defined over competing alternatives, the candidate environment is part of the value being estimated. On the original KuaiLive \emph{room}-ranking task, 10,222 identical user--time--target events yield opposite Memory--Base results when the same fixed raw ranker scores are evaluated under sampled-active and full-active candidates. Among 575 sampled-active rooms, the mean difference is $-0.04120$ (Base $0.60709$, Memory $0.56589$); among full-active rooms, it is $+0.04631$ (Base $0.38571$, Memory $0.43202$). The paired change is $+0.08751$ (95\% CI $[+0.08210,+0.09326]$, 3,000 paired user bootstrap resamples). Neither the interaction histories nor the target event identities change.
-
-The crossed candidate-membership and Base score-normalization reference accounting in Table~\ref{tab:results-factorial} attributes $+0.08827$ of this paired contrast to the membership dimension (95\% CI $[+0.08287,+0.09397]$) and $-0.00076$ to the normalization reference (95\% CI $[-0.00117,-0.00036]$). Membership combines candidate count, identity and rank competition; the contrast does not isolate a causal effect of list length.
+\paragraph{Candidate membership can reverse the evaluated value for the same ranking event.}
+The original KuaiLive \emph{room}-ranking candidate comparison keeps 10,222 target events, user histories and fixed raw ranker functions unchanged. On the 575-room sampled-active evaluation, Memory-minus-Base NDCG@10 is $-0.04120$ (Base $0.60709$, Memory $0.56589$). On the contemporaneous full-active roster, the difference becomes $+0.04631$ (Base $0.38571$, Memory $0.43202$). The within-event shift is $+0.08751$ (95\% paired user CI $[+0.08210,+0.09326]$). The crossed candidate/reference comparison in Table~\ref{tab:results-factorial} allocates $+0.08827$ (CI $[+0.08287,+0.09397]$) to the candidate-membership dimension and $-0.00076$ (CI $[-0.00117,-0.00036]$) to the score-normalization reference. Membership changes competing identities, number and top-rank competition together; the accounting does not identify candidate count alone as a cause.
 
 \begin{table}[!htbp]
 \centering
@@ -459,37 +437,14 @@ Full-active ($F$) & $+0.04761$ & $+0.04631$ \\
 \end{tabular}
 \end{table}
 
-The reversal remains directionally stable across three separately trained KuaiLive checkpoint pairs and nine sampled-candidate draws at sizes 128, 256 and 575 on the same inspected cohort (Supplementary S5 and S8). The retrospective history-state composition remains 4,589 represented, 206 recoverable and 5,427 unavailable events in the paired regimes. The result therefore motivates candidate-conditioned specialist-value supervision, while remaining a retrospective room-ranking diagnostic rather than an independent M3 author-ranking intervention.
+The direction of this reversal persists over three alternative KuaiLive checkpoint pairs and nine sampled candidate draws on the same previously examined room cohort (Supplementary S5 and S8); it is not an independent new TEST. Together with the Twitch recoverability pattern, the paired comparison establishes the empirical meaning of RQ1: the value of a fixed historical specialist is specific to the incumbent, available history and actual ranking alternatives. It therefore motivates supervising a knowledge-use policy with utility computed on the \emph{candidate regime where that policy is evaluated}.
 
-The matched M3 author-ranking development analysis tests the decision consequence of this label dependence on the \emph{same} held-out full-active events (Table~\ref{tab:results-m3-dev-regime-transfer}). Policies fitted and calibrated from sampled-candidate labels obtain lower full-active NDCG@10 than policies using full-active supervision: $0.296499$ versus $0.302658$ for SASRec (paired user difference $+0.006159$, 95\% CI $[+0.004835,+0.007543]$) and $0.298123$ versus $0.303093$ for GRU4Rec ($+0.004970$, CI $[+0.003550,+0.006369]$). Realized Memory calls are similar but not identical. A regime-adapted condition uses full-active labels on outer-training users and does not improve on direct full-active supervision. The request-level allocation analysis explains the corresponding quality difference. Although sampled- and full-supervised policies invoke Memory on nearly the same number of requests, they disagree on 10,672 of 50,049 decisions (21.32\%) for SASRec and 11,517 (23.01\%) for GRU4Rec. Among requests added by full-candidate supervision, the observed full-ranking Memory--Base advantage averages 0.133417 and 0.126600, versus 0.076194 and 0.079135 among requests no longer selected. The positive paired utility difference is consequently attributable to allocating a similar invocation budget to higher-value requests, not primarily to changing the overall call fraction (Supplementary S10). These within-development comparisons explain allocation changes and are not an independent held-out evaluation.
-
-\begin{table}[!htbp]
-\centering
-\caption{Exploratory M3 development-fold candidate-supervision transfer on the same 50,049 full-active author-ranking events (12,628 users; one primary seed per Base). $S$ denotes retrospective target-retained sampled-candidate supervision; $F$ denotes full-active supervision and evaluation. The adapted condition includes $F$ labels from outer-training users. Calls are naturally realized outer-fold counts, not an equal-count intervention.}
-\label{tab:results-m3-dev-regime-transfer}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}llrr@{}}
-\toprule
-Base & Supervision $\rightarrow$ evaluation & F NDCG@10 & Memory calls \\
-\midrule
-SASRec & $S\rightarrow F$ & 0.296499 & 14,988 \\
-SASRec & $F\rightarrow F$ & \textbf{0.302658} & 15,016 \\
-SASRec & Adapted $\rightarrow F$ & 0.301847 & 14,954 \\
-\addlinespace
-GRU4Rec & $S\rightarrow F$ & 0.298123 & 15,001 \\
-GRU4Rec & $F\rightarrow F$ & \textbf{0.303093} & 14,762 \\
-GRU4Rec & Adapted $\rightarrow F$ & 0.303000 & 14,989 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Decision Value of Predicting Relative Utility}
+\FloatBarrier
+\subsection{RQ2: Does Candidate-Aligned Value Supervision Improve Knowledge Use?}
 \label{sec:results-decision}
 
-The candidate comparisons motivate a consequential test: whether a selector guided by the incremental value of \emph{this} Memory over \emph{this} Base makes better choices than one guided by general request difficulty or specialist quality. On Twitch, a DEV-frozen Utility rule selects Memory on 6,650 of 44,221 TEST requests ($15.04\%$) and improves NDCG@10 from Base $0.58211$ to $0.58983$ (paired gain $+0.00772$, 95\% CI $[+0.00641,+0.00903]$). HR@10 increases by $+0.00945$ (95\% CI $[+0.00776,+0.01117]$). The DEV-trained Difficulty score reaches NDCG@10 $0.58340$ at the retrospectively matched TEST count, producing a Utility advantage of $+0.00644$ (95\% CI $[+0.00528,+0.00762]$). Unlike Utility's frozen pointwise threshold, Difficulty retrospectively ranks the entire TEST batch to achieve the same call count.
-
-Memory contributes $+0.05136$ NDCG@10 on Utility-selected Twitch requests but $-0.05890$ on the remaining requests, whereas Difficulty's count-matched selections gain only $+0.00855$ on average. The nondeployable outcome-informed Oracle yields $0.64806$ NDCG@10 at the same call count. These observations establish decision relevance while leaving considerable predictive headroom.
+\paragraph{Relative-value prediction supports pre-outcome selection.}
+On frozen Twitch TEST, the DEV-calibrated Utility rule invokes Memory on 6,650 of 44,221 events (15.04\%) and increases NDCG@10 from the Base's $0.58211$ to $0.58983$ (paired gain $+0.00772$, 95\% CI $[+0.00641,+0.00903]$), with HR@10 gain $+0.00945$ (CI $[+0.00776,+0.01117]$). A Difficulty score attains NDCG@10 $0.58340$ when retrospectively matched to the same TEST call count, giving Utility a $+0.00644$ advantage (CI $[+0.00528,+0.00762]$). The count-matched Oracle achieves $0.64806$ but uses the observed outcomes. Unlike those retrospective equal-count references, Utility makes pointwise choices under its \emph{frozen DEV threshold} (Table~\ref{tab:results-twitch-policy}). Its chosen requests show mean Memory-minus-Base value $+0.05136$, compared with $-0.05890$ for unchosen requests, linking pre-outcome selection to realized source value.
 
 \begin{table}[!h]
 \centering
@@ -510,11 +465,9 @@ Oracle (hindsight) & 0.64806 & 0.80455 & 6,650 \\
 \end{tabular}
 \end{table}
 
-On the prospectively frozen KuaiLive-M3 full-active author TEST, Utility obtains NDCG@10 $0.30287$ with $29.21\%$ realized Memory calls for the primary SASRec fit, versus Base $0.25800$. It exceeds each of the four alternative selector objectives in NDCG while invoking Memory less often (Table~\ref{tab:results-m3-policy}). All policies were calibrated under a maximum $30\%$ DEV call fraction; the observed TEST fractions are reported without retroactive adjustment.
+The original frozen M3 \emph{author}-ranking TEST provides the principal cross-Base decision comparison. On the primary SASRec checkpoint, Utility achieves NDCG@10 $0.30287$ at 29.21\% Memory calls, versus Base $0.25800$, and exceeds each of the four specified selection comparators while making fewer realized calls (Table~\ref{tab:results-m3-policy}). Across six SASRec/GRU4Rec fits on the \emph{same} 47,575 evaluated TEST requests, Utility NDCG@10 ranges from $0.30177$ to $0.30400$, its improvement over each incumbent from $+0.04237$ to $+0.04515$, and its Memory-call rate from 27.72\% to 29.21\% (Table~\ref{tab:results-m3-robustness}). These are pointwise frozen DEV thresholds, not equal-TEST-count batch choices.
 
-This advantage extends across the three independently trained seeds of both SASRec and GRU4Rec (Table~\ref{tab:results-m3-robustness}; Supplementary S7--S8). In all six fits, Utility has higher TEST NDCG and fewer realized Memory calls than each of the four specified alternative rules. Utility NDCG@10 ranges from $0.30177$ to $0.30400$, its improvement over the corresponding Base from $+0.04237$ to $+0.04515$, and its TEST Memory invocation rate from $27.72\%$ to $29.21\%$. This is joint dominance on the two \emph{observed metrics} for the tested policies, not a claim of identical TEST quotas, lower total serving cost or universal optimality.
-
-For the primary SASRec fit, the predeclared Utility comparisons are against Base ($+0.04486$, user-cluster 95\% CI $[+0.04281,+0.04692]$), Difficulty ($+0.02039$, CI $[+0.01837,+0.02244]$) and Specialist Quality ($+0.02331$, CI $[+0.02118,+0.02551]$). Each passes the within-fit three-comparison Holm correction ($p_{\mathrm{adj}}\approx0.00060$); the remaining fitted-model intervals and tests are in Supplementary S8. The secondary Utility--Uncertainty advantage ranges from $+0.01301$ to $+0.01431$. All six fits use the same 12,533 TEST users, so model-seed consistency is not six independent cohort replications or one globally corrected 18-comparison test family.
+For the primary SASRec fit, the three predeclared contrasts yield Utility-minus-Base $+0.04486$ (95\% CI $[+0.04281,+0.04692]$), Utility-minus-Difficulty $+0.02039$ (CI $[+0.01837,+0.02244]$), and Utility-minus-Specialist Quality $+0.02331$ (CI $[+0.02118,+0.02551]$). They pass within-fit Holm adjustment ($p_{\mathrm{adj}}\approx0.00060$). The other fitted-model statistics are in Supplementary S8; six fits share one TEST population, and those corrections are not a single 18-test family. The observed quality and call-count comparison does not by itself imply an unconstrained accuracy or serving-cost advantage.
 
 \begin{table}[!htbp]
 \centering
@@ -557,9 +510,8 @@ GRU4Rec & 20261014 & 0.25840 & 0.30355 & $+0.04515$ & $+0.01431$ \\
 \end{tabular}
 \end{table}
 
-For the primary M3 fit, random uniform allocation at $30\%$ calls has conditional expected NDCG@10 $0.28464$, compared with $0.38813$ for the hindsight budget Oracle. More importantly, Always Memory achieves $0.34679$, exceeding every frozen Utility policy in absolute M3 ranking quality. The selection finding concerns \emph{decision quality under a stipulated specialist-call constraint}, not the unconstrained optimum.
-
-The additional 30,000-target same-period evaluation tests the consequence of \emph{candidate-aligned utility supervision} using frozen policies and previously unscored target event IDs. Under the identical full-active $F$ candidate universe, F-supervised gates exceed S-supervised gates by $+0.005391$ NDCG@10 for SASRec (paired 95\% user-cluster CI $[+0.003646,+0.007174]$) and $+0.003585$ for GRU4Rec (CI $[+0.001599,+0.005576]$); both pass the three-contrast Holm correction ($p_{\mathrm{adj}}<0.001$; Table~\ref{tab:results-m3-b4a-supervision}). In the naturally realized requests, the F-supervised policies make \emph{fewer}, not equal, specialist calls: 8,704 versus 9,105 SASRec calls and 8,629 versus 9,168 GRU4Rec calls. Their absolute weighted full-active NDCG values remain below the fixed Always Memory reference ($0.348744$). These findings corroborate the decision relevance of candidate-aligned supervision for the specified frozen policies; the unequal call counts, unequal DEV label information and shared recording interval preclude strict equal-budget or external temporal-transfer claims.
+\paragraph{Actual-candidate labels improve frozen policy outcomes.}
+The separate 30,000-target additional M3 evaluation tests the RQ1 implication that the supervision candidate regime matters for policy learning. Under identical full-active $F$ evaluation candidates, the frozen F-supervised policy improves eligible-population-weighted NDCG@10 relative to the sampled-label S-supervised policy by $+0.005391$ for SASRec (95\% paired user CI $[+0.003646,+0.007174]$, Holm $p=0.000600$) and $+0.003585$ for GRU4Rec (CI $[+0.001599,+0.005576]$, Holm $p=0.000800$). Table~\ref{tab:results-m3-b4a-supervision} reports the actual policy scores and calls. Despite the higher ranking utility, F-supervised selectors make \emph{fewer} Memory calls: SASRec 8,704 versus 9,105; GRU4Rec 8,629 versus 9,168. The 1.337/1.797 percentage-point realized differences exceed the original approximate 1pp near-equal-call tolerance. Accordingly the results favor these \emph{frozen policy configurations}, not an experimentally isolated equal-resource effect of changing only the label. Both cohorts use event IDs from the original recording period, rather than a later independently collected TEST.
 
 \begin{table}[!htbp]
 \centering
@@ -577,32 +529,16 @@ GRU4Rec & 0.300945 & \textbf{0.304530} & $+0.003585$ $[0.001599,0.005576]$ & 8,6
 \end{tabularx}
 \end{table}
 
+Exploratory DEV evidence explains the allocation mechanism without being treated as a further confirmatory TEST. On the common 50,049 full-active M3 DEV requests, F-supervised versus S-supervised policies achieve $0.302658$ versus $0.296499$ NDCG@10 for SASRec (difference $+0.006159$; CI $[+0.004835,+0.007543]$) and $0.303093$ versus $0.298123$ for GRU4Rec ($+0.004970$; CI $[+0.003550,+0.006369]$). Their naturally realized calls are similar, but 10,672 (21.32\%) and 11,517 (23.01\%) event decisions disagree. The cases newly selected by F-supervision have larger observed Memory-minus-Base gain than those no longer selected (SASRec 0.133417 versus 0.076194; GRU4Rec 0.126600 versus 0.079135). Full per-policy values, call counts and the adapted condition appear in Supplementary Table S10.14. On a separate Twitch DEV feature-family ablation, history plus Base-score descriptors produce $+0.00838$ NDCG@10 versus $+0.00372$ for history alone and $+0.00160$ for Base scores alone at a common retrospective DEV call count (Supplementary Table S10.16). Both analyses concern fitted development outcomes and support the use of pretarget historical and incumbent evidence, rather than proving a new independent deployment gain.
+
+The RQ2 findings therefore connect \emph{candidate-relative knowledge-value supervision} to actual use-time ranking decisions. They do not establish whether the source of Memory's ranking signal is the authentic association of a viewer with particular past creators; RQ3 addresses that question while holding current alternatives constant.
+
 \FloatBarrier
-\subsection{Relationship Sources and Observable Signals}
+\subsection{RQ3: Does Authentic Relationship History Matter with Fixed Candidates?}
 \label{sec:results-robustness}
 
-The source of historical knowledge is also relevant to its measured ranking value. For matched M3 development events, Full Memory is better than Long-only under full-active candidates ($0.343509$ versus $0.333231$ NDCG@10), whereas Long-only ranks ahead under retrospective sampled candidates ($0.773602$ versus $0.668498$; Table~\ref{tab:results-m3-dev-source}). Under original twelve-feature policies, Long-only incurs a larger candidate-supervision transfer loss than Full Memory ($0.010605$ versus $0.006159$ for SASRec and $0.010262$ versus $0.004970$ for GRU4Rec). In six-feature candidate-plus-Base controls, the Full-Memory transfer losses decrease to $0.001814$ and $0.001607$; these feature panels differ in information content, so the contrast does not identify an isolated causal mechanism. Short-only transfer also produces a large change in actual Memory calls; popularity and history-placement controls have near-zero invocation floors. A matched user-cluster analysis of fixed source utility clarifies the candidate-regime dependence: Full minus Long-only averages $+0.010278$ under $F$ (95\% CI $[+0.007906,+0.012668]$) and $-0.105104$ under retrospective $S$ (CI $[-0.108326,-0.101683]$), giving a paired source--regime interaction of $+0.115382$ (CI $[+0.111724,+0.119065]$). This is an aggregate ranking-value interaction rather than pervasive event-level sign reversal: 46,462 requests have zero Full--Long difference under at least one regime, and only 66 exhibit strictly opposite nonzero source-gap signs. A nine-cell decomposition attributes $+0.100885$ of the $+0.115382$ net interaction (87.4\%) to events with a zero source gap in at least one regime, consistent with a substantial sampled top-ten support effect. This motivates examining relation identity under a \emph{fixed} candidate environment rather than interpreting the source interaction as independent causal evidence.
-
-On 1,024 stratified M3 DEV requests, valid historical-author nulls retaining source-hour author activity and user interaction times remain useful rankers but score below the original Full Memory under identical full-active author candidates (Supplementary S10.14). Across three prespecified null seeds, original-minus-null NDCG@10 lies between $+0.032858$ and $+0.035544$, with positive paired user-cluster intervals. The source swaps modify approximately 78.6\% of eligible history edges and also alter repeated-pair and higher-order relational structure; the contrast measures sensitivity to a strong time- and degree-preserving identity perturbation, not a uniquely identified causal effect of one relational feature. None of these development results is an additional independent TEST (Supplementary S10).
-
-\begin{table}[!htbp]
-\centering
-\caption{Exploratory M3 DEV NDCG@10 of fixed relationship-knowledge components under full-active $F$ and offline target-retained sampled $S$ author candidates (same 50,049 events). The original Full mixture is not retuned. The history-placement control does not preserve global user--author marginals.}
-\label{tab:results-m3-dev-source}
-\footnotesize
-\setlength{\tabcolsep}{7pt}
-\begin{tabular}{@{}lrr@{}}
-\toprule
-Knowledge source & Full-active $F$ & Sampled $S$ \\
-\midrule
-Full Memory & \textbf{0.343509} & 0.668498 \\
-Long-only & 0.333231 & \textbf{0.773602} \\
-Short-only & 0.273839 & 0.407506 \\
-Training popularity & 0.022215 & 0.197796 \\
-History placement control & 0.007576 & 0.189571 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\paragraph{Frozen additional-target source comparison.}
+The nested 4,096-target M3 author-ranking cohort holds the incumbent task, full-active eligible candidates and unchanged Full Memory scorer fixed, varying only the historical viewer--creator source between authentic observed relationships and three time- and author-activity-constrained null histories. Authentic Full Memory obtains weighted full-candidate NDCG@10 $0.334942$ versus the within-event mean of null scores $0.303797$, a paired gain of $+0.031145$ (95\% user-cluster CI $[+0.027389,+0.035098]$, Holm-adjusted $p=0.000600$; Table~\ref{tab:results-m3-additional-relation-identity}). The three seed-specific nulls score 0.303905, 0.304689 and 0.302796. They are three randomized sources for the \emph{same} sample, not three new target cohorts.
 
 \begin{table}[!htbp]
 \centering
@@ -624,43 +560,24 @@ Authentic minus mean null & $\mathbf{+0.031145}$ & $[+0.027389,+0.035098]$ \\
 \end{tabular}
 \end{table}
 
-In the nested 4,096-target M3 evaluation, authentic Full Memory exceeds the mean of three time- and activity-preserving historical-author nulls by $+0.031145$ in weighted full-active NDCG@10 (Table~\ref{tab:results-m3-additional-relation-identity}). The paired user-cluster confidence interval excludes zero, with Holm-adjusted $p=0.000600$. Each null retains more than 1,900 top-ten target hits, despite approximately 76.8\% rewired historical edges. This fixed-candidate evidence is distinct from a ranking-candidate artifact, but the intervention jointly changes repeated pairs and higher-order relations. The required same-cohort, pre-outcome-frozen TRAIN-popularity comparison was not completed for these targets, and the experiment does not represent a new source recording period (Supplementary S10.16--S10.18).
+The constrained rewiring replaces approximately 76.78--76.80\% of eligible historical relation edges yet leaves over 1,900 relevant targets in the top ten for each null. The original-versus-null difference supports the value of authentic \emph{historical source arrangement} beyond candidate membership and recorded author-hour availability; it does not isolate a single viewer--creator semantic mechanism because repeated pairs and higher-order structures also change. Furthermore, the cohort-specific TRAIN-only Popularity margin included among the \emph{original pre-unseal acceptance conditions} was **not measured and sealed before target reveal**. Its earlier DEV counterpart and partial null nondegeneracy diagnostics do not certify the unfulfilled condition (Supplementary S10.16--S10.18). This result is a fixed-source-period historical validity check, not later-period external validation.
 
-The feasibility of predictive selection depends on pre-outcome descriptors of historical relationships and the incumbent's candidate scores. In the 46,878-event Twitch DEV feature-family analysis, combining history and Base-score signals improves selective value over either family alone at a common 6,563 Memory calls (Table~\ref{tab:results-feature-ablation}). This supports the feature-level interpretation of marginal utility without creating another frozen TEST.
+\paragraph{Supporting source and composition analyses.}
+The separate 1,024-request M3 DEV history study provides consistent source sensitivity on common full-active candidates: across three null seeds, the original Full-minus-null gain ranges from $+0.032858$ to $+0.035544$, with positive paired intervals (Supplementary S10.14 and S10.18). The DEV cohort's TRAIN-only Popularity control passed its own nonfloor requirement, which is \emph{not} transferable as certification for the additional-target study.
 
-\begin{table}[!htbp]
-\centering
-\caption{Twitch DEV-only five-fold OOF feature-family comparison ($n=46{,}878$), with 6,563 Memory invocations for each condition. This common count was selected by the combined-feature model on DEV. Gains are relative to the same development Base; paired 95\% bootstrap intervals resample the resulting event-level OOF differences, conditional on the fitted predictions and count.}
-\label{tab:results-feature-ablation}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lrrlr@{}}
-\toprule
-Feature family & Dim. & $\Delta$NDCG@10 & 95\% CI & Spearman \\
-\midrule
-History descriptors & 6 & $+0.00372$ & $[+0.00256,+0.00490]$ & 0.14791 \\
-Base-score descriptors & 8 & $+0.00160$ & $[+0.00048,+0.00270]$ & 0.09109 \\
-Combined & 14 & $\mathbf{+0.00838}$ & $[+0.00713,+0.00963]$ & \textbf{0.18990} \\
-\bottomrule
-\end{tabular}
-\end{table}
+At the component level, Full Memory ranks above Long-only under full-active M3 DEV candidates (NDCG@10 $0.343509$ versus $0.333231$), but Long-only ranks above the unchanged Full mixture under retrospective sampled candidates ($0.773602$ versus $0.668498$). Full-minus-Long is $+0.010278$ (CI $[+0.007906,+0.012668]$) under $F$ and $-0.105104$ (CI $[-0.108326,-0.101683]$) under $S$, a paired interaction of $+0.115382$ (CI $[+0.111724,+0.119065]$). The interaction is driven largely by sampled top-ten support, including $+0.100885$ (87.4\%) from events with zero source gap under at least one regime; only 66 events have strictly opposite nonzero source-gap signs. Supplementary Table S10.15 preserves the full DEV Full/Long/Short/Popularity/placement results. The contrast establishes candidate-conditional rankings of different knowledge representations but does not independently identify a single causal relation feature.
 
-Additional DEV-only diagnostics indicate how that relative value varies with Memory construction and the trained Base. Among recoverable Twitch DEV targets, Long-only Memory attains NDCG@10 $0.63890$ versus $0.53298$ for the fixed Full Memory (Supplementary S4). Separately trained Bases at input lengths $8$, $16$ and $32$ obtain DEV NDCG@10 $0.52619$, $0.57185$ and $0.59663$ (Supplementary S6). These comparisons are descriptive sensitivity checks: the alternative Bases differ by training as well as their history-window settings. Additional Memory-parameter and retrospective recurrence-distance results are retained in Supplementary S4--S6 rather than treated as independent tests of the selection rule.
+Taken together, the source tests demonstrate that the history used by the fixed specialist is informative on the same full candidate rosters, complementing the RQ1 value characterization and RQ2 use decisions. They are neither a causal mediation chain nor independent longitudinal evidence.
 
 \FloatBarrier
-\subsection{Invocation Constraints and Measured Scoring Cost}
+\subsection{Operational Conditions: Invocation Limits and Measured Scoring Cost}
 \label{sec:results-efficiency}
 
-The M3 Utility rules realize $27.72$--$29.21\%$ Memory calls on TEST after the DEV call-limit calibration. History reaches $35.47\%$ on TEST, illustrating that a frozen pointwise rule need not preserve its DEV call fraction. Invocation rates alone do not measure full-path computation.
+Selection only becomes an operational advantage under an explicit resource objective. In the original frozen M3 TEST, Utility invokes Memory on 27.72--29.21\% of requests after DEV-limited calibration; a History heuristic reaches 35.47\% on TEST. In the additional 30,000-target cohort, the unconstrained Always Memory reference obtains weighted full-candidate NDCG@10 $0.348744$, exceeding SASRec and GRU4Rec F-aligned selective policy scores of $0.305446$ and $0.304530$. These values delimit the accuracy benefit of invoking the specialist unconditionally.
 
-In a matched, exploratory nested M3 DEV sensitivity analysis, raising the inner specialist-call limit from $30\%$ to $50\%$ increases SASRec policy NDCG@10 from $0.302658$ to $0.319654$ and GRU4Rec from $0.303093$ to $0.320478$; at a $90\%$ limit both approach $0.34105$. Without any cap, the learned policies invoke Memory on $99.91\%$ (SASRec) and $99.44\%$ (GRU4Rec) of events, giving NDCG@10 $0.343495$ and $0.343363$, marginally below Always Memory $0.343509$. All limits are calibrated on inner DEV and actual outer rates may differ. An accompanying matched DEV comparison finds Direct relative-utility and separate two-stage utility prediction close, whereas predicting Base difficulty or Memory quality alone gives lower NDCG over $10\%$, $30\%$ and $50\%$ inner limits. These exploratory comparisons strengthen the interpretation of \emph{which decision target} is informative; they do not establish a new routing algorithm or measured saving in production resources (Supplementary S10). An additional decision-value analysis evaluates $J_{\lambda}(\pi)=V_F(\pi)-\lambda q(\pi)$, where $q$ is the \emph{actual outer} Memory-call fraction and $\lambda$ is a hypothetical disutility measured in expected event NDCG per specialist invocation. Among the recorded invocation-budget policies and fixed Base/Memory endpoints, the 30\%-inner-cap policy maximizes this idealized objective only for $\lambda\in[0.084516,0.111321]$ with SASRec and $\lambda\in[0.083119,0.104379]$ with GRU4Rec; at $\lambda=0$, Always Memory remains preferable. These point-estimate ranges assume zero incremental gate overhead and should not be interpreted as observed monetary or latency costs.
+On original M3 DEV, raising the inner call limit from 30\% to 50\% improves SASRec selective NDCG@10 from $0.302658$ to $0.319654$ and GRU4Rec from $0.303093$ to $0.320478$; at a 90\% limit both reach approximately $0.34105$, approaching Always Memory $0.343509$. Without a cap the learned policies invoke Memory on 99.91\% and 99.44\% of events, respectively. An additional decision analysis of $J_\lambda(\pi)=V_F(\pi)-\lambda q(\pi)$, with \emph{hypothetical} NDCG-denominated marginal specialist-call disutility, selects the 30\%-inner-cap option only in the observed point-estimate intervals $\lambda\in[0.084516,0.111321]$ for SASRec and $[0.083119,0.104379]$ for GRU4Rec; at zero penalty Always Memory is preferable. These DEV-only policy-frontier analyses assume zero incremental gate overhead and do not constitute measured savings (Supplementary S10).
 
-A first warmed RTX 3090 DEV replay on 256 M3 requests found a faster unconditional Memory scorer (mean $0.803$\,ms) than the Utility path ($1.802$\,ms), even at only 31.25\% Memory calls; the room-ranking CPU experiment reports a similar qualitative limitation under a different workload (Supplementary S9--S10). These distinct timing protocols are not directly comparable.
-
-
-
-A second, counterbalanced DEV measurement repeats the same 256 full-active requests three times, using synchronized Base, Memory and the original frozen Utility gate branches (Table~\ref{tab:results-n10-cost}). It confirms that the gate's Base, feature and prediction overhead exceeds the avoided specialist-scoring work in this measured implementation. Full source-history reconstruction and availability-roster sweeps were timed separately rather than assigned to per-request online latency (Supplementary S10.17).
-
+In matched and counterbalanced 256-request M3 DEV replay (three measured repetitions per request), actual GPU scoring paths tell a different cost story. The original frozen SASRec pointwise Utility selector averages 1.769 ms against 0.692 ms for Always Memory and 0.728 ms for Always Base (Table~\ref{tab:results-n10-cost}). Utility invokes Memory on only 80/256 (31.25\%) distinct requests; Base scoring, feature construction and prediction overhead together exceed the avoided Memory work. Source history and active-author roster preparation were timed separately, not interpreted as online per-request latency. This test evaluates the \emph{original pointwise Utility gate}, not the newer F-aligned 30,000-target policy or complete production serving.
 
 \begin{table}[!htbp]
 \centering
@@ -679,8 +596,7 @@ Frozen Utility selective & 1.769 & 1.701 & 2.290 \\
 \end{tabular}
 \end{table}
 
-The selector invokes Memory on 80 of 256 distinct DEV requests (31.25\%). Its mean Base, feature and gate costs are 0.499, 0.373 and 0.559\,ms, respectively, versus 0.132\,ms for Memory scoring averaged over all decisions. Batch preparation takes 36.37\,s for source-history reconstruction and 10.81\,s for available-candidate materialization; these full-source scans are not per-request online latency. The experiment does not estimate concurrency, network delays or monetary costs.
-
+Thus the demonstrated decision benefit is \emph{higher ranking utility at stipulated specialist-invocation constraints} for the evaluated policies, not an observed lower end-to-end latency or monetary cost relative to unconditional Memory. The explicit call fractions, unconstrained specialist quality and measured overhead are necessary when deciding whether candidate-relative knowledge selection should be deployed (Supplementary S10.17).
 \section{Discussion}
 \label{sec:discussion}
 
