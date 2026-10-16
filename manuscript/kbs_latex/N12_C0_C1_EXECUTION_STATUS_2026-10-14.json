@@ -1,10 +1,10 @@
 {
-  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v4",
-  "date": "2026-10-14",
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v5",
+  "date": "2026-10-16",
   "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
   "draft_pr": 6,
   "base_branch": "kbs-n11-final-editorial-polish-20261014",
-  "current_stage": "N12_C0_C1_C2_C3_C4_COMPLETE_NEXT_N12_C5",
+  "current_stage": "N12_C0_THROUGH_C5_COMPLETE_READY_FOR_N12_C6",
   "CI": {
     "C0C1": {
       "run": 38546213364,
@@ -21,6 +21,10 @@
     "C4": {
       "run": 38553161784,
       "conclusion": "success"
+    },
+    "C5": {
+      "run": 38864362019,
+      "conclusion": "success"
     }
   },
   "frozen_source": {
@@ -29,11 +33,12 @@
     "N11_main_pages": 39,
     "N11_supp_pages": 45,
     "main_rewritten": true,
-    "supp_rewritten": false,
+    "supp_rewritten": true,
     "A4_rerun": false,
     "private_TEST_labels_read": false,
-    "main_rewrite_scope": "C2_INTRO_RELATED_AND_FIG1_C3_METHOD_C4_EXPERIMENTAL_DESIGN_ONLY",
-    "original_main_blob_still_available_as_N11": "8ca7dc67ade90048eb0b12059ec8bec75c85194f"
+    "main_rewrite_scope": "C2_INTRO_RELATED_C3_METHOD_C4_EXPERIMENTAL_DESIGN_C5_RESULTS_ONLY",
+    "original_main_blob_still_available_as_N11": "8ca7dc67ade90048eb0b12059ec8bec75c85194f",
+    "supplement_rewrite_scope": "C5_S10_19_ADDED_NO_OTHER_SUPPLEMENT_SCIENCE_CHANGED"
   },
   "stages": {
     "N12-0": {
@@ -123,11 +128,32 @@
       "private_A4_read": false
     },
     "N12-5": {
-      "status": "NEXT_NOT_STARTED",
-      "task": "RQ1/RQ2/RQ3 Results reorganization, promote original frozen M3 and additional-target H1/H2 evidence, migrate exploratory DEV details with full supplement audit."
+      "status": "PASS",
+      "description": "RQ-centered Results realigned to value context / candidate-supervised choice / fixed-candidate true history / invocation and real measured cost",
+      "rq_results_sections": 4,
+      "original_result_tables": 11,
+      "primary_main_result_tables": 7,
+      "supporting_tables_in_S10_19": 4,
+      "original_result_figures_kept": 1,
+      "complete_original_results_fixture": "analysis/kbs_plan_c/n12_c5_original_results_source_freeze.json",
+      "science_and_pdf_CI_run": 38864362019,
+      "science_and_pdf_CI": "BOTH_JOBS_SUCCESS",
+      "main_pdf_pages": 36,
+      "supplement_pdf_pages": 47,
+      "main_pdf_artifact_id": 12030572470,
+      "supplement_artifact_id": 12029844052,
+      "main_pdf_sha256": "bbf9734ef3e3fa0d8b76f5b71d9230fc07a51df319202523b4c1315592f8de1b",
+      "supplement_pdf_sha256": "e8edd16ad45b55643559264908ec040d3b3eb4f5be32a83f43d9f57895985463",
+      "latex_overfull_boxes_main": 0,
+      "latex_overfull_boxes_supp": 0,
+      "unresolved_references_and_citations": 0,
+      "supp_table_S10_15_caption_orphan_fixed": true,
+      "no_A4_reveal": true,
+      "no_model_fitting_or_TEST_scoring": true
     },
     "N12-6": {
-      "status": "NOT_STARTED"
+      "status": "NEXT_NOT_STARTED",
+      "description": "One-thesis Abstract, Discussion, Conclusion rewrite; only after stable RQ1-RQ3 Results; concentrated scientific caveats and final editorial narrative"
     },
     "N12-7": {
       "status": "NOT_STARTED"
