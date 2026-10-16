@@ -23,7 +23,8 @@ class N12C5ResultsScience(unittest.TestCase):
         for label in ("tab:results-evidence-states","tab:results-m3-dev-regime-transfer",
                       "tab:results-m3-dev-source","tab:results-feature-ablation"):
             self.assertIn(label,fx["original_latex_tables"])
-            self.assertIn(label,supp)
+        for n in ("S10.13","S10.14","S10.15","S10.16"):
+            self.assertIn("Table "+n+".",supp)
     def test_no_abstract_or_discussion_early_rewrite(self):
         z=check(ROOT)
         self.assertTrue(z["unchanged_N12_C2_C4_prefix"])
