@@ -68,6 +68,8 @@ def check(root=ROOT):
     # and a full table of literal original numbers rendered in Supplement S10.19.
     assert_ok("## S10.19 " in supp,"missing explicit source-preserving supplement extension")
     s19=supp.split("## S10.19 ",1)[1]
+    assert_ok("N12-C5" not in s19 and "relocated" not in s19 and "original main table" not in s19,
+              "internal revision chronology must not enter journal supplement")
     for title in ("Table S10.13.","Table S10.14.","Table S10.15.","Table S10.16."):
         assert_ok(s19.count(title)==1,"full relocated table missing/duplicate "+title)
     for label,numbers in {
@@ -81,7 +83,6 @@ def check(root=ROOT):
                 "0.14791","0.09109","0.18990","0.00963"],
     }.items():
         assert_ok(all(v in s19 for v in numbers),"transferred numeric row missing in S10.19 "+label)
-        assert_ok(label in s19,"original migrated table label not recorded "+label)
         assert_ok(label in fix["original_latex_tables"],"not sourced from original frozen table "+label)
     for s in ("Supplementary Table S10.13","Supplementary Table S10.14",
               "Supplementary Table S10.15","Supplementary Table S10.16"):
