@@ -1100,9 +1100,9 @@ The B4-A Null rankings retain 1,903–1,913 positive Top-10 outcomes and each ha
 The historical intervention also changes repeated viewer–creator pairs and higher-order structures, not solely a single semantic relation. The measured original-versus-null contrast establishes nontrivial value of the *whole authentic source arrangement* under strong constrained rewiring, not the unique causal effect of one relation feature. Both cohorts are from an already accessed overall M3 source; the B4-A additional targets do not provide future-period transfer. Independent [C3-A frozen public audit #38530145391](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38530145391) supports the distinctions without additional TEST evaluation.
 
 
-## S10.19 Full supporting evidence tables relocated from the N12-C5 main Results
+## S10.19 Supporting evidence for relationship utility and candidate-aligned decisions
 
-This section contains **complete, unchanged numerical rows** from four prior main-text Results tables. They are preserved here as audit-ready supporting evidence after reassigning main-text emphasis to the RQ1 candidate-regime analysis, the original M3 frozen selection results, the 30,000 frozen target supervision comparison and the 4,096 frozen source-validity comparison. The exact former LaTeX table sources, their labels and their original scientific captions are also preserved in the version-controlled \`analysis/kbs_plan_c/n12_c5_original_results_source_freeze.json\`. The original exploratory status and sample-selection details are unchanged.
+This section reports full supporting results on retrospective history states, candidate-aligned supervision, fixed relationship-source components and observable selector features. These analyses complement the main frozen selection and authentic-history comparisons. Each table retains its original evaluation cohort, candidate regime and statistical interpretation; development analyses are explicitly distinguished from held-out evaluation.
 
 **Table S10.13. Retrospective relationship-evidence states on frozen Twitch TEST (44,221 streamer-ranking requests).**
 
@@ -1112,7 +1112,7 @@ This section contains **complete, unchanged numerical rows** from four prior mai
 | Recoverable outside Base input | 5,539 | 0.30181 | 0.52225 | **+0.22045** | [+0.21140, +0.23001] |
 | Unavailable in prior history | 14,397 | 0.21948 | 0.03734 | −0.18215 | [−0.18681, −0.17715] |
 
-The three groups sum to all 44,221 frozen Twitch TEST events. The 95% intervals use 5,000 user-paired bootstrap resamples within each group. Group membership is computed from the observed target **only after the outcome**; the labels are neither predictive features nor information available to an online policy. The original main table was labelled \`tab:results-evidence-states\`. The manuscript retains the corresponding Figure \`fig:results-evidence-states\` and representative group estimates; this table preserves the full source ranks and intervals.
+The three groups sum to all 44,221 frozen Twitch TEST events. The 95% intervals use 5,000 user-paired bootstrap resamples within each group. Group membership is computed from the observed target **only after the outcome**; the labels are neither predictive features nor information available to an online policy. The corresponding main-text figure visualizes the same retrospective state contrast across development and held-out events.
 
 **Table S10.14. M3 exploratory DEV user-disjoint candidate-supervision transfer (50,049 author-ranking DEV events; 12,628 users).**
 
@@ -1125,7 +1125,7 @@ The three groups sum to all 44,221 frozen Twitch TEST events. The 95% intervals 
 | GRU4Rec | Full F → full F | **0.303093** | 14,762 |
 | GRU4Rec | Full-label adapted → full F | 0.303000 | 14,989 |
 
-The sampled S labels are constructed retrospectively by retaining the observed positive author on DEV; all real policy features are computed from full-F candidates and earlier information. The adapted condition uses full-F training labels on outer-fold training users rather than label-free adaptation. Actual outer-fold calls are not strictly equalized. The full-supervised gains over S-supervised are **+0.006159** (SASRec; paired 95% CI [+0.004835, +0.007543]) and **+0.004970** (GRU4Rec; [+0.003550, +0.006369]); 10,672/50,049 (21.32%) and 11,517/50,049 (23.01%) decisions disagree, respectively. The former table \`tab:results-m3-dev-regime-transfer\` is thus an **exploratory DEV**, not an independent TEST or a further preregistered result. Additional DEV methodology and mechanism details remain in earlier S10 sections.
+The sampled S labels are constructed retrospectively by retaining the observed positive author on DEV; all real policy features are computed from full-F candidates and earlier information. The adapted condition uses full-F training labels on outer-fold training users rather than label-free adaptation. Actual outer-fold calls are not strictly equalized. The full-supervised gains over S-supervised are **+0.006159** (SASRec; paired 95% CI [+0.004835, +0.007543]) and **+0.004970** (GRU4Rec; [+0.003550, +0.006369]); 10,672/50,049 (21.32%) and 11,517/50,049 (23.01%) decisions disagree, respectively. This is an **exploratory DEV** analysis, not an independent held-out TEST or an additional prespecified hypothesis family. Additional DEV methodology and mechanism details remain in earlier S10 sections.
 
 \newpage
 
@@ -1139,7 +1139,7 @@ The sampled S labels are constructed retrospectively by retaining the observed p
 | TRAIN-only author popularity | 0.022215 | 0.197796 |
 | History-score-placement control | 0.007576 | 0.189571 |
 
-This is the complete former \`tab:results-m3-dev-source\` table. The historical-source composition, sampled ranking and information content remain the original DEV analyses. The history-placement control does not maintain global user–author marginals. On matched full-F events, Full minus Long-only is +0.010278 with user-paired 95% CI [+0.007906, +0.012668]; on sampled S it is −0.105104, CI [−0.108326, −0.101683]. This does **not** identify an independent source-specific causal mechanism, since the candidate and evaluation regime change.
+The historical-source composition, sampled ranking and information content refer to the same development events. The history-placement control does not maintain global user–author marginals. On matched full-F events, Full minus Long-only is +0.010278 with user-paired 95% CI [+0.007906, +0.012668]; on sampled S it is −0.105104, CI [−0.108326, −0.101683]. This does **not** identify an independent source-specific causal mechanism, since the candidate and evaluation regime change.
 
 **Table S10.16. Twitch DEV-only OOF ablation of pretarget feature families (46,878 events; 6,563 retrospectively matched Memory invocations).**
 
@@ -1149,6 +1149,6 @@ This is the complete former \`tab:results-m3-dev-source\` table. The historical-
 | Base-score descriptors | 8 | +0.00160 | [+0.00048, +0.00270] | 0.09109 |
 | History + Base scores | 14 | **+0.00838** | [+0.00713, +0.00963] | **0.18990** |
 
-The common DEV count was selected by the combined-feature fit. Its 95% intervals resample fixed, fitted OOF event-level outcomes. This ablation is **not** additional frozen TEST and does not isolate a causal effect of any one feature. The former source label was \`tab:results-feature-ablation\`.
+The common DEV count was selected by the combined-feature fit. Its 95% intervals resample fixed, fitted OOF event-level outcomes. This ablation is **not** additional frozen TEST and does not isolate a causal effect of any one feature. 
 
-The complete source values of the retained primary tables—including the 30,000-target candidate-supervision contrasts and the 4,096-target authentic-versus-null history comparison—remain visible in the N12-C5 main Results. Supplementary S10.15–S10.18 still supply their respective sealing, statistical, detailed model identity, cost and missing H2 cohort-specific popularity-control caveats.
+The frozen 30,000-target candidate-supervision contrasts and the nested 4,096-target authentic-versus-null history comparison are reported in the main Results. Supplementary S10.15–S10.18 provide the related sampling, statistical, source-control and measured-cost details, including the unverified original cohort-specific popularity acceptance condition.
