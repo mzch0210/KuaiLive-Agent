@@ -1112,7 +1112,7 @@ This section contains **complete, unchanged numerical rows** from four prior mai
 | Recoverable outside Base input | 5,539 | 0.30181 | 0.52225 | **+0.22045** | [+0.21140, +0.23001] |
 | Unavailable in prior history | 14,397 | 0.21948 | 0.03734 | −0.18215 | [−0.18681, −0.17715] |
 
-The three groups sum to all 44,221 frozen Twitch TEST events. The 95% intervals use 5,000 user-paired bootstrap resamples within each group. Group membership is computed from the observed target **only after the outcome**; the labels are neither predictive features nor information available to an online policy. The manuscript retains the corresponding Figure \`fig:results-evidence-states\` and representative group estimates; this table preserves the full source ranks and intervals.
+The three groups sum to all 44,221 frozen Twitch TEST events. The 95% intervals use 5,000 user-paired bootstrap resamples within each group. Group membership is computed from the observed target **only after the outcome**; the labels are neither predictive features nor information available to an online policy. The original main table was labelled \`tab:results-evidence-states\`. The manuscript retains the corresponding Figure \`fig:results-evidence-states\` and representative group estimates; this table preserves the full source ranks and intervals.
 
 **Table S10.14. M3 exploratory DEV user-disjoint candidate-supervision transfer (50,049 author-ranking DEV events; 12,628 users).**
 
