@@ -1,0 +1,41 @@
+{
+  "schema": "N12_C3_PRESERVE_NINE_FROZEN_EQUATION_BODIES_v1",
+  "baseline_main_blob": "8ca7dc67ade90048eb0b12059ec8bec75c85194f",
+  "baseline_c2_main_blob": "5a047594fee040d6d181b8744f32d64b5824ae01",
+  "context": "Only original nine equation/align environments, including labels, are an exact migration contract; textual semantics of fixed specialist, visibility, labels and default ranking audited separately.",
+  "original_equations": {
+    "eq:event-ndcg": "\\begin{equation}\n    u_K(A,x)=\n    \\begin{cases}\n        \\displaystyle \\frac{1}{\\log_2\\!\\left(r_A(y\\mid\\xi)+1\\right)}, & r_A(y\\mid\\xi)\\le K,\\\\[6pt]\n        0, & r_A(y\\mid\\xi)>K.\n    \\end{cases}\n    \\label{eq:event-ndcg}\n\\end{equation}",
+    "eq:delta-memory": "\\begin{equation}\n    \\Delta_M(x)=u_K(M,x)-u_K(B,x).\n    \\label{eq:delta-memory}\n\\end{equation}",
+    "eq:eta": "\\begin{equation}\n    \\eta_r(z)\n    =\\mathbb{E}\\!\\left[\\Delta_M(X)\\mid Z=z,R=r\\right].\n    \\label{eq:eta}\n\\end{equation}",
+    "eq:candidate-supervision-transfer": "\\begin{equation}\n    \\mathcal{R}_{S\\rightarrow F}\n    =V_F(\\pi_F)-V_F(\\pi_S),\n    \\label{eq:candidate-supervision-transfer}\n\\end{equation}",
+    "eq:expected-selective-gain": "\\begin{align}\n    &\\mathbb{E}\\!\\left[u_K^{\\mathrm{sel}}(X;a)-u_K(B,X)\\mid R=r\\right] \\\\\n    &\\qquad=\\mathbb{E}\\!\\left[a(Z)\\Delta_M(X)\\mid R=r\\right]\n    =\\mathbb{E}\\!\\left[a(Z)\\eta_r(Z)\\mid R=r\\right].\n    \\label{eq:expected-selective-gain}\n\\end{align}",
+    "eq:utility-threshold": "\\begin{equation}\n    a_{\\tau_r}(z)=\\mathbf{1}\\!\\left[\n    \\hat{\\eta}_r(z)\\mathrel{\\succeq_r}\\tau_r\n    \\right].\n    \\label{eq:utility-threshold}\n\\end{equation}",
+    "eq:regime-decomposition": "\\begin{equation}\n    \\bar{\\Delta}_r\n    =\\sum_s P(S=s\\mid R=r)\n    \\,\\mathbb{E}\\!\\left[\\Delta_M(X)\\mid S=s,R=r\\right],\n    \\label{eq:regime-decomposition}\n\\end{equation}",
+    "eq:memory-scoring": "\\begin{equation}\ns_M(u,i,t)=\n0.45\\,\\mathrm{Short}(u,i,t)\n+0.45\\,\\mathrm{Long}(u,i,t)\n+0.10\\,\\mathrm{Pop}(i).\n\\label{eq:memory-scoring}\n\\end{equation}",
+    "eq:diagnostic-states": "\\begin{equation}\nS_L(x)=\n\\begin{cases}\n\\text{represented},&V_L(x)=1,\\\\\n\\text{recoverable but unrepresented},&V_L(x)=0,\\ H(x)=1,\\\\\n\\text{unavailable},&V_L(x)=0,\\ H(x)=0.\n\\end{cases}\n\\label{eq:diagnostic-states}\n\\end{equation}"
+  },
+  "original_method_labels": [
+    "sec:problem",
+    "sec:event-utility",
+    "eq:event-ndcg",
+    "sec:relative-utility",
+    "eq:delta-memory",
+    "sec:conditional-utility",
+    "eq:eta",
+    "eq:candidate-supervision-transfer",
+    "eq:expected-selective-gain",
+    "sec:decision-rule",
+    "eq:utility-threshold",
+    "sec:regime-decomposition",
+    "eq:regime-decomposition",
+    "sec:framework",
+    "fig:framework",
+    "sec:framework-base",
+    "sec:framework-memory",
+    "eq:memory-scoring",
+    "sec:framework-states",
+    "eq:diagnostic-states",
+    "sec:framework-estimation",
+    "sec:framework-controls"
+  ]
+}

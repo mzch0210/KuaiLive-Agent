@@ -1,0 +1,182 @@
+{
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v5",
+  "date": "2026-10-16",
+  "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
+  "draft_pr": 6,
+  "base_branch": "kbs-n11-final-editorial-polish-20261014",
+  "current_stage": "N12_C0_THROUGH_C5_COMPLETE_READY_FOR_N12_C6",
+  "CI": {
+    "C0C1": {
+      "run": 38546213364,
+      "conclusion": "success"
+    },
+    "C2": {
+      "run": 38547234449,
+      "conclusion": "success"
+    },
+    "C3": {
+      "run": 38549828504,
+      "conclusion": "success"
+    },
+    "C4": {
+      "run": 38553161784,
+      "conclusion": "success"
+    },
+    "C5": {
+      "run": 38864362019,
+      "conclusion": "success"
+    }
+  },
+  "frozen_source": {
+    "main_git_blob": "8ca7dc67ade90048eb0b12059ec8bec75c85194f",
+    "supplement_git_blob": "9b83a31d82f08d1a212f59f99b60975ad902e8e6",
+    "N11_main_pages": 39,
+    "N11_supp_pages": 45,
+    "main_rewritten": true,
+    "supp_rewritten": true,
+    "A4_rerun": false,
+    "private_TEST_labels_read": false,
+    "main_rewrite_scope": "C2_INTRO_RELATED_C3_METHOD_C4_EXPERIMENTAL_DESIGN_C5_RESULTS_ONLY",
+    "original_main_blob_still_available_as_N11": "8ca7dc67ade90048eb0b12059ec8bec75c85194f",
+    "supplement_rewrite_scope": "C5_S10_19_ADDED_NO_OTHER_SUPPLEMENT_SCIENCE_CHANGED"
+  },
+  "stages": {
+    "N12-0": {
+      "status": "PASS",
+      "main_source_blocks": 152,
+      "latex_labels": 59,
+      "main_tables": 13,
+      "main_figures": 3,
+      "source_map": "N12_C0_SOURCE_BLOCK_MIGRATION_MAP_2026-10-14.md",
+      "machine_manifest": "N12_C0_SOURCE_BLOCK_MIGRATION_MANIFEST_2026-10-14.json"
+    },
+    "N12-1": {
+      "status": "PASS",
+      "three_rq": [
+        "RQ1_incumbent_and_candidate_relative_knowledge_value",
+        "RQ2_candidate_aligned_supervision_decision",
+        "RQ3_fixed_F_authentic_historical_source_validity"
+      ],
+      "RQ3_relation_to_RQ2": "parallel_validation_not_causal_successor",
+      "new_outline_sections": 7,
+      "blueprint": "N12_C1_RQ_ARGUMENT_AND_EVIDENCE_BLUEPRINT_2026-10-14.md"
+    },
+    "N12-2": {
+      "status": "PASS",
+      "task": "Introduction and Related Work rewritten; noncausal parallel RQ2-RQ3 fig; 3 literature axes; publisher-verified 2026 KBS sources; original abstract and Sections 3-8 untouched",
+      "run": 38547234449,
+      "main_pdf_pages": 39,
+      "supplement_pdf_pages": 45,
+      "main_artifact_id": 11885411283,
+      "supplement_artifact_id": 11885046843,
+      "main_pdf_sha256": "2d76b6f026ddff2dd8de64ea7a3261aca0dbad345dd438d8cdc363abfa79318c",
+      "supplement_pdf_sha256": "0e5ca6bd42e8ac59dcdd66f7bcc0c27dd83f136013f30c518f0505012f391611",
+      "pdf_main_text_and_figure_visual_qa": "PASS",
+      "latex_overfull_boxes_main": 0,
+      "latex_overfull_boxes_supplement": 0,
+      "unresolved_citations": 0,
+      "c0_c1_original_baseline_not_modified": true,
+      "revised_intro_related": true,
+      "existing_10_experiment_families_in_main": true
+    },
+    "N12-3": {
+      "status": "PASS",
+      "task": "Merged former Problem Formulation and Framework into five scientific subsections; exact nine math blocks and 22 labels preserved; pretarget model and historical source unchanged.",
+      "CI_run": 38549828504,
+      "CI_status": "BOTH_JOBS_SUCCESS",
+      "main_pages": 38,
+      "supp_pages": 45,
+      "main_artifact_id": 11885972844,
+      "supp_artifact_id": 11886356772,
+      "main_sha256": "773ecfe60b0d1410728e29575deb88075315dab1438ee662b8ddb702c83a1038",
+      "supp_sha256": "032b1c96353029294bd3d2bc9768c15e34247d53144d313dc1ae9f8237f33448",
+      "method_equation_blocks_byte_text_identical_to_N11": 9,
+      "method_labels_preserved": 22,
+      "overfull_hbox_main": 0,
+      "overfull_hbox_supp": 0,
+      "unresolved_citations": 0,
+      "method_figure_page_position": "PASS_FLOATBARRIER_BEFORE_3_5",
+      "new_training": false,
+      "private_A4_read": false
+    },
+    "N12-4": {
+      "status": "PASS",
+      "task": "Rebuild Experimental Setup into six-part evidence-tier Experimental Design; retain 11 original labels, 2 exact candidate-regime equations and prior nine exact method equations.",
+      "CI_run": 38553161784,
+      "CI_status": "BOTH_JOBS_SUCCESS",
+      "main_pages": 38,
+      "supp_pages": 45,
+      "main_artifact_id": 11887995612,
+      "supp_artifact_id": 11888000639,
+      "main_sha256": "437a557af7df86a688acc3a2018760fab911c7d09f550883ca52c737abca39cf",
+      "supp_sha256": "fb0bcb9148352599a4827935fc342573cd405842bbdc9d093b1a640b8cb76cd3",
+      "reconciled_scientific_cohorts": [
+        "Twitch original streamer TEST",
+        "KuaiLive paired room retrospective",
+        "M3 original 47575 author TEST",
+        "M3 30000 additional same-period targets",
+        "M3 nested 4096 same-period source control",
+        "DEV-only exploratory mechanisms",
+        "256 DEV device timing"
+      ],
+      "unverified_original_b4a_popularity_floor_retained": true,
+      "latex_overfull_main": 0,
+      "latex_overfull_supp": 0,
+      "unresolved_cross_refs": 0,
+      "figures_and_table_1_visual_inspected": true,
+      "source_math_changed": false,
+      "private_A4_read": false
+    },
+    "N12-5": {
+      "status": "PASS",
+      "description": "RQ-centered Results realigned to value context / candidate-supervised choice / fixed-candidate true history / invocation and real measured cost",
+      "rq_results_sections": 4,
+      "original_result_tables": 11,
+      "primary_main_result_tables": 7,
+      "supporting_tables_in_S10_19": 4,
+      "original_result_figures_kept": 1,
+      "complete_original_results_fixture": "analysis/kbs_plan_c/n12_c5_original_results_source_freeze.json",
+      "science_and_pdf_CI_run": 38864362019,
+      "science_and_pdf_CI": "BOTH_JOBS_SUCCESS",
+      "main_pdf_pages": 36,
+      "supplement_pdf_pages": 47,
+      "main_pdf_artifact_id": 12030572470,
+      "supplement_artifact_id": 12029844052,
+      "main_pdf_sha256": "bbf9734ef3e3fa0d8b76f5b71d9230fc07a51df319202523b4c1315592f8de1b",
+      "supplement_pdf_sha256": "e8edd16ad45b55643559264908ec040d3b3eb4f5be32a83f43d9f57895985463",
+      "latex_overfull_boxes_main": 0,
+      "latex_overfull_boxes_supp": 0,
+      "unresolved_references_and_citations": 0,
+      "supp_table_S10_15_caption_orphan_fixed": true,
+      "no_A4_reveal": true,
+      "no_model_fitting_or_TEST_scoring": true
+    },
+    "N12-6": {
+      "status": "NEXT_NOT_STARTED",
+      "description": "One-thesis Abstract, Discussion, Conclusion rewrite; only after stable RQ1-RQ3 Results; concentrated scientific caveats and final editorial narrative"
+    },
+    "N12-7": {
+      "status": "NOT_STARTED"
+    },
+    "N12-8": {
+      "status": "NOT_STARTED"
+    }
+  },
+  "fixed_scientific_constraints": [
+    "N9_A4_original_one_shot_not_reopened",
+    "B4A_30000_same_source_period_not_future_new_TEST",
+    "F_vs_S_policy_calls_unequal_1p337pp_1p797pp",
+    "Always_Memory_higher_unconstrained_F_NDCG",
+    "Original_Utility_DEV_latency_slower_than_Always_Memory",
+    "Historical_null_strong_composite_not_isolated_single_relation",
+    "B4A_H2_prereveal_same_cohort_TRAIN_popularity_floor_NOT_VERIFIED"
+  ],
+  "merged_to_main": false,
+  "KBS_submission": false,
+  "author_approval": false,
+  "ci_stage_lifecycle": {
+    "obsolete_N12_C2_C3_autopush_workflows": "retired_after_successful_stages",
+    "C4_scientific_contract": "superset_checks_C2_C3_stable_source_and_original_9_equations",
+    "new_untested_TEST_since_original_B4A": false
+  }
+}
