@@ -1127,6 +1127,8 @@ The three groups sum to all 44,221 frozen Twitch TEST events. The 95% intervals 
 
 The sampled S labels are constructed retrospectively by retaining the observed positive author on DEV; all real policy features are computed from full-F candidates and earlier information. The adapted condition uses full-F training labels on outer-fold training users rather than label-free adaptation. Actual outer-fold calls are not strictly equalized. The full-supervised gains over S-supervised are **+0.006159** (SASRec; paired 95% CI [+0.004835, +0.007543]) and **+0.004970** (GRU4Rec; [+0.003550, +0.006369]); 10,672/50,049 (21.32%) and 11,517/50,049 (23.01%) decisions disagree, respectively. The former table \`tab:results-m3-dev-regime-transfer\` is thus an **exploratory DEV**, not an independent TEST or a further preregistered result. Additional DEV methodology and mechanism details remain in earlier S10 sections.
 
+\newpage
+
 **Table S10.15. M3 exploratory DEV historical-component ranking under identical events but different candidate regimes (50,049 events).**
 
 | Fixed knowledge source | Full-active F NDCG@10 | Retrospective sampled S NDCG@10 |
