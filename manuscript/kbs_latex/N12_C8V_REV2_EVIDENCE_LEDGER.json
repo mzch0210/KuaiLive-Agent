@@ -1,0 +1,498 @@
+{
+  "schema": "N12_C8V_REV2_I0_EVIDENCE_LEDGER_V1",
+  "as_of": "2026-10-19",
+  "repository": "mzch0210/KuaiLive-Agent",
+  "source_branch": "kbs-n12-single-thesis-restructure-plan-20261014",
+  "note": "Audited from public repository sources and GitHub Actions metadata; not a private raw-event reanalysis or outside author-signoff.",
+  "cohort_relationships": [
+    {
+      "group": "M3_SHARED_DEV",
+      "events": 50049,
+      "users": 12628,
+      "note": "B1 B2 G1 G2 N9 A1 A2 Route B B1A reuse a single DEV cohort; multiple analyses are not independent samples."
+    },
+    {
+      "group": "M3_DEV_NULL_SUBSET",
+      "parent": "M3_SHARED_DEV",
+      "events": 1024,
+      "note": "Subset of same exploratory DEV; separate historical null perturbations."
+    },
+    {
+      "group": "M3_DEV_COST_SUBSET",
+      "parent": "M3_SHARED_DEV",
+      "events": 256,
+      "note": "DEV timing subset and repeated timing runs, not unique independent experiment subjects."
+    },
+    {
+      "group": "M3_G5_TEST",
+      "events": 47575,
+      "note": "Six fitted Base models share one held-out event cohort."
+    },
+    {
+      "group": "M3_B4A_EXTRA_SAME_PERIOD",
+      "events": 30000,
+      "users": 10387,
+      "note": "Event IDs disjoint from G5; same 2026-03-27–31 collection period; viewer and history overlap not ruled out."
+    },
+    {
+      "group": "M3_B4A_H2_NESTED",
+      "parent": "M3_B4A_EXTRA_SAME_PERIOD",
+      "events": 4096,
+      "users": 3059,
+      "note": "Nested within B4A H1, three null seeds same subjects."
+    },
+    {
+      "group": "TWITCH_STREAMER_TEST",
+      "events": 44221,
+      "note": "Different platform/task/ranking unit."
+    },
+    {
+      "group": "KUAILIVE_ROOM_PAIRED",
+      "events": 10222,
+      "note": "Earlier distinct room ranking protocol, not M3 author ranking."
+    }
+  ],
+  "legacy_register": {
+    "path": "manuscript/kbs_latex/N9_P0_B1B2_CLAIM_SOURCE_COHORT_REGISTER_2026-10-13.csv",
+    "purpose": "Reuse original claim-level B1/B2 CSV and original blob identities, do not replace or silently merge distinct rows."
+  },
+  "entries": [
+    {
+      "id": "RQ1_TWITCH",
+      "cohort_group": "TWITCH_STREAMER_TEST",
+      "events": 44221,
+      "users": null,
+      "ranking_unit": "streamer",
+      "evidence_tier": "ORIGINAL_TEST",
+      "source_of_truth": {
+        "path": "analysis/kbs_plan_c/n12_c5_original_results_source_freeze.json",
+        "git_blob_sha1": "737e5f21df05c882b1fc023c77c947fe80eda9ce",
+        "required_text": [
+          "tab:results-twitch-policy"
+        ]
+      },
+      "execution_runs": [],
+      "manuscript_anchor": "tab:results-twitch-policy",
+      "supplement_anchor": "S2.2 / S10.19",
+      "scientific_result": "Base .58211; Memory .53980; Utility .58983; calls 6650; outcome-conditioned recoverable n5539 +.22045",
+      "interpretation_limits": "Outcome-conditioned recoverable group is not a decision-time state; original run provenance remains to be backlinked",
+      "next_action": "NEEDS_PRIMARY_EXECUTION_LINK",
+      "source_provenance_grade": "FROZEN_MANUSCRIPT_BLOCK_ONLY"
+    },
+    {
+      "id": "RQ1_KUAILIVE_ROOM",
+      "cohort_group": "KUAILIVE_ROOM_PAIRED",
+      "events": 10222,
+      "users": null,
+      "ranking_unit": "room",
+      "evidence_tier": "ORIGINAL_RETROSPECTIVE_PAIRED",
+      "source_of_truth": {
+        "path": "analysis/kbs_plan_c/n12_c5_original_results_source_freeze.json",
+        "git_blob_sha1": "737e5f21df05c882b1fc023c77c947fe80eda9ce",
+        "required_text": [
+          "tab:results-factorial"
+        ]
+      },
+      "execution_runs": [],
+      "manuscript_anchor": "tab:results-factorial",
+      "supplement_anchor": "S5.2 / S8.8",
+      "scientific_result": "Memory-minus-Base sampled −.04120 vs full +.04631; shift +.08751",
+      "interpretation_limits": "Changes roster identities and counts; not isolated candidate size; not the M3 author task",
+      "next_action": "NEEDS_PRIMARY_EXECUTION_LINK",
+      "source_provenance_grade": "FROZEN_MANUSCRIPT_BLOCK_ONLY"
+    },
+    {
+      "id": "G5_ORIGINAL_M3_POLICY",
+      "cohort_group": "M3_G5_TEST",
+      "events": 47575,
+      "users": 12533,
+      "ranking_unit": "persistent author",
+      "evidence_tier": "FROZEN_ONE_SHOT_TEST",
+      "source_of_truth": {
+        "path": "experiments/kbs_plan_c/G5_ONE_SHOT_TEST_RESULTS_AND_ACCEPTANCE_2026-10-12.md",
+        "git_blob_sha1": "114a2f1fbeda904578e799d48ece410f7ff765dc",
+        "required_text": [
+          "47,575",
+          "0.302866",
+          "0.346792"
+        ]
+      },
+      "execution_runs": [
+        {
+          "id": 38225946950,
+          "conclusion": "success",
+          "head_sha_prefix": "414f9e94888c",
+          "verified_via_github_api": "2026-10-19"
+        },
+        {
+          "id": 38226690320,
+          "conclusion": "success",
+          "head_sha_prefix": "a2db92afd3f3",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
+      "manuscript_anchor": "tab:results-m3-policy / tab:results-m3-robustness",
+      "supplement_anchor": "S8.5 / S8.6",
+      "scientific_result": "SAS primary Base .258004; Utility .302866; Always Memory .346792; six fitted incumbents",
+      "interpretation_limits": "Six fits share same TEST requests, not six independent populations; strict prior interactions only",
+      "next_action": "REUSE",
+      "source_provenance_grade": "ORIGINAL_FROZEN_REPORT"
+    },
+    {
+      "id": "B1_THREE_ARM_DEV",
+      "cohort_group": "M3_SHARED_DEV",
+      "events": 50049,
+      "users": 12628,
+      "ranking_unit": "persistent author",
+      "evidence_tier": "POST_G5_EXPLORATORY_DEV",
+      "source_of_truth": {
+        "path": "experiments/kbs_plan_c/B1_FULL_DEV_REGIME_TRANSFER_RESULTS_AND_R3_IMPACT_2026-10-13.md",
+        "git_blob_sha1": "796739db77ccd5cc1436f904b54c803796e679e8",
+        "required_text": [
+          "50,049",
+          "0.296499",
+          "0.302658",
+          "0.303000"
+        ]
+      },
+      "execution_runs": [
+        {
+          "id": 38365477972,
+          "conclusion": "success",
+          "head_sha_prefix": "dd7082f26237",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
+      "manuscript_anchor": "sec:results-decision",
+      "supplement_anchor": "S10.2 / S10.3 / S10.19",
+      "scientific_result": "SAS S/F/Adapted .296499/.302658/.301847; GRU .298123/.303093/.303000",
+      "interpretation_limits": "Adapted uses F training labels; 5x4 nested user-group folds; not statistically corrected sampled-S; identical 50049 DEV as B2/A1/A2/G2",
+      "next_action": "REUSE_NO_REPEAT_THREE_ARM",
+      "source_provenance_grade": "PRIMARY_REPORT_AND_SUCCESSFUL_ACTION"
+    },
+    {
+      "id": "B2_FIVE_SOURCE_COMPOSITION",
+      "cohort_group": "M3_SHARED_DEV",
+      "events": 50049,
+      "users": 12628,
+      "ranking_unit": "persistent author",
+      "evidence_tier": "POST_G5_EXPLORATORY_DEV",
+      "source_of_truth": {
+        "path": "experiments/kbs_plan_c/B2_COMPLETE_DEV_KNOWLEDGE_SOURCE_SELECTOR_ANALYSIS_2026-10-13.md",
+        "git_blob_sha1": "32bd9f19b3754f2d93744b5227694234a47508aa",
+        "required_text": [
+          "50,049",
+          "0.010605",
+          "38369503457"
+        ]
+      },
+      "execution_runs": [
+        {
+          "id": 38367721633,
+          "conclusion": "failure",
+          "head_sha_prefix": "dd1ecab05121",
+          "verified_via_github_api": "2026-10-19"
+        },
+        {
+          "id": 38369503457,
+          "conclusion": "success",
+          "head_sha_prefix": "65ad160f47a4",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
+      "manuscript_anchor": "sec:discussion-validity",
+      "supplement_anchor": "S10.4 / S10.5 / S10.19",
+      "scientific_result": "Long-only supervision-transfer gap SAS .010605 and GRU .010262 exceeds Full .006159/.004970; Short-only call imbalance; popularity/placebo floor",
+      "interpretation_limits": "Run #38367721633 failed at artifact upload despite reported private computation; recovery verified persisted source SHA before fitting; shared DEV users, noncausal source specificity",
+      "next_action": "REUSE_NO_REPEAT_FIVE_SOURCES",
+      "source_provenance_grade": "PRIMARY_REPORT_RECOVERED",
+      "execution_exception": "One reported private result computation finished but first GitHub workflow failed on artifact-upload ECONNRESET; recovered with successful sha-verifying run"
+    },
+    {
+      "id": "G1_E3A_SOURCE_CANDIDATE",
+      "cohort_group": "M3_SHARED_DEV",
+      "events": 50049,
+      "users": 12628,
+      "ranking_unit": "persistent author",
+      "evidence_tier": "POST_G5_EXPLORATORY_DEV",
+      "source_of_truth": {
+        "path": "manuscript/kbs_latex/N9_G1_E3A_PAIRED_SOURCE_REGIME_INTERACTION_2026-10-13.md",
+        "git_blob_sha1": "7f1de1da7884e48083e3a2675ad20dc686447547",
+        "required_text": [
+          "0.115382",
+          "46462"
+        ]
+      },
+      "execution_runs": [
+        {
+          "id": 38388691201,
+          "conclusion": "success",
+          "head_sha_prefix": "bc9129284506",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
+      "manuscript_anchor": "sec:results-heterogeneity",
+      "supplement_anchor": "S10.10",
+      "scientific_result": "Full-minus-Long F-vs-S source-regime interaction +.115382",
+      "interpretation_limits": "Is the Full-vs-Long source gap, NOT Memory-minus-Base; same DEV; source × candidate not isolated user-creator identity mechanism",
+      "next_action": "REUSE"
+    },
+    {
+      "id": "B1A_ZERO_SUPPORT_NINE_CELL",
+      "cohort_group": "M3_SHARED_DEV",
+      "events": 50049,
+      "users": 12628,
+      "ranking_unit": "persistent author",
+      "evidence_tier": "POST_G5_EXPLORATORY_DEV",
+      "source_of_truth": {
+        "path": "manuscript/kbs_latex/N9_B1_ZERO_STRUCTURE_AND_DECISION_FAIRNESS_AUDIT_2026-10-14.md",
+        "git_blob_sha1": "93d7095cdf5a99ef510a1dbd19408ad2df29ad00",
+        "required_text": [
+          "46462",
+          "92.83%",
+          "0.115381867910"
+        ]
+      },
+      "execution_runs": [],
+      "manuscript_anchor": "sec:discussion-values",
+      "supplement_anchor": "S10.13",
+      "scientific_result": "46462 of 50049 Full-minus-Long source differences have ≥one exact zero gap; 92.83%; +.115381867910 interaction",
+      "interpretation_limits": "87.44% refers to signed-net accounting share, not absolute effects; full-vs-long source-gap zero ≠ Memory-vs-Base Δ zero",
+      "next_action": "REUSE_ZERO_SUPPORT_DIAGNOSTIC"
+    },
+    {
+      "id": "G2_E1_SWITCH_ACCOUNTING",
+      "cohort_group": "M3_SHARED_DEV",
+      "events": 50049,
+      "users": 12628,
+      "ranking_unit": "persistent author",
+      "evidence_tier": "POST_G5_EXPLORATORY_DEV",
+      "source_of_truth": {
+        "path": "manuscript/kbs_latex/N9_G2_E1_SUPERVISION_DECISION_DECOMPOSITION_2026-10-13.md",
+        "git_blob_sha1": "a11f7a734e0d45cda9cf8b65f38794bbf1263114",
+        "required_text": [
+          "10672",
+          "11517",
+          "0.014262",
+          "0.014264"
+        ]
+      },
+      "execution_runs": [
+        {
+          "id": 38389150075,
+          "conclusion": "success",
+          "head_sha_prefix": "ad580f85922b",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
+      "manuscript_anchor": "sec:results-decision",
+      "supplement_anchor": "S10.9",
+      "scientific_result": "SAS 10672/50049 different decisions, F-only 5350 vs S-only 5322, F−S +.006159; GRU 11517 switches, F-only 5639 vs S-only 5878, +.004970",
+      "interpretation_limits": "Algebraic policy-value switch decomposition, not new causal theorem, and not independent B4-A H1 TEST",
+      "next_action": "REUSE"
+    },
+    {
+      "id": "N9_A1_EIGHT_BUDGET_FRONTIER",
+      "cohort_group": "M3_SHARED_DEV",
+      "events": 50049,
+      "users": 12628,
+      "ranking_unit": "persistent author",
+      "evidence_tier": "POST_G5_EXPLORATORY_DEV",
+      "source_of_truth": {
+        "path": "manuscript/kbs_latex/N9_A1_UNCONSTRAINED_POLICY_FRONTIER_2026-10-13.md",
+        "git_blob_sha1": "8f96118af50ec925040944cd4b08afc1cefa8f11",
+        "required_text": [
+          "50,049",
+          "0.302658",
+          "100%"
+        ]
+      },
+      "execution_runs": [
+        {
+          "id": 38382693869,
+          "conclusion": "success",
+          "head_sha_prefix": "4ad993f1e91d",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
+      "manuscript_anchor": "sec:results-efficiency",
+      "supplement_anchor": "S10.6",
+      "scientific_result": "Eight inner DEV maxima 0/10/20/30/50/70/90/100%; 30% SAS .302658 GRU .303093; near-100% routes to Memory",
+      "interpretation_limits": "Inner calibrated caps are not strict outer call parity; unconditional Memory remains best unrestricted ranking; no actual external scarcity measurement",
+      "next_action": "DO_NOT_REPEAT_BUDGET_SCAN"
+    },
+    {
+      "id": "N9_A2_DIRECT_VS_TWO_STAGE",
+      "cohort_group": "M3_SHARED_DEV",
+      "events": 50049,
+      "users": 12628,
+      "ranking_unit": "persistent author",
+      "evidence_tier": "POST_G5_EXPLORATORY_DEV",
+      "source_of_truth": {
+        "path": "manuscript/kbs_latex/N9_A2_DECISION_TARGET_CONTROLS_2026-10-13.md",
+        "git_blob_sha1": "15637878bfb2fca6c6045fd7bcf0838fb9f3b4f2",
+        "required_text": [
+          "0.001310",
+          "318",
+          "0.000119"
+        ]
+      },
+      "execution_runs": [
+        {
+          "id": 38383262381,
+          "conclusion": "success",
+          "head_sha_prefix": "2b4624b71f6e",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
+      "manuscript_anchor": "sec:discussion-selective-decisions",
+      "supplement_anchor": "S7.7 / S10.7",
+      "scientific_result": "30% SAS Direct .302658 vs Two-stage .301348 (+.001310 with +318 calls); GRU .303093 vs .302974 (+.000119, CI crosses zero)",
+      "interpretation_limits": "Both estimators target conditional Δ; compare 10/30/50% under natural calls, not a new relative-value theory nor equal-cost superiority",
+      "next_action": "DO_NOT_REPEAT_OBJECTIVE_CONTROL"
+    },
+    {
+      "id": "ROUTE_B_B2_DEV_HISTORY_NULL",
+      "cohort_group": "M3_DEV_NULL_SUBSET",
+      "events": 1024,
+      "users": 992,
+      "ranking_unit": "persistent author",
+      "evidence_tier": "POST_G5_EXPLORATORY_DEV",
+      "source_of_truth": {
+        "path": "manuscript/kbs_latex/N9_ROUTE_B_B2_1024_REAL_RELATION_IDENTITY_NULL_RESULTS_2026-10-14.md",
+        "git_blob_sha1": "3024cfd82bf350eb1b35041e0c55f040510cf63d",
+        "required_text": [
+          "1,024",
+          "0.339348",
+          "0.021867"
+        ]
+      },
+      "execution_runs": [
+        {
+          "id": 38501108142,
+          "conclusion": "success",
+          "head_sha_prefix": "d2c930d0ccdb",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
+      "manuscript_anchor": "sec:results-robustness",
+      "supplement_anchor": "S10.14 / S10.18",
+      "scientific_result": "1024 same-DEV requests; real F .339348 versus 3 historical-null F .306491/.303804/.305321",
+      "interpretation_limits": "TRAIN-only Popularity .021867 verified for 1024 DEV, cannot transfer as prereveal acceptance to nested 4096 H2; 3 seeds same subset",
+      "next_action": "REUSE_NONFLOOR_DEV_CONTEXT"
+    },
+    {
+      "id": "B4A_H1_NEW_EVENT_ID_SUPERVISION",
+      "cohort_group": "M3_B4A_EXTRA_SAME_PERIOD",
+      "events": 30000,
+      "users": 10387,
+      "ranking_unit": "persistent author",
+      "evidence_tier": "FROZEN_ADDITIONAL_SAME_PERIOD_TEST",
+      "source_of_truth": {
+        "path": "manuscript/kbs_latex/N9_ROUTE_B_B4A_A4_A5_FROZEN_RESULTS_AND_SCIENTIFIC_LIMITS_2026-10-14.md",
+        "git_blob_sha1": "c49591905ba2cb0afa315696ff13c4de6fabb5e9",
+        "required_text": [
+          "30,000",
+          "0.005391",
+          "0.003585",
+          "8,704"
+        ]
+      },
+      "execution_runs": [
+        {
+          "id": 38518785650,
+          "conclusion": "success",
+          "head_sha_prefix": "211eb63c54e1",
+          "verified_via_github_api": "2026-10-19"
+        },
+        {
+          "id": 38519174441,
+          "conclusion": "success",
+          "head_sha_prefix": "5bc64c4db30e",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
+      "manuscript_anchor": "tab:results-m3-b4a-supervision",
+      "supplement_anchor": "S10.15",
+      "scientific_result": "SAS weighted F−S +.005391 CI [.003646,.007174], calls 8704/9105; GRU +.003585 CI [.001599,.005576], calls 8629/9168",
+      "interpretation_limits": "Same 2026-03-27–31 collection interval as G5; only event IDs disjoint, not users/histories; natural calls exceed 1 pp equal-call tolerance, yet F dominates tested S in observed accuracy and call count",
+      "next_action": "REUSE_NO_TEST_REVEAL",
+      "parent_cohort": "M3_COLLECTION_2026_03_27_31"
+    },
+    {
+      "id": "B4A_H2_NESTED_HISTORY_NULL",
+      "cohort_group": "M3_B4A_H2_NESTED",
+      "events": 4096,
+      "users": 3059,
+      "ranking_unit": "persistent author",
+      "evidence_tier": "FROZEN_NESTED_SAME_PERIOD_TEST",
+      "source_of_truth": {
+        "path": "manuscript/kbs_latex/N9_ROUTE_B_B4A_A4_A5_FROZEN_RESULTS_AND_SCIENTIFIC_LIMITS_2026-10-14.md",
+        "git_blob_sha1": "c49591905ba2cb0afa315696ff13c4de6fabb5e9",
+        "required_text": [
+          "4,096",
+          "0.334942",
+          "0.303797",
+          "NOT VERIFIED"
+        ]
+      },
+      "execution_runs": [
+        {
+          "id": 38518785650,
+          "conclusion": "success",
+          "head_sha_prefix": "211eb63c54e1",
+          "verified_via_github_api": "2026-10-19"
+        },
+        {
+          "id": 38519174441,
+          "conclusion": "success",
+          "head_sha_prefix": "5bc64c4db30e",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
+      "manuscript_anchor": "tab:results-m3-additional-relation-identity",
+      "supplement_anchor": "S10.16 / S10.18",
+      "scientific_result": "Real history .334942; 3-null mean .303797; +.031145 CI [.027389,.035098] Holm .000600",
+      "interpretation_limits": "4096 nested within 30000 H1; null seeds same users not independent cohorts; rewire ~76.8% composite relation structure; original same-cohort prereveal TRAIN popularity acceptance NOT VERIFIED",
+      "next_action": "REUSE_PARTIAL_VALIDITY",
+      "parent_cohort": "M3_B4A_EXTRA_SAME_PERIOD"
+    },
+    {
+      "id": "N10_C2B_LEGACY_DEVICE_PATH",
+      "cohort_group": "M3_DEV_COST_SUBSET",
+      "events": 256,
+      "users": null,
+      "ranking_unit": "persistent author",
+      "evidence_tier": "POST_G5_DEV_TIMING",
+      "source_of_truth": {
+        "path": "manuscript/kbs_latex/N10_ROUTE_C_C2B_MATCHED_DEV_COST_AND_R2_VERDICT_2026-10-14.md",
+        "git_blob_sha1": "40f3b5382bb126432ea262776dfbbf59bd3b5474",
+        "required_text": [
+          "256",
+          "1.76941",
+          "0.69165"
+        ]
+      },
+      "execution_runs": [
+        {
+          "id": 38530526158,
+          "conclusion": "success",
+          "head_sha_prefix": "5e3757c7d643",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
+      "manuscript_anchor": "tab:results-n10-cost",
+      "supplement_anchor": "S9.6 / S10.17",
+      "scientific_result": "Warmed RTX3090 256 DEV requests×3; legacy pointwise Utility 1.76941ms vs Always Memory .69165ms",
+      "interpretation_limits": "Timing applies old pointwise gate, not newer vectorized F gate; repeated measures are not 768 independent users, no production cost/latency superiority",
+      "next_action": "REUSE_NOT_NEW_GATE_BENCHMARK"
+    }
+  ],
+  "validation_state": {
+    "source_blob_sha_audit": "NOT_YET_CI_VERIFIED",
+    "github_action_run_statuses": "FETCHED_FROM_GITHUB_API",
+    "private_raw_event_recomputation": "NOT_PERFORMED",
+    "human_independent_source_review": "PENDING",
+    "I0_stage_completion": "PENDING"
+  }
+}
