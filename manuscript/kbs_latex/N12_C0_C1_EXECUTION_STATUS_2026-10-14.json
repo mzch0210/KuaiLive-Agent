@@ -1,10 +1,10 @@
 {
-  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v5",
-  "date": "2026-10-16",
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v6",
+  "date": "2026-10-19",
   "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
   "draft_pr": 6,
   "base_branch": "kbs-n11-final-editorial-polish-20261014",
-  "current_stage": "N12_C0_THROUGH_C5_COMPLETE_READY_FOR_N12_C6",
+  "current_stage": "N12_C6_IN_PROGRESS_C6_0_C6_1_COMPLETED_C6_2_C6_3_PENDING",
   "CI": {
     "C0C1": {
       "run": 38546213364,
@@ -152,8 +152,30 @@
       "no_model_fitting_or_TEST_scoring": true
     },
     "N12-6": {
-      "status": "NEXT_NOT_STARTED",
-      "description": "One-thesis Abstract, Discussion, Conclusion rewrite; only after stable RQ1-RQ3 Results; concentrated scientific caveats and final editorial narrative"
+      "status": "IN_PROGRESS",
+      "description": "C6.0 bounded novelty/prior-art gate and C6.1 DEV-to-frozen-H1 evidence-chain document completed; C6.2 manuscript editorial rewrite and C6.3 science CI/dual-PDF pending",
+      "substage_0": {
+        "status": "PASS_TO_EDIT_WITH_BOUNDED_CLAIMS",
+        "report": "N12_C6_CLAIM_EVIDENCE_PRIOR_ART_STRESS_TEST_2026-10-19.md",
+        "risk": "P0_novelty_not_fully_resolved"
+      },
+      "substage_1": {
+        "status": "DOCUMENT_COMPLETE",
+        "report": "N12_C6_RQ2_SUPERVISION_TO_DECISION_EVIDENCE_CHAIN_2026-10-19.md",
+        "new_TEST_or_model_training": false
+      },
+      "substage_2": {
+        "status": "NOT_STARTED"
+      },
+      "substage_3": {
+        "status": "NOT_STARTED"
+      },
+      "C5_latest_verified_ci_run": 38864362019,
+      "C5_verified_pdf_pages": {
+        "main": 36,
+        "supplement": 47
+      },
+      "C6_pdf_not_yet_produced": true
     },
     "N12-7": {
       "status": "NOT_STARTED"
