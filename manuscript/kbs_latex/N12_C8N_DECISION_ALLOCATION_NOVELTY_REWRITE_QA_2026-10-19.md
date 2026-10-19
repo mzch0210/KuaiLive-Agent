@@ -1,6 +1,6 @@
 # N12-C8N | Scientific-contribution reinforcement execution report
 
-Date: 2026-10-19. **C8N manuscript edit completed, final dual-PDF re-verification pending** at time of this report. It is a bounded argument strengthening within frozen evidence, not a new theorem, new experiment, or claim to KBS referee approval.
+Date: 2026-10-19. **C8N manuscript edit and dual-PDF science QA COMPLETE/PASS** at time of this report. It is a bounded argument strengthening within frozen evidence, not a new theorem, new experiment, or claim to KBS referee approval.
 
 ## Completed edits
 
@@ -20,6 +20,6 @@ Date: 2026-10-19. **C8N manuscript edit completed, final dual-PDF re-verificatio
 
 ## QA and lifecycle
 
-Prior completed baseline C7 workflow #39205375045 (36p/47p, 49 numeric cells). New manuscript revision source SHA `cf189a9fd6a5a6e7eae1ef4c38a8a8973bb42577` at the time of this note; new C7 science+dual PDF [run #39209043536](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/39209043536) **PENDING**. Once fully concluded, update this report with exact verdict, page counts, artifact IDs and SHA; **do not silently inherit prior PASS**. Old C6 push workflow retired to archival manual mode, historical C6 success intact.
+Prior completed baseline C7 workflow #39205375045 (36p/47p, 49 numeric cells). New manuscript revision source SHA `cf189a9fd6a5a6e7eae1ef4c38a8a8973bb42577`; new C7 science+dual PDF [run #39209043536](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/39209043536) **SUCCESS**: both jobs passed on manuscript source SHA `cf189a9fd6a5a6e7eae1ef4c38a8a8973bb42577`. Scientific contract, 11 original Results table inventory, 7 literal main Results tables, 4 relocated tables (17 rows/49 cells), all five mutation tests, citation references and zero overfull pass. **Main 37 pages, supplement 47 pages.** Artifacts: main **12166837346** (ZIP digest `bcd280d955e109cd548dcccbaafb731f02201ba6a3f93b4b83be39aeb82c6162`), supplement **12167221155** (ZIP digest `eae90b807c3799bd94e74cfaf755e3863aafcbe9e03c989f38b2bacfe9925011`); artifact digests are **not** PDF SHA256. Historical C7 36p/47p success remains archived separately. Old C6 push workflow retired to archival manual mode, historical C6 success intact.
 
 C8 overall state remains `IN_PROGRESS`; author signoff, final declarations, and scientific submission Go/No-go remain pending.
