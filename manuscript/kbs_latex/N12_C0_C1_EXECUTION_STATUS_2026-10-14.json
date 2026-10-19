@@ -1,5 +1,5 @@
 {
-  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v9",
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v10",
   "date": "2026-10-19",
   "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
   "draft_pr": 6,
@@ -234,11 +234,19 @@
       "major_comment_response_matrix": "COMPLETE",
       "report": "N12_C8_THREE_REFEREE_CHALLENGE_AND_AUTHOR_NO_GO_REGISTER_2026-10-19.md",
       "human_author_approval": "NOT_RECEIVED",
-      "data_redistribution_rights": "NOT_CLEARED",
+      "data_redistribution_rights": "NONBLOCKING_METADATA_DOCUMENTATION_UNLESS_ACTUAL_VIOLATION_OR_REDISTRIBUTION",
       "AI_manuscript_disclosure_author_approved": "NOT_YET",
-      "KBS_submission_decision": "NO_GO_PENDING_HUMAN_CHECKS",
+      "KBS_submission_decision": "PENDING_AUTHOR_SCIENTIFIC_GO_AND_AUTHORS_DECLARATIONS_NOT_DATASET_LICENSE_LABELS",
       "merged_to_main": false,
-      "submitted_to_KBS": false
+      "submitted_to_KBS": false,
+      "license_scope_clarification": "N12_C8_SUBMISSION_GATES_AND_DATA_LICENSE_SCOPE_CLARIFICATION_2026-10-19.md",
+      "remaining_items": [
+        "actual_author_identity_order_CRedit_and_final_approval",
+        "AI_manuscript_preparation_declaration_author_verified",
+        "funding_COI_data_code_availability_statements",
+        "current_KBS_submission_checklist_and_cover_letter",
+        "human_pdf_review_and_submission_go_no_go"
+      ]
     }
   },
   "fixed_scientific_constraints": [
