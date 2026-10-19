@@ -1,23 +1,8 @@
 name: KBS N12 C5 RQ-driven Results, evidence migration and dual PDF QA
+# Archival C5 science+PDF contract; original success #38864362019.
+# C6 intentionally edits the C5-locked frontmatter and Discussion, so do not re-run C5 on pushes.
 on:
-  push:
-    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
-    paths:
-      - '.github/workflows/kbs-n12-c5-rq-results-pdf-qa.yml'
-      - 'manuscript/kbs_latex/main.tex'
-      - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md'
-      - 'analysis/kbs_n9_supplement_tex_postprocess.py'
-      - 'analysis/kbs_plan_c/n11_final_editorial_integrity.py'
-      - 'analysis/kbs_plan_c/test_n11_final_editorial_integrity.py'
-      - 'analysis/kbs_plan_c/n12_c2_intro_related_integrity.py'
-      - 'analysis/kbs_plan_c/n12_c3_merged_method_integrity.py'
-      - 'analysis/kbs_plan_c/test_n12_c3_merged_method_integrity.py'
-      - 'analysis/kbs_plan_c/n12_c3_original_method_equations.json'
-      - 'analysis/kbs_plan_c/n12_c4_original_experimental_section_freeze.json'
-      - 'analysis/kbs_plan_c/n12_c4_experimental_design_audit.py'
-      - 'analysis/kbs_plan_c/n12_c5_original_results_source_freeze.json'
-      - 'analysis/kbs_plan_c/n12_c5_rq_results_evidence_audit.py'
-      - 'analysis/kbs_plan_c/test_n12_c5_rq_results_evidence_audit.py'
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
