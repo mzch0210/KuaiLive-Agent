@@ -1,10 +1,10 @@
 {
-  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v7",
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v8",
   "date": "2026-10-19",
   "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
   "draft_pr": 6,
   "base_branch": "kbs-n11-final-editorial-polish-20261014",
-  "current_stage": "N12_C0_THROUGH_C6_COMPLETE_READY_FOR_N12_C7",
+  "current_stage": "N12_C0_THROUGH_C7_COMPLETE_READY_FOR_N12_C8",
   "CI": {
     "C0C1": {
       "run": 38546213364,
@@ -30,6 +30,12 @@
       "run": 39200835455,
       "conclusion": "success",
       "both_jobs": true
+    },
+    "C7": {
+      "run": 39205375045,
+      "conclusion": "success",
+      "main_paper": "success",
+      "complete_supplement": "success"
     }
   },
   "frozen_source": {
@@ -200,10 +206,30 @@
       "C6_pdf_not_yet_produced": false
     },
     "N12-7": {
-      "status": "NEXT_NOT_STARTED"
+      "status": "PASS",
+      "description": "11 frozen Results table inventory; exact 7 main LaTeX blocks and 4 Supplement migrated tables, 17 rows and 49 numerical cells checked; 5 positive/negative tests passed; claim provenance and honest rights/reproducibility register; dual-PDF CI succeeded. License/author approval expressly unresolved for C8.",
+      "CI_run": 39205375045,
+      "CI_conclusion": "success",
+      "main_pdf_pages": 36,
+      "supplement_pdf_pages": 47,
+      "main_artifact_id": 12165009848,
+      "supplement_artifact_id": 12165975164,
+      "main_artifact_zip_sha256": "75aaf408ad8825f65082437475d6cce3eaaa87546e17418d89302e4706bbcbe9",
+      "supplement_artifact_zip_sha256": "b56b3e5b1f11781c79cf47bc50bec455ac1c8bb6e4656e9d109eb7c69a170773",
+      "digest_format": "GitHub artifact ZIP; not underlying PDF hash",
+      "original_main_results_tables_verified": 7,
+      "relocated_supplement_tables_verified": 4,
+      "relocated_rows_verified": 17,
+      "relocated_numeric_cells_verified": 49,
+      "negative_audit_tests_passed": 4,
+      "licensing_clearance": "PENDING_AUTHOR_AND_DATA_OWNER_CHECK",
+      "public_full_end_to_end_reproduction": "NOT_ESTABLISHED",
+      "report": "N12_C7_FULL_CELL_PROVENANCE_AND_REPRODUCIBILITY_QA_2026-10-19.md",
+      "claims_register": "N12_C7_CLAIM_SOURCE_REPRODUCIBILITY_AND_RIGHTS_REGISTER_2026-10-19.md",
+      "new_TEST_scoring": false
     },
     "N12-8": {
-      "status": "NOT_STARTED"
+      "status": "NEXT_NOT_STARTED"
     }
   },
   "fixed_scientific_constraints": [
@@ -222,6 +248,7 @@
     "obsolete_N12_C2_C3_autopush_workflows": "retired_after_successful_stages",
     "C4_scientific_contract": "superset_checks_C2_C3_stable_source_and_original_9_equations",
     "new_untested_TEST_since_original_B4A": false,
-    "C6": "C5 push retired after archived success; C6 source-region science guard and dual PDFs PASS on #39200835455"
+    "C6": "C5 push retired after archived success; C6 source-region science guard and dual PDFs PASS on #39200835455",
+    "C7": "New strict four-migrated-table 17-row/49-cell audit and C7 main/supp PDF CI PASS #39205375045"
   }
 }
