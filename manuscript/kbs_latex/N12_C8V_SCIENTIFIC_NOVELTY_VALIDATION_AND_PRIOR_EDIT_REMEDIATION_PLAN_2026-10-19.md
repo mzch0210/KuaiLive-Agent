@@ -1,3 +1,62 @@
+# N12-C8V Rev2 | 证据优先、去重执行的创新性验证总方案（2026-10-19）
+
+**当前权威执行方案；取代本文件此前的V0–V6旧顺序，但保留其正文作为历史计划，不修改原科研结果。** 依据：当期 `main.tex` 37页/完整Supplement47页；PR #6仍Draft，C0–C7历史PASS，V0语义+双PDF run #39218602150 PASS，V1由助手完成先例分析但独立科学审阅尚未签署。**本次仅修订研究管理方案/公开结果总账，不修改论文、不访问私有TEST、不新增模型训练或实验。**
+
+## 0. 本次最重要的方案纠偏
+
+历史核查发现已完成的 **B1 S→F/F→F/Regime-adapted→F三臂 DEV**、**B2五来源×候选监督**、**G1来源×候选交互及Route B B1A零支持九单元格分解**、**N9 A1八档预算**、**N9 A2 Direct/Two-stage/other-target控制**、**G2/E1调用重新分配**、**N10旧Utility真实成本负面对照**和**B4-A 30k/4096冻结目标**。因此不得将三臂、来源消融、多额度扫描或同一DEV学者式模拟审稿重新列成未做的默认实验。用户指出的历史材料遗漏由跨版本证据总账解决，详见 [Rev2证据去重基线](N12_C8V_REV2_CROSS_VERSION_EVIDENCE_INVENTORY_2026-10-19.md)。
+
+## 1. 论文实际单一主张与证据身份
+
+> A fixed Base-relative historical-knowledge expert has candidate-regime-sensitive event-level value labels; in the tested KuaiLive-M3 protocol, supervising an already-defined selector on the actual F rather than the tested retrospective sampled S changes **which requests use Memory** and improves the separately frozen full-F policy quality, under differing realized calls. Authentic histories contain independent source information relative to stated constrained nulls, without establishing a unique relationship-semantic causal mechanism.
+
+论文RQ1: Twitch原streamer TEST互补性/旧KuaiLive room S/F反转是分层诊断，后者不得直接作为M3 author因果先导。RQ2: M3 原G5 47,575 TEST/同TEST六fits，B1/G2 DEV 50,049探索性、B4-A 30,000同期间新目标冻结H1为中心证据链。RQ3: H2嵌套4096真实/Null是平行source信息检验，不是RQ2中介。Always Memory较高无约束准确率、旧Utility延迟更慢、H1调用不严格相等、H2原TRAIN-only popularity prereveal门槛未被验证均必须保留。不能声称首创采样指标、条件专家委托或decision-focused learning。
+
+## 2. 唯一执行顺序与任务停止条件
+
+| 序号 | 阶段、已完成/未来责任 | 必须复用的项目事实与具体交付物 | PASS / HOLD / STOP |
+| --- | --- | --- | --- |
+| **I0 新前置** | **跨版本source-of-truth证据总账**；总账初版已有，正式逐估计对象验收待执行 | 建立machine-readable `cohort→protocol→estimand→initial run/source SHA→original results→main/Supp placement→limits→next action`，覆盖G5/B1/B2/G1/G2/N9 A1/A2/Route B B1A/B4-A/N10/N11/N12；标记DEV同一cohort、same-period额外目标及原失败/恢复区别；形成`N12_C8V_REV2_EVIDENCE_LEDGER.json`与有签名的核对摘要 | 每一项都对原始记录，数字/样本/语义/等级匹配；不存在原做过而被写作“未做”；**不足则HOLD下一阶段，不先提新实验** |
+| **V0 已完成** | 遗留错误修复和语义合同QA | #39218602150 两PDF **37p/47p**，6语义+5单元格防篡改 tests通过；21.32/23.01%以50049 DEV事件为分母；H1质量↑calls↓；H2部分nonfloor通过而原Popularity子门槛未认证 | **MACHINE_PDF_PASS**，科研人类独立阅读未签署；无需重复相同版本构建 |
+| **V1 已完成分析** | 文献先例及创新性压力测试 | 复用 N1/N8/N10/C6/C8 旧文献审稿，不创作第四套互相冲突的文献矩阵；只更新新增近邻：Krichene/Rendle 2020 sampled correction、Mao et al. 2024 deferral、Mandi et al. DFL、Qian et al. 2026 Active RAG及DS-Frame；报告 `N12_C8V_V1_PRIOR_ART_AND_NOVELTY_EVIDENCE_STRESS_TEST_2026-10-19.md` | **ANALYST_MATRIX_DONE / external human review OPEN**；不可称KBS已认可创新性 |
+| **I1 新合并** | **现有证据集成与竞争解释审查**（替代旧V3+大部分V4） | 将B1 S/F/Adapted、N9 A2 Direct vs Two-stage、B2五源、G1/E3a及B1A九单元格zero-support、A1八档quota、B1B自然calls、B4-A冻结H1/H2、N10成本负面对照**一张科学推断地图**复核；明确source×regime零支持比例仅对Full-Long gap定义，且B1 Adapted使用F标签 | 判断由已完成证据能否解释S/F策略差异，并登记 *generic sampled-NDCG truncation*、*knowledge-source-specific mechanism not isolated*、*external access budget not measured*。**禁止重复五源、八额度扫描或旧计时** |
+| **V2a 唯一默认技术新门槛** | **corrected-S estimator/data sufficiency审查，仅只读和受控DEV字段检查** | 原B1三臂已经做过：第三臂使用F训练标签，**不是sampled-only corrected-S**。核对574 without replacement target-retained采样law、F候选大小、抽样seed、每请求full sampled rank/score缓存是否现存或在合法DEV可重建，估计对象是否能由总体sampled metric correction推断 **conditional** Δ_F(Z)；人工审查适用性、统计偏差与top10 censor/ties | 输出 **FEASIBLE/HOLD/INFEASIBLE/NOT_SCIENTIFICALLY_DECISIVE**；不可将旧 `corrected Memory` 误作统计校正S。若不可行或不能区别已有实验，**STOP V2b**，允许bounded manuscript |
+| **V2b 仅条件执行** | 新corrected-S DEV-only、synthetic parity及三臂 | 只有V2a确认**明确未被B1覆盖**的合法校正估计器，且能测试真正竞争性假设，才另冻结 original S / statistically corrected S / F DEV-only比较；其他模型/特征/outer用户折/预算同合同；校正方法不能因观察已揭盲H1而挑选；发表非私有聚合 | 否则标 **NOT_RUN_BY_DESIGN**，绝不能为了有第三臂制造不适用估计器或把DEV冒充新TEST |
+| **I2 新合并** | **贡献裁决／最小稿件修改**（替代旧V5/V6及新一轮全面重写） | 合并历次 N8、N9、N10、C8 simulated reviewers 的未决风险，保留原裁决；先案原创性与现有强/弱/无法支持主张对照；标记现稿与Supp已覆盖/遗漏内容，仅调整真实有信息增益的段落；独立科研同行审阅不是助手多视角自称 | 决定 A bounded empirical KBS；B narrower knowledge-use evaluation; C 需独立新研究（真正严格same-call、source-specific causal test、新时点或部署成本）。只有科研论证确定再做最小 `main.tex` 编辑和stage CI |
+| **C8最终作者投稿审批** | 真实作者身份/CRediT、AI使用、Funding/COI、Data/Code声明、KBS最新投稿要求与PDF、科学风险Go/No-go | **非模型代签**；数据公开元数据出现不同许可标签**不自动阻断投稿**，具体隐私/越权再分发需处理 | 人类签署前PR保持Draft、不得声称已提交KBS |
+
+## 3. 需要覆盖但不得“重复当作新实验”的现有结果
+
+- **B1三臂**：SASRec S→F .296499、F→F .302658、Adapted→F .301847；GRU4Rec .298123/.303093/.303000；50,049 DEV，5×4用户无交叉折，Adapted→F利用F训练标签。原run #38365477972。
+- **N9 A1八档预算**（0/10/20/30/50/70/90/100%）；30% F DEV SAS .302658/15016 calls、GRU .303093/14762。不是尚缺budget frontier；真实 serving成本仍未建立。
+- **N9 A2训练目标**：10/30/50%三档，Direct Δ/Two-stage/Difficulty/Specialist Quality；30% Direct−Two-stage SAS +.001310（多318 calls），GRU +.000119（CI跨零）；一般∆预测/decision-focused原则不应标“新理论”。
+- **N9 G1/E3a/Route B B1A**：Full−Long源×候选interaction +.115382；46,462/50,049（92.83%）source gap在至少一种制度下为零，**不代表Memory−Base主∆**也零；只有66请求严格非零符号反向。大交互不能直接冒称identity因果机制。
+- **B4-A H1**：冻结额外30k事件F policy weighted NDCG SAS .305446 vs S .300055、GRU .304530 vs S .300945，分别 +.005391/+.003585，F actual calls 8704<9105、8629<9168；原1pp近调用差限未达到，这是 **complete policy observed quality-call dominance**，不是equal-call isolation。
+- **B4-A H2**：嵌套4096真实历史 F .334942 vs3 null mean .303797，gap +.031145；DEV 1024的TRAIN-only Popularity已通过**不能**代证新4096原pré-reveal popularity floor，后者NOT VERIFIED。
+- **N10 C2B**：旧pointwise Utility 1.76941ms vs Always Memory .69165ms，256 DEV×3次RTX3090；**没有测量新F向量化gate端到端成本**，而不是已证明它更慢。
+- **完整已有证据总账初版**：`N12_C8V_REV2_CROSS_VERSION_EVIDENCE_INVENTORY_2026-10-19.md`。独立新科学试验必须先通过“没有相同估计对象旧实验”的审查。
+
+## 4. 先例核查与不同统计对象的非等价性
+
+Krichene/Rendle sampled metric bias/MSE corrections关注样本排序指标对全量评价的估计。当前N12关注事件级Base-relative增量 $Δ_F$ 的 **conditional** value estimate $η_F(Z)=E[Δ_F|Z]$ 和用该分数形成的调用决策。**总体NDCG校正不等于每事件或每特征条件无偏标签**；这必须在V2a验证。Learning-to-defer、decision-focused learning和预算外部知识调用也已有先例，N12只能在特定固定关系专家×候选环境×决策分配的实证对象上定位新意。不得宣称首创Base-relative utility、采样不一致、专家门控或新relation semantics定理。文献初步审计：`N12_C8V_V1_PRIOR_ART_AND_NOVELTY_EVIDENCE_STRESS_TEST_2026-10-19.md`。
+
+## 5. 阻断规则、对外审稿与阶段归档
+
+- I0需链接source-of-truth/原实验run/准确脚本、source SHA、样本母集、标签访问、F/S、预测阈值、统计总体、有效比较、主文/补充落点、原控制验收失败/例外。CI PASS只表示技术合同完整，不替代科学语义审核。一个run多个试验不等于独立cohort，一个估计对象多个报告不等于多重发现。
+- V0/V1既有成果不倒回写成“计划尚未执行”。I0初版并不意味着machine-readable registry已验收；I1还未完成学术整合；V2a未访问DEV私有schema；V2b未发生；I2尚无外部审稿意见。
+- 除V2a合法受限DEV审计外，新实验默认STOP：只有原估计对象无法回答对KBS创新性至关重要的**可拒绝假设**，并且符合冻结划分和私有数据访问合同时才设计。现有TEST绝不重新解封/重调。
+- 结论的三条路径：**A：限缩后实证贡献足够，直接审稿准备**；**B：先从现有负面和对照形成更加可信的知识使用评价论文**；**C：作者选择更强严格因果/跨时间/部署声明，另外预先封存真正新证据**。若选A/B，无须为了“完成计划”机械新增实验。
+- C8最后责任作者核验AI辅助写作披露、署名、现行KBS清单，拒绝在没有真实作者批准时签署GO。Data license version metadata差异本身NONBLOCKING unless actual rights/privacy violation.
+
+## 6. 版本和优先次序
+
+Rev2当前效力：**I0 → I1 → V2a → (V2b only if decisive) → I2 → human C8**。V0机器PASS、V1分析完成作为不可丢失的并行已完成工作，不能重跑充当新贡献。若I1发现旧结果已足以使corrected-S额外实验没有增量信息，V2a可仅做estimator feasibility及书面停止理由。
+
+**本文件下方附录保留Rev1历史文字以供审计，不再作为当前待执行任务顺序。**
+
+---
+## 附录：Rev1原始方案（历史归档，已由上述Rev2取代）
+
 # N12-C8V | 科学创新性独立验证与上一轮遗留问题修复方案（2026-10-19）
 
 **文档性质：PLAN ONLY，尚未执行；不是论文已修复、验证已通过或实验已发生的证明。** 对象为 N12 Draft PR #6，分支 kbs-n12-single-thesis-restructure-plan-20261014；计划起点 HEAD c3e25fddae6668c1297108a3c9020aa4756a0af1，最近完成的论文科学/双PDF CI #39209043536（37页主文 + 47页补充材料，C7源表17行/49数值cell审核通过）。C0–C7历史通过记录不可倒改，C8三角色模拟审稿与C8N文字强化已完成；C8作者最终Go/No-go仍未完成。本计划新增 **C8V 验证门槛**，应先执行完验证再考虑大范围叙事重写。执行本计划本身不要求重新TRAIN、揭封原TEST、向KBS投稿或合并PR。
