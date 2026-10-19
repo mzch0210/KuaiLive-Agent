@@ -1,10 +1,10 @@
 {
-  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v8",
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v9",
   "date": "2026-10-19",
   "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
   "draft_pr": 6,
   "base_branch": "kbs-n11-final-editorial-polish-20261014",
-  "current_stage": "N12_C0_THROUGH_C7_COMPLETE_READY_FOR_N12_C8",
+  "current_stage": "N12_C0_THROUGH_C7_COMPLETE_C8_REFEREE_SIMULATION_DONE_AUTHOR_SIGNOFF_BLOCKED",
   "CI": {
     "C0C1": {
       "run": 38546213364,
@@ -229,7 +229,16 @@
       "new_TEST_scoring": false
     },
     "N12-8": {
-      "status": "NEXT_NOT_STARTED"
+      "status": "IN_PROGRESS_BLOCKED_HUMAN_SIGNOFF",
+      "three_role_referee_simulation": "COMPLETE",
+      "major_comment_response_matrix": "COMPLETE",
+      "report": "N12_C8_THREE_REFEREE_CHALLENGE_AND_AUTHOR_NO_GO_REGISTER_2026-10-19.md",
+      "human_author_approval": "NOT_RECEIVED",
+      "data_redistribution_rights": "NOT_CLEARED",
+      "AI_manuscript_disclosure_author_approved": "NOT_YET",
+      "KBS_submission_decision": "NO_GO_PENDING_HUMAN_CHECKS",
+      "merged_to_main": false,
+      "submitted_to_KBS": false
     }
   },
   "fixed_scientific_constraints": [
