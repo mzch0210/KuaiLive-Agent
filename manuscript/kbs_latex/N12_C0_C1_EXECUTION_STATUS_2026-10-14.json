@@ -4,7 +4,7 @@
   "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
   "draft_pr": 6,
   "base_branch": "kbs-n11-final-editorial-polish-20261014",
-  "current_stage": "N12_C6_IN_PROGRESS_C6_0_C6_1_COMPLETED_C6_2_C6_3_PENDING",
+  "current_stage": "N12_C6_IN_PROGRESS_C6_0_C6_1_C6_2_EDITED_C6_3_CI_PENDING",
   "CI": {
     "C0C1": {
       "run": 38546213364,
@@ -153,7 +153,7 @@
     },
     "N12-6": {
       "status": "IN_PROGRESS",
-      "description": "C6.0 bounded novelty/prior-art gate and C6.1 DEV-to-frozen-H1 evidence-chain document completed; C6.2 manuscript editorial rewrite and C6.3 science CI/dual-PDF pending",
+      "description": "C6.0 novelty gate, C6.1 evidence chain and C6.2 Abstract/Discussion/Conclusion+Highlights source edits completed; C6.3 source contract and new dual-PDF workflow authored, final CI/visual QA pending",
       "substage_0": {
         "status": "PASS_TO_EDIT_WITH_BOUNDED_CLAIMS",
         "report": "N12_C6_CLAIM_EVIDENCE_PRIOR_ART_STRESS_TEST_2026-10-19.md",
@@ -165,10 +165,18 @@
         "new_TEST_or_model_training": false
       },
       "substage_2": {
-        "status": "NOT_STARTED"
+        "status": "SOURCE_EDIT_COMPLETE_PENDING_QA",
+        "manuscript": "main.tex",
+        "highlights": "Highlights.txt",
+        "science_change": "NO_RECALCULATED_RESULTS",
+        "new_source_sha_note": "See current GitHub branch"
       },
       "substage_3": {
-        "status": "NOT_STARTED"
+        "status": "WORKFLOW_CREATED_CI_PENDING",
+        "workflow": ".github/workflows/kbs-n12-c6-scientific-pdf-qa.yml",
+        "science_guard": "analysis/kbs_plan_c/n12_c6_scientific_contract.py",
+        "historical_C5_push_workflow": "retired_manual_only",
+        "C6_scientific_PDF_run_verified": false
       },
       "C5_latest_verified_ci_run": 38864362019,
       "C5_verified_pdf_pages": {
@@ -199,6 +207,7 @@
   "ci_stage_lifecycle": {
     "obsolete_N12_C2_C3_autopush_workflows": "retired_after_successful_stages",
     "C4_scientific_contract": "superset_checks_C2_C3_stable_source_and_original_9_equations",
-    "new_untested_TEST_since_original_B4A": false
+    "new_untested_TEST_since_original_B4A": false,
+    "C6": "C5 push retired; C6 scoped guard and dual-PDF workflow created, final run pending"
   }
 }
