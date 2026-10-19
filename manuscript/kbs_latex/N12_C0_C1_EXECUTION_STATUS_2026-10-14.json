@@ -1,10 +1,10 @@
 {
-  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v19",
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v20",
   "date": "2026-10-19",
   "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
   "draft_pr": 6,
   "base_branch": "kbs-n11-final-editorial-polish-20261014",
-  "current_stage": "N12_C8V_V2A_128_EVENT_F_AND_S_LABEL_PARITY_PASS_ESTIMATOR_SPEC_HOLD",
+  "current_stage": "N12_C8V_V2A_CORRECTED_S_PUBLIC_SYNTHETIC_STRESS_PASS_JOINT_DELTA_METHOD_PENDING",
   "CI": {
     "C0C1": {
       "run": 38546213364,
@@ -295,7 +295,7 @@
         "evidence_inventory": "N12_C8V_REV2_CROSS_VERSION_EVIDENCE_INVENTORY_2026-10-19.md",
         "I0": "PUBLIC_LEDGER_QA_PASS_TWITCH_P1_3_AND_ROOM_RUNS_TRACED_INDEPENDENT_HUMAN_REVIEW_PENDING",
         "I1": "ANALYST_EXISTING_EVIDENCE_SYNTHESIS_COMPLETE_HUMAN_REVIEW_PENDING",
-        "V2a": "PRIVATE_DEV_HASH_PASS_128_EVENT_F_AND_ORIGINAL_S_LABEL_PARITY_PASS_ESTIMATOR_NOT_VALIDATED",
+        "V2a": "ORIGINAL_DEV_F_S_128_PARITY_AND_SINGLE_EXPERT_CORRECTION_SYNTHETIC_CI_PASS_JOINT_DELTA_METHOD_NOT_VALIDATED",
         "V2b": "NOT_AUTHORIZED_NOT_RUN",
         "old_V3": "MERGED_INTO_I1_NO_DUPLICATE_ABLATIONS",
         "old_V4": "MERGED_INTO_I1_NO_DUPLICATE_FRONTIERS",
@@ -334,7 +334,9 @@
             "memory": 0
           },
           "tolerance": 1e-12
-        }
+        },
+        "V2a_correction_synthetic_run": 39235271548,
+        "V2a_correction_synthetic_report": "N12_C8V_REV2_V2A_CORRECTION_CANDIDATES_SYNTHETIC_ADJUDICATION_2026-10-19.md"
       }
     }
   },
