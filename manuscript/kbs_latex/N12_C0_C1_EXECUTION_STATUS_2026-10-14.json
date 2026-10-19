@@ -1,10 +1,10 @@
 {
-  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v11",
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v12",
   "date": "2026-10-19",
   "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
   "draft_pr": 6,
   "base_branch": "kbs-n11-final-editorial-polish-20261014",
-  "current_stage": "N12_C0_THROUGH_C7_COMPLETE_C8_NOVELTY_REINFORCEMENT_SCIENCE_PDF_PASS_AUTHOR_SIGNOFF_PENDING",
+  "current_stage": "N12_C0_THROUGH_C7_COMPLETE_C8V_V0_MACHINE_PASS_V1_ANALYST_REVIEW_COMPLETE_V1_HUMAN_REVIEW_PENDING",
   "CI": {
     "C0C1": {
       "run": 38546213364,
@@ -267,6 +267,27 @@
         "new_frozen_TEST_or_training": false,
         "report": "N12_C8N_DECISION_ALLOCATION_NOVELTY_REWRITE_QA_2026-10-19.md",
         "human_novelty_acceptance": "PENDING"
+      },
+      "V0": {
+        "status": "MACHINE_PDF_PASS_HUMAN_REVIEW_PENDING",
+        "run": 39218602150,
+        "main_pages": 37,
+        "supp_pages": 47,
+        "semantic_tests": 6,
+        "cell_tests": 5,
+        "main_artifact_id": 12170528778,
+        "supplement_artifact_id": 12170951707,
+        "report": "N12_C8V_V0_SEMANTIC_CORRECTION_EXECUTION_LOG_2026-10-19.md"
+      },
+      "V1": {
+        "status": "ANALYST_PRIOR_ART_MATRIX_COMPLETE_INDEPENDENT_REVIEW_PENDING",
+        "verdict": "NARROW_AND_PROCEED_TO_V2A_FEASIBILITY",
+        "report": "N12_C8V_V1_PRIOR_ART_AND_NOVELTY_EVIDENCE_STRESS_TEST_2026-10-19.md",
+        "corrected_S_experiment_performed": false
+      },
+      "V2a": {
+        "status": "NOT_STARTED",
+        "guard": "metadata first, no frozen TEST"
       }
     }
   },
