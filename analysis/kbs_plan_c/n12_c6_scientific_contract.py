@@ -135,7 +135,7 @@ def check(root=ROOT):
         assert_ok(n in supp,"primary supplement frozen verification missing "+n)
     assert_ok("B4-A" not in main and "G5" not in main,"research execution jargon in main paper")
     # Ensure the revised journal-facing claim is bounded and the parallel source check remains explicit.
-    front=main.split(r"\\end{abstract}",1)[0]
+    front=main[:main.index(chr(92)+"end{abstract}")]
     discussion=main[b:]
     assert_ok("candidate-aligned" in front and "supervision" in front,"abstract lacks C6 contribution")
     for z in ("strictly equal", "not verified", "unconditional", "historical"):
