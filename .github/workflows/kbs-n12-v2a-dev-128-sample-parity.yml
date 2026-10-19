@@ -1,0 +1,76 @@
+name: KBS N12 V2a Historical B1 Sample Label Parity
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/n12_c8v_v2a_original_b1_sampled_label_parity.py'
+      - '.github/workflows/kbs-n12-v2a-dev-128-sample-parity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package-validated-replay:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and verify DEV-only guard
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/n12_c8v_v2a_original_b1_sampled_label_parity.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('analysis/kbs_plan_c/n12_c8v_v2a_original_b1_sampled_label_parity.py').read_text()
+          assert 'sampled_ndcg10_disagreements_with_original_b1_dev' in s
+          assert 'B1_SOURCE_SHA' in s
+          assert 'test_cohort.parquet' not in s and 'torch.optim' not in s
+          PY
+          mkdir -p bundle
+          cp analysis/kbs_plan_c/n12_c8v_v2a_original_b1_sampled_label_parity.py bundle/
+          cp analysis/kbs_plan_c/{g3_dev_full_active.py,g3_replay_correct_memory.py,g2_train_base.py} bundle/
+          cp analysis/kbs_plan_c/b1_dev_regime_pilot.py bundle/
+          (cd bundle && sha256sum *.py > SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v2a-s-sample-source
+          path: bundle/
+          retention-days: 2
+  selfhost-original-s-parity:
+    needs: package-validated-replay
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 35
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: v2a-s-sample-source
+          path: ${{ runner.temp }}/v2a-s-source
+      - name: Compare 128 DEV old S labels and F ranks
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd "$RUNNER_TEMP/v2a-s-source" && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$RUNNER_TEMP/v2a-s-source:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 PYTHONUNBUFFERED=1
+          "$HOME/venvs/kuailive-gpu/bin/python" "$RUNNER_TEMP/v2a-s-source/n12_c8v_v2a_original_b1_sampled_label_parity.py" --root "$HOME/.cache/kuailive-agent-kbs" --out "$RUNNER_TEMP/n12-v2a-128-s-parity.json" --limit 128 --score-batch 128
+      - name: Export counts only
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,os,pathlib
+          j=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'n12-v2a-128-s-parity.json').read_text())
+          assert j['status']=='PASS' and j['n_events']==128
+          assert all(x==0 for x in j['full_rank_disagreements_with_original_corrected_DEV'].values())
+          assert all(x==0 for x in j['sampled_ndcg10_disagreements_with_original_b1_dev'].values())
+          assert j['test_opened'] is False and j['new_training_performed'] is False
+          out=pathlib.Path('v2a-parity-summary')
+          out.mkdir(exist_ok=True)
+          safe={k:j[k] for k in ('schema','status','n_events','full_rank_disagreements_with_original_corrected_DEV','sampled_ndcg10_disagreements_with_original_b1_dev','sampled_candidates','original_B1_source_sha256_verified')}
+          (out/'counts.json').write_text(json.dumps(safe,indent=2)+'\n')
+          print('V2A_ORIGINAL_B1_S_EVENT_LABEL_PARITY_PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v2a-128-old-b1-s-parity-counts
+          path: v2a-parity-summary/counts.json
+          retention-days: 7
