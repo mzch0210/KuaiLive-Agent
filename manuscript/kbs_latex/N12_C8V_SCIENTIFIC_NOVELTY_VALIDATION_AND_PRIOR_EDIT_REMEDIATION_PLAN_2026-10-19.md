@@ -1,3 +1,76 @@
+# N12-C8V Rev2.1 | 路径 A：有限实证贡献、最小改稿与投稿前科学裁决（2026-10-19）
+
+> **CURRENT AUTHOR-SELECTED EXECUTION PLAN — supersedes the Rev2 sequence in the archive below.** 作者已明确选择 **Path A: evidence-bounded empirical paper**。本文件仍是唯一权威阶段顺序；下文 Rev2 及 Rev1 全文作为可追溯历史保留，不再是待执行任务清单。**本次仅修改方案与治理记录，不修改 \`main.tex\`、\`kbs_references.bib\`、Supplement、实验模型、训练阈值、冻结 TEST 或实际投稿。**
+
+## A. 选择路径 A 后的科学叙事合同
+
+**单一中心论点（保留）**：在一个固定的 incumbent Base、固定的历史关系 Memory 专家及明确的候选协议下，知识的增量排名价值取决于具体候选环境；该环境形成的训练标签差异，能够影响请求级知识调用分配和冻结完整候选策略结果。本文实证检验的是 **F 监督相对于历史上实际测试的、未经统计校正的 S 监督**，而非F相对于所有可行 corrected-S 或新的一般 deferral 理论。RQ3历史Null是**平行来源真实性检验**，不是RQ2的中介/专属因果机制。
+
+- RQ1：Twitch 44,221冻结TEST支持相对价值与受限选择；KuaiLive 10,222 **room**配对候选变化是单独回顾性诊断，不等价于M3作者榜单或独立数目因果效应。
+- RQ2：原G5 M3 author 47,575/12,533用户TEST与同一TEST的6个训练fit；B1/G2 50,049/12,628用户 DEV探索；B4-A额外**同采集期**30,000个未评分事件，SAS F−S +.005391，GRU +.003585，冻结F策略实际Memory调用8704<9105和8629<9168。但真实调用率差1.337/1.797pp超过旧1pp近等预算容忍，不能将完整政策效果冒称严格等调用下的标签因果效应。F的优势是**relative to the tested original uncorrected target-retained 575-candidate S**。
+- RQ3：嵌套4096同期间额外目标 authentic vs三seed composite Null +.031145；三seed共享cohort且历史重排联合改变多种结构，原4096 TRAIN-only popularity prereveal acceptance **NOT VERIFIED**，不能从1024 DEV借用PASS。
+- 负面事实不能删：M3 Always Memory在无约束准确率上更高；旧pointwise Utility在既有测量中比Always Memory慢，新的vectorized F门控未完成真实服务成本测量；没有独立未来期间推广、线上效果、强同调用资源识别。
+- **定位**：现成历史知识源的 candidate-regime-indexed relative-utility label 与 bounded request-level knowledge allocation 的可审计实证联系。不是首创sampled NDCG correction、rank estimate、learning-to-defer、decision-focused learning，亦非relation semantics机制定理。
+- 用户选择的投稿策略是**有限实证论文**，不是放弃创新性审查或保证KBS录用。真实作者和独立研究者仍需判断这一有限贡献是否满足KBS原创性标准。
+
+## B. V2科学结论的正式归档与准确停止条件
+
+| V2对象 | 确认结果 | 对后续执行的约束 |
+| --- | --- | --- |
+| 私有原始数据来源 | Selfhost DEV数据/模型/manifest SHA PASS run #39230682113；128个锁定 DEV 原始 F ranks和 S NDCG标签各三评分器0 mismatch run #39232305650 | 说明B1受控重建可信；128事件不等于全部50049逐行重放 |
+| B1实验地位 | 原 DEV S→F / F→F / Adapted→F三臂已完成；Adapted使用F训练标签 | 严禁再报告“尚无三臂”或称Adapted是纯S校正 |
+| 合成方法筛查 | 单专家 #39235271548、共享574同负例联合Δ #39236652772 PASS；单专家MSE降低不保证联合Δ或调用遗憾改善 | 合成不是M3 DEV新结果；同一候选sample coupling必须保留 |
+| 原始50049 DEV只读 jointΔ诊断 | run #39237415095 PASS；原始S SAS/GRU MSE .154547688/.156083555；rank-expansion .193363048/.193387100；uniform-prior posterior .082977598/.087528999，但未经支持的均匀rank先验、toy sign-gate regret未改善 | 这不是新policy、独立TEST、严格同调用比较；不能从最小标签MSE推断最优策略 |
+| 方法裁决 | 目前两种**具体候选启发式**不构成经过理论及决策验证的 sampled-only \`E[Δ_F|Z]\` 监督器 | **V2b = NOT_RUN_BY_DESIGN_FOR_CURRENT_CANDIDATES**，不再默认训练新三臂或重复现有B1 |
+| 保留的竞争解释 | 某种有依据的 sampled-only paired/conditional correction **可能**缩小或消除原F/S差异 | 论文正文必须显式承认“未训练及验证合格corrected-S gate”；绝不写“所有校正不可能/校正方法已被推翻” |
+
+与此前“必须每请求严格无偏才可入围”不同，**重新打开V2b不要求形式上逐事件严格无偏**；真正准入条件是一个(a) 明确拟估计的条件增量价值/受限决策风险、(b)合法信息合同：原S候选标签和pretarget Z、N、嵌套训练折先验，不能混入未声明F训练标签、(c)正确保留Base/Memory同抽样候选相关性、(d) 与已有B1/两启发式不同且可拒绝的研究假设、(e) 严格DEV user-group folds和阈值/调用量审核、(f) **事前独立方法审查和作者明确批准**。无以上新科学依据则永久就当前论文路线**NOT_RUN_BY_DESIGN**；严禁用已揭盲G5或B4-A TEST反复选方法。所谓“不跑V2b”是审慎停止决策，**不是已实验证明可行校正器无效**。
+
+已完成的方法决策文档：\`N12_C8V_REV2_V2A_FINAL_METHOD_GATE_AND_V2B_STOP_2026-10-19.md\`；原始DEV诊断：\`N12_C8V_REV2_V2A_EXISTING_DEV_JOINT_LABEL_DIAGNOSTIC_2026-10-19.md\`；完整工作流和数据索引见\`N12_C8V_REV2_EVIDENCE_LEDGER.json\`。禁止将前述多个实验/CI误当独立总体。
+
+## C. 新的唯一执行顺序与验收条件（替代Rev2旧I0→V2b→I2顺序）
+
+| 顺序 | 任务 | 交付物 | 完成/阻断合同 |
+| --- | --- | --- | --- |
+| 0 | **I0/V0/V1/I1/V2a封存** | 只读证据总账、历史run、V0双PDF和语义CI、V2最新方法与本Rev2.1 | I0 public machine source PASS、原Twitch P1.3/room来源已追回；V1/I1/方法决定为**assistant analyst complete / no independent human signoff**；**不重新跑历史实验作为新增成果** |
+| **1** | **I2-A 科学主张—证据映射与先例最终核查** | 现有\`N12_C8V_REV2_I2_MINIMAL_MANUSCRIPT_CLAIM_PATCH_PLAN_2026-10-19.md\`更新为Rev2.1执行规格；3个精确段落定位、审查新CIKM2024引用的作者、年份、DOI与BibTeX；逐RQ1/RQ2/RQ3对照源证据 | 原数据、置信区间、基数、结论不漂移；可证实KBS knowledge decision relevance；每条主张注明支持/不支持边界 |
+| **2** | **I2-B 最小论文实际改稿（下一步允许的工作，不是本次已执行）** | \`main.tex\` & \`kbs_references.bib\`；如确有必要对Supp S7/S10一处链接微调 | 仅3个核心变更：(i) Related Work补CIKM2024 rank-training correction已知先例及我们的具体不同;(ii) RQ2/Discussion定义原S为**uncorrected target-retained 575**，区分F-assisted Adapted;(iii) Limitations认可合格corrected-S可能缩小差异、当前未做真实policy评估。禁止新Results表、新实验收益、捏造纠正器、全稿大改 |
+| **3** | **I2-C 双PDF/语义/文献交叉引用回归QA** | 新CI run IDs，主文/Supp PDF及摘要/正文 claim matrix、LaTeX warnings与正确BibTeX | C5旧前后缀指纹若因Discussion修改而过时须先迁移guard，**不能关闭科学保护来让CI变绿**；冻结原主表和迁入Supp 4表、17行49 cell、9 equations/labels以及主文数字/CI全保留；双PDF真实重建PASS，引用无undefined；页数可以合法变化，不强制37/47 |
+| **4** | **I2-D 独立方法与KBS科学贡献裁决** | 人类领域研究者一份审阅/问题闭环、责任作者确认建议；不把过去AI三视角模拟审稿当外部审稿 | 特别判定：bounded empirical candidate-indexed knowledge-use finding是否构成KBS所需原创性；假设corrected-S已被证实/已被否定均不得写；同cohort DEV、B4-A same-period、非严格预算、composite H2、Always-Memory负面结果均检查 |
+| **5** | **C8-A 投稿档案及责任作者最终GO/NO-GO** | 真实作者姓名/单位/CRediT、Funding/COI、数据可用性、复现/原始结果依赖说明、生成式AI使用披露、Highlights、cover letter及当时KBS官网Guide for Authors核验 | 作者本人批准前PR保持Draft、不得声称已提交；GitHub Action成功不代替科学署名。数据公开license版本标签不构成自动投稿阻断；具体隐私/未经授权再分发等实际合规风险仍应按事实处理 |
+
+## D. I2精确的论文主张修订合同（不增加第4个RQ）
+
+**文献**：Krichene & Rendle, KDD 2020已研究sampled ranking metric consistency/correction；Subbiah, Rendle & Aggarwal, CIKM 2024, *Improved Estimation of Ranks for Learning Item Recommenders with Negative Sampling*, DOI **10.1145/3627673.3679943**研究WARP/LambdaRank的sampling-based rank estimates。它是近邻先例，**但不直接验证我们的pretarget conditional paired delta gate**。两篇原文/元数据来源：
+- https://research.google/pubs/on-sampled-metrics-for-item-recommendation/
+- https://research.google/pubs/improved-estimation-of-ranks-for-learning-item-recommenders-with-negative-sampling/
+- https://dblp.org/rec/conf/cikm/SubbiahRA24
+
+**可保留的中心叙事**：固定关系Memory不等于知识创新算法；候选环境定义Base-relative价值标签；DEV探索性调用再分配；同录制期额外30k冻结政策比较；并行4096 source null；负面成本及机制/审核缺口。不能声称只有某个语义历史关系机制能导致F/S错配、或保证更低线上成本。
+
+**正文最小修改**（I2-B才执行；本次只在计划注明）：
+1. 在\`\\subsection{Candidate-Dependent Ranking in Live Recommendation}\` Krichene 2020之后增1–2句训练rank-correction先例和实验对象区别。
+2. 在\`\\paragraph{Actual-candidate labels improve frozen policy outcomes.}\`或Discussion \`From Supervision Regime to Allocated Knowledge Calls\`增1–2句原始未经校正S、F-assisted Adapted、trained corrected-S尚未验证。
+3. Discussion \`Source Validity, Evaluation Limits and Actual Operating Conditions\`增1句仍未排除的有依据S校正政策可能缩小差异。
+摘要、三贡献小结、Conclusion若已有正确限制不作机械重复。Highlights只在原文本与修订后含义冲突时改。
+
+**避免的不恰当改稿**：不用V2后验50,049 DEV toy regret填新主Results；不修改置信区间或核验过的冻结表；不把错误含混的“statistically corrected Memory historical replay”当 sampled-S纠偏；不写任何“V2证明了F显著优于全部校正S”/“rank-expansion或uniform posterior在训练策略上失败”措辞。当前AI辅助草稿不代表人类签署。
+
+## E. 官方外部投稿规范来源与留待提交时的核验
+
+KBS官方期刊范围包含recommender systems/e-service personalization及intelligent decision support systems，与本稿知识使用决策主题可能契合，但**是否具有足够原创性仍需独立科研审查**：https://shop.elsevier.com/journals/knowledge-based-systems/0950-7051 。投稿时必须到期刊Guide for Authors手动核对真正有效的格式、图表、Highlights、声明和提交流程：https://www.sciencedirect.com/journal/knowledge-based-systems/publish/guide-for-authors 。该动态页面本轮直接抓取受403限制，**不把任何二手页面的具体字数、条数或文件要求写成已经官方核实**。
+
+Elsevier 2026年的生成式AI政策要求作者对AI辅助内容负全部责任并在投稿时按规定披露： https://www.elsevier.com/en-gb/about/policies-and-standards/generative-ai-policies-for-journals 。将此列为**真实作者确认任务，不假冒作者承诺**。KBS机器/文稿技术QA合格不是学术原创性获审稿人接受的证据。
+
+## F. Rev2.1即时状态与Do-Not-Do
+
+**路径A由用户明确选择；Rev2.1计划与管理状态可以提交。I2-B正文实际改稿、I2-C新PDF、I2-D真实外部学者签署、C8-A责任作者投稿均NOT_DONE。** V2b对于当前两个启发式永久停用；若将来作者明确另选研究更强方法学结论，则需要开启**独立计划**，不纳入当前路径A关键路径。
+
+不访问冻结原TEST、不在已揭盲B4-A上选模型、不新增模型拟合、不将多run误作独立cohort、不合并Draft PR、不声称论文投稿。主稿维持上次已验证37页、Supplement47页，直到I2-B改稿产生新的PDF并通过真实CI。
+
+---
+## 历史归档：Rev2总方案与Rev1原始方案（仅审计用途，不再是待执行顺序）
+
 # N12-C8V Rev2 | 证据优先、去重执行的创新性验证总方案（2026-10-19）
 
 **当前权威执行方案；取代本文件此前的V0–V6旧顺序，但保留其正文作为历史计划，不修改原科研结果。** 依据：当期 `main.tex` 37页/完整Supplement47页；PR #6仍Draft，C0–C7历史PASS，V0语义+双PDF run #39218602150 PASS，V1由助手完成先例分析但独立科学审阅尚未签署。**本次仅修订研究管理方案/公开结果总账，不修改论文、不访问私有TEST、不新增模型训练或实验。**
