@@ -42,7 +42,7 @@ For B1 `n=574, K=10`, this sufficient impossibility condition holds when `N>=585
 ## Synthetic code, validation contract and status
 
 - [Source](../../analysis/kbs_plan_c/n12_c8v_v2a_sampled_rank_identifiability.py) and [tests](../../analysis/kbs_plan_c/test_n12_c8v_v2a_sampled_rank_identifiability.py) contain only math, synthetic N=1000 and no private/user data.
-- [CI #39228504534](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/39228504534) independently runs probability normalization, toy top10 censoring, full-sample parity, sufficient impossibility threshold and invalid-input guards. **CI outcome must be read from GitHub; do not borrow past PASS.**
+- [CI #39228504534](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/39228504534) independently runs probability normalization, toy top10 censoring, full-sample parity, sufficient impossibility threshold and invalid-input guards. **CI outcome verified: SUCCESS (one job; synthetic tests PASS), distinct from prior V0/I0 CI.**
 - **Current interpretation:** corrected-S V2a is STILL `HOLD_PRIVATE_DEV_AND_ESTIMATOR_SPEC`, because a correct per-event estimator and existing private data availability are unverified. Scientific V2b remains **NOT AUTHORIZED**. Avoid filling the missing private input with frozen 30k H1 data, and do not claim this mathematical check supplies a new independent dataset.
 
 ## Residual V2a decision requirements
