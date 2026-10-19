@@ -1,0 +1,26 @@
+# N12-C7 | Whole-paper evidence integrity, relocated-table numeric-cell traceability and publication boundary QA
+
+Date: 2026-10-19. **C7 scientific source/provenance work completed; dual PDF CI and final status tracked separately.** This is not a new TEST, privacy-clearance certificate, copyright opinion, or editorial acceptance.
+
+## Scope and source-level traceability
+
+- N12 C6 scientific/manuscript baseline #39200835455, 36p/47p, not rewritten during C7. Frozen original 11 Results tables reside in `analysis/kbs_plan_c/n12_c5_original_results_source_freeze.json`.
+- Seven original scientific Results tables remain exact LaTeX literal blocks in Section 5 (RQ1/RQ2/RQ3/operating conditions). Four migrated supporting tables are Supplement S10.19 Table S10.13 (Twitch retrospective history state), S10.14 (M3 exploratory DEV candidate supervision transfer), S10.15 (M3 historical component scores) and S10.16 (Twitch DEV feature ablation).
+- C7 `analysis/kbs_plan_c/n12_c7_full_table_cell_audit.py` checks **17 rows across 4 supporting tables**, including the **49 individual numeric table cells**: not only a selection of representative values. It cross-compares normalized signs, decimal precision and actual numeric token sequences in each original Latex source cell and destination Markdown cell, under an explicit row-identity/semantics map. It does not accept changing source row identity as a formatting edit. It also requires exactly 7 original complete Results table blocks to remain in main. The machine-readable row/column ledger is emitted in CI at `/tmp/n12-c7-cell-provenance.json` (CI-local; reproducible by running the repository script). The 4 destination table captions provide the correct population level and analysis limitations.
+- C7 `test_n12_c7_full_table_cell_audit.py` supplies positive source matching and **negative integrity tests** (alter one count, reverse one CI sign, delete/duplicate a row, alter the scientific label). A passing test proves the guard rejects such deliberate corruptions rather than merely asserting the current text contains selected values.
+- Existing C6 source-science checks remain in C7 workflow: original frozen 9 method + 2 experimental equations, 7 Results table source blocks, all main citations/references, the H1/H2 values, CI/call-count identities, Always Memory negative baseline and the unverified popularity acceptance check.
+- Main-text numbers are tied to scientific cohort/estimand/uncertainty and specific source tables in [C7 claim/source and rights register](N12_C7_CLAIM_SOURCE_REPRODUCIBILITY_AND_RIGHTS_REGISTER_2026-10-19.md). The register separates original Twitch TEST, retrospective KuaiLive rooms, M3 initial TEST, same-period 30k, nested 4096, DEV-only exploratory and 256-device timing. This is an auditable claim ledger **not a regenerated experiment**.
+
+## Dataset licensing and reproducibility: unresolved human conditions
+
+- Official KuaiLive repository and Hugging Face KuaiLive-M3 listing have metadata that may refer to different asset variants or license authorities. The visible HF dataset listing shows `cc-by-sa-4.0`; that alone does **not** establish whether private processed data, derived source artifacts, original repository releases, model checkpoints and this research's event samples can be redistributed. File-level owner/version/license verification is **OPEN**.
+- Source-level reproduction of table migrations, source/formula checks, and public aggregate checks is possible; independent end-to-end rerun from raw original dataset and private caches is **NOT currently established**. GitHub Actions artifacts expire; public archival manifests need persistence. No private user/event records or model weights were uploaded to satisfy publicity.
+- Elsevier 2026 generative-AI manuscript policy requires human author verification and declaration when AI substantively assisted preparation. The current draft must not be described as having authors' AI disclosure, signatures, CRediT, data rights and KBS portal sign-off already approved. These are **submission blocking gates for C8**.
+
+## CI and editorial gate
+
+The stage-correct workflow is `.github/workflows/kbs-n12-c7-evidence-pdf-qa.yml`; both main and complete S1–S10.19 PDF paths run the same inherited strict no-overfull, exact citation and primary evidence text checks used in successfully verified C6. **Only a complete green C7 run can close the technical gate**. The report is not a legal opinion on redistributed data, and owner confirmation of restricted dataset rights is separate from the scientific/source test.
+
+If C7 PDF succeeds: mark **C7 PASS for audited sources, PDFs and explicit disclosure of unresolved external rights**; keep C8 `NEXT_NOT_STARTED`. If the C7 numeric cell guard or dual PDF fails: keep C7 IN_PROGRESS, repair only audit/presentation discrepancies, never falsify or rescore locked H1/H2 results.
+
+**Residual P0 for C8**: novelty vs generic deferral and sampled-rank metric theory; unequal realized H1 F/S calls; H2 original popularity prereveal acceptance not verified; uncertain dataset provenance/rights; AI use and author accountability. **C8 must use these as actual editorial objections rather than treating a green CI as acceptance.**
