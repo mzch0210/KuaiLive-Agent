@@ -1,6 +1,5 @@
 name: KBS N12 C7 bounded scientific claims, manuscript and dual PDF QA
-# Archival C5 science+PDF contract; original success #38864362019.
-# C6 intentionally edits the C5-locked frontmatter and Discussion, so do not re-run C5 on pushes.
+# C7 verifies migrated tables cell by cell and retains C6 science/PDF QA.
 on:
   push:
     branches: [kbs-n12-single-thesis-restructure-plan-20261014]
@@ -11,7 +10,7 @@ on:
       - 'analysis/kbs_plan_c/n12_c7_full_table_cell_audit.py'
       - 'analysis/kbs_plan_c/test_n12_c7_full_table_cell_audit.py'
       - 'analysis/kbs_plan_c/n12_c6_scientific_contract.py'
-      - '.github/workflows/kbs-n12-c7-scientific-pdf-qa.yml'
+      - '.github/workflows/kbs-n12-c7-evidence-pdf-qa.yml'
   workflow_dispatch:
 permissions:
   contents: read
