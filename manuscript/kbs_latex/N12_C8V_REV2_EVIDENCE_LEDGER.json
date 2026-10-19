@@ -87,19 +87,40 @@
       "ranking_unit": "room",
       "evidence_tier": "ORIGINAL_RETROSPECTIVE_PAIRED",
       "source_of_truth": {
-        "path": "analysis/kbs_plan_c/n12_c5_original_results_source_freeze.json",
-        "git_blob_sha1": "737e5f21df05c882b1fc023c77c947fe80eda9ce",
+        "path": "KBS_KUAILIVE_SAME_CHECKPOINT_RESULTS_2026-10-08.md",
+        "git_blob_sha1": "efe6bc9884420f8686dcbcbb7cfc12ae842c6b63",
         "required_text": [
-          "tab:results-factorial"
+          "n = 10222",
+          "−0.041204111",
+          "+0.046306686",
+          "+0.087510797"
         ]
       },
-      "execution_runs": [],
+      "execution_runs": [
+        {
+          "id": 37746520476,
+          "conclusion": "success",
+          "head_sha_prefix": "49f498a87f62",
+          "verified_via_github_api": "2026-10-19"
+        },
+        {
+          "id": 37751814645,
+          "conclusion": "success",
+          "head_sha_prefix": "022f2b97e024",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
       "manuscript_anchor": "tab:results-factorial",
       "supplement_anchor": "S5.2 / S8.8",
       "scientific_result": "Memory-minus-Base sampled −.04120 vs full +.04631; shift +.08751",
-      "interpretation_limits": "Changes roster identities and counts; not isolated candidate size; not the M3 author task",
-      "next_action": "NEEDS_PRIMARY_EXECUTION_LINK",
-      "source_provenance_grade": "FROZEN_MANUSCRIPT_BLOCK_ONLY"
+      "interpretation_limits": "Post-hoc diagnostic on already observed 10,222 KuaiLive room targets; fixed checkpoint pair and α=0.125; first paired CI differs from factorial replicate because bootstrap draws changed; do not confuse with older differently fitted base benchmarks or M3 author task",
+      "next_action": "REUSE_PRIMARY_ROOM_DIAGNOSTIC",
+      "source_provenance_grade": "EARLIEST_MATCHED_CHECKPOINT_PRIMARY_REPORT_PLUS_FACTORIAL_REPLICATION",
+      "supporting_sources": [
+        "KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md",
+        "analysis/kbs_kuailive_same_checkpoint.py",
+        "analysis/kbs_kuailive_factorial.py"
+      ]
     },
     {
       "id": "G5_ORIGINAL_M3_POLICY",
