@@ -21,7 +21,7 @@ from n12_c8v_v2a_corrected_s_rank_mapping_stress import (
     DRAW, K, METHODS, N_RANGE, estimate, score
 )
 
-REPEATS = 4096
+REPEATS = 512
 PAIRS = (
     ("memory_best", 11, 1),
     ("base_best", 1, 11),
@@ -126,7 +126,7 @@ def rank_loss_scenario(n_total:int,base_rank:int,memory_rank:int,
         "methods":metrics
     }
 
-def independent_vs_shared_negative_control(n_total:int=14022,repeats:int=4096):
+def independent_vs_shared_negative_control(n_total:int=14022,repeats:int=512):
     # Base rank=2 (1 ahead), Memory rank=8 (7 ahead). Nested ahead sets.
     # Under SAME negatives, xm>=xb deterministically; sampled Memory utility
     # can never *exceed* sampled Base utility.
