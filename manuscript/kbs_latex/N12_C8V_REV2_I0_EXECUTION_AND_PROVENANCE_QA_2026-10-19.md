@@ -30,3 +30,10 @@
 ## 下一执行关口
 
 **I0 SOURCE MACHINE CHECK PASS，I0 HUMAN REVIEW PENDING。** 新版次序仍是I0→I1（旧B1/B2/A1/A2/G1/zero-support/Null证据综合）→V2a（corrected-S适用性核验）→仅有科学新意才V2b→I2→责任作者C8。禁止把I0代码质量验收当成学术创新性认可；未获得真实科研作者审阅不得声称最终Go。
+
+## 追加追溯：KuaiLive room来源（2026-10-19）
+
+- 找到原始同checkpoint 10,222 room post-hoc pairing: `KBS_KUAILIVE_SAME_CHECKPOINT_RESULTS_2026-10-08.md`, Actions #37746520476 SUCCESS; 精确S Memory−Base −0.041204111、F +0.046306686、shift +0.087510797。
+- 找到三训练seed及2×2成员/归一化分解: `KBS_KUAILIVE_FACTORIAL_SEED_RESULTS_2026-10-08.md`, Actions #37751814645 SUCCESS；同一个已观察room cohort，绝非新独立TEST。
+- I0 ledger已更新room原始报告与两个成功运行的SHA，旧主文块不再是该估计对象唯一的source-of-truth。原Twitch 44,221 P1.3 TEST仍缺最早确认性的run身份；目前找到9月21日DEV机制文档和9月23日DEV证据状态关闭，**不得把DEV run #35829433706冒充Twitch TEST run**。
+- I1现有证据综合报告已建立；独立学者与作者科研复核未签名。其他I0状态保持公开source机器PASS／正式全面人工PASS未通过。
