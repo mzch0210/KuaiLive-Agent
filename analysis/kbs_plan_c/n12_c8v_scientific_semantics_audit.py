@@ -78,7 +78,7 @@ def audit_text(main: str, supp: str, bib: str, highlights: str) -> dict:
         require(val in r2,"H1 RQ2 source-locked comparison missing: "+val)
     # Require exact report-level F/S call pairs in the explanatory prose itself;
     # searching all of RQ2 allowed a correct frozen table to mask a corrupted sentence.
-    policy_line=r2.split(r"\begin{table}",1)[0]
+    policy_line=r2.split(r"\paragraph{Actual-candidate labels improve frozen policy outcomes.}",1)[1].split(r"\begin{table}",1)[0]
     require("SASRec 8,704 versus 9,105; GRU4Rec 8,629 versus 9,168" in policy_line,
             "H1 narrative call pair must match frozen F/S counts for both Base models")
     require("weighted" in r2.lower() and "unweighted call counts" in r2,
