@@ -1,6 +1,6 @@
 # N12-C8V V0 | 论文语义错误修复及防回归检查执行记录
 
-日期 2026-10-19。此文件是**已实施改动的过程记录，V0完成与否以独立新CI为准**。受控工作分支 `kbs-n12-single-thesis-restructure-plan-20261014`；不触碰冻结G5、A4/B4-A TEST、模型和阈值。
+日期 2026-10-19。此文件是**已实施改动的过程记录，V0自动化技术验收已通过；尚不代表独立人工科研审读**。受控工作分支 `kbs-n12-single-thesis-restructure-plan-20261014`；不触碰冻结G5、A4/B4-A TEST、模型和阈值。
 
 ## 1. 主稿已经实施的四处精准修订
 
@@ -21,6 +21,15 @@
 
 ## 3. 当前研究状态
 
-V0：正文纠错提交+语义审计与反例测试实现，**新CI验收待确认**。V1：公开先例页面初步核查（KDD2020/ICML2024/JAIR2024/2026 Active RAG）已启动，完整证据矩阵未完成。V2 corrected-S：未开始私有DEV信息充分性核验，更无corrected-S实验。V3/V4、V5/V6：未开始。C8作者最终Go/No-go：未签署，PR仍Draft，未投稿。
+V0：正文纠错提交+语义审计与反例测试实现，**新CI技术验收 PASS（#39218602150，两作业成功）**。V1：公开先例和原有证据的技术矩阵已完成，见 `N12_C8V_V1_PRIOR_ART_AND_NOVELTY_EVIDENCE_STRESS_TEST_2026-10-19.md`；独立学术复核签署未完成。V2 corrected-S：未开始私有DEV信息充分性核验，更无corrected-S实验。V3/V4、V5/V6：未开始。C8作者最终Go/No-go：未签署，PR仍Draft，未投稿。
 
 该状态必须随真实GitHub Actions更新；当前只承诺提交已实施的文本和代码，不预测CI结论。
+
+## 4. Final machine-verification evidence (2026-10-19)
+
+- **Run [#39218602150](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/39218602150)**, head SHA `2119ff0ef41c895970dec351602fb294ab8a94fc`, BOTH `main-paper` and `complete-supplement` jobs SUCCESS.
+- C8V semantic verifier `N12_C8V_V0_SEMANTIC_SOURCE_AUDIT_PASS`; **six** tests passed, including intentionally corrupted abstract denominator, H1 explanatory call pair, H2 subgate and causal-evidence claims.
+- C6 frozen equation/Results/source contract passed and C7 17-row/49-numeric-cell migration verifier passed; **five** extra cell mutation tests passed. **Total: 11 tests**.
+- Final PDFs: **37 pages main**, **47 pages supplement**, logs zero overfull. Artifacts: main ID `12170528778`, ZIP SHA256 `114bc865369d26fd498e6037f4d290ee882ac5ff17a92275e90f225b3aca6faa`; supplement ID `12170951707`, ZIP SHA256 `97bd742f604a803e12f8dc932d2d4496dd35fdaf3c160b048d8d7ed39de8aaf4`. ZIP hashes are **not** inner PDF file hashes; archive expiry 2026-12-18.
+- First two semantic-CI iterations failed/cancelled during debugging; specifically mutation test initially exposed a false-negative where a correct H1 table masked corrupted explanatory prose, and subsequent correction targeted the wrong paragraph. The final guard is scoped to the designated H1 paragraph; no frozen observations were modified to satisfy the tests.
+- **Gate result: V0 MACHINE_AND_PDF_PASS, independent human scientific read NOT SIGNED**. V0 test pass does not itself adjudicate novelty, corrected-S, licensing, author signoff or review/submit permission.
