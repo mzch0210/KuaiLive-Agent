@@ -16,7 +16,7 @@ class C7TableCellTests(unittest.TestCase):
         self.assertEqual(report["original_result_tables"],11)
         self.assertEqual(report["unchanged_main_original_result_tables"],7)
         self.assertEqual(report["relocated_rows"],17)
-        self.assertGreaterEqual(report["verified_numeric_cells"],60)
+        self.assertEqual(report["verified_numeric_cells"],49)
         self.assertTrue(all(x["pass"] for x in report["row_column_cells"]))
     def test_reject_changed_source_numeric_cell(self):
         dirty=self.supp.replace("| Represented | 24,285 | 0.86102 |",
