@@ -76,6 +76,11 @@ def audit_text(main: str, supp: str, bib: str, highlights: str) -> dict:
     for val in ("0.005391","0.003585","0.003646","0.001599",
                 "8,704","9,105","8,629","9,168","1.337","1.797"):
         require(val in r2,"H1 RQ2 source-locked comparison missing: "+val)
+    # Require exact report-level F/S call pairs in the explanatory prose itself;
+    # searching all of RQ2 allowed a correct frozen table to mask a corrupted sentence.
+    policy_line=r2.split(r"\begin{table}",1)[0]
+    require("SASRec 8,704 versus 9,105; GRU4Rec 8,629 versus 9,168" in policy_line,
+            "H1 narrative call pair must match frozen F/S counts for both Base models")
     require("weighted" in r2.lower() and "unweighted call counts" in r2,
             "weighted quality estimand confused with actual raw call counts")
     require("higher" in r2 and "fewer" in r2,
