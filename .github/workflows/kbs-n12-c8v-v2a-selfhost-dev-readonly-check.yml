@@ -1,0 +1,58 @@
+name: KBS N12 V2a Private DEV Read-only Inventory
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/n12_c8v_v2a_selfhost_dev_readonly_preflight.py'
+      - '.github/workflows/kbs-n12-c8v-v2a-selfhost-dev-readonly-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-n12-v2a-dev-readonly
+  cancel-in-progress: false
+jobs:
+  hosted-python-source-check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source scope and no TEST references
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/n12_c8v_v2a_selfhost_dev_readonly_preflight.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('analysis/kbs_plan_c/n12_c8v_v2a_selfhost_dev_readonly_preflight.py').read_text()
+          assert 'torch.load' not in s and 'np.load' not in s
+          assert 'test_cohort.parquet' not in s
+          assert 'sampled_rank_and_vector_columns_persisted' in s
+          assert 'v2b_authorized' in s
+          print('V2A_DEV_ONLY_SOURCE_GUARD_PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kbs-v2a-readonly-source
+          path: analysis/kbs_plan_c/n12_c8v_v2a_selfhost_dev_readonly_preflight.py
+          retention-days: 2
+  selfhost-dev-metadata-only:
+    needs: hosted-python-source-check
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 18
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kbs-v2a-readonly-source
+          path: ${{ runner.temp }}/v2a-source
+      - name: Inspect only frozen B1 DEV files and hashes without scoring
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          "$HOME/venvs/kuailive-gpu/bin/python"             "$RUNNER_TEMP/v2a-source/n12_c8v_v2a_selfhost_dev_readonly_preflight.py"             --root "$HOME/.cache/kuailive-agent-kbs"             --out "$RUNNER_TEMP/n12-v2a-dev-safe-result.json"
+      - name: Export only safe summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: n12-v2a-dev-readonly-presence-and-sha-only
+          path: ${{ runner.temp }}/n12-v2a-dev-safe-result.json
+          retention-days: 7
+          if-no-files-found: error
