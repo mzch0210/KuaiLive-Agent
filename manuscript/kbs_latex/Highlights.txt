@@ -1,4 +1,4 @@
-- Candidate regimes define the utility labels for fixed knowledge-source use.
+- Candidate-aligned supervision defines utility labels for fixed knowledge use.
 - Full-aligned supervision reallocates Memory calls toward higher-value DEV events.
 - Frozen full-candidate policies favor F-aligned over sampled supervision.
 - Authentic histories beat constrained nulls with the same current candidates.
