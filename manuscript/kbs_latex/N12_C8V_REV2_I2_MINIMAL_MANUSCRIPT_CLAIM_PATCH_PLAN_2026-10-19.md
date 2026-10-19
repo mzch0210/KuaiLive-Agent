@@ -1,0 +1,28 @@
+# N12 C8V Rev2 I2 | 最小论文主张修订清单（仅审稿建议，未改稿）
+
+2026-10-19。**I2 analyst source-to-claim audit completed / actual manuscript patch NOT STARTED / independent referee and author signoff PENDING**. This review reads the unchanged 37-page `main.tex`, the 47-page supplement and original B1/N9/B4-A records; it does not create new TEST or overrule past frozen results.
+
+## Current accurate, verified claims (retain without reopening)
+- Abstract and Introduction already emphasize the fixed Memory expert vs fixed Base, F/S candidate-indexed labels, M3 extra same-period 30k and nested 4096 historical null. The Abstract states DEV decision discrepancy 21.32/23.01 **percent of requests**, not of Memory invocations.
+- Results RQ2 (paragraph `Actual-candidate labels improve frozen policy outcomes`) accurately reports full policy comparison SAS +.005391/GRU +.003585 and F/S calls SAS 8704/9105 GRU 8629/9168, noting >1pp natural difference. Exploratory B1/DEV is not independent H1 causal mediation; the Adapted arm is explicitly F-label-assisted in Methods and Supp.
+- RQ3 validation correctly distinguishes observed null support and ~76.8% history perturbation from the unverified original same-cohort TRAIN-only Popularity pre-reveal subgate.
+- Always Memory unbounded M3 accuracy is stronger and *old pointwise Utility* matched-latency is adverse; both acknowledged.
+- The old B1 three-arm, A1 eight budgets, A2 Direct/Two-stage and B2 sources already exist; none should be ordered again to support I2.
+
+## Priority wording gaps to address in targeted revision
+1. **P1 nearest correction prior work**: Related Work's candidate-dependent paragraph currently cites KDD2020 sampled metric inconsistency but not the closely relevant negative-sampling *training rank correction* precedent. If citing CIKM 2024, verify official bib fields, add one accurate sentence explicitly differentiating evaluation correction and sampled-rank estimator for trained recommendation losses from this study's request-level paired relative NDCG. Do NOT credit N12 with inventing rank correction. Recommended first-party source: https://research.google/pubs/improved-estimation-of-ranks-for-learning-item-recommenders-with-negative-sampling/ .
+2. **P1 alternative-explanation boundary**: Results/Discussion currently compare F to 'sampled' S but never explicitly state that this is the **uncorrected, retrospectively target-retained 575-candidate** B1 training label. A concise RQ2/Discussion qualification should distinguish S from (a) B1 Adapted uses F target labels, and (b) a statistically valid F-unassisted corrected-S candidate, **which has not been tested as an actual trained gate**. A valid such method might narrow the observed gap, which remains open.
+3. **P2 negative method screen in manuscript?** V2a post-hoc 50,049 same DEV label diagnostic (#39237415095) shows that naive full-rank linear expansion worsens paired relative utility MSE (SAS .154548 → .193363; GRU .156084 → .193387), while uniform full-rank posterior shrinks MSE (.082978/.087529) under an unsupported prior but does not improve toy sign-gate regret. This is a **method selection diagnostic on the same DEV**, not a confirmatory result or actual policy ablation. Avoid opening a new Results table or selling it as a new study. Optional single bounded limitation citation in Supplement after author review, not mandatory for submission.
+4. **P2 causality and cost boundaries**: Maintain original test call nonparity, DEV exploration vs same-period 30k, composite H2, unverified acceptance subgate, and old pointwise timing limitations. No alterations to numeric claim contracts.
+
+## Minimal patch plan if author accepts scholarly scope
+- Related Work `Candidate-Dependent Ranking`: a single CIKM2024 prior-art sentence after Krichene 2020; add the new reference in BibTeX with bibliographic check.
+- RQ2 or Discussion `From Supervision Regime to Allocated Knowledge Calls`: a short sentence that S is the original **uncorrected** sampled-label protocol; adapted was F-assisted; no sampled-only statistically corrected alternative was evaluated as a fitted selector.
+- Discussion `Source Validity, Evaluation Limits and Actual Operating Conditions`: one honest limitation: 'A statistically well-founded correction of sampled supervision might narrow this difference; our results do not rule it out.' This MUST NOT be stated as proof that any particular correction works.
+- Highlights generally already bounded and do not need rewriting.
+- No new figure, equation, table, claim of method invention or revised significance value. The existing C6/C7/C8V dual PDF test suite should be rerun after any manuscript text/BibTeX edits; watch previous guard fingerprints if they are scoped to text outside results.
+
+## Method decision and review gate
+**V2a analyst judgement: NO QUALIFIED CORRECTED-S ESTIMATOR CURRENTLY IDENTIFIED. The two tested heuristics do not pass the scientific-increment gate. For these candidates V2b = NOT_RUN_BY_DESIGN; not an impossibility theorem about all corrected-S.** The resulting paper can use **bounded empirical route A** without re-running old TEST. Alternatives for stronger claims require genuinely new external-time or fair equal-call causal design, not a new iteration on the same revealed B4-A 30k.
+
+This is a proposed micro-revision, not an author-approved change. Independent scientist must inspect prior art, method assumptions and claim strength. Responsible authors must approve final wording, declarations and KBS-specific submission check. PR #6 remains Draft.
