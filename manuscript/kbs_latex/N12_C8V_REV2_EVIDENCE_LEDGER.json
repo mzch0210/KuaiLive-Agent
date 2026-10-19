@@ -65,19 +65,64 @@
       "ranking_unit": "streamer",
       "evidence_tier": "ORIGINAL_TEST",
       "source_of_truth": {
-        "path": "analysis/kbs_plan_c/n12_c5_original_results_source_freeze.json",
-        "git_blob_sha1": "737e5f21df05c882b1fc023c77c947fe80eda9ce",
+        "path": "PAPER_SKELETON_2026-09-22_POST_P1_3.md",
+        "git_blob_sha1": "1551d880aecd498c14091f528ac220c069f87e42",
         "required_text": [
-          "tab:results-twitch-policy"
+          "0.58211",
+          "0.53980",
+          "0.58983",
+          "P1.3 untouched one-shot test"
         ]
       },
-      "execution_runs": [],
+      "execution_runs": [
+        {
+          "id": 35708072303,
+          "conclusion": "success",
+          "head_sha_prefix": "30b0bde4254d",
+          "verified_via_github_api": "2026-10-19"
+        }
+      ],
       "manuscript_anchor": "tab:results-twitch-policy",
       "supplement_anchor": "S2.2 / S10.19",
-      "scientific_result": "Base .58211; Memory .53980; Utility .58983; calls 6650; outcome-conditioned recoverable n5539 +.22045",
-      "interpretation_limits": "Outcome-conditioned recoverable group is not a decision-time state; original run provenance remains to be backlinked",
-      "next_action": "NEEDS_PRIMARY_EXECUTION_LINK",
-      "source_provenance_grade": "FROZEN_MANUSCRIPT_BLOCK_ONLY"
+      "scientific_result": "P1.3 44221 TEST: Base .5821113853; Always Memory .5397954318; frozen Utility .5898344192 (6650 calls, 15.038%); Difficulty exact-k .5833967726; Utility−Base +.007723 CI [.006413,.009030]; Utility−Difficulty +.006438 CI [.005283,.007618].",
+      "interpretation_limits": "One-shot, post-DEV-frozen P1.3 external streamer TEST; difficulty exact-k evaluated retrospectively to match realized utility calls (not prospectively threshold-deployable at exactly K); relationship outcome states are not prospective selector inputs. No retrain/test rerun.",
+      "next_action": "REUSE_ORIGINAL_ONE_SHOT_NO_TEST_REOPEN",
+      "source_provenance_grade": "ORIGINAL_ONE_SHOT_RUN_LOG_PLUS_SAME_COMMIT_PROTOCOL_AND_POST_RUN_REPORT",
+      "protocol_sources": [
+        {
+          "path": ".github/workflows/liverec-p1-3-one-shot-test-hardened.yml",
+          "git_blob_sha1": "38a339ab168ce7b2f4d35893a6077132332e11bb",
+          "at_original_commit": "30b0bde4254d0e53b0c95f80abd7e192d5dabf06"
+        },
+        {
+          "path": "analysis/liverec_p1_test_evaluate.py",
+          "git_blob_sha1": "fe15d2b73335183433d9241c92c88223a928eac3",
+          "at_original_commit": "30b0bde4254d0e53b0c95f80abd7e192d5dabf06"
+        }
+      ],
+      "original_workflow_jobs": {
+        "freeze_policy_preflight": "success",
+        "export_untouched_test": "success",
+        "evaluate_one_shot_test": "success"
+      },
+      "original_run_artifacts": [
+        {
+          "id": 10685793156,
+          "name": "liverec-p1-3-test-opened-35708072303"
+        },
+        {
+          "id": 10685621095,
+          "name": "liverec-p1-3-policy-35708072303"
+        },
+        {
+          "id": 10684919018,
+          "name": "liverec-p1-3-test-export-35708072303"
+        },
+        {
+          "id": 10684864297,
+          "name": "liverec-p1-3-test-final-35708072303"
+        }
+      ]
     },
     {
       "id": "RQ1_KUAILIVE_ROOM",
@@ -514,6 +559,7 @@
     "github_action_run_statuses": "FETCHED_FROM_GITHUB_API",
     "private_raw_event_recomputation": "NOT_PERFORMED",
     "human_independent_source_review": "PENDING",
-    "I0_stage_completion": "PENDING"
+    "I0_stage_completion": "PENDING",
+    "twitch_original_P1_3_run": "VERIFIED_SUCCESS_35708072303_SOURCE_COMMIT_30b0bde4254d"
   }
 }
