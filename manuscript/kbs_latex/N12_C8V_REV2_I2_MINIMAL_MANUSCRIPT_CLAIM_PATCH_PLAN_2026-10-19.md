@@ -1,3 +1,22 @@
+# I2 Rev2.1 · Path A 已确定的最小科学改稿与验收合同（2026-10-19）
+
+**用户已选择路径 A：有限、证据边界明确的经验研究稿。以下为当前执行规格；Rev2 原提议保存在后面作审计。** 本次只修改计划，不修改主文、BibTeX、Supplement 或冻结TEST。最新总方案见 `N12_C8V_SCIENTIFIC_NOVELTY_VALIDATION_AND_PRIOR_EDIT_REMEDIATION_PLAN_2026-10-19.md`。
+
+## 执行顺序及可观测验收
+
+1. **I2-A—先例及逐句来源核对：NEXT。** 核实 Subbiah, Rendle and Aggarwal (CIKM 2024) 的正规书目字段/DOI 10.1145/3627673.3679943，核对当前 `main.tex` RQ2、Related Work、Discussion及 `kbs_references.bib`。冻结的30k F/S差值、调用数、CI/Holm与同队列独立性、RQ3原Popularity门槛缺口不得修改；给出三处确切段落修改表与未改内容清单。
+2. **I2-B—三处最小正文改稿：NOT STARTED。** 在 Related Work 区分KDD2020采样指标与CIKM2024训练时排名校正，不能宣称提出新统计校正算法；在RQ2/Discussion精确定义原S为575候选、目标后保留的**未校正**标签，明确B1 Adapted使用F标签；在Discussion说明训练后合法corrected-S选择器仍未检验，可能缩小F/S结果差异。不得新建主Results表、重新解释V2诊断为新确认实验、重复全篇重构。
+3. **I2-C—回归防篡改与真实双PDF：NOT STARTED。** 迁移任何因Discussion/Related Work改写而过时的旧C5文本指纹，仍保护11张Results原表与4迁入Supp原始17行49cell、原公式、样本/调用基数与所有冻结统计结果；编译主文/完整Supplement、审查BibTeX和引用、无undefined refs、人工逐段对照主张。页数允许有证据支持的小幅变化。
+4. **I2-D—真实独立科研审阅：NOT STARTED。** 由人类方法学/推荐系统研究者判断 candidate-regime-indexed knowledge-use supervision 是否具有足够KBS原创性，尤其审查corrected-S替代解释仍开放、DEV同队列探索、同采集期30k、非严格同调用、H2 composite Null与不完整预验收；过去助手模拟审稿不替代这一环节。
+5. **C8-A—真实作者最终批准/投稿：NOT STARTED。** 核对KBS当时有效的官方作者指南、Highlights、CRediT/AI辅助声明、Funding/COI及数据使用的实际权限；数据许可元数据的差异并不自动禁止投稿，但隐私/未经授权分发应按实际情况评估。未获作者批准不合并PR、不宣称投稿。
+
+**V2正式裁决：** 私有数据及原B1标签审计已通过；两个简单校正启发式尚无对条件增量效用监督/受限策略的有效证明，`V2b = NOT_RUN_BY_DESIGN_FOR_CURRENT_CANDIDATES`。这不否定所有可能的corrected-S。路径A主线不再把新corrected-S训练视为投稿前必完成任务，除非作者以后另立更强研究目标。
+
+**当前尚无论文改动。** 37页主文、47页补充材料是最近一次既有CI的页数，而不是Rev2.1新编译后的结果。
+
+---
+## 历史附录：Rev2 I2改稿建议（供来源审计）
+
 # N12 C8V Rev2 I2 | 最小论文主张修订清单（仅审稿建议，未改稿）
 
 2026-10-19。**I2 analyst source-to-claim audit completed / actual manuscript patch NOT STARTED / independent referee and author signoff PENDING**. This review reads the unchanged 37-page `main.tex`, the 47-page supplement and original B1/N9/B4-A records; it does not create new TEST or overrule past frozen results.
