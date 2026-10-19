@@ -1,10 +1,10 @@
 {
-  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v6",
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v7",
   "date": "2026-10-19",
   "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
   "draft_pr": 6,
   "base_branch": "kbs-n11-final-editorial-polish-20261014",
-  "current_stage": "N12_C6_IN_PROGRESS_C6_0_C6_1_C6_2_EDITED_C6_3_CI_PENDING",
+  "current_stage": "N12_C0_THROUGH_C6_COMPLETE_READY_FOR_N12_C7",
   "CI": {
     "C0C1": {
       "run": 38546213364,
@@ -25,6 +25,11 @@
     "C5": {
       "run": 38864362019,
       "conclusion": "success"
+    },
+    "C6": {
+      "run": 39200835455,
+      "conclusion": "success",
+      "both_jobs": true
     }
   },
   "frozen_source": {
@@ -152,8 +157,8 @@
       "no_model_fitting_or_TEST_scoring": true
     },
     "N12-6": {
-      "status": "IN_PROGRESS",
-      "description": "C6.0 novelty gate, C6.1 evidence chain and C6.2 Abstract/Discussion/Conclusion+Highlights source edits completed; C6.3 source contract and new dual-PDF workflow authored, final CI/visual QA pending",
+      "status": "PASS",
+      "description": "C6.0 bounded scientific novelty gate + C6.1 frozen evidence chain + C6.2 Abstract/Introduction contribution bullets/Discussion/Conclusion/Highlights refocused + C6.3 source-guard+both PDF jobs SUCCESS; scientific P0 novelty and causal/operational caveats retained",
       "substage_0": {
         "status": "PASS_TO_EDIT_WITH_BOUNDED_CLAIMS",
         "report": "N12_C6_CLAIM_EVIDENCE_PRIOR_ART_STRESS_TEST_2026-10-19.md",
@@ -165,28 +170,37 @@
         "new_TEST_or_model_training": false
       },
       "substage_2": {
-        "status": "SOURCE_EDIT_COMPLETE_PENDING_QA",
+        "status": "PASS_EDITORIAL_AND_SOURCE_SCIENCE_QA",
         "manuscript": "main.tex",
         "highlights": "Highlights.txt",
         "science_change": "NO_RECALCULATED_RESULTS",
         "new_source_sha_note": "See current GitHub branch"
       },
       "substage_3": {
-        "status": "WORKFLOW_CREATED_CI_PENDING",
+        "status": "BOTH_JOBS_SUCCESS",
         "workflow": ".github/workflows/kbs-n12-c6-scientific-pdf-qa.yml",
         "science_guard": "analysis/kbs_plan_c/n12_c6_scientific_contract.py",
-        "historical_C5_push_workflow": "retired_manual_only",
-        "C6_scientific_PDF_run_verified": false
+        "CI_run": 39200835455,
+        "source_sha": "788c71dc48391639f8bf6fdaf9792239939b75b1",
+        "main_pdf_pages": 36,
+        "supplement_pdf_pages": 47,
+        "main_artifact_id": 12162784746,
+        "supplement_artifact_id": 12164145955,
+        "main_artifact_zip_sha256": "73b8c65d9c7340a48e5840bf9dd7b7251dde04c6ab50247a8326d8612e8abdf9",
+        "supplement_artifact_zip_sha256": "01e1c3d5c949c1918321b79abb5d1c1a56273514082ac5e07e77bc7184ffaf26",
+        "artifact_digests_not_pdf_sha256": true,
+        "original_C5_source_guard_archived": true,
+        "report": "N12_C6_SCIENTIFIC_NARRATIVE_REWRITE_AND_PDF_QA_2026-10-19.md"
       },
       "C5_latest_verified_ci_run": 38864362019,
       "C5_verified_pdf_pages": {
         "main": 36,
         "supplement": 47
       },
-      "C6_pdf_not_yet_produced": true
+      "C6_pdf_not_yet_produced": false
     },
     "N12-7": {
-      "status": "NOT_STARTED"
+      "status": "NEXT_NOT_STARTED"
     },
     "N12-8": {
       "status": "NOT_STARTED"
@@ -208,6 +222,6 @@
     "obsolete_N12_C2_C3_autopush_workflows": "retired_after_successful_stages",
     "C4_scientific_contract": "superset_checks_C2_C3_stable_source_and_original_9_equations",
     "new_untested_TEST_since_original_B4A": false,
-    "C6": "C5 push retired; C6 scoped guard and dual-PDF workflow created, final run pending"
+    "C6": "C5 push retired after archived success; C6 source-region science guard and dual PDFs PASS on #39200835455"
   }
 }
