@@ -1,5 +1,5 @@
-- Relationship memory has incumbent- and candidate-dependent ranking value.
-- Recoverable relationships explain large conditional gains on Twitch.
-- Utility-guided selection improves ranking under specified call constraints.
-- Candidate regimes reverse the measured value of a fixed memory ranker.
-- Always Memory excels in M3 accuracy and warmed scoring versus routing.
+- Value of fixed relationship memory depends on the incumbent and candidates.
+- Candidate-aligned supervision improves frozen knowledge-use decisions.
+- DEV allocation switches favor requests with larger full-candidate gains.
+- Authentic history outperforms constrained nulls under fixed candidates.
+- Unequal invocation rates and adverse serving references limit cost claims.
