@@ -1,0 +1,23 @@
+name: KBS N12 NI1e Public Joint Censored Mixture
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/ni1e_joint_censored_mixture.py'
+      - 'analysis/kbs_plan_c/test_ni1e_joint_censored_mixture.py'
+      - '.github/workflows/kbs-n12-ni1e-joint-censored-mixture.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-synthetic-mixture:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Shared-negative full-rank mixture likelihood and adversarial model audit
+        run: |
+          set -euo pipefail
+          python analysis/kbs_plan_c/ni1e_joint_censored_mixture.py
+          cd analysis/kbs_plan_c
+          python -m unittest -v test_ni1e_joint_censored_mixture.py
