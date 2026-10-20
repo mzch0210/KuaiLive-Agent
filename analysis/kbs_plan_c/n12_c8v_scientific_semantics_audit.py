@@ -52,7 +52,7 @@ def audit_text(main: str, supp: str, bib: str, highlights: str) -> dict:
     abstract=parts["abstract"].split(r"\end{abstract}",1)[0]
     results=parts["results"]
     discussion=parts["discussion"]
-    r2=results.split(r"\subsection{RQ2:",1)[1].split(r"\subsection{RQ3:",1)[0]
+    r2=results.split(r"\subsection{RQ2:",1)[1].split(r"\subsection{Frozen Base-Relative Selection",1)[0]
     r3=results.split(r"\subsection{RQ3:",1)[1].split(r"\subsection{Operational Conditions:",1)[0]
     require(bool(re.search(r"50,049\s+(?:DEV\s+)?requests",abstract,re.I)),
             "abstract does not state 50,049 DEV requests as policy disagreement denominator")
