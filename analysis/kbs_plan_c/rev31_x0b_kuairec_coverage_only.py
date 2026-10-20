@@ -15,7 +15,7 @@ import zipfile
 import numpy as np
 import pandas as pd
 
-OFFICIAL_ZIP_MD5 = "261550d472c48eff4990fb13c0e5bcf7"
+OFFICIAL_ZIP_MD5 = None  # Must come from verified Zenodo API in workflow
 COLUMN_ALLOW = {"user_id", "video_id", "author_id", "upload_dt",
                 "timestamp", "date", "time"}
 CHUNK = 300_000
@@ -48,11 +48,13 @@ def chunks(zf, name, cols):
             yield df
 
 
-def analyze_zip(path, enforce_official_md5=True):
+def analyze_zip(path, expected_md5):
     path = Path(path)
     md5 = digest_md5(path)
-    if enforce_official_md5 and md5 != OFFICIAL_ZIP_MD5:
-        raise RuntimeError(f"Official ZIP MD5 mismatch: {md5}")
+    if not expected_md5 or len(expected_md5) != 32:
+        raise RuntimeError('Must supply a verified Zenodo MD5 from the official record')
+    if md5 != expected_md5.lower():
+        raise RuntimeError(f'Official ZIP MD5 mismatch: computed {md5}, expected {expected_md5}')
     with zipfile.ZipFile(path) as z:
         needed = {n: locate(z, n) for n in
                   ("big_matrix.csv", "small_matrix.csv",
@@ -239,9 +241,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--zip",required=True)
     parser.add_argument("--output",required=True)
-    parser.add_argument("--allow-synthetic-fixture",action="store_true")
+    parser.add_argument("--expected-md5",required=True,help="Zenodo record-API checksum after source verification")
     args = parser.parse_args()
-    result = analyze_zip(args.zip,not args.allow_synthetic_fixture)
+    result = analyze_zip(args.zip,args.expected_md5)
     Path(args.output).parent.mkdir(parents=True,exist_ok=True)
     Path(args.output).write_text(json.dumps(result,indent=2),encoding="utf-8")
     print("AUDIT_SUMMARY",json.dumps(result,ensure_ascii=False))
