@@ -38,9 +38,13 @@ def check(root=ROOT):
     assert_ok(subs==[
         "RQ1: When Is Relationship Knowledge Incrementally Valuable?",
         "RQ2: Does Candidate-Aligned Value Supervision Improve Knowledge Use?",
+        "How Supervision Reallocates Historical Knowledge Calls",
+        "Frozen Base-Relative Selection Across Tasks and Incumbents",
         "RQ3: Does Authentic Relationship History Matter with Fixed Candidates?",
         "Operational Conditions: Invocation Limits and Measured Scoring Cost",
-    ],"exact four RQ-driven Results roles")
+    ],"Rev3.2 W2 six Results roles")
+    assert_ok(result.index("tab:results-m3-b4a-supervision") < result.index("tab:results-twitch-policy"),
+              "H1 must precede baseline selection tables")
     retained=[
         "tab:results-factorial","tab:results-twitch-policy",
         "tab:results-m3-policy","tab:results-m3-robustness",
