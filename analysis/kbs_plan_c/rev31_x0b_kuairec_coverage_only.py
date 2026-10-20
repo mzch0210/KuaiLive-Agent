@@ -94,6 +94,7 @@ def analyze_zip(path, expected_md5):
 
         # Do not inspect watch_ratio / play_duration / relevance labels.
         small_n = 0
+        small_timestamp_missing_rows = 0
         small_users = set()
         small_video_ids = set()
         small_first = {}
@@ -112,15 +113,19 @@ def analyze_zip(path, expected_md5):
             uvals = chunk["user_id"].to_numpy(dtype=np.int64)
             vvals = chunk["video_id"].to_numpy(dtype=np.int64)
             tsvals = pd.to_numeric(chunk["timestamp"], errors="coerce").to_numpy(dtype=float)
-            if not np.isfinite(tsvals).all():
-                raise ValueError("small timestamp has NaN/inf")
+            valid_time = np.isfinite(tsvals)
+            # Timestamp is optional in some real KuaiRec rows: count missing
+            # rather than manufacture temporal ordering. Never use undated
+            # observations to establish pre-target histories.
+            small_timestamp_missing_rows += int((~valid_time).sum())
             small_users.update(np.unique(uvals).tolist())
             small_video_ids.update(np.unique(vvals).tolist())
-            tmp = pd.DataFrame({"u":uvals, "ts":tsvals}).groupby("u")["ts"].agg(["min","max"])
-            for u, row in tmp.iterrows():
-                i = int(u)
-                small_first[i] = min(small_first.get(i, float("inf")), float(row["min"]))
-                small_last[i] = max(small_last.get(i, float("-inf")), float(row["max"]))
+            if valid_time.any():
+                tmp = pd.DataFrame({"u":uvals[valid_time], "ts":tsvals[valid_time]}).groupby("u")["ts"].agg(["min","max"])
+                for u, row in tmp.iterrows():
+                    i = int(u)
+                    small_first[i] = min(small_first.get(i, float("inf")), float(row["min"]))
+                    small_last[i] = max(small_last.get(i, float("-inf")), float(row["max"]))
             small_events_user.update(Counter(uvals.tolist()))
             vids = pd.Series(vvals)
             small_missing_author += int((~vids.isin(author)).sum())
@@ -148,6 +153,7 @@ def analyze_zip(path, expected_md5):
         # Build an author/history audit using ONLY big events earlier than
         # each user's first small observation; never use small labels as history.
         big_n = 0
+        big_timestamp_missing_rows = 0
         big_users = set()
         big_video_ids = set()
         big_first = float("inf")
@@ -162,15 +168,16 @@ def analyze_zip(path, expected_md5):
             uvals = chunk["user_id"].to_numpy(dtype=np.int64)
             vvals = chunk["video_id"].to_numpy(dtype=np.int64)
             tsvals = pd.to_numeric(chunk["timestamp"], errors="coerce").to_numpy(dtype=float)
-            if not np.isfinite(tsvals).all():
-                raise ValueError("big timestamp has NaN/inf")
+            valid_big_time = np.isfinite(tsvals)
+            big_timestamp_missing_rows += int((~valid_big_time).sum())
             big_users.update(np.unique(uvals).tolist())
             big_video_ids.update(np.unique(vvals).tolist())
-            big_first = min(big_first, float(tsvals.min()))
-            big_last = max(big_last, float(tsvals.max()))
+            if valid_big_time.any():
+                big_first = min(big_first, float(tsvals[valid_big_time].min()))
+                big_last = max(big_last, float(tsvals[valid_big_time].max()))
             big_missing_author += int((~pd.Series(vvals).isin(author)).sum())
             cutoffs = pd.Series(uvals).map(small_first).to_numpy(dtype=float)
-            mask = np.isfinite(cutoffs) & (tsvals < cutoffs)
+            mask = valid_big_time & np.isfinite(cutoffs) & (tsvals < cutoffs)
             valid_pretarget_rows += int(mask.sum())
             if mask.any():
                 for u, v in zip(uvals[mask].tolist(), vvals[mask].tolist()):
@@ -202,8 +209,11 @@ def analyze_zip(path, expected_md5):
                 "unique_user_video_pairs": observed_pairs,
                 "duplicate_user_video_rows": small_rows_duplicates,
                 "pair_density": observed_pairs / possible_pairs,
-                "earliest_unix_ts": min(small_first.values()),
-                "latest_unix_ts": max(small_last.values()),
+                "earliest_unix_ts": min(small_first.values(), default=None),
+                "latest_unix_ts": max(small_last.values(), default=None),
+                "missing_or_invalid_timestamp_rows": small_timestamp_missing_rows,
+                "users_with_a_valid_timestamp": len(small_first),
+                "users_without_any_valid_timestamp": len(small_users - set(small_first)),
                 "rows_without_author_metadata": small_missing_author,
                 "rows_without_upload_metadata": small_missing_upload,
                 "row_date_before_upload_date": small_video_before_upload,
@@ -215,7 +225,9 @@ def analyze_zip(path, expected_md5):
             },
             "big": {
                 "rows": big_n, "users": len(big_users), "videos": len(big_video_ids),
-                "earliest_unix_ts": big_first, "latest_unix_ts": big_last,
+                "earliest_unix_ts": big_first if np.isfinite(big_first) else None,
+                "latest_unix_ts": big_last if np.isfinite(big_last) else None,
+                "missing_or_invalid_timestamp_rows": big_timestamp_missing_rows,
                 "rows_without_author_metadata": big_missing_author,
                 "small_users_in_big": len(overlap),
                 "small_users_with_any_pre_first_small_big_author_history": eligible(1),
@@ -224,11 +236,12 @@ def analyze_zip(path, expected_md5):
                 "small_users_with_20_distinct_pre_first_small_authors": eligible(20),
                 "small_users_with_pre_first_small_author_repeat": repeat_history,
                 "pre_first_small_big_rows_matching_a_known_author": valid_pretarget_rows,
-                "historical_condition": "big.timestamp < each user's earliest small.timestamp; historical upload/exposure validity still unproven"
+                "historical_condition": "big.timestamp < earliest VALID small.timestamp; users with no dated small observations excluded from time-based history checks; historical upload/exposure validity still unproven"
             },
             "method_warnings": [
                 "Nearly complete small_matrix is repeated logged feedback, not a simultaneous choice set.",
                 "Metadata timestamp and upload date timezone/time resolution are not yet proven comparable.",
+                "Undated small/big rows are excluded from chronology, but retained in total row counts; missingness can cause severe selection bias.",
                 "Daily aggregate features forbidden as pretarget Z unless lagged with defensible availability.",
                 "Only known metadata columns read: NO watch_ratio or other relevance labels, NO model scoring.",
                 "Full label/policy work X1/X2 remains blocked pending human licenses, temporal compatibility and novelty."
