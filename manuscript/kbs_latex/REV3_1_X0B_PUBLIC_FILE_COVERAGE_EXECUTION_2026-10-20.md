@@ -24,3 +24,14 @@
 后续若本runner success，应读取 job logs 和仅聚合 artifact JSON，按实际统计对历史覆盖/上传日期/用户交集给明确PASS、FAIL或CONDITIONAL，发现代码统计或字段假设错误则修正并重新精确验证；即使SUCCESS也不代表原创性PASS。如果run失败，必须记录下载/MD5/schema/内存或计算失败的实际job step，不能硬编覆盖统计，也不能以旧README数字代替测量。
 
 不修改 `manuscript/kbs_latex/main.tex`、Supplement、`kbs_references.bib`或既有G5/H1/Rev3.0科学结果。
+
+
+## 2026-10-20 实际失败复盘与受限修复
+
+首次运行 [#39409500462](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/39409500462) 已**completed/failure**。官方Zenodo manifest+MD5获取SUCCESS；真实约411MB ZIP下载SUCCESS；安装成功；在元数据审计步骤因 `ValueError: small timestamp has NaN/inf`、`rev31_x0b_kuairec_coverage_only.py` 原第116行退出。根因是**代码错误假设每条small记录都存在有效timestamp**，不是Zenodo下载失败、MD5失败、模型效果差或数据不适配已经证实。没有产生aggregates工件。
+
+修复 commit **`517f12a2a69653b8198bba5fd6d6f1cdeef954cb`**：对small/big不合法、缺失或无限时间值**单独计数**，只允许finite timestamp参与用户第一个small时点和big-before-small判定；保留原行数计数。用户没有有效small时间就不允许获定前历史资格；并增加缺失用户数和时间有效用户数。**不填充时间、不把日期字段伪造为时间戳、不借助真实反馈标签挑时间协议**。
+
+修复触发新运行 [#39410776300](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/39410776300)，提交记录时为**IN_PROGRESS / outcome unknown**。不得从推送成功宣称审计通过。即使成功，仍需检查实际缺失率、作者映射、upload_dt日期格式与未知的后续污染风险；数据/license与原创性/RecSys2025竞争门依然HOLD，X1/X2依然NOT_AUTHORIZED。
+
+**残余代码方法学注意**：若small 仅缺失部分timestamp，用户的“首个有效small”不等同真实首个small；因此big<有效首个small仅是乐观历史候选上界，不能称严格无泄漏的真实先验历史。需根据实际缺失率及可用时间信息决定能否升级为可信时序对象。
