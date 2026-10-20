@@ -60,6 +60,8 @@ jobs:
           assert '\\section{Results}' in main
           assert '\\section{Experimental Results}' not in main
           for h in ['RQ1: When Is Relationship Knowledge', 'RQ2: Does Candidate-Aligned Value',
+                    'How Supervision Reallocates Historical Knowledge Calls',
+                    'Frozen Base-Relative Selection Across Tasks and Incumbents',
                     'RQ3: Does Authentic Relationship History', 'Operational Conditions: Invocation']:
               assert h in main
           assert 'S10.19' in supp
