@@ -1,10 +1,10 @@
 {
-  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v25",
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v26",
   "date": "2026-10-20",
   "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
   "draft_pr": 6,
   "base_branch": "kbs-n11-final-editorial-polish-20261014",
-  "current_stage": "N12_C8V_REV2_1_PATH_A_I2A_I2B_MINIMAL_TEX_AND_BIB_EDIT_COMMITTED_I2C_DUAL_PDF_RUNNING",
+  "current_stage": "N12_C8V_REV2_1_PATH_A_I2C_TWO_DUAL_PDF_CI_PASS_I2D_INTERNAL_AUDIT_COMPLETE_HUMAN_REVIEW_PENDING_C8A_NOT_SUBMITTED",
   "CI": {
     "C0C1": {
       "run": 38546213364,
@@ -347,12 +347,25 @@
         "path_choice": "A_EVIDENCE_BOUNDED_EMPIRICAL_KBS_MANUSCRIPT_USER_SELECTED",
         "I2A": "PRIOR_ART_METADATA_AND_FROZEN_CLAIM_SCOPE_CHECKED",
         "I2B": "THREE_TARGETED_MAIN_TEX_WORDING_EDITS_AND_ONE_CIKM2024_BIB_ADDITION_COMMITTED",
-        "I2C": "CI_RUNNING_NOT_YET_PASS",
-        "I2D": "HUMAN_INDEPENDENT_SCIENTIFIC_REVIEW_PENDING",
-        "C8A": "AUTHOR_FINAL_SIGNOFF_AND_KBS_SUBMISSION_NOT_DONE",
+        "I2C": "PASS_C8V_AND_C7_BOTH_JOBS_SUCCESS_38P_MAIN_47P_SUPP",
+        "I2D": "INTERNAL_ADVERSARIAL_SCIENTIFIC_AUDIT_COMPLETE_REAL_HUMAN_INDEPENDENT_REVIEW_PENDING",
+        "C8A": "SUBMISSION_PREP_CHECKLIST_CREATED_HUMAN_AUTHOR_SIGNOFF_PENDING_NOT_SUBMITTED",
         "I2B_commit": "7e4c5a6f616e22226f55e2396815d48cc838bf96",
         "I2C_primary_run": 39351014765,
-        "I2C_secondary_run": 39351014645
+        "I2C_secondary_run": 39351014645,
+        "I2C_page_count": {
+          "main": 38,
+          "supplement": 47
+        },
+        "I2C_source_commit": "7e4c5a6f616e22226f55e2396815d48cc838bf96",
+        "I2C_report": "N12_C8V_REV2_1_I2C_DUAL_PDF_FINAL_QA_2026-10-20.md",
+        "I2C_artifacts": {
+          "main": 12232693237,
+          "supplement": 12233555700,
+          "expiry_utc": "2026-12-19"
+        },
+        "I2D_report": "N12_C8V_REV2_1_I2D_SCIENTIFIC_ADVERSARIAL_AUDIT_AND_HUMAN_REVIEW_PACKET_2026-10-20.md",
+        "C8A_checklist": "N12_C8V_REV2_1_C8A_RESPONSIBLE_AUTHOR_SUBMISSION_CHECKLIST_2026-10-20.md"
       }
     }
   },
