@@ -377,7 +377,7 @@ A separately timed \emph{DEV-only} scoring experiment executes the original prim
 \section{Results}
 \label{sec:results}
 
-The evaluation addresses three successive research questions about one fixed relationship-knowledge source: the context in which its incremental ranking value arises (RQ1), the consequences of predicting that value for selecting between two rankers (RQ2), and the contribution of authentic historical relationships when current candidates remain unchanged (RQ3). We then examine invocation limits and measured ranking-path costs as conditions on practical use. All comparisons retain the ranked units, frozen models and evidence classifications of Section~\ref{sec:experimental-setup}.
+The evaluation addresses three related but distinct research questions about one fixed relationship-knowledge source: the context in which its incremental ranking value arises (RQ1), the consequences of predicting that value for selecting between two rankers (RQ2), and, in a parallel source-validity comparison, the contribution of authentic historical relationships when current candidates remain unchanged (RQ3). We then examine invocation limits and measured ranking-path costs as conditions on practical use. All comparisons retain the ranked units, frozen models and evidence classifications of Section~\ref{sec:experimental-setup}.
 
 \subsection{RQ1: When Is Relationship Knowledge Incrementally Valuable?}
 \label{sec:results-heterogeneity}
@@ -445,6 +445,39 @@ The direction of this reversal persists over three alternative KuaiLive checkpoi
 \subsection{RQ2: Does Candidate-Aligned Value Supervision Improve Knowledge Use?}
 \label{sec:results-decision}
 
+The principal supervision comparison asks whether labels derived from the full-active candidate regime change the outcomes of frozen knowledge-use policies evaluated on that same regime. We present the additional-target result before inspecting the request-level DEV allocation trace; the earlier frozen Utility-selection comparisons provide supporting context in Section~\ref{sec:results-selection-context}.
+
+\paragraph{Actual-candidate labels improve frozen policy outcomes.}
+The S-supervised comparator uses the original, uncorrected 575-candidate labels obtained by retrospectively retaining the observed target; the regime-adapted DEV control in Supplementary Table S10.14 uses full-candidate training labels and is not a sampled-only statistical correction. The separate 30,000-target additional M3 evaluation tests the RQ1 implication that the supervision candidate regime matters for policy learning. Under identical full-active $F$ evaluation candidates, the frozen F-supervised policy improves eligible-population-weighted NDCG@10 relative to the sampled-label S-supervised policy by $+0.005391$ for SASRec (95\% paired user CI $[+0.003646,+0.007174]$, Holm $p=0.000600$) and $+0.003585$ for GRU4Rec (CI $[+0.001599,+0.005576]$, Holm $p=0.000800$). Table~\ref{tab:results-m3-b4a-supervision} reports the actual policy scores and calls. The frozen F-supervised configurations combine \emph{higher} weighted full-candidate ranking utility with \emph{fewer} realized Memory calls than the tested S-supervised configurations: SASRec 8,704 versus 9,105; GRU4Rec 8,629 versus 9,168. These are unweighted call counts, distinct from the population-weighted NDCG estimand. The 1.337/1.797 percentage-point differences in unweighted realized call rates exceed the original approximate 1pp near-equal-call tolerance. Accordingly the results favor these \emph{frozen policy configurations}, not an experimentally isolated equal-resource effect of changing only the label. Both cohorts use event IDs from the original recording period, rather than a later independently collected TEST.
+
+\begin{table}[!htbp]
+\centering
+\caption{Additional frozen M3 author-ranking targets from the original TEST-source recording interval ($n=30{,}000$, 10,387 users), excluding targets scored in the initial author-ranking evaluation. Full-active $F$ NDCG@10 uses predeclared 20-cell eligible-population weights; calls are realized unweighted counts. The two trained gate objectives share the same full-$F$ decision-time features and frozen model capacity. Intervals resample users; the result does not impose identical call totals.}
+\label{tab:results-m3-b4a-supervision}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{@{}lrrXr@{}}
+\toprule
+Base & S-aligned $F$ NDCG & F-aligned $F$ NDCG & F minus S (95\% CI) & Calls F/S \\
+\midrule
+SASRec & 0.300055 & \textbf{0.305446} & $+0.005391$ $[0.003646,0.007174]$ & 8,704/9,105 \\
+GRU4Rec & 0.300945 & \textbf{0.304530} & $+0.003585$ $[0.001599,0.005576]$ & 8,629/9,168 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\FloatBarrier
+
+\subsection{How Supervision Reallocates Historical Knowledge Calls}
+\label{sec:results-allocation}
+
+Exploratory DEV evidence traces how supervision affects call allocation rather than constituting an additional confirmatory TEST. On the common 50,049 full-active M3 DEV requests, F-supervised versus S-supervised policies achieve $0.302658$ versus $0.296499$ NDCG@10 for SASRec (difference $+0.006159$; CI $[+0.004835,+0.007543]$) and $0.303093$ versus $0.298123$ for GRU4Rec ($+0.004970$; CI $[+0.003550,+0.006369]$). Their naturally realized calls are similar, but 10,672 (21.32\%) and 11,517 (23.01\%) event decisions disagree. The cases newly selected by F-supervision have larger observed Memory-minus-Base gain than those no longer selected (SASRec 0.133417 versus 0.076194; GRU4Rec 0.126600 versus 0.079135). 
+
+More precisely, the 5,350 SASRec F-only calls contribute $+0.014262$ NDCG@10 across the whole DEV cohort while 5,322 displaced S-only calls contribute $-0.008102$, for net $+0.006159$. For GRU4Rec, 5,639 added and 5,878 displaced calls contribute $+0.014264$ and $-0.009294$, yielding net $+0.004970$. This switch accounting is an algebraic partition of realized DEV policy value, not a causal decomposition of the separate 30,000-target H1 contrast. Full per-policy values, call counts and the adapted condition appear in Supplementary Table S10.14.
+
+\subsection{Frozen Base-Relative Selection Across Tasks and Incumbents}
+\label{sec:results-selection-context}
+
 \paragraph{Relative-value prediction supports pre-outcome selection.}
 On frozen Twitch TEST, the DEV-calibrated Utility rule invokes Memory on 6,650 of 44,221 events (15.04\%) and increases NDCG@10 from the Base's $0.58211$ to $0.58983$ (paired gain $+0.00772$, 95\% CI $[+0.00641,+0.00903]$), with HR@10 gain $+0.00945$ (CI $[+0.00776,+0.01117]$). A Difficulty score attains NDCG@10 $0.58340$ when retrospectively matched to the same TEST call count, giving Utility a $+0.00644$ advantage (CI $[+0.00528,+0.00762]$). The count-matched Oracle achieves $0.64806$ but uses the observed outcomes. Unlike those retrospective equal-count references, Utility makes pointwise choices under its \emph{frozen DEV threshold} (Table~\ref{tab:results-twitch-policy}). Its chosen requests show mean Memory-minus-Base value $+0.05136$, compared with $-0.05890$ for unchosen requests, linking pre-outcome selection to realized source value.
 
@@ -467,7 +500,7 @@ Oracle (hindsight) & 0.64806 & 0.80455 & 6,650 \\
 \end{tabular}
 \end{table}
 
-The original frozen M3 \emph{author}-ranking TEST provides the principal cross-Base decision comparison. On the primary SASRec checkpoint, Utility achieves NDCG@10 $0.30287$ at 29.21\% Memory calls, versus Base $0.25800$, and exceeds each of the four specified selection comparators while making fewer realized calls (Table~\ref{tab:results-m3-policy}). Across six SASRec/GRU4Rec fits on the \emph{same} 47,575 evaluated TEST requests, Utility NDCG@10 ranges from $0.30177$ to $0.30400$, its improvement over each incumbent from $+0.04237$ to $+0.04515$, and its Memory-call rate from 27.72\% to 29.21\% (Table~\ref{tab:results-m3-robustness}). These are pointwise frozen DEV thresholds, not equal-TEST-count batch choices.
+The original frozen M3 \emph{author}-ranking TEST supplies the cross-Base selection context for the additional policy comparison. On the primary SASRec checkpoint, Utility achieves NDCG@10 $0.30287$ at 29.21\% Memory calls, versus Base $0.25800$, and exceeds each of the four specified selection comparators while making fewer realized calls (Table~\ref{tab:results-m3-policy}). Across six SASRec/GRU4Rec fits on the \emph{same} 47,575 evaluated TEST requests, Utility NDCG@10 ranges from $0.30177$ to $0.30400$, its improvement over each incumbent from $+0.04237$ to $+0.04515$, and its Memory-call rate from 27.72\% to 29.21\% (Table~\ref{tab:results-m3-robustness}). These are pointwise frozen DEV thresholds, not equal-TEST-count batch choices.
 
 For the primary SASRec fit, the three predeclared contrasts yield Utility-minus-Base $+0.04486$ (95\% CI $[+0.04281,+0.04692]$), Utility-minus-Difficulty $+0.02039$ (CI $[+0.01837,+0.02244]$), and Utility-minus-Specialist Quality $+0.02331$ (CI $[+0.02118,+0.02551]$). They pass within-fit Holm adjustment ($p_{\mathrm{adj}}\approx0.00060$). The other fitted-model statistics are in Supplementary S8; six fits share one TEST population, and those corrections are not a single 18-test family. The observed quality and call-count comparison does not by itself imply an unconstrained accuracy or serving-cost advantage.
 
@@ -512,28 +545,10 @@ GRU4Rec & 20261014 & 0.25840 & 0.30355 & $+0.04515$ & $+0.01431$ \\
 \end{tabular}
 \end{table}
 
-\paragraph{Actual-candidate labels improve frozen policy outcomes.}
-The S-supervised comparator uses the original, uncorrected 575-candidate labels obtained by retrospectively retaining the observed target; the regime-adapted DEV control in Supplementary Table S10.14 uses full-candidate training labels and is not a sampled-only statistical correction. The separate 30,000-target additional M3 evaluation tests the RQ1 implication that the supervision candidate regime matters for policy learning. Under identical full-active $F$ evaluation candidates, the frozen F-supervised policy improves eligible-population-weighted NDCG@10 relative to the sampled-label S-supervised policy by $+0.005391$ for SASRec (95\% paired user CI $[+0.003646,+0.007174]$, Holm $p=0.000600$) and $+0.003585$ for GRU4Rec (CI $[+0.001599,+0.005576]$, Holm $p=0.000800$). Table~\ref{tab:results-m3-b4a-supervision} reports the actual policy scores and calls. The frozen F-supervised configurations combine \emph{higher} weighted full-candidate ranking utility with \emph{fewer} realized Memory calls than the tested S-supervised configurations: SASRec 8,704 versus 9,105; GRU4Rec 8,629 versus 9,168. These are unweighted call counts, distinct from the population-weighted NDCG estimand. The 1.337/1.797 percentage-point differences in unweighted realized call rates exceed the original approximate 1pp near-equal-call tolerance. Accordingly the results favor these \emph{frozen policy configurations}, not an experimentally isolated equal-resource effect of changing only the label. Both cohorts use event IDs from the original recording period, rather than a later independently collected TEST.
+\paragraph{Auxiliary pretarget-feature evidence.}
+On a separate Twitch DEV feature-family ablation, history plus Base-score descriptors produce $+0.00838$ NDCG@10 versus $+0.00372$ for history alone and $+0.00160$ for Base scores alone at a common retrospective DEV call count (Supplementary Table S10.16). This auxiliary DEV analysis supports using both pretarget historical descriptors and incumbent evidence; it is not a separate held-out deployment test.
 
-\begin{table}[!htbp]
-\centering
-\caption{Additional frozen M3 author-ranking targets from the original TEST-source recording interval ($n=30{,}000$, 10,387 users), excluding targets scored in the initial author-ranking evaluation. Full-active $F$ NDCG@10 uses predeclared 20-cell eligible-population weights; calls are realized unweighted counts. The two trained gate objectives share the same full-$F$ decision-time features and frozen model capacity. Intervals resample users; the result does not impose identical call totals.}
-\label{tab:results-m3-b4a-supervision}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabularx}{\textwidth}{@{}lrrXr@{}}
-\toprule
-Base & S-aligned $F$ NDCG & F-aligned $F$ NDCG & F minus S (95\% CI) & Calls F/S \\
-\midrule
-SASRec & 0.300055 & \textbf{0.305446} & $+0.005391$ $[0.003646,0.007174]$ & 8,704/9,105 \\
-GRU4Rec & 0.300945 & \textbf{0.304530} & $+0.003585$ $[0.001599,0.005576]$ & 8,629/9,168 \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-Exploratory DEV evidence traces how supervision affects call allocation rather than constituting an additional confirmatory TEST. On the common 50,049 full-active M3 DEV requests, F-supervised versus S-supervised policies achieve $0.302658$ versus $0.296499$ NDCG@10 for SASRec (difference $+0.006159$; CI $[+0.004835,+0.007543]$) and $0.303093$ versus $0.298123$ for GRU4Rec ($+0.004970$; CI $[+0.003550,+0.006369]$). Their naturally realized calls are similar, but 10,672 (21.32\%) and 11,517 (23.01\%) event decisions disagree. The cases newly selected by F-supervision have larger observed Memory-minus-Base gain than those no longer selected (SASRec 0.133417 versus 0.076194; GRU4Rec 0.126600 versus 0.079135). More precisely, the 5,350 SASRec F-only calls contribute $+0.014262$ NDCG@10 across the whole DEV cohort while 5,322 displaced S-only calls contribute $-0.008102$, for net $+0.006159$. For GRU4Rec, 5,639 added and 5,878 displaced calls contribute $+0.014264$ and $-0.009294$, yielding net $+0.004970$. This switch accounting is an algebraic partition of realized DEV policy value, not a causal decomposition of the separate 30,000-target H1 contrast. Full per-policy values, call counts and the adapted condition appear in Supplementary Table S10.14. On a separate Twitch DEV feature-family ablation, history plus Base-score descriptors produce $+0.00838$ NDCG@10 versus $+0.00372$ for history alone and $+0.00160$ for Base scores alone at a common retrospective DEV call count (Supplementary Table S10.16). Both analyses concern fitted development outcomes and support the use of pretarget historical and incumbent evidence, rather than proving a new independent deployment gain.
-
-The RQ2 findings therefore connect \emph{candidate-relative knowledge-value supervision} to actual use-time ranking decisions. They do not establish whether the source of Memory's ranking signal is the authentic association of a viewer with particular past creators; RQ3 addresses that question while holding current alternatives constant.
+Together, the frozen policy contrasts and DEV allocation trace link candidate-relative value supervision to observable differences in specialist-use decisions. A parallel source-validity question remains: whether the fixed Memory specialist depends on authentic viewer--creator history when current candidate rosters are unchanged.
 
 \FloatBarrier
 \subsection{RQ3: Does Authentic Relationship History Matter with Fixed Candidates?}
