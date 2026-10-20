@@ -8,8 +8,8 @@
 | --- | --- | --- | --- |
 | Krichene & Rendle KDD 2020 | DOI 10.1145/3394486.3403226; https://research.google/pubs/on-sampled-metrics-for-item-recommendation/ | 采样 topK ranking指标和全量rank方向不一致，bias/MSE校正已有 | 观察历史关系专家的监督标签在full活跃候选上改变预目标调用 |
 | Jin, Li, Mudrak, Gao & Liu, AAAI2021 | DOI 10.1609/aaai.v35i5.16537, 35(5):4147–4154; https://ojs.aaai.org/index.php/AAAI/article/view/16537 | weighted maximum-likelihood 和 maximum-entropy 估计整体完整rank distribution/topK指标已有 | 非通用rank校正算法；观察固定Memory/Base完整政策的后续分配与结果 |
-| Li, Jin, Z. Liu, Ren, Gao & Zhi Liu, AAAI2023 | DOI 10.1609/aaai.v37i4.25561, 37(4):4409–4416; https://ojs.aaai.org/index.php/AAAI/article/view/25561 和 https://mlanthology.org/aaai/2023/li2023aaai-reliable/ | 小K采样blind spot、改进estimator、adaptive sampling和EM已有，NI-1 toy不能叫首次信息界或EM校正 | 本稿不声称在采样S-only校正层有新方法；只给出原未经校正S和完整F监督下知识调用政策的实证 |
-| Ihemelandu & Ekstrand, WI-IAT 2023 | DOI 10.1109/WI-IAT59888.2023.00018，pp.88–94; https://mdw.ekstrandom.net/pubs/wi-sampled-eval | 候选集选取和流行度偏差交互、不同采样策略评价已有 | M3特定目标是full-active上的Memory-minus-Base价值和监督→调用而不是候选采样质量本身 |
+| Li (Dong), Jin (Ruoming), Liu (Zhenming), Ren (Bin), Gao (Jing) & Liu (Zhi), AAAI2023 | DOI 10.1609/aaai.v37i4.25561, 37(4):4409–4416; https://ojs.aaai.org/index.php/AAAI/article/view/25561 和 https://mlanthology.org/aaai/2023/li2023aaai-reliable/ | 小K采样blind spot、改进estimator、adaptive sampling和EM已有，NI-1 toy不能叫首次信息界或EM校正 | 本稿不声称在采样S-only校正层有新方法；只给出原未经校正S和完整F监督下知识调用政策的实证 |
+| Ngozi Ihemelandu & Michael D. Ekstrand, WI-IAT 2023 | DOI 10.1109/WI-IAT59888.2023.00018，pp.88–94; https://mdw.ekstrandom.net/pubs/wi-sampled-eval | 候选集选取和流行度偏差交互、不同采样策略评价已有 | M3特定目标是full-active上的Memory-minus-Base价值和监督→调用而不是候选采样质量本身 |
 | Subbiah, Rendle & Aggarwal, CIKM2024 | DOI 10.1145/3627673.3679943; https://research.google/pubs/improved-estimation-of-ranks-for-learning-item-recommenders-with-negative-sampling/ | WARP/LambdaRank类训练时rank correction已有 | 该文不直接在本论文记录的固定历史知识专家—Base协议进行full-vs-uncorrected-S完整政策冻结对照 |
 | Mao, Mohri & Zhong, ICML2024 | PMLR 235:34738–34759; https://proceedings.mlr.press/v235/mao24d.html | 预训练predictor、学习委托多个专家、instance-dependent cost、consistency的理论已有 | N12不主张新deferral算法、同预算因果效应；专注监督的候选协议改变调用配置的具体实证 |
 | 2026 KBS memory / knowledge-aware近邻 | 既有主稿参考文献：Zhong等SAM D、Xie等MHGFCL（原bib保留） | memory retention、knowledge fusion等已有 | N12固定历史专家，用时测增量价值；不同研究对象不自动证明非平凡性 |
@@ -34,3 +34,8 @@
 **P0 source audit PASS_FOR_MINIMAL_REFERENCES_ONLY / NOVELTY_RISK_UNCHANGED**。后续 P2 完成需检查：三个新增bib key都被正确引用、双PDF C7/C8V成功、LaTeX/bib无undefined reference、原数据源/CI未变、最终PDF可读。不能以本P0为KBS原创性认证。
 
 责任作者在科学上须进一步审核文章原文及贡献定位，尤其人工确认实际阅读与遵守引用许可；AI自动核查不能代替真实研究者独立评价。
+
+
+## 2026-10-20 执行增补（实际源码）
+
+核对AAAI官网作者列表发现初始BibTeX录入的部分作者姓名有误，现已用一手官网修正：AAAI2021为 Ruoming Jin, Dong Li, Benjamin Mudrak, Jing Gao, Zhi Liu；AAAI2023为 Dong Li, Ruoming Jin, Zhenming Liu, Bin Ren, Jing Gao, Zhi Liu；WI-IAT2023 为 Ngozi Ihemelandu, Michael D. Ekstrand。实际BibTeX修正 commit `5a59e5aba3952d5c7c02a5fdc07c3b1983885519`；Related Work 精确补充 commit `1b0fbe83686ab289dd350cd5a49e5868447e142a`。原文新引文实际可解析与PDF需以下一轮CI报告为准。原 P0 `source audit PASS` 不意味着正文PDF或KBS novelty审核PASS。
