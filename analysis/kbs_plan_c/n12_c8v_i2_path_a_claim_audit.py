@@ -18,7 +18,7 @@ def check_text(main: str, bib: str) -> dict:
     valid=main.split(r"\subsection{Source Validity, Evaluation Limits and Actual Operating Conditions}",1)[1].split(r"\section{Conclusion}",1)[0]
     need(r"\cite{krichene2020kdd}" in related and r"\cite{subbiah2024rankestimation}" in related,
          "sampled metric and rank-training correction prior art both required")
-    need("WARP and LambdaRank" in related and "conditional utility relative to an incumbent" in related,
+    need("WARP and LambdaRank" in related and "relative value of invoking" in related,
          "CIKM training rank correction must be distinguished from paired specialist value")
     need("original, uncorrected 575-candidate labels" in rq2,
          "S comparison must explicitly be with uncorrected target-retained labels")
