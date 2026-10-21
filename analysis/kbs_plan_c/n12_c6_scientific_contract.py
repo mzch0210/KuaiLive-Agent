@@ -142,8 +142,14 @@ def check(root=ROOT):
     front=main[:main.index(chr(92)+"end{abstract}")]
     discussion=main[b:]
     assert_ok("candidate-aligned" in front and "supervision" in front,"abstract lacks C6 contribution")
-    for z in ("strictly equal", "not verified", "unconditional", "historical"):
-        assert_ok(z.lower() in discussion.lower(),"missing C6 Discussion/Conclusion caution: "+z)
+    # Guard scientific content, not historical editorial phrasing.
+    assert_ok("strict matched-call" in discussion.lower() and
+              "realized h1 invocation rates differ" in discussion.lower(),
+              "H1 strict-call comparison caveat lost")
+    for z in ("not measured and sealed before target reveal",
+              "uncorrected sampled", "Always Memory", "deployment-savings", "historical"):
+        assert_ok(z.lower() in discussion.lower(),
+                  "missing C6 Discussion/Conclusion scientific boundary: "+z)
     highlights=(root/BASE/"Highlights.txt").read_text()
     assert_ok("candidate-aligned supervision" in highlights.lower(),"Highlights lag primary contribution")
     return {
