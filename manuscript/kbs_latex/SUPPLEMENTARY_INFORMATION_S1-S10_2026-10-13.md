@@ -2,7 +2,7 @@
 title: "Supplementary Information"
 subtitle: "When Does Relationship Memory Help? Base-Relative Evidence Valuation for Live-Streaming Recommendation"
 author: "Anonymous manuscript — Knowledge-Based Systems"
-date: "13 October 2026"
+date: "21 October 2026"
 fontsize: 9pt
 geometry: margin=0.76in
 colorlinks: true
@@ -65,7 +65,7 @@ For the original KuaiLive P0 files, SHA256: **train** `ad91413537175b9f6e9013c52
 
 ### S1.5 Evidence and access statement
 
-Data-provenance evidence: [KuaiLive official dataset repository](https://github.com/imgkkk574/KuaiLive), [KuaiLive Zenodo record](https://zenodo.org/records/16565801), [LiveRec original repository](https://github.com/JRappaz/liverec), [KuaiLive active-room exporter](https://github.com/mzch0210/KuaiLive-Agent/blob/main/manuscript/kbs_latex/src/kuailive_agent/export_rechorus_room.py), and the [P2 source-pinned eligibility audit](https://github.com/mzch0210/KuaiLive-Agent/blob/main/manuscript/kbs_latex/SECTION6_STAGE3_3A_FEASIBILITY_AND_SCIENTIFIC_BOUNDARIES_2026-10-10.md). The original datasets' access and license conditions govern further distribution. This supplement references public repositories and **does not redistribute proprietary or anonymized raw interaction files**. Preserve the precise derivation pipeline rather than infer fields or raw source SHA values not available in the evidence records.
+Data-provenance evidence: [KuaiLive official dataset repository](https://github.com/imgkkk574/KuaiLive), [KuaiLive Zenodo record](https://zenodo.org/records/16565801), [LiveRec original repository](https://github.com/JRappaz/liverec), [KuaiLive active-room exporter](https://github.com/mzch0210/KuaiLive-Agent/blob/kbs-n12-single-thesis-restructure-plan-20261014/src/kuailive_agent/export_rechorus_room.py), and the [P2 source-pinned eligibility audit](https://github.com/mzch0210/KuaiLive-Agent/blob/main/manuscript/kbs_latex/SECTION6_STAGE3_3A_FEASIBILITY_AND_SCIENTIFIC_BOUNDARIES_2026-10-10.md). The original datasets' access and license conditions govern further distribution. This supplement references public repositories and **does not redistribute proprietary or anonymized raw interaction files**. Preserve the precise derivation pipeline rather than infer fields or raw source SHA values not available in the evidence records.
 
 **Boundary:** KuaiLive post-hoc TEST analyses and Twitch frozen one-shot TEST serve **different evidentiary purposes**. No source cohort is a random sample of all live-streaming platform users. These protocol definitions are observational; neither a sampled non-target nor a lack of recorded history proves negative preference or true ignorance.
 
@@ -372,7 +372,7 @@ This controlled fixed-checkpoint replay strengthens the **bounded** original C2 
 
 The known general fact that sampled ranking metrics can invert model orderings is due to prior work (Krichene and Rendle, *On Sampled Metrics for Item Recommendation*, CACM 65(7):75–83, 2022, DOI 10.1145/3535335; original KDD 2020). Our result is about the **observed Base-relative utility of a fixed interpretably scored relationship specialist on KuaiLive rooms**, not a new sampled-metric theorem, new gate training method, or causal attribution to sample count.
 
-**Submission organization:** One concise robustness paragraph appears in Results Section 6.3; all per-draw outcomes, confidence intervals, original rank reproduction and factorization belong here. The three alternative *training*-seed model realizations are reported separately in S8, not as nine new independent checkpoint seeds. The paired-draw estimates and the three independently trained checkpoint realizations address distinct sources of uncertainty.
+**Presentation in the main article:** The RQ1 candidate-regime result is summarized in the Results subsection on relationship value; this supplement retains the per-draw outcomes, confidence intervals, original-rank reproduction and factorization. The three alternative *training*-seed model realizations are reported separately in S8, not as nine new independent checkpoint seeds. The paired-draw estimates and the three independently trained checkpoint realizations address distinct sources of uncertainty.
 
 ## S5.7 Archive manifest and exact source protocol
 
@@ -581,7 +581,7 @@ Reproduction source: [analysis/kbs_section6_stage2_dev_replay.py](https://github
 
 
 ## S7.7 Nested-DEV direct versus two-stage estimator sensitivity (exploratory)
-This independently recorded addendum complements S7.1–S7.6 within the final combined S1–S9 submission supplement. It is **post-G5 exploratory DEV evidence**, not part of the original confirmatory G5 TEST.
+This exploratory analysis complements the frozen selection evidence in Sections S7.1–S7.6. It is **post-G5 exploratory DEV evidence**, not part of the original confirmatory G5 TEST.
 
 The Direct estimator learns the event NDCG@10 increment of Memory over the fixed Base. The Two-stage estimator separately learns Memory and Base NDCG@10, then subtracts. Both target the same conditional expectation by linearity; they are alternative implementations, not different deferral theories.
 
@@ -815,7 +815,7 @@ Two separately DEV-frozen held-out decision settings provide the main selection 
 
 # S10. Matched Candidate-Regime Supervision, Relationship Sources and Decision Sensitivity
 
-**Evidence role.** This section reports exploratory, post-primary KuaiLive-M3 development analyses that corroborate the candidate-context and decision-support questions in the main article. These analyses reuse the same development cohort and are not independent held-out TEST replications. Results and source identity were verified under the frozen, user-disjoint nested experimental protocol.
+**Evidence map.** Sections S10.1–S10.14 document the M3 DEV candidate-regime supervision, allocation, source-interaction and sensitivity analyses; S10.15 reports the previously unevaluated same-period 30,000-target frozen-policy comparison; S10.16 and S10.18 document its nested 4,096-target historical-source checks and the remaining original control limit. S10.17 separates DEV-only path timing, and S10.19 preserves complete secondary results and earlier source tables. The DEV sections reuse a single development cohort and are not independent held-out TEST replications; the additional-target evidence belongs to the same recording period, not a later prospective cohort. Each section retains its original scientific scope and source identity.
 
 ## S10.1 Experimental cohort, ranking unit and comparison target
 
@@ -1102,7 +1102,7 @@ The historical intervention also changes repeated viewer–creator pairs and hig
 
 ## S10.19 Supporting evidence for relationship utility and candidate-aligned decisions
 
-This section reports full supporting results on retrospective history states, candidate-aligned supervision, fixed relationship-source components and observable selector features. These analyses complement the main frozen selection and authentic-history comparisons. Each table retains its original evaluation cohort, candidate regime and statistical interpretation; development analyses are explicitly distinguished from held-out evaluation.
+This section preserves the complete source tables underlying the main article’s retrospective history-state, DEV candidate-supervision and pretarget feature analyses. These analyses complement the main frozen selection and authentic-history comparisons. Each table retains its original evaluation cohort, candidate regime and statistical interpretation; development analyses are explicitly distinguished from held-out evaluation.
 
 **Table S10.13. Retrospective relationship-evidence states on frozen Twitch TEST (44,221 streamer-ranking requests).**
 
