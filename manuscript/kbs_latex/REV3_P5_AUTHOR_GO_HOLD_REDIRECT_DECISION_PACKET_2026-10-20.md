@@ -2,6 +2,8 @@
 
 **2026-10-20 | DECISION PACKET PREPARED / AUTHOR NOT APPROVED / NOT SUBMITTED / PR #6 DRAFT。**
 
+> **2026-10-21 S3 verified update:** The 2026-10-20 snapshot below is retained as historical provenance; its former source SHA, 39-page figure and artifact expiry statements are **not** the current S1/S2 baseline. See section 4 for the latest verified status. External scholarly pre-review is **NOT REQUESTED**, not PASS. Responsible-author oversight and submission authorization remain PENDING.
+
 ## 1. 目前可直接确认的技术与科学事实
 
 - 现行科学源码 commit `a686cd07ce80f8d4090aae720c0e583f39f73176`；最终C7 #39398148734/C8V #39398148731四项主文+Supplement jobs SUCCESS。已下载C8V PDF原件、核实主稿39页、Supplement47页、引用和第6/33页视觉。
@@ -28,3 +30,59 @@
 - **STOP_NI**：仅有更多人工toy/反复DEV选择、不具可验证先验和新信息时，不再开展NI新的策略训练。
 
 **当前状态：PACKET_READY_FOR_HUMAN_VERIFICATION_ONLY / AUTHOR GO NOT SIGNED / NO SUBMISSION.**
+
+
+## 4. S1–S3 去重续接与投稿准备增量记录（2026-10-21）
+
+**状态：S1 源码修订 DONE；S2 当前 commit 双工作流 4 jobs SUCCESS；S3 客观核查及作者待办更新 DONE；投稿合规及责任作者 GO PENDING。** 此记录续接旧 P5，不设独立学者审稿、不新建 NI/DEV/TEST 科学路线、不替责任作者签字、不向投稿系统提交。该记录是科研及出版准备情况说明，不是期刊审稿或法律授权证明。
+
+### 4.1 当前版本与真实 Actions 对应关系（旧 §1 快照已过期）
+
+- Repo: \`mzch0210/KuaiLive-Agent\`; branch \`kbs-n12-single-thesis-restructure-plan-20261014\`; existing PR #6 remains **Draft** (not merged/not submitted).
+- S1 commit **\`c7678d347ed71aa8ea341d73f290a0eee8b16cdb\`**, changes only \`manuscript/kbs_latex/main.tex\` in **seven narrative replacements**, with new title *Candidate-Regime Supervision for Selective Relationship Memory Use in Live-Streaming Recommendation*. Latest audited S1 LaTeX blob: **\`98f045bb745341b7c6bae1b2da8f84defccf0e39\`**. Rev3.2 W8 main-science blob \`552586792cb80e0921a93c73868b4329d6e8b7ef\` is the unchanged-before-S1 reference.
+- Source-level old/new comparisons: **seven sections, nine main tables, eleven equation/align environments, fifty-five LaTeX label occurrences, and H1/H2 numerical source tokens remain unchanged**; S1 altered Title, abstract opening, Introduction bridge, three contribution headers and Conclusion opening only. No changes to Supplement, BibTeX, Highlights, trained models, frozen H1/H2 or private TEST.
+- **C7 #39565629758** \`https://github.com/mzch0210/KuaiLive-Agent/actions/runs/39565629758\` completed **SUCCESS**, main-paper and complete-supplement jobs both SUCCESS, \`head_sha=c7678d3...\`. Artifacts: \`kbs-n12-c7-main\` ID **12329323531**, \`kbs-n12-c7-supplement\` ID **12329419433**.
+- **C8V #39565629809** \`https://github.com/mzch0210/KuaiLive-Agent/actions/runs/39565629809\` completed **SUCCESS**, main-paper and complete-supplement jobs both SUCCESS, \`head_sha=c7678d3...\`. Artifacts: \`kbs-n12-c8v-v0-main\` ID **12329114474**, \`kbs-n12-c8v-v0-supplement\` ID **12330405274**. The artifacts were verified as **present and not expired in GitHub API metadata**, not binary-downloaded or visually page-by-page inspected in this S3 update.
+- These **new** artifacts list expiry near **2026-12-20 07:58–08:00 UTC**. Archive through an authorized channel before expiry when legally permitted; neither the CI success nor metadata establishes rights to redistribute private training/TEST material. Rev3.2 W8's pre-S1 source was reported as 36-page main and 47-page Supplement; current S1 source rebuilt successfully, but **fresh page counts and per-page visual review have not been independently re-checked here**.
+- Five unchanged Highlights have actual text character lengths **77, 78, 73, 61, 72** excluding Markdown/list markers; each meets the publicly documented general Elsevier 85-character convention. Confirm journal-specific upload form separately.
+
+### 4.2 No external scholarly review by user choice; author responsibility remains distinct
+
+- Original project-generated internal referee simulations and earlier source audits are not independent external peer review.
+- **Independent outside scholarly pre-review: NOT REQUESTED BY USER; no review solicitation and no forged PASS.** This is a chosen optional project-quality activity, not an independently verified formal KBS submission prerequisite.
+- **Responsible-author verification is still required** for originality judgment, scientific accuracy, authorship, permissions, declarations, data availability and actual approval. A decision not to seek external scholars cannot be used to assert the work is independently certified.
+
+### 4.3 Official publishing guidance checked and outstanding KBS-specific information
+
+- **Elsevier journal AI policy**, revised June 2026: \`https://www.elsevier.com/en-au/about/policies-and-standards/generative-ai-policies-for-journals\`. Substantive AI manuscript assistance should be documented in a separate declaration; AI used in study design, code/research methods or analysis requires reproducible Methods disclosure. Actual tool/provider/version, scope, verification and author acceptance must be factually confirmed. This project has records of substantial AI-assisted manuscript organization, argumentation, code/research planning and automated scientific auditing; it should **not** be described as spelling-only assistance.
+- **Elsevier Highlights general guidance**, updated June 1, 2026: \`https://www.elsevier.support/publishing/answer/how-do-i-include-highlights-with-my-manuscript\`: 3–5 bullets, each no more than 85 characters including spaces, usually a separate source file unless a journal Guide says otherwise. These are **generic**, not verified KBS-specific requirements.
+- **Elsevier Data Statement guidance**: \`https://www.elsevier.com/researcher/author/tools-and-resources/research-data/data-statement\`: report actual access limits and check the target journal's policy; no blanket promise of raw data or checkpoint sharing.
+- **KBS Guide for Authors**: \`https://www.sciencedirect.com/journal/knowledge-based-systems/publish/guide-for-authors\`; the publicly queried Guide currently returns HTTP 403 in this access environment. Thus exact KBS abstract ceiling, anonymous review settings, highlights file requirements, declarations, and portal fields are **NOT VERIFIED**, and must be checked by the responsible author through a working official access path. The current \`main.tex\` still contains \`\\author{Anonymous Authors}\`; no verified final author title page exists.
+- Main LaTeX does **not** yet contain a separate \`Declaration of generative AI ...\` section, nor a verified completed data-availability, competing-interests or funding declaration. No such assertion should be inserted until factually approved.
+
+### 4.4 Bounded author-owned submission items (do not auto-complete)
+
+| Item | Exact outstanding action | State |
+| --- | --- | --- |
+| Scientific judgment | Confirm H1 is F versus original uncorrected S **complete fitted policies** with different observed call rates; NI1G corrected-S NO-GO, H2 original prereveal popularity gate NOT VERIFIED, Always Memory stronger and old gate slower; accept HIGH/CONTESTABLE originality risk or choose HOLD/REDIRECT | **AUTHOR PENDING** |
+| AI manuscript declaration | Identify all AI services/models that actually contributed to drafting, reorganization, code and scientific audits; document human corrections and responsibility; supply final Elsevier-style declaration before references as applicable | **AUTHOR PENDING; NO AUTOMATIC INSERTION** |
+| Research-method AI description | Identify AI involvement in research design, code development, statistical planning and evidence checks; confirm versions, reproducibility and proper methodological placement. AI-authored internal evaluation must not be labeled independent peer review | **AUTHOR PENDING** |
+| Authorship and forms | True author names, affiliations, contributions/CRediT, correspondence, final author approval, COI, funding and required ethics statements | **AUTHOR PENDING** |
+| Data and reproduction | Check KuaiLive/LiveRec/M3 original versions, license and privacy constraints, legal sharing/access procedures for restricted event data, checkpoints and derived artifacts; write truthful data/code availability | **AUTHOR PENDING** |
+| Official KBS Guide | Access live Guide/portal to confirm anonymous/title page format, highlights upload, abstract limits, mandatory declarations and permissible files | **AUTHOR PENDING** |
+| Archiving | Legally preserve new run artifacts, source commit, version details and accessible reproduction evidence before listed artifact expiry | **AUTHOR PENDING** |
+| Formal submission | Authorized author selects conditional GO / HOLD / REDIRECT; keep PR #6 Draft and do not submit or change review state without explicit instruction | **AUTHOR PENDING** |
+
+**Illustrative AI disclosure skeleton for verification only — NOT YET A SUBMISSION STATEMENT:**
+
+> During the preparation of this work, the authors used [verified AI services and model versions] to assist with [verified literature synthesis, experimental planning, code development, source audits and substantive manuscript editing as actually applicable]. The authors [describe actually completed review, validation and revisions] and take full responsibility for the accuracy, originality and content of the submitted manuscript.
+
+This skeleton must be edited to reflect the **true history**, with method-use details in Methods where applicable; do not automatically insert unsupported statements into \`main.tex\`.
+
+### 4.5 Gate decisions
+
+- **S1 PASS — precise editorial diff; S2 PASS — current commit/source-level checks and both PDF workflows SUCCESS.**
+- **S3 CHECKLIST/EXTERNAL POLICY AUDIT COMPLETE, BUT HUMAN-OWNED SUBMISSION ITEMS STILL OPEN.**
+- **No external independent scholarly review requested.** No extra NI/DEV/TEST experiments, method approvals, real-world cost claims, or new novelty certification.
+- **Decision now: SUBMISSION HOLD_PENDING_AUTHOR**, while preserving pre-existing conditional GO/HOLD/REDIRECT options. This is administrative caution, **not** an automated rejection or a claim that the paper is scientifically invalid.
+
