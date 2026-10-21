@@ -107,7 +107,7 @@ Taken together, existing work motivates learning what knowledge to represent or 
 \label{sec:problem}
 \label{sec:framework}
 
-We study the use of an already specified relationship-knowledge specialist for a ranking decision. The framework fixes the incumbent, the historical source and the evaluation candidates before asking whether to use the specialist. Its central quantity is the specialist's incremental ranking utility on those candidates; observed outcomes provide offline supervision, whereas decision-time features alone determine invocation. Figure~\ref{fig:framework} separates these two information paths.
+The framework separates three objects: the utility of a fixed historical relationship source relative to an incumbent, a candidate-regime-specific supervised estimate of that utility, and a selective-use policy based only on pretarget information. Base and Memory share the eligible alternatives within each ranking decision. Observed outcomes define offline labels; the deployment path in Figure~\ref{fig:framework} uses pretarget features to decide whether to invoke Memory.
 
 \subsection{Ranking Events and Candidate-Dependent Utility}
 \label{sec:event-utility}
@@ -213,7 +213,7 @@ A policy first computes the Base ranking and the observable features. For each e
     =\mathbb{E}\!\left[a(Z)\eta_r(Z)\mid R=r\right].
     \label{eq:expected-selective-gain}
 \end{align}
-This standard identity connects the conditional value target with decision quality and is consistent with established learning-to-defer formulations \cite{mozannar2020defer,narasimhan2022posthoc}; it is not a claim of a new general delegation theorem.
+The identity connects conditional incremental value with expected selection quality, following established learning-to-defer formulations \cite{mozannar2020defer,narasimhan2022posthoc}. It motivates using the estimated value to calibrate a selective policy.
 
 The Utility policy compares the fitted gain estimate with a DEV-selected threshold. With $\succeq_r$ denoting the protocol's deterministic boundary convention, the policy is
 \begin{equation}
@@ -223,6 +223,8 @@ The Utility policy compares the fitted gain estimate with a DEV-selected thresho
     \label{eq:utility-threshold}
 \end{equation}
 A threshold is chosen on development data for an invocation-fraction design limit $q_r$: $\hat q_{\mathrm{DEV}}=n_{\mathrm{DEV}}^{-1}\sum_i a_{\tau_r}(z_i)\le q_r$. Calibration constrains the \emph{development} call count and does not guarantee an identical realized fraction on the evaluation cohort. It is a limit on specialist invocations, rather than an observed cap on production compute time or monetary expense. The same frozen Base--Memory pair supports comparisons with predicted Base difficulty, standalone Memory performance and available pretarget heuristics; see Section~\ref{sec:exp-comparators}.
+
+To analyze the conditions behind RQ1 after decisions have been evaluated, we also use outcome-dependent historical evidence categories. These are explanatory descriptors rather than inputs to the selective policy.
 
 \paragraph{Retrospective relationship-evidence states.}
 \label{sec:framework-states}
@@ -252,7 +254,7 @@ The decomposition separates state prevalence from conditional Memory--Base utili
 \section{Experimental Design}
 \label{sec:experimental-setup}
 
-We evaluate three empirical questions about a fixed relationship-knowledge source: how its incremental value depends on the incumbent and candidates (RQ1), whether candidate-aligned value supervision improves specialist selection (RQ2), and whether authentic historical relations contribute information when current candidates are held fixed (RQ3). The protocols differ in ranked unit, sampling design and inferential status. Table~\ref{tab:exp-datasets} identifies these differences before the model comparisons and statistical tests are specified.
+The primary evaluation compares frozen policies trained with sampled- versus full-candidate relative-value labels on additional M3 author-ranking events (RQ2). Two supporting analyses explain the problem and its implications: Twitch and paired KuaiLive room rankings characterize the contextual value of relationship evidence (RQ1), and a nested M3 historical-source comparison examines whether authentic relationships matter on fixed candidates (RQ3). The M3 DEV decision-allocation analysis explains fitted policy differences without supplying a separate held-out confirmation. Table~\ref{tab:exp-datasets} separates the ranked units, cohorts and evidence roles before the detailed protocols.
 
 \subsection{Ranking Tasks and Evidence Hierarchy}
 \label{sec:exp-data}
@@ -289,6 +291,8 @@ M3 device (author) & 256 distinct DEV requests, three repeated passes & Cost dia
 \bottomrule
 \end{tabularx}
 \end{table}
+
+The additionally frozen M3 policy cohort is the primary full-candidate comparison; original TEST evaluations and paired room analyses establish context, while the smaller nested and DEV studies address distinct supporting questions. Each cohort retains its own evidence status in the analyses below.
 
 \subsection{Fixed Rankers and Selection Objectives}
 \label{sec:exp-comparators}
@@ -327,8 +331,18 @@ For each of the six original M3 Base fits, a common sampled-candidate DEV screen
 
 M3 ranking and history updates follow recorded event time. Past interactions, including TEST-period observations that have already occurred but are not among evaluated TEST target events, may update a subsequent request's history. No current or future outcome participates in the live candidate set, Base/Memory scoring, policy descriptors or threshold selection. Candidate rank ties use a deterministic author-identity convention. The saved decisions and rank outputs precede revelation of their corresponding target for metric computation. This causal information boundary differs from the retrospective sampled \emph{training-label} construction, where the observed author is retained in the sampled DEV ranking roster solely to define $\Delta_S$. The latter is never used as an online candidate generator or a predictor feature (Supplementary S1--S2).
 
-\subsection{Candidate-Regime and Historical-Source Controls}
+\subsection{Additional-Target Freeze and Prespecified Comparisons}
+
+To evaluate candidate-aligned supervision on targets not previously scored in the original M3 TEST, an outcome-blind selection freezes 30,000 eligible event IDs (10,387 users) drawn from the same previously studied March 2026 TEST-source interval. Selection is stratified into twenty population-weighted cells: five recorded source dates crossed with four within-date \emph{pretarget-history} quartiles, with 1,500 selected events per cell. Event selection uses source identities and earlier-observable activity, not current target authors or model utility. A nested, independently frozen 4,096-event subset (3,059 users) supports the historical-source test. Neither selection creates new future-period source data or user-disjoint replication.
+
+For each primary original M3 Base family (SASRec and GRU4Rec, checkpoint seed 20261012), the sampled-supervised and full-supervised gates use the same fixed Base/Memory pair and twelve \emph{full-candidate} decision-time features. Their four-fold user-disjoint DEV OOF scores determine separate thresholds under the nominal 30\% DEV call limit. Gate structure and capacity are held constant; the labels differ because sampled training utilities are calculated with target-retained DEV subsets, whereas full labels use complete active candidates. Four final predictors, thresholds and target-blind rankings were sealed before the additional-event author outcomes were revealed. All four choices are evaluated on the same original full-active candidates, without test-time threshold adjustment or equalizing realized calls after the fact.
+
+For the 4,096 nested targets, the unchanged original Full Memory scorer uses either the authentic historical source or three previously sealed, closed-hour historical author-label permutations. Each condition ranks identical full-active candidates, with source event times, author-hour activity margins and candidate availability preserved as specified in the DEV control. The three nulls are alternate histories of the \emph{same} target sample. The original protocol included a cohort-specific, pre-unseal comparison to TRAIN-only Popularity as a nondegeneracy acceptance condition; \emph{this additional cohort's Popularity margin was not scored and sealed before the outcome revelation}, so that original condition is not retrospectively certified. The completed DEV popularity control and other observed null nonfloor diagnostics do not establish the missing acceptance check (Supplementary S10.15 for supervision, S10.16 for the historical control, and S10.18 for the acceptance audit).
+
+\n\subsection{Candidate-Regime and Historical-Source Controls}
 \label{sec:exp-regimes}
+
+The following paired candidate and historical perturbations provide contextual and explanatory evidence alongside the frozen policy comparison, rather than additional confirmatory TEST populations.
 
 \paragraph{Room-ranking candidate-regime comparison (RQ1).}
 For original KuaiLive, the same histories, targets and fixed raw Base/Memory scorers are evaluated on sampled-active $S$ and full-active $F$ candidates. The Base combines its branches after a score standardization whose candidate reference may vary with the roster. Event-level sampled-to-full changes are
@@ -352,14 +366,6 @@ A distinct DEV analysis uses the original 50,049 full-active M3 author-ranking D
 
 \paragraph{DEV historical identity perturbation (RQ3).}
 The historical-source diagnostic freezes 1,024 requests from 992 DEV users in 16 pretarget-time/activity strata, excluding a preceding 128-request feasibility pilot. An original Full/Long scorer parity check precedes constrained null construction. Historical author labels are exchanged between different viewers within the same source hour, preserving each viewer's observed event times and counts, source author-hour totals and contemporaneous creator availability. A swap affects target histories only after its source hour fully closes; the active source hour stays authentic. Three fixed seeds (20261014--20261016) leave the evaluated $F$ and retrospective $S$ candidate rosters unchanged. Original-versus-null Full Memory NDCG@10 on common $F$ candidates is analyzed with 2,000 paired user-cluster bootstrap draws per seed. These are three perturbations on \emph{one} DEV cohort, not population replicates. The DEV control also checks its own TRAIN-only Popularity ranking floor; that check does not substitute for a different cohort's prospective acceptance requirement (Supplementary S10.14 and S10.18).
-
-\subsection{Additional-Target Freeze and Prespecified Comparisons}
-
-To evaluate candidate-aligned supervision on targets not previously scored in the original M3 TEST, an outcome-blind selection freezes 30,000 eligible event IDs (10,387 users) drawn from the same previously studied March 2026 TEST-source interval. Selection is stratified into twenty population-weighted cells: five recorded source dates crossed with four within-date \emph{pretarget-history} quartiles, with 1,500 selected events per cell. Event selection uses source identities and earlier-observable activity, not current target authors or model utility. A nested, independently frozen 4,096-event subset (3,059 users) supports the historical-source test. Neither selection creates new future-period source data or user-disjoint replication.
-
-For each primary original M3 Base family (SASRec and GRU4Rec, checkpoint seed 20261012), the sampled-supervised and full-supervised gates use the same fixed Base/Memory pair and twelve \emph{full-candidate} decision-time features. Their four-fold user-disjoint DEV OOF scores determine separate thresholds under the nominal 30\% DEV call limit. Gate structure and capacity are held constant; the labels differ because sampled training utilities are calculated with target-retained DEV subsets, whereas full labels use complete active candidates. Four final predictors, thresholds and target-blind rankings were sealed before the additional-event author outcomes were revealed. All four choices are evaluated on the same original full-active candidates, without test-time threshold adjustment or equalizing realized calls after the fact.
-
-For the 4,096 nested targets, the unchanged original Full Memory scorer uses either the authentic historical source or three previously sealed, closed-hour historical author-label permutations. Each condition ranks identical full-active candidates, with source event times, author-hour activity margins and candidate availability preserved as specified in the DEV control. The three nulls are alternate histories of the \emph{same} target sample. The original protocol included a cohort-specific, pre-unseal comparison to TRAIN-only Popularity as a nondegeneracy acceptance condition; **this additional cohort's Popularity margin was not scored and sealed before the outcome revelation**, so that original condition is not retrospectively certified. The completed DEV popularity control and other observed null nonfloor diagnostics do not establish the missing acceptance check (Supplementary S10.15 for supervision, S10.16 for the historical control, and S10.18 for the acceptance audit).
 
 \subsection{Endpoints, Statistical Inference, and System Measurements}
 \label{sec:exp-statistics}
@@ -546,7 +552,7 @@ GRU4Rec & 20261014 & 0.25840 & 0.30355 & $+0.04515$ & $+0.01431$ \\
 \end{table}
 
 \paragraph{Auxiliary pretarget-feature evidence.}
-On a separate Twitch DEV feature-family ablation, history plus Base-score descriptors produce $+0.00838$ NDCG@10 versus $+0.00372$ for history alone and $+0.00160$ for Base scores alone at a common retrospective DEV call count (Supplementary Table S10.16). This auxiliary DEV analysis supports using both pretarget historical descriptors and incumbent evidence; it is not a separate held-out deployment test.
+A separate Twitch DEV ablation compares the pretarget feature families. Combining history and Base-score features yields $+0.00838$ NDCG@10, compared with $+0.00372$ for history only and $+0.00160$ for Base scores only, at a matched retrospective DEV call count (Supplementary Table S10.16). These fitted DEV contrasts support using both feature families.
 
 Together, the frozen policy contrasts and DEV allocation trace link candidate-relative value supervision to observable differences in specialist-use decisions. A parallel source-validity question remains: whether the fixed Memory specialist depends on authentic viewer--creator history when current candidate rosters are unchanged.
 
