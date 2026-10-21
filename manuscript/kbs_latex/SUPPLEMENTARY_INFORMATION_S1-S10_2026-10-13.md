@@ -1,6 +1,6 @@
 ---
 title: "Supplementary Information"
-subtitle: "When Does Relationship Memory Help? Base-Relative Evidence Valuation for Live-Streaming Recommendation"
+subtitle: "Candidate-Regime Supervision for Selective Relationship Memory Use in Live-Streaming Recommendation"
 author: "Anonymous manuscript — Knowledge-Based Systems"
 date: "21 October 2026"
 fontsize: 9pt
