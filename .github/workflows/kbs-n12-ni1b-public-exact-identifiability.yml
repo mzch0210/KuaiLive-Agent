@@ -1,0 +1,23 @@
+name: KBS N12 NI1b Exact Sampled Identification Witness
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/ni1b_sampled_joint_identifiability.py'
+      - 'analysis/kbs_plan_c/test_ni1b_sampled_joint_identifiability.py'
+      - '.github/workflows/kbs-n12-ni1b-public-exact-identifiability.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-public-identification:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Exact rational rank-mixture counterexample and tests
+        run: |
+          set -euo pipefail
+          python analysis/kbs_plan_c/ni1b_sampled_joint_identifiability.py
+          cd analysis/kbs_plan_c
+          python -m unittest -v test_ni1b_sampled_joint_identifiability.py

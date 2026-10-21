@@ -1,0 +1,28 @@
+name: KBS N12 V2a Corrected-S Method Synthetic Stress
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/n12_c8v_v2a_corrected_s_rank_mapping_stress.py'
+      - 'analysis/kbs_plan_c/test_n12_c8v_v2a_corrected_s_rank_mapping_stress.py'
+      - '.github/workflows/kbs-n12-v2a-corrected-s-method-synthetic-stress.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-correction-method-qa:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify estimator contract and public stress cases
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n12_c8v_v2a_corrected_s_rank_mapping_stress.py' -v
+          python analysis/kbs_plan_c/n12_c8v_v2a_corrected_s_rank_mapping_stress.py | tee "$RUNNER_TEMP/n12-v2a-public-synthetic.json"
+          python -m json.tool "$RUNNER_TEMP/n12-v2a-public-synthetic.json" >/dev/null
+      - uses: actions/upload-artifact@v4
+        with:
+          name: n12-v2a-synthetic-estimator-stress
+          path: ${{ runner.temp }}/n12-v2a-public-synthetic.json
+          retention-days: 14

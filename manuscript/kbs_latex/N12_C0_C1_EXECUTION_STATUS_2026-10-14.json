@@ -1,0 +1,401 @@
+{
+  "schema": "KBS_N12_SINGLE_THESIS_EXECUTION_STATUS_v28",
+  "date": "2026-10-20",
+  "branch": "kbs-n12-single-thesis-restructure-plan-20261014",
+  "draft_pr": 6,
+  "base_branch": "kbs-n11-final-editorial-polish-20261014",
+  "current_stage": "N12_REV2_2_E0_SOURCE_MATRIX_AND_E1_PRIOR_ART_COMPLETE_E2_NEXT",
+  "CI": {
+    "C0C1": {
+      "run": 38546213364,
+      "conclusion": "success"
+    },
+    "C2": {
+      "run": 38547234449,
+      "conclusion": "success"
+    },
+    "C3": {
+      "run": 38549828504,
+      "conclusion": "success"
+    },
+    "C4": {
+      "run": 38553161784,
+      "conclusion": "success"
+    },
+    "C5": {
+      "run": 38864362019,
+      "conclusion": "success"
+    },
+    "C6": {
+      "run": 39200835455,
+      "conclusion": "success",
+      "both_jobs": true
+    },
+    "C7": {
+      "run": 39205375045,
+      "conclusion": "success",
+      "main_paper": "success",
+      "complete_supplement": "success"
+    },
+    "C8N": {
+      "run": 39209043536,
+      "conclusion": "success",
+      "main_pdf_pages": 37,
+      "supplement_pdf_pages": 47
+    }
+  },
+  "frozen_source": {
+    "main_git_blob": "8ca7dc67ade90048eb0b12059ec8bec75c85194f",
+    "supplement_git_blob": "9b83a31d82f08d1a212f59f99b60975ad902e8e6",
+    "N11_main_pages": 39,
+    "N11_supp_pages": 45,
+    "main_rewritten": true,
+    "supp_rewritten": true,
+    "A4_rerun": false,
+    "private_TEST_labels_read": false,
+    "main_rewrite_scope": "C2_INTRO_RELATED_C3_METHOD_C4_EXPERIMENTAL_DESIGN_C5_RESULTS_ONLY",
+    "original_main_blob_still_available_as_N11": "8ca7dc67ade90048eb0b12059ec8bec75c85194f",
+    "supplement_rewrite_scope": "C5_S10_19_ADDED_NO_OTHER_SUPPLEMENT_SCIENCE_CHANGED"
+  },
+  "stages": {
+    "N12-0": {
+      "status": "PASS",
+      "main_source_blocks": 152,
+      "latex_labels": 59,
+      "main_tables": 13,
+      "main_figures": 3,
+      "source_map": "N12_C0_SOURCE_BLOCK_MIGRATION_MAP_2026-10-14.md",
+      "machine_manifest": "N12_C0_SOURCE_BLOCK_MIGRATION_MANIFEST_2026-10-14.json"
+    },
+    "N12-1": {
+      "status": "PASS",
+      "three_rq": [
+        "RQ1_incumbent_and_candidate_relative_knowledge_value",
+        "RQ2_candidate_aligned_supervision_decision",
+        "RQ3_fixed_F_authentic_historical_source_validity"
+      ],
+      "RQ3_relation_to_RQ2": "parallel_validation_not_causal_successor",
+      "new_outline_sections": 7,
+      "blueprint": "N12_C1_RQ_ARGUMENT_AND_EVIDENCE_BLUEPRINT_2026-10-14.md"
+    },
+    "N12-2": {
+      "status": "PASS",
+      "task": "Introduction and Related Work rewritten; noncausal parallel RQ2-RQ3 fig; 3 literature axes; publisher-verified 2026 KBS sources; original abstract and Sections 3-8 untouched",
+      "run": 38547234449,
+      "main_pdf_pages": 39,
+      "supplement_pdf_pages": 45,
+      "main_artifact_id": 11885411283,
+      "supplement_artifact_id": 11885046843,
+      "main_pdf_sha256": "2d76b6f026ddff2dd8de64ea7a3261aca0dbad345dd438d8cdc363abfa79318c",
+      "supplement_pdf_sha256": "0e5ca6bd42e8ac59dcdd66f7bcc0c27dd83f136013f30c518f0505012f391611",
+      "pdf_main_text_and_figure_visual_qa": "PASS",
+      "latex_overfull_boxes_main": 0,
+      "latex_overfull_boxes_supplement": 0,
+      "unresolved_citations": 0,
+      "c0_c1_original_baseline_not_modified": true,
+      "revised_intro_related": true,
+      "existing_10_experiment_families_in_main": true
+    },
+    "N12-3": {
+      "status": "PASS",
+      "task": "Merged former Problem Formulation and Framework into five scientific subsections; exact nine math blocks and 22 labels preserved; pretarget model and historical source unchanged.",
+      "CI_run": 38549828504,
+      "CI_status": "BOTH_JOBS_SUCCESS",
+      "main_pages": 38,
+      "supp_pages": 45,
+      "main_artifact_id": 11885972844,
+      "supp_artifact_id": 11886356772,
+      "main_sha256": "773ecfe60b0d1410728e29575deb88075315dab1438ee662b8ddb702c83a1038",
+      "supp_sha256": "032b1c96353029294bd3d2bc9768c15e34247d53144d313dc1ae9f8237f33448",
+      "method_equation_blocks_byte_text_identical_to_N11": 9,
+      "method_labels_preserved": 22,
+      "overfull_hbox_main": 0,
+      "overfull_hbox_supp": 0,
+      "unresolved_citations": 0,
+      "method_figure_page_position": "PASS_FLOATBARRIER_BEFORE_3_5",
+      "new_training": false,
+      "private_A4_read": false
+    },
+    "N12-4": {
+      "status": "PASS",
+      "task": "Rebuild Experimental Setup into six-part evidence-tier Experimental Design; retain 11 original labels, 2 exact candidate-regime equations and prior nine exact method equations.",
+      "CI_run": 38553161784,
+      "CI_status": "BOTH_JOBS_SUCCESS",
+      "main_pages": 38,
+      "supp_pages": 45,
+      "main_artifact_id": 11887995612,
+      "supp_artifact_id": 11888000639,
+      "main_sha256": "437a557af7df86a688acc3a2018760fab911c7d09f550883ca52c737abca39cf",
+      "supp_sha256": "fb0bcb9148352599a4827935fc342573cd405842bbdc9d093b1a640b8cb76cd3",
+      "reconciled_scientific_cohorts": [
+        "Twitch original streamer TEST",
+        "KuaiLive paired room retrospective",
+        "M3 original 47575 author TEST",
+        "M3 30000 additional same-period targets",
+        "M3 nested 4096 same-period source control",
+        "DEV-only exploratory mechanisms",
+        "256 DEV device timing"
+      ],
+      "unverified_original_b4a_popularity_floor_retained": true,
+      "latex_overfull_main": 0,
+      "latex_overfull_supp": 0,
+      "unresolved_cross_refs": 0,
+      "figures_and_table_1_visual_inspected": true,
+      "source_math_changed": false,
+      "private_A4_read": false
+    },
+    "N12-5": {
+      "status": "PASS",
+      "description": "RQ-centered Results realigned to value context / candidate-supervised choice / fixed-candidate true history / invocation and real measured cost",
+      "rq_results_sections": 4,
+      "original_result_tables": 11,
+      "primary_main_result_tables": 7,
+      "supporting_tables_in_S10_19": 4,
+      "original_result_figures_kept": 1,
+      "complete_original_results_fixture": "analysis/kbs_plan_c/n12_c5_original_results_source_freeze.json",
+      "science_and_pdf_CI_run": 38864362019,
+      "science_and_pdf_CI": "BOTH_JOBS_SUCCESS",
+      "main_pdf_pages": 36,
+      "supplement_pdf_pages": 47,
+      "main_pdf_artifact_id": 12030572470,
+      "supplement_artifact_id": 12029844052,
+      "main_pdf_sha256": "bbf9734ef3e3fa0d8b76f5b71d9230fc07a51df319202523b4c1315592f8de1b",
+      "supplement_pdf_sha256": "e8edd16ad45b55643559264908ec040d3b3eb4f5be32a83f43d9f57895985463",
+      "latex_overfull_boxes_main": 0,
+      "latex_overfull_boxes_supp": 0,
+      "unresolved_references_and_citations": 0,
+      "supp_table_S10_15_caption_orphan_fixed": true,
+      "no_A4_reveal": true,
+      "no_model_fitting_or_TEST_scoring": true
+    },
+    "N12-6": {
+      "status": "PASS",
+      "description": "C6.0 bounded scientific novelty gate + C6.1 frozen evidence chain + C6.2 Abstract/Introduction contribution bullets/Discussion/Conclusion/Highlights refocused + C6.3 source-guard+both PDF jobs SUCCESS; scientific P0 novelty and causal/operational caveats retained",
+      "substage_0": {
+        "status": "PASS_TO_EDIT_WITH_BOUNDED_CLAIMS",
+        "report": "N12_C6_CLAIM_EVIDENCE_PRIOR_ART_STRESS_TEST_2026-10-19.md",
+        "risk": "P0_novelty_not_fully_resolved"
+      },
+      "substage_1": {
+        "status": "DOCUMENT_COMPLETE",
+        "report": "N12_C6_RQ2_SUPERVISION_TO_DECISION_EVIDENCE_CHAIN_2026-10-19.md",
+        "new_TEST_or_model_training": false
+      },
+      "substage_2": {
+        "status": "PASS_EDITORIAL_AND_SOURCE_SCIENCE_QA",
+        "manuscript": "main.tex",
+        "highlights": "Highlights.txt",
+        "science_change": "NO_RECALCULATED_RESULTS",
+        "new_source_sha_note": "See current GitHub branch"
+      },
+      "substage_3": {
+        "status": "BOTH_JOBS_SUCCESS",
+        "workflow": ".github/workflows/kbs-n12-c6-scientific-pdf-qa.yml",
+        "science_guard": "analysis/kbs_plan_c/n12_c6_scientific_contract.py",
+        "CI_run": 39200835455,
+        "source_sha": "788c71dc48391639f8bf6fdaf9792239939b75b1",
+        "main_pdf_pages": 36,
+        "supplement_pdf_pages": 47,
+        "main_artifact_id": 12162784746,
+        "supplement_artifact_id": 12164145955,
+        "main_artifact_zip_sha256": "73b8c65d9c7340a48e5840bf9dd7b7251dde04c6ab50247a8326d8612e8abdf9",
+        "supplement_artifact_zip_sha256": "01e1c3d5c949c1918321b79abb5d1c1a56273514082ac5e07e77bc7184ffaf26",
+        "artifact_digests_not_pdf_sha256": true,
+        "original_C5_source_guard_archived": true,
+        "report": "N12_C6_SCIENTIFIC_NARRATIVE_REWRITE_AND_PDF_QA_2026-10-19.md"
+      },
+      "C5_latest_verified_ci_run": 38864362019,
+      "C5_verified_pdf_pages": {
+        "main": 36,
+        "supplement": 47
+      },
+      "C6_pdf_not_yet_produced": false
+    },
+    "N12-7": {
+      "status": "PASS",
+      "description": "11 frozen Results table inventory; exact 7 main LaTeX blocks and 4 Supplement migrated tables, 17 rows and 49 numerical cells checked; 5 positive/negative tests passed; claim provenance and honest rights/reproducibility register; dual-PDF CI succeeded. License/author approval expressly unresolved for C8.",
+      "CI_run": 39205375045,
+      "CI_conclusion": "success",
+      "main_pdf_pages": 36,
+      "supplement_pdf_pages": 47,
+      "main_artifact_id": 12165009848,
+      "supplement_artifact_id": 12165975164,
+      "main_artifact_zip_sha256": "75aaf408ad8825f65082437475d6cce3eaaa87546e17418d89302e4706bbcbe9",
+      "supplement_artifact_zip_sha256": "b56b3e5b1f11781c79cf47bc50bec455ac1c8bb6e4656e9d109eb7c69a170773",
+      "digest_format": "GitHub artifact ZIP; not underlying PDF hash",
+      "original_main_results_tables_verified": 7,
+      "relocated_supplement_tables_verified": 4,
+      "relocated_rows_verified": 17,
+      "relocated_numeric_cells_verified": 49,
+      "negative_audit_tests_passed": 4,
+      "licensing_clearance": "PENDING_AUTHOR_AND_DATA_OWNER_CHECK",
+      "public_full_end_to_end_reproduction": "NOT_ESTABLISHED",
+      "report": "N12_C7_FULL_CELL_PROVENANCE_AND_REPRODUCIBILITY_QA_2026-10-19.md",
+      "claims_register": "N12_C7_CLAIM_SOURCE_REPRODUCIBILITY_AND_RIGHTS_REGISTER_2026-10-19.md",
+      "new_TEST_scoring": false
+    },
+    "N12-8": {
+      "status": "IN_PROGRESS_BLOCKED_HUMAN_SIGNOFF",
+      "three_role_referee_simulation": "COMPLETE",
+      "major_comment_response_matrix": "COMPLETE",
+      "report": "N12_C8_THREE_REFEREE_CHALLENGE_AND_AUTHOR_NO_GO_REGISTER_2026-10-19.md",
+      "human_author_approval": "NOT_RECEIVED",
+      "data_redistribution_rights": "NONBLOCKING_METADATA_DOCUMENTATION_UNLESS_ACTUAL_VIOLATION_OR_REDISTRIBUTION",
+      "AI_manuscript_disclosure_author_approved": "NOT_YET",
+      "KBS_submission_decision": "PENDING_AUTHOR_SCIENTIFIC_GO_AND_AUTHORS_DECLARATIONS_NOT_DATASET_LICENSE_LABELS",
+      "merged_to_main": false,
+      "submitted_to_KBS": false,
+      "license_scope_clarification": "N12_C8_SUBMISSION_GATES_AND_DATA_LICENSE_SCOPE_CLARIFICATION_2026-10-19.md",
+      "remaining_items": [
+        "actual_author_identity_order_CRedit_and_final_approval",
+        "AI_manuscript_preparation_declaration_author_verified",
+        "funding_COI_data_code_availability_statements",
+        "current_KBS_submission_checklist_and_cover_letter",
+        "human_pdf_review_and_submission_go_no_go"
+      ],
+      "novelty_reinforcement": {
+        "status": "PASS_SOURCE_QA_DUAL_PDF",
+        "audit_run": 39209043536,
+        "source_sha": "cf189a9fd6a5a6e7eae1ef4c38a8a8973bb42577",
+        "main_pdf_pages": 37,
+        "supplement_pdf_pages": 47,
+        "main_artifact_id": 12166837346,
+        "supplement_artifact_id": 12167221155,
+        "main_artifact_zip_sha256": "bcd280d955e109cd548dcccbaafb731f02201ba6a3f93b4b83be39aeb82c6162",
+        "supplement_artifact_zip_sha256": "eae90b807c3799bd94e74cfaf755e3863aafcbe9e03c989f38b2bacfe9925011",
+        "claim": "candidate indexed supervision -> observed policy-call reallocation under fixed relationship Memory; remains bounded and noncausal under unequal calls",
+        "new_frozen_TEST_or_training": false,
+        "report": "N12_C8N_DECISION_ALLOCATION_NOVELTY_REWRITE_QA_2026-10-19.md",
+        "human_novelty_acceptance": "PENDING"
+      },
+      "V0": {
+        "status": "MACHINE_PDF_PASS_HUMAN_REVIEW_PENDING",
+        "run": 39218602150,
+        "main_pages": 37,
+        "supp_pages": 47,
+        "semantic_tests": 6,
+        "cell_tests": 5,
+        "main_artifact_id": 12170528778,
+        "supplement_artifact_id": 12170951707,
+        "report": "N12_C8V_V0_SEMANTIC_CORRECTION_EXECUTION_LOG_2026-10-19.md"
+      },
+      "V1": {
+        "status": "ANALYST_PRIOR_ART_MATRIX_COMPLETE_INDEPENDENT_REVIEW_PENDING",
+        "verdict": "NARROW_AND_PROCEED_TO_V2A_FEASIBILITY",
+        "report": "N12_C8V_V1_PRIOR_ART_AND_NOVELTY_EVIDENCE_STRESS_TEST_2026-10-19.md",
+        "corrected_S_experiment_performed": false
+      },
+      "V2a": {
+        "status": "NOT_STARTED",
+        "guard": "metadata first, no frozen TEST"
+      },
+      "validation_plan_revision": {
+        "status": "REV2_PLAN_COMMITTED_NOT_ALL_EXECUTED",
+        "master_plan": "N12_C8V_SCIENTIFIC_NOVELTY_VALIDATION_AND_PRIOR_EDIT_REMEDIATION_PLAN_2026-10-19.md",
+        "evidence_inventory": "N12_C8V_REV2_CROSS_VERSION_EVIDENCE_INVENTORY_2026-10-19.md",
+        "I0": "PUBLIC_LEDGER_QA_PASS_TWITCH_P1_3_AND_ROOM_RUNS_TRACED_INDEPENDENT_HUMAN_REVIEW_PENDING",
+        "I1": "ANALYST_EXISTING_EVIDENCE_SYNTHESIS_COMPLETE_HUMAN_REVIEW_PENDING",
+        "V2a": "DATA_LABEL_PARITY_AND_JOINT_HEURISTIC_DIAGNOSTICS_PASS_NO_QUALIFIED_CONDITIONAL_ESTIMATOR_IDENTIFIED_METHOD_SCREEN_CLOSED",
+        "V2b": "NOT_RUN_BY_DESIGN_FOR_CURRENT_CANDIDATES",
+        "old_V3": "MERGED_INTO_I1_NO_DUPLICATE_ABLATIONS",
+        "old_V4": "MERGED_INTO_I1_NO_DUPLICATE_FRONTIERS",
+        "I2": "I2A_PRIOR_ART_CLAIM_MAPPING_NEXT_I2B_MINIMAL_TEX_PATCH_NOT_STARTED",
+        "V0": "MACHINE_AND_DUAL_PDF_PASS",
+        "V1": "ANALYST_COMPLETE_EXTERNAL_HUMAN_REVIEW_PENDING",
+        "new_training": false,
+        "new_test_evaluation": false,
+        "main_tex_edited": true,
+        "I0_report": "N12_C8V_REV2_I0_EXECUTION_AND_PROVENANCE_QA_2026-10-19.md",
+        "I0_ledger": "N12_C8V_REV2_EVIDENCE_LEDGER.json",
+        "I0_run": 39224636666,
+        "I1_report": "N12_C8V_REV2_I1_EXISTING_EVIDENCE_SYNTHESIS_2026-10-19.md",
+        "I0_latest_run": 39226865413,
+        "I0_twitch_original_run": 35708072303,
+        "V2a_report": "N12_C8V_REV2_V2A_CORRECTED_S_INFORMATION_AND_ESTIMAND_AUDIT_2026-10-19.md",
+        "V2a_synthetic_run": 39228504534,
+        "V2a_synthetic_report": "N12_C8V_REV2_V2A_SAMPLED_RANK_THEORY_AND_SYNTHETIC_CHECK_2026-10-19.md",
+        "V2a_selfhost_run": 39230682113,
+        "V2a_private_dev_files_present": true,
+        "V2a_original_sha_matched": true,
+        "V2a_original_dev_candidate_min": 14022,
+        "V2a_original_dev_candidate_max": 53762,
+        "V2a_128_S_parity_run": 39232305650,
+        "V2a_128_S_parity_source": "analysis/kbs_plan_c/n12_c8v_v2a_original_b1_sampled_label_parity.py",
+        "V2a_128_S_parity_result": {
+          "events": 128,
+          "f_rank_errors": {
+            "sasrec": 0,
+            "gru4rec": 0,
+            "memory": 0
+          },
+          "sampled_label_errors": {
+            "sasrec": 0,
+            "gru4rec": 0,
+            "memory": 0
+          },
+          "tolerance": 1e-12
+        },
+        "V2a_correction_synthetic_run": 39235271548,
+        "V2a_correction_synthetic_report": "N12_C8V_REV2_V2A_CORRECTION_CANDIDATES_SYNTHETIC_ADJUDICATION_2026-10-19.md",
+        "V2a_joint_delta_run": 39236652772,
+        "V2a_joint_delta_report": "N12_C8V_REV2_V2A_JOINT_RELATIVE_UTILITY_SYNTHETIC_ADJUDICATION_2026-10-19.md",
+        "V2a_existing_dev_joint_run": 39237415095,
+        "V2a_existing_dev_joint_report": "N12_C8V_REV2_V2A_EXISTING_DEV_JOINT_LABEL_DIAGNOSTIC_2026-10-19.md",
+        "V2a_final_method_gate_report": "N12_C8V_REV2_V2A_FINAL_METHOD_GATE_AND_V2B_STOP_2026-10-19.md",
+        "I2_patch_plan": "N12_C8V_REV2_I2_MINIMAL_MANUSCRIPT_CLAIM_PATCH_PLAN_2026-10-19.md",
+        "revision": "REV2_2_PATH_A_SCIENTIFIC_CONTRIBUTION_ENHANCEMENT",
+        "path_choice": "A_EVIDENCE_BOUNDED_EMPIRICAL_KBS_MANUSCRIPT_USER_SELECTED",
+        "I2A": "PRIOR_ART_METADATA_AND_FROZEN_CLAIM_SCOPE_CHECKED",
+        "I2B": "THREE_TARGETED_MAIN_TEX_WORDING_EDITS_AND_ONE_CIKM2024_BIB_ADDITION_COMMITTED",
+        "I2C": "PASS_C8V_AND_C7_BOTH_JOBS_SUCCESS_38P_MAIN_47P_SUPP",
+        "I2D": "INTERNAL_ADVERSARIAL_SCIENTIFIC_AUDIT_COMPLETE_REAL_HUMAN_INDEPENDENT_REVIEW_PENDING",
+        "C8A": "SUBMISSION_PREP_CHECKLIST_CREATED_HUMAN_AUTHOR_SIGNOFF_PENDING_NOT_SUBMITTED",
+        "I2B_commit": "7e4c5a6f616e22226f55e2396815d48cc838bf96",
+        "I2C_primary_run": 39351014765,
+        "I2C_secondary_run": 39351014645,
+        "I2C_page_count": {
+          "main": 38,
+          "supplement": 47
+        },
+        "I2C_source_commit": "7e4c5a6f616e22226f55e2396815d48cc838bf96",
+        "I2C_report": "N12_C8V_REV2_1_I2C_DUAL_PDF_FINAL_QA_2026-10-20.md",
+        "I2C_artifacts": {
+          "main": 12232693237,
+          "supplement": 12233555700,
+          "expiry_utc": "2026-12-19"
+        },
+        "I2D_report": "N12_C8V_REV2_1_I2D_SCIENTIFIC_ADVERSARIAL_AUDIT_AND_HUMAN_REVIEW_PACKET_2026-10-20.md",
+        "C8A_checklist": "N12_C8V_REV2_1_C8A_RESPONSIBLE_AUTHOR_SUBMISSION_CHECKLIST_2026-10-20.md",
+        "enhancement_plan": "N12_C8V_REV2_2_SCIENTIFIC_CONTRIBUTION_ENHANCEMENT_PLAN_2026-10-20.md",
+        "E0": "SOURCE_CLAIM_MATRIX_COMPLETE_ONE_NULL_FIG_WORDING_RISK_OPEN",
+        "E1": "FOUR_PRIOR_ART_CONTRAST_COMPLETE_NOVELTY_RISK_HIGH",
+        "E2": "NEXT_NOT_STARTED",
+        "E3": "NOT_STARTED",
+        "E4": "NOT_STARTED",
+        "E5": "NOT_STARTED",
+        "E6": "HUMAN_EXTERNAL_SCIENTIFIC_REVIEW_AND_AUTHOR_APPROVAL_PENDING",
+        "E0_report": "N12_C8V_REV2_2_E0_CLAIM_TO_SOURCE_MATRIX_2026-10-20.md",
+        "E1_report": "N12_C8V_REV2_2_E1_PRIOR_ART_AND_ONE_THESIS_CONTRAST_2026-10-20.md"
+      }
+    }
+  },
+  "fixed_scientific_constraints": [
+    "N9_A4_original_one_shot_not_reopened",
+    "B4A_30000_same_source_period_not_future_new_TEST",
+    "F_vs_S_policy_calls_unequal_1p337pp_1p797pp",
+    "Always_Memory_higher_unconstrained_F_NDCG",
+    "Original_Utility_DEV_latency_slower_than_Always_Memory",
+    "Historical_null_strong_composite_not_isolated_single_relation",
+    "B4A_H2_prereveal_same_cohort_TRAIN_popularity_floor_NOT_VERIFIED"
+  ],
+  "merged_to_main": false,
+  "KBS_submission": false,
+  "author_approval": false,
+  "ci_stage_lifecycle": {
+    "obsolete_N12_C2_C3_autopush_workflows": "retired_after_successful_stages",
+    "C4_scientific_contract": "superset_checks_C2_C3_stable_source_and_original_9_equations",
+    "new_untested_TEST_since_original_B4A": false,
+    "C6": "C5 push retired after archived success; C6 source-region science guard and dual PDFs PASS on #39200835455",
+    "C7": "New strict four-migrated-table 17-row/49-cell audit and C7 main/supp PDF CI PASS #39205375045"
+  }
+}

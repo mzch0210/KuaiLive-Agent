@@ -1,0 +1,64 @@
+name: KBS N12 V2a Existing DEV Joint Label Diagnostics
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/n12_c8v_v2a_existing_dev_joint_label_diagnostic.py'
+      - '.github/workflows/kbs-n12-v2a-existing-dev-joint-label-diagnostic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package-source:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile source with strict DEV guard
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/{n12_c8v_v2a_existing_dev_joint_label_diagnostic,n12_c8v_v2a_corrected_s_rank_mapping_stress}.py
+          mkdir -p bundle
+          cp analysis/kbs_plan_c/{n12_c8v_v2a_existing_dev_joint_label_diagnostic,n12_c8v_v2a_corrected_s_rank_mapping_stress}.py bundle/
+          (cd bundle && sha256sum *.py > SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v2a-dev-joint-source
+          path: bundle/
+          retention-days: 2
+  selfhost-existing-dev-readonly:
+    needs: package-source
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 25
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: v2a-dev-joint-source
+          path: ${{ runner.temp }}/v2a-dev-joint-source
+      - name: Evaluate existing 50,049 DEV paired labels read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd "$RUNNER_TEMP/v2a-dev-joint-source" && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$RUNNER_TEMP/v2a-dev-joint-source"
+          "$HOME/venvs/kuailive-gpu/bin/python" "$RUNNER_TEMP/v2a-dev-joint-source/n12_c8v_v2a_existing_dev_joint_label_diagnostic.py" --root "$HOME/.cache/kuailive-agent-kbs" --out "$RUNNER_TEMP/v2a-dev-joint-safe.json"
+      - name: Verify only non-identifying aggregate exported
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,os,pathlib
+          r=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'v2a-dev-joint-safe.json').read_text())
+          assert r['n_dev_events']==50049 and r['status']=='PASS_EXISTING_DEV_SOURCE_SHA_AND_PAIRED_DELTA_DIAGNOSTIC'
+          assert r['test_accessed'] is False and r['new_training'] is False and r['private_rows_exported'] is False
+          assert not r['independent_confirmation'] and not r['v2b_authorized']
+          p=pathlib.Path('safe-diagnostic')
+          p.mkdir(exist_ok=True)
+          (p/'summary.json').write_text(json.dumps(r,sort_keys=True,indent=2)+'\n')
+          print('V2A_EXISTING_DEV_JOINT_LABEL_DIAGNOSTIC_PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: n12-v2a-existing-dev-joint-aggregate-only
+          path: safe-diagnostic/summary.json
+          retention-days: 14

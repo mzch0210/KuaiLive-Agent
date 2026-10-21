@@ -1,0 +1,22 @@
+name: KBS N12 V2a DEV-free Sampled Rank Identifiability
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/n12_c8v_v2a_sampled_rank_identifiability.py'
+      - 'analysis/kbs_plan_c/test_n12_c8v_v2a_sampled_rank_identifiability.py'
+      - '.github/workflows/kbs-n12-c8v-v2a-synthetic-identifiability-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-scientific-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Hypergeometric probability normalization and bounded negative checks
+        run: |
+          set -euo pipefail
+          python analysis/kbs_plan_c/n12_c8v_v2a_sampled_rank_identifiability.py
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n12_c8v_v2a_sampled_rank_identifiability.py' -v

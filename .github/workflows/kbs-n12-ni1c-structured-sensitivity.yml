@@ -1,0 +1,23 @@
+name: KBS N12 NI1c Public Structured Rank Sensitivity
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/ni1c_topk_one_candidate_sensitivity.py'
+      - 'analysis/kbs_plan_c/test_ni1c_topk_one_candidate_sensitivity.py'
+      - '.github/workflows/kbs-n12-ni1c-structured-sensitivity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-only:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Model structured near-indistinguishability and run public tests
+        run: |
+          set -euo pipefail
+          python analysis/kbs_plan_c/ni1c_topk_one_candidate_sensitivity.py
+          cd analysis/kbs_plan_c
+          python -m unittest -v test_ni1c_topk_one_candidate_sensitivity.py

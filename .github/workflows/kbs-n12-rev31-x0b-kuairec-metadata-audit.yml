@@ -1,0 +1,61 @@
+name: KBS N12 Rev3.1 X0B KuaiRec Metadata Only
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/rev31_x0b_kuairec_coverage_only.py'
+      - '.github/workflows/kbs-n12-rev31-x0b-kuairec-metadata-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  schema-coverage-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify official checksum from Zenodo record
+        id: manifest
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,urllib.request,os
+          url="https://zenodo.org/api/records/18164998"
+          with urllib.request.urlopen(url,timeout=40) as f:
+              d=json.load(f)
+          files=[x for x in d.get("files",[]) if x.get("key")=="KuaiRec.zip"]
+          if len(files)!=1: raise RuntimeError("Missing/duplicate official KuaiRec.zip manifest")
+          checksum=files[0].get("checksum","")
+          if not checksum.startswith("md5:") or len(checksum)!=36:
+              raise RuntimeError("No verifiable Zenodo md5 checksum: "+checksum)
+          with open(os.environ["GITHUB_OUTPUT"],"a") as f:
+              f.write("md5="+checksum.split(":",1)[1]+"\n")
+          print("Official Zenodo API manifest / filename / checksum format verified")
+          PY
+      - name: Download public official ZIP without storing it in artifacts
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --max-time 900 \
+            'https://zenodo.org/records/18164998/files/KuaiRec.zip' \
+            -o "${RUNNER_TEMP}/KuaiRec.zip"
+          echo "Public ZIP present for SHA verification; no raw data uploaded."
+      - name: Metadata and pretarget author-history coverage only
+        env:
+          EXPECTED_MD5: ${{ steps.manifest.outputs.md5 }}
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'numpy==2.1.3' 'pandas==2.2.3'
+          python analysis/kbs_plan_c/rev31_x0b_kuairec_coverage_only.py \
+            --zip "${RUNNER_TEMP}/KuaiRec.zip" \
+            --expected-md5 "${EXPECTED_MD5}" \
+            --output "${RUNNER_TEMP}/x0b_metadata_aggregates.json"
+          cp "${RUNNER_TEMP}/x0b_metadata_aggregates.json" ./x0b_metadata_aggregates.json
+      - name: Upload aggregates ONLY
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: n12-rev31-x0b-kuairec-aggregates-only
+          path: x0b_metadata_aggregates.json
+          if-no-files-found: error
+          retention-days: 30

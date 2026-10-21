@@ -1,0 +1,37 @@
+name: KBS N12 V2a Joint Shared-Negative Delta Stress
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/n12_c8v_v2a_joint_relative_utility_synthetic.py'
+      - 'analysis/kbs_plan_c/test_n12_c8v_v2a_joint_relative_utility_synthetic.py'
+      - '.github/workflows/kbs-n12-v2a-joint-shared-negative-synthetic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-joint-delta:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Joint Base-Memory same-negative experiment and regression tests
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n12_c8v_v2a_joint_relative_utility_synthetic.py' -v
+          python analysis/kbs_plan_c/n12_c8v_v2a_joint_relative_utility_synthetic.py > "$RUNNER_TEMP/n12-joint-delta-synthetic.json"
+          python - <<'PY'
+          import json,os,pathlib
+          r=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'n12-joint-delta-synthetic.json').read_text())
+          assert r['scenario_count']==32 and r['sampled_negatives']==574
+          assert r['scope']=='PUBLIC_SYNTHETIC_NO_DEV_OR_TEST_NO_FITTING'
+          assert r['wrong_independent_sampling_negative_control']['shared_false_memory_preference']==0
+          print('V2A_JOINT_SYNTHETIC_DELTA_CONTRACT_PASS')
+          print(json.dumps(r['summary_equal_synthetic_scenario_weight'],indent=2))
+          print(json.dumps(r['wrong_independent_sampling_negative_control'],indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: n12-v2a-joint-delta-public-synthetic
+          path: ${{ runner.temp }}/n12-joint-delta-synthetic.json
+          retention-days: 14

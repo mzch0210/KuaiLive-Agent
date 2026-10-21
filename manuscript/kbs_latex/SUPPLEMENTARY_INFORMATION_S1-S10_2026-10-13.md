@@ -1,8 +1,8 @@
 ---
 title: "Supplementary Information"
-subtitle: "When Does Relationship Memory Help? Base-Relative Evidence Valuation for Live-Streaming Recommendation"
+subtitle: "Candidate-Regime Supervision for Selective Relationship Memory Use in Live-Streaming Recommendation"
 author: "Anonymous manuscript — Knowledge-Based Systems"
-date: "13 October 2026"
+date: "21 October 2026"
 fontsize: 9pt
 geometry: margin=0.76in
 colorlinks: true
@@ -65,7 +65,7 @@ For the original KuaiLive P0 files, SHA256: **train** `ad91413537175b9f6e9013c52
 
 ### S1.5 Evidence and access statement
 
-Data-provenance evidence: [KuaiLive official dataset repository](https://github.com/imgkkk574/KuaiLive), [KuaiLive Zenodo record](https://zenodo.org/records/16565801), [LiveRec original repository](https://github.com/JRappaz/liverec), [KuaiLive active-room exporter](https://github.com/mzch0210/KuaiLive-Agent/blob/main/manuscript/kbs_latex/src/kuailive_agent/export_rechorus_room.py), and the [P2 source-pinned eligibility audit](https://github.com/mzch0210/KuaiLive-Agent/blob/main/manuscript/kbs_latex/SECTION6_STAGE3_3A_FEASIBILITY_AND_SCIENTIFIC_BOUNDARIES_2026-10-10.md). The original datasets' access and license conditions govern further distribution. This supplement references public repositories and **does not redistribute proprietary or anonymized raw interaction files**. Preserve the precise derivation pipeline rather than infer fields or raw source SHA values not available in the evidence records.
+Data-provenance evidence: [KuaiLive official dataset repository](https://github.com/imgkkk574/KuaiLive), [KuaiLive Zenodo record](https://zenodo.org/records/16565801), [LiveRec original repository](https://github.com/JRappaz/liverec), [KuaiLive active-room exporter](https://github.com/mzch0210/KuaiLive-Agent/blob/kbs-n12-single-thesis-restructure-plan-20261014/src/kuailive_agent/export_rechorus_room.py), and the [P2 source-pinned eligibility audit](https://github.com/mzch0210/KuaiLive-Agent/blob/main/manuscript/kbs_latex/SECTION6_STAGE3_3A_FEASIBILITY_AND_SCIENTIFIC_BOUNDARIES_2026-10-10.md). The original datasets' access and license conditions govern further distribution. This supplement references public repositories and **does not redistribute proprietary or anonymized raw interaction files**. Preserve the precise derivation pipeline rather than infer fields or raw source SHA values not available in the evidence records.
 
 **Boundary:** KuaiLive post-hoc TEST analyses and Twitch frozen one-shot TEST serve **different evidentiary purposes**. No source cohort is a random sample of all live-streaming platform users. These protocol definitions are observational; neither a sampled non-target nor a lack of recorded history proves negative preference or true ignorance.
 
@@ -372,7 +372,7 @@ This controlled fixed-checkpoint replay strengthens the **bounded** original C2 
 
 The known general fact that sampled ranking metrics can invert model orderings is due to prior work (Krichene and Rendle, *On Sampled Metrics for Item Recommendation*, CACM 65(7):75–83, 2022, DOI 10.1145/3535335; original KDD 2020). Our result is about the **observed Base-relative utility of a fixed interpretably scored relationship specialist on KuaiLive rooms**, not a new sampled-metric theorem, new gate training method, or causal attribution to sample count.
 
-**Submission organization:** One concise robustness paragraph appears in Results Section 6.3; all per-draw outcomes, confidence intervals, original rank reproduction and factorization belong here. The three alternative *training*-seed model realizations are reported separately in S8, not as nine new independent checkpoint seeds. The paired-draw estimates and the three independently trained checkpoint realizations address distinct sources of uncertainty.
+**Presentation in the main article:** The RQ1 candidate-regime result is summarized in the Results subsection on relationship value; this supplement retains the per-draw outcomes, confidence intervals, original-rank reproduction and factorization. The three alternative *training*-seed model realizations are reported separately in S8, not as nine new independent checkpoint seeds. The paired-draw estimates and the three independently trained checkpoint realizations address distinct sources of uncertainty.
 
 ## S5.7 Archive manifest and exact source protocol
 
@@ -581,7 +581,7 @@ Reproduction source: [analysis/kbs_section6_stage2_dev_replay.py](https://github
 
 
 ## S7.7 Nested-DEV direct versus two-stage estimator sensitivity (exploratory)
-This independently recorded addendum complements S7.1–S7.6 within the final combined S1–S9 submission supplement. It is **post-G5 exploratory DEV evidence**, not part of the original confirmatory G5 TEST.
+This exploratory analysis complements the frozen selection evidence in Sections S7.1–S7.6. It is **post-G5 exploratory DEV evidence**, not part of the original confirmatory G5 TEST.
 
 The Direct estimator learns the event NDCG@10 increment of Memory over the fixed Base. The Two-stage estimator separately learns Memory and Base NDCG@10, then subtracts. Both target the same conditional expectation by linearity; they are alternative implementations, not different deferral theories.
 
@@ -815,7 +815,7 @@ Two separately DEV-frozen held-out decision settings provide the main selection 
 
 # S10. Matched Candidate-Regime Supervision, Relationship Sources and Decision Sensitivity
 
-**Evidence role.** This section reports exploratory, post-primary KuaiLive-M3 development analyses that corroborate the candidate-context and decision-support questions in the main article. These analyses reuse the same development cohort and are not independent held-out TEST replications. Results and source identity were verified under the frozen, user-disjoint nested experimental protocol.
+**Evidence map.** Sections S10.1–S10.14 document the M3 DEV candidate-regime supervision, allocation, source-interaction and sensitivity analyses; S10.15 reports the previously unevaluated same-period 30,000-target frozen-policy comparison; S10.16 and S10.18 document its nested 4,096-target historical-source checks and the remaining original control limit. S10.17 separates DEV-only path timing, and S10.19 preserves complete secondary results and earlier source tables. The DEV sections reuse a single development cohort and are not independent held-out TEST replications; the additional-target evidence belongs to the same recording period, not a later prospective cohort. Each section retains its original scientific scope and source identity.
 
 ## S10.1 Experimental cohort, ranking unit and comparison target
 
@@ -1098,3 +1098,57 @@ The B2 1,024-request/992-user post-G5 exploratory DEV historical-null study and 
 The B4-A Null rankings retain 1,903–1,913 positive Top-10 outcomes and each has weighted Full-F NDCG above 0.10, but these **partial nondegeneracy indicators do not establish the missing same-cohort TRAIN-popularity margin**. The B2 completed control cannot be imported to certify B4-A. Any check performed for this missing B4-A margin after A4's first reveal would be post hoc and cannot retroactively establish a pre-unseal acceptance condition.
 
 The historical intervention also changes repeated viewer–creator pairs and higher-order structures, not solely a single semantic relation. The measured original-versus-null contrast establishes nontrivial value of the *whole authentic source arrangement* under strong constrained rewiring, not the unique causal effect of one relation feature. Both cohorts are from an already accessed overall M3 source; the B4-A additional targets do not provide future-period transfer. Independent [C3-A frozen public audit #38530145391](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/38530145391) supports the distinctions without additional TEST evaluation.
+
+
+## S10.19 Supporting evidence for relationship utility and candidate-aligned decisions
+
+This section preserves the complete source tables underlying the main article’s retrospective history-state, DEV candidate-supervision and pretarget feature analyses. These analyses complement the main frozen selection and authentic-history comparisons. Each table retains its original evaluation cohort, candidate regime and statistical interpretation; development analyses are explicitly distinguished from held-out evaluation.
+
+**Table S10.13. Retrospective relationship-evidence states on frozen Twitch TEST (44,221 streamer-ranking requests).**
+
+| Retrospective evidence state | Events | Base NDCG@10 | Memory NDCG@10 | Memory − Base | User-bootstrap 95% CI |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Represented | 24,285 | 0.86102 | 0.84167 | −0.01935 | [−0.02234, −0.01633] |
+| Recoverable outside Base input | 5,539 | 0.30181 | 0.52225 | **+0.22045** | [+0.21140, +0.23001] |
+| Unavailable in prior history | 14,397 | 0.21948 | 0.03734 | −0.18215 | [−0.18681, −0.17715] |
+
+The three groups sum to all 44,221 frozen Twitch TEST events. The 95% intervals use 5,000 user-paired bootstrap resamples within each group. Group membership is computed from the observed target **only after the outcome**; the labels are neither predictive features nor information available to an online policy. The corresponding main-text figure visualizes the same retrospective state contrast across development and held-out events.
+
+**Table S10.14. M3 exploratory DEV user-disjoint candidate-supervision transfer (50,049 author-ranking DEV events; 12,628 users).**
+
+| Base | Training supervision → evaluation candidates | Full-F NDCG@10 | Realized Memory calls |
+| --- | --- | ---: | ---: |
+| SASRec | Sampled S → full F | 0.296499 | 14,988 |
+| SASRec | Full F → full F | **0.302658** | 15,016 |
+| SASRec | Full-label adapted → full F | 0.301847 | 14,954 |
+| GRU4Rec | Sampled S → full F | 0.298123 | 15,001 |
+| GRU4Rec | Full F → full F | **0.303093** | 14,762 |
+| GRU4Rec | Full-label adapted → full F | 0.303000 | 14,989 |
+
+The sampled S labels are constructed retrospectively by retaining the observed positive author on DEV; all real policy features are computed from full-F candidates and earlier information. The adapted condition uses full-F training labels on outer-fold training users rather than label-free adaptation. Actual outer-fold calls are not strictly equalized. The full-supervised gains over S-supervised are **+0.006159** (SASRec; paired 95% CI [+0.004835, +0.007543]) and **+0.004970** (GRU4Rec; [+0.003550, +0.006369]); 10,672/50,049 (21.32%) and 11,517/50,049 (23.01%) decisions disagree, respectively. This is an **exploratory DEV** analysis, not an independent held-out TEST or an additional prespecified hypothesis family. Additional DEV methodology and mechanism details remain in earlier S10 sections.
+
+\newpage
+
+**Table S10.15. M3 exploratory DEV historical-component ranking under identical events but different candidate regimes (50,049 events).**
+
+| Fixed knowledge source | Full-active F NDCG@10 | Retrospective sampled S NDCG@10 |
+| --- | ---: | ---: |
+| Full Memory (unchanged mixture) | **0.343509** | 0.668498 |
+| Long-only | 0.333231 | **0.773602** |
+| Short-only | 0.273839 | 0.407506 |
+| TRAIN-only author popularity | 0.022215 | 0.197796 |
+| History-score-placement control | 0.007576 | 0.189571 |
+
+The historical-source composition, sampled ranking and information content refer to the same development events. The history-placement control does not maintain global user–author marginals. On matched full-F events, Full minus Long-only is +0.010278 with user-paired 95% CI [+0.007906, +0.012668]; on sampled S it is −0.105104, CI [−0.108326, −0.101683]. This does **not** identify an independent source-specific causal mechanism, since the candidate and evaluation regime change.
+
+**Table S10.16. Twitch DEV-only OOF ablation of pretarget feature families (46,878 events; 6,563 retrospectively matched Memory invocations).**
+
+| Gate feature family | Dimensions | NDCG@10 gain over DEV Base | Paired 95% CI | Spearman correlation |
+| --- | ---: | ---: | --- | ---: |
+| History descriptors | 6 | +0.00372 | [+0.00256, +0.00490] | 0.14791 |
+| Base-score descriptors | 8 | +0.00160 | [+0.00048, +0.00270] | 0.09109 |
+| History + Base scores | 14 | **+0.00838** | [+0.00713, +0.00963] | **0.18990** |
+
+The common DEV count was selected by the combined-feature fit. Its 95% intervals resample fixed, fitted OOF event-level outcomes. This ablation is **not** additional frozen TEST and does not isolate a causal effect of any one feature. 
+
+The frozen 30,000-target candidate-supervision contrasts and the nested 4,096-target authentic-versus-null history comparison are reported in the main Results. Supplementary S10.15–S10.18 provide the related sampling, statistical, source-control and measured-cost details, including the unverified original cohort-specific popularity acceptance condition.

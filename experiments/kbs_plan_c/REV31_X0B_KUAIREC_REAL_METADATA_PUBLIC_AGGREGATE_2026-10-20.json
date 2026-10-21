@@ -1,0 +1,58 @@
+{
+  "provenance": {
+    "phase": "Rev3.1 X0-B verified official-file metadata-only",
+    "run_id": 39410776300,
+    "science_auditor_commit": "517f12a2a69653b8198bba5fd6d6f1cdeef954cb",
+    "source": "https://zenodo.org/records/18164998/files/KuaiRec.zip",
+    "zip_md5": "261550d472c48eff4990fb13c0e5bcf7",
+    "github_artifact_id": 12259272122,
+    "original_artifact_sha256": "4e0087b1d0f4dca4d00ff5b01ff644490717e9a1c9eed50d02a728e6cc50d0b6",
+    "status": "completed/success",
+    "source_type": "first party aggregate only; no rows, models, labels"
+  },
+  "small": {
+    "rows": 4676570,
+    "users": 1411,
+    "videos": 3327,
+    "distinct_pairs": 4676570,
+    "duplicate_pairs": 0,
+    "pair_density": 0.9962024941648523,
+    "missing_or_invalid_timestamp_rows": 181992,
+    "users_with_any_valid_timestamp": 1411,
+    "missing_author_metadata_rows": 0,
+    "missing_upload_metadata_rows": 0,
+    "rows_prior_to_upload_day": 0,
+    "rows_equal_to_upload_day_ambiguous": 363557,
+    "rows_after_upload_day": 4131021,
+    "rows_unparseable_day_or_upload": 181992
+  },
+  "big": {
+    "rows": 12530806,
+    "users": 7176,
+    "videos": 10728,
+    "invalid_timestamp_rows": 0,
+    "small_users_in_big": 1411,
+    "pre_earliest_valid_small_big_rows": 492,
+    "small_users_with_at_least_1_prior_author": 269,
+    "small_users_with_at_least_5_distinct_prior_authors": 16,
+    "small_users_with_at_least_10_distinct_prior_authors": 1,
+    "small_users_with_at_least_20_distinct_prior_authors": 0,
+    "small_users_with_prior_author_repeat": 7
+  },
+  "daily": {
+    "rows": 343341,
+    "mapped_videos": 10728,
+    "author_conflicting_video_count": 0,
+    "author_missing_rows": 0,
+    "video_upload_dt_available": 10728,
+    "upload_dt_multiple_values_videos": 0
+  },
+  "limitations": [
+    "Every small user has some valid timestamps but 181,992 small rows are undated; using earliest VALID small timestamp may overstate pretarget history.",
+    "Published 99.62% feedback spans timestamps and is not a contemporaneous intervention-free preference matrix.",
+    "Big-before-small counts only chronology of observed logs, not positivity, author relationship validity or item-availability eligibility.",
+    "Same-day video uploads cannot establish within-day candidate availability.",
+    "Public data/license and publication rights remain subject to responsible-author confirmation."
+  ],
+  "verdict": "NO_GO for strict Big-before-first-Small historical relation memory external policy validation; remaining alternate tasks require different preregistered estimands and new independent feasibility."
+}

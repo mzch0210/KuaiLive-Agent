@@ -1,0 +1,70 @@
+name: KBS N12 V2a Frozen DEV 128 Replay Only
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - '.github/workflows/kbs-n12-v2a-dev-128-frozen-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verified-source:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify frozen DEV pilot source
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/b1_dev_regime_pilot.py
+          sha256sum analysis/kbs_plan_c/b1_dev_regime_pilot.py
+          mkdir -p bundle
+          cp analysis/kbs_plan_c/{b1_dev_regime_pilot.py,g3_dev_full_active.py,g3_replay_correct_memory.py,g2_train_base.py} bundle/
+          (cd bundle && sha256sum *.py > SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: n12-v2a-frozen-dev-pilot-source
+          path: bundle/
+          retention-days: 2
+  selfhost-dev-replay:
+    needs: verified-source
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 35
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: n12-v2a-frozen-dev-pilot-source
+          path: ${{ runner.temp }}/n12-v2a-bundle
+      - name: Replay original DEV F/S ranks without writing private rows
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          (cd "$RUNNER_TEMP/n12-v2a-bundle" && sha256sum -c SHA256SUMS)
+          export PYTHONPATH="$RUNNER_TEMP/n12-v2a-bundle:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1"
+          export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 PYTHONUNBUFFERED=1
+          "$HOME/venvs/kuailive-gpu/bin/python" "$RUNNER_TEMP/n12-v2a-bundle/b1_dev_regime_pilot.py" --root "$HOME/.cache/kuailive-agent-kbs" --out "$RUNNER_TEMP/n12-v2a-original-dev-128.json" --limit 128 --score-batch 128
+      - name: Publish strict safe aggregate only
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import os,json,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'n12-v2a-original-dev-128.json'
+          j=json.loads(p.read_text())
+          assert j['schema']=='kbs-b1-stage1-frozen-dev-regime-pilot-v1'
+          assert j['status']=='PASS' and j['n_events']==128
+          assert j['test_opened'] is False and j['new_training_performed'] is False and j['ids_exported'] is False
+          assert all(x==0 for x in j['full_rank_disagreements_with_original_corrected_DEV'].values())
+          assert j['B1_nested_policy_fit_executed'] is False and j['B1_full_cohort_scoring_executed'] is False
+          safe={k:j[k] for k in ('schema','status','n_events','sampled_candidates','full_candidates_min','full_candidates_max','full_rank_disagreements_with_original_corrected_DEV','means_full','means_sampled','reference_sha256_verified')}
+          safe['scientific_scope']='REPLAY_PREVIOUS_B1_DEV_PILOT_NOT_NEW_CORRECTED_S'
+          out=pathlib.Path('public-v2a-check')
+          out.mkdir(exist_ok=True)
+          (out/'summary.json').write_text(json.dumps(safe,indent=2,sort_keys=True)+'\n')
+          print('V2A_128_ORIGINAL_DEV_REPLAY_PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: n12-v2a-128-dev-aggregate-only
+          path: public-v2a-check/summary.json
+          retention-days: 7

@@ -1,0 +1,23 @@
+name: KBS N12 NI1d Public Positive Sampled-Only Control
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - 'analysis/kbs_plan_c/ni1d_positive_sampled_only.py'
+      - 'analysis/kbs_plan_c/test_ni1d_positive_sampled_only.py'
+      - '.github/workflows/kbs-n12-ni1d-positive-sampled-only.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-synthetic-only:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Sampled-only latent-mix estimator and scientific negative controls
+        run: |
+          set -euo pipefail
+          python analysis/kbs_plan_c/ni1d_positive_sampled_only.py
+          cd analysis/kbs_plan_c
+          python -m unittest -v test_ni1d_positive_sampled_only.py

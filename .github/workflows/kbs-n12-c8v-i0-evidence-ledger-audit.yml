@@ -1,0 +1,23 @@
+name: KBS N12 C8V I0 Cross-version Evidence Provenance
+on:
+  push:
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    paths:
+      - 'manuscript/kbs_latex/N12_C8V_REV2_EVIDENCE_LEDGER.json'
+      - 'analysis/kbs_plan_c/n12_c8v_i0_evidence_ledger_audit.py'
+      - 'analysis/kbs_plan_c/test_n12_c8v_i0_evidence_ledger_audit.py'
+      - '.github/workflows/kbs-n12-c8v-i0-evidence-ledger-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-ledger-integrity:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Check source blob fingerprints, cohort dependencies, evidence levels
+        run: |
+          set -euo pipefail
+          python analysis/kbs_plan_c/n12_c8v_i0_evidence_ledger_audit.py
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n12_c8v_i0_evidence_ledger_audit.py' -v
