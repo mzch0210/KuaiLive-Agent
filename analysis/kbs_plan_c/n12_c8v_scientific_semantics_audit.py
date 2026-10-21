@@ -76,6 +76,16 @@ def audit_text(main: str, supp: str, bib: str, highlights: str) -> dict:
     for val in ("0.005391","0.003585","0.003646","0.001599",
                 "8,704","9,105","8,629","9,168","1.337","1.797"):
         require(val in r2,"H1 RQ2 source-locked comparison missing: "+val)
+    # M1 frozen eligible-population weighted call fractions already reported in S10.9.
+    # These are realized proportions, not a matched-resource label-only estimate.
+    for v in ("29.203","30.537","29.008","30.809"):
+        require(v + r"\%" in r2, "H1 main weighted call fraction lost: " + v)
+        require(v + "%" in supp, "H1 S10.9 weighted call fraction lost: " + v)
+    require("population-weighted" in r2 and
+            "do not establish an equal-resource, label-only effect" in r2,
+            "M1 weighted call fractions misrepresented as equal-budget causal contrast")
+    require("population-weighted Memory-call fractions" in abstract,
+            "M3 abstract regressed to only unweighted sample call counts")
     # Require exact report-level F/S call pairs in the explanatory prose itself;
     # searching all of RQ2 allowed a correct frozen table to mask a corrupted sentence.
     policy_line=r2.split(r"\paragraph{Actual-candidate labels improve frozen policy outcomes.}",1)[1].split(r"\begin{table}",1)[0]
