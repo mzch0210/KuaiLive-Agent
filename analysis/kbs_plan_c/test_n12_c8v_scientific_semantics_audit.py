@@ -18,13 +18,13 @@ class ScientificSemanticsV0Test(unittest.TestCase):
                          "N12_C8V_V0_SEMANTIC_SOURCE_AUDIT_PASS")
 
     def test_reject_wrong_abstract_denominator(self):
-        s=self.main.replace("21.32\\% of SASRec requests and 23.01\\% of GRU4Rec requests",
+        s=self.main.replace("21.32\\% (SASRec) and 23.01\\% (GRU4Rec) of requests",
                             "21--23\\% of Memory invocations",1)
         self.assertNotEqual(s,self.main)
         with self.assertRaises(AssertionError):self.check(s)
 
     def test_reject_wrong_dev_denominator_count(self):
-        s=self.main.replace("50,049 requests trace this consequence",
+        s=self.main.replace("50,049 requests find different Memory-use decisions",
                             "15,016 requests trace this consequence",1)
         self.assertNotEqual(s,self.main)
         with self.assertRaises(AssertionError):self.check(s)
