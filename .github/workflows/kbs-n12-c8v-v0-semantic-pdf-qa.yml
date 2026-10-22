@@ -2,7 +2,7 @@ name: KBS N12 C8V V0 semantic and frozen-source dual PDF QA
 # C7 verifies migrated tables cell by cell and retains C6 science/PDF QA.
 on:
   push:
-    branches: [kbs-n12-single-thesis-restructure-plan-20261014]
+    branches: [kbs-n12-single-thesis-restructure-plan-20261014, kbs-n13-controlled-manuscript-revision-20261022]
     paths:
       - 'manuscript/kbs_latex/main.tex'
       - 'manuscript/kbs_latex/Highlights.txt'
