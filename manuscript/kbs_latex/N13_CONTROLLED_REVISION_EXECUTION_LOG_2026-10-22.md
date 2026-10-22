@@ -40,6 +40,13 @@
 - The first W2 CI run on source `1aa1a6112d50dc095747db67da2cbc2dd7765a00` correctly stopped at the frozen scientific guard because the consolidated H1 caveat no longer contained the guard's required phrase `not an experimentally isolated equal-resource`. The underlying meaning had been retained, but the wording guard is an explicit non-negotiable invariant. The sentence was restored to the guard-compatible wording without changing its meaning or any result value.
 - Current `main.tex` blob: `96c090b78de9d48331029def3c7ca52c4e5c4453`. The currently visible workflow run was dispatched against the immediately preceding commit, so it does **not yet verify** this corrected blob; a successful run on the exact current source is still required before this phase can be marked accepted.
 
+## Phase 6 — W3 framework / design responsibility pass applied
+
+- Created N13_W3_FRAMEWORK_EXPERIMENTAL_DESIGN_RESPONSIBILITY_AUDIT_2026-10-22.md to lock section ownership before the edits.
+- Framework now owns the conceptual definition of pretarget Z and the target-leakage contract; Experimental Design retains the task-specific feature schema but no longer repeats the full target-exclusion list. The Base/Memory model definition remains in the framework; Design names the M3 model families and seeds without repeating the entire Base/Memory description. The endpoint subsection retains NDCG@10, HR@10, realized call fraction and paired/user-level inference while removing a duplicate sentence about retrospective state assignment.
+- Restored the exact frozen audit phrase “event decisions disagree” in the DEV allocation paragraph; counts and descriptive/non-causal interpretation remain unchanged.
+- Current main-source blob after W3: 21c45169fc5d638ee3f980963e371841150bd0fe. This exact source still requires a successful C7/C8V, cross-source and dual-PDF run.
+
 ## Remaining phases
 
 1. Continue W2: revise Results opening and section bridges so each subsection follows question → design/comparator → result → interpretation → transition; then align Experimental Design and framework responsibilities in W3.
