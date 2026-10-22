@@ -28,6 +28,13 @@
 - The source change is structural and interpretive only. No training, threshold tuning, target reveal, TEST re-evaluation, or scientific re-estimation was performed.
 - New main-source blob: `2c4ce5e20a3948f2699613e52d005d4edd9396ec`. Final C7/C8V and dual-PDF verification is pending for this source.
 
+## Phase 4 — W2 Results narrative pass applied
+
+- Rewrote the Results opening to preview the evidence order and the distinct role of the DEV allocation analysis.
+- Tightened the primary H1 prose so the comparator definition is stated once before the result; the numerical effect/CI/Holm values remain unchanged. Consolidated realized call counts, weighted call fractions, the 1.337/1.797pp gaps and the complete-policy interpretation in one adjacent paragraph rather than repeating the same caveat across two paragraphs.
+- Reframed the DEV allocation subsection as descriptive accounting and clarified that its switch partition does not causally decompose H1. Added a short transition to the established frozen-selection comparisons.
+- No result cells, cohorts, statistical inference, or scientific claims were newly estimated. Main source blob after this pass: `1aa1a6112d50dc095747db67da2cbc2dd7765a00`. Full source contract and dual-PDF verification pending for this exact source.
+
 ## Remaining phases
 
 1. Continue W2: revise Results opening and section bridges so each subsection follows question → design/comparator → result → interpretation → transition; then align Experimental Design and framework responsibilities in W3.
