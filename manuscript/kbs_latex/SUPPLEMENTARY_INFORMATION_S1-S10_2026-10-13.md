@@ -1,6 +1,6 @@
 ---
 title: "Supplementary Information"
-subtitle: "Candidate-Regime Supervision for Selective Relationship Memory Use in Live-Streaming Recommendation"
+subtitle: "Candidate-Aligned Knowledge Valuation for Selective Relationship Memory Routing in Live-Streaming Recommendation"
 author: "Anonymous manuscript — Knowledge-Based Systems"
 date: "21 October 2026"
 fontsize: 9pt
