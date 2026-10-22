@@ -131,7 +131,7 @@ def audit_text(main: str, supp: str, bib: str, highlights: str) -> dict:
             "4096 historical Null sample not identified as nested")
     require("retrospectively" in main and "sampled" in main,
             "sampled retrospective-label construction must remain distinct from online use")
-    require("not a causal decomposition of the separate 30,000-target H1 contrast" in r2,
+    require("not a causal decomposition of the separate additional 30,000-target policy contrast" in r2,
             "DEV accounting must not impersonate confirmatory mechanism")
 
     for k in ("krichene2020kdd","mao2024regression","mandi2024decisionfocused"):
