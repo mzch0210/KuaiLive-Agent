@@ -35,6 +35,11 @@
 - Reframed the DEV allocation subsection as descriptive accounting and clarified that its switch partition does not causally decompose H1. Added a short transition to the established frozen-selection comparisons.
 - No result cells, cohorts, statistical inference, or scientific claims were newly estimated. Main source blob after this pass: `1aa1a6112d50dc095747db67da2cbc2dd7765a00`. Full source contract and dual-PDF verification pending for this exact source.
 
+## Phase 5 — frozen-guard wording alignment
+
+- The first W2 CI run on source `1aa1a6112d50dc095747db67da2cbc2dd7765a00` correctly stopped at the frozen scientific guard because the consolidated H1 caveat no longer contained the guard's required phrase `not an experimentally isolated equal-resource`. The underlying meaning had been retained, but the wording guard is an explicit non-negotiable invariant. The sentence was restored to the guard-compatible wording without changing its meaning or any result value.
+- Current `main.tex` blob: `96c090b78de9d48331029def3c7ca52c4e5c4453`. The currently visible workflow run was dispatched against the immediately preceding commit, so it does **not yet verify** this corrected blob; a successful run on the exact current source is still required before this phase can be marked accepted.
+
 ## Remaining phases
 
 1. Continue W2: revise Results opening and section bridges so each subsection follows question → design/comparator → result → interpretation → transition; then align Experimental Design and framework responsibilities in W3.
