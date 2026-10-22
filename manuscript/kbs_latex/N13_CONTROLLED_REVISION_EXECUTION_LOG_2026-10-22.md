@@ -21,9 +21,16 @@
 - The first semantic/PDF QA attempts exposed stale lexical guards that required the old undefined `H1` label in two checks. The main scientific contract, semantic audit and its unit-test fixture were updated to require the equivalent reader-facing policy-evaluation wording. These are terminology-alignment changes only; the matched-call caveat and DEV-versus-additional-target evidence boundary remain required.
 - The title, abstract and contribution framing have not changed any numeric result or evidence tier.
 
+## Phase 3 — W0/W1 completed; first W2 structural move applied
+
+- Created `N13_W0_CLAIM_ROLE_AND_PARAGRAPH_MOVE_MATRIX_2026-10-22.md` and `N13_W1_ONE_PAGE_ARGUMENT_STORYBOARD_2026-10-22.md` before changing the Results structure. They lock the single thesis, section ownership, table/equation anchors, immutable metric set and the non-causal RQ3 branch.
+- Applied the first W2 Results-first move: the 47,575-event M3 Always-Memory-versus-Base paragraph was removed from RQ1, where it interrupted the Twitch-to-room candidate-regime argument, and placed at the start of the cross-task frozen-selection subsection as the unconstrained specialist quality ceiling. The numeric values are unchanged; the paragraph now provides direct context for the selective-policy results.
+- The source change is structural and interpretive only. No training, threshold tuning, target reveal, TEST re-evaluation, or scientific re-estimation was performed.
+- New main-source blob: `2c4ce5e20a3948f2699613e52d005d4edd9396ec`. Final C7/C8V and dual-PDF verification is pending for this source.
+
 ## Remaining phases
 
-1. Reorganize the scientific narrative across Introduction, framework, design, results and discussion without changing the existing RQ1–RQ3 evidence hierarchy.
+1. Continue W2: revise Results opening and section bridges so each subsection follows question → design/comparator → result → interpretation → transition; then align Experimental Design and framework responsibilities in W3.
 2. Clarify the Always-Memory comparison, candidate-regime/knowledge-component interaction, and the distinction between ranking quality, call fractions, local kernel timing and unmeasured production costs.
 3. Deduplicate the supplement only after claim-to-source mapping; preserve unique audit trails and explicitly retain the unverified pre-reveal popularity-margin condition.
 4. Rebuild and verify main/supplement PDFs and the scientific source guards on the final changed source SHA.
