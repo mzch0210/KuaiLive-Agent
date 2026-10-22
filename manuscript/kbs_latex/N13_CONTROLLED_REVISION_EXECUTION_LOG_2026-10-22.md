@@ -17,7 +17,7 @@
 - Revised the title to **Candidate-Aligned Knowledge Valuation for Selective Relationship Memory Routing in Live-Streaming Recommendation** and synchronized the supplement subtitle.
 - Revised the first contribution bullet to state the precise comparator and estimand: original uncorrected sampled labels, full-candidate ranking, and population-weighted call fractions. It now explicitly says the DEV allocation trace is not an independent confirmation of the additional-target result.
 - Updated the third Highlight to report population-weighted Memory-call fractions rather than a raw-count claim.
-- Added the N13 branch to the existing frozen-source semantic/PDF QA workflow's branch filter so the revised source can be checked by the same audit contract. No workflow run has yet been confirmed for N13.
+- Added the N13 branch to the existing frozen-source semantic/PDF QA workflow's branch filter. Run [#39708878897](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/39708878897) was dispatched for the revised source and is pending at the time of this log update.
 - The title, abstract and contribution framing have not changed any numeric result or evidence tier.
 
 ## Remaining phases
