@@ -18,7 +18,7 @@
 
 \begin{frontmatter}
 
-\title{Candidate-Regime Supervision for Selective Relationship Memory Use in Live-Streaming Recommendation}
+\title{Candidate-Aligned Knowledge Valuation for Selective Relationship Memory Routing in Live-Streaming Recommendation}
 
 \author{Anonymous Authors}
 
@@ -44,7 +44,7 @@ Our empirical design separates the main policy consequence from the evidence nee
 
 We make three connected empirical contributions:
 \begin{itemize}
-    \item \textbf{Candidate-regime supervision and policy-level allocation.} On 30,000 additional same-period M3 author-ranking targets, the full-supervised frozen policies achieve higher full-candidate ranking quality with fewer observed Memory calls than their original sampled-supervised counterparts. A separate DEV allocation trace identifies which requests change specialist use.
+    \item \textbf{Candidate-aligned supervision and policy-level allocation.} On 30,000 previously unevaluated M3 author-ranking targets from the same recording period, the full-candidate-supervised frozen policies achieve higher weighted full-candidate ranking quality and lower population-weighted Memory-call fractions than policies trained with the original, uncorrected sampled-candidate labels. A separate DEV allocation trace describes which requests change specialist use; it is not an independent confirmation of the additional-target result.
     \item \textbf{Context for incumbent-relative relationship value.} Historical-state diagnostics and paired KuaiLive room-ranking comparisons show how the measured gain from the same fixed knowledge source depends on the incumbent context and ranking-candidate regime.
     \item \textbf{Parallel historical-source evidence.} Under identical full candidates and specialist scoring, a parallel nested study compares authentic viewer--creator histories with constrained historical randomizations, testing the informational contribution of the relationship source.
 \end{itemize}
