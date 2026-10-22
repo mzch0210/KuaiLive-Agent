@@ -169,9 +169,9 @@ This is a contrast between the realized full-candidate performance of \emph{froz
 \subsection{Pretarget Estimation and Observable Evidence}
 \label{sec:framework-estimation}
 
-The feature vector $Z$ combines summaries of historical creator repetition and support with the incumbent's score distribution over the currently available candidates. These descriptors characterize the knowledge that could be useful and the incumbent decision it could change. Task-specific feature counts and transformations are specified in Section~\ref{sec:exp-comparators} and Supplementary S2 and S7.
+The feature vector $Z$ combines summaries of historical creator repetition and support with the incumbent's score distribution over the currently available candidates. These descriptors characterize the knowledge that could be useful and the incumbent decision it could change. Task-specific feature counts and operational descriptors are specified in Section~\ref{sec:exp-comparators}.
 
-Observed targets and their realized ranking positions define offline supervision and evaluation, but are not inputs to $Z$. Target identity, realized NDCG, target-specific recurrence and hindsight Oracle outcomes are excluded from $Z$; any evidence state requiring knowledge of the observed target's membership in the Base input or historical sequence remains a retrospective diagnostic. Section~\ref{sec:exp-comparators} specifies the fitted estimators and comparator targets; full feature transformations and audit rules appear in Supplementary S2 and S7.
+Observed targets and their realized ranking positions define offline supervision and evaluation, but are not inputs to $Z$. Target identity, realized NDCG, target-specific recurrence and hindsight Oracle outcomes are excluded from $Z$; any evidence state requiring knowledge of the observed target's membership in the Base input or historical sequence remains a retrospective diagnostic. Full feature definitions and audit rules appear in Supplementary S2 and S7.
 
 \begin{figure}[t]
 \centering
