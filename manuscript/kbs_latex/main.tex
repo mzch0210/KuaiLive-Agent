@@ -390,8 +390,6 @@ The evaluation addresses three related but distinct research questions about one
 \paragraph{Complementarity depends on the incumbent's usable historical context.}
 On 44,221 held-out Twitch streamer-ranking requests, unconditional Memory obtains NDCG@10 $0.53980$, below the LiveRec incumbent's $0.58211$ (paired difference $-0.04232$, 95\% user-bootstrap CI $[-0.04521,-0.03950]$). The aggregate, however, combines different historical situations. On 5,539 \emph{recoverable-but-unrepresented} events—where the relevant creator is present in accessible earlier history but absent from the Base input—Memory contributes $+0.22045$ NDCG@10 relative to Base (95\% CI $[+0.21140,+0.23001]$). The corresponding gains are $-0.01935$ for 24,285 represented events and $-0.18215$ for 14,397 events without prior accessible target history. Figure~\ref{fig:results-evidence-states} presents this stable pattern across DEV and frozen TEST; all group-specific Base/Memory means, counts and uncertainty intervals are preserved in Supplementary Table S10.13. These are \emph{outcome-defined diagnostic groups}, not labels supplied to the online selector.
 
-In the distinct M3 full-active \emph{author}-ranking TEST, fixed Memory attains NDCG@10 $0.34679$ on 47,575 requests, exceeding each of the six trained SASRec/GRU4Rec incumbents ($0.25800$--$0.26065$), including a $+0.08879$ advantage over the primary SASRec Base. The difference between aggregate Twitch and M3 values is consistent with the definition of knowledge value as \emph{incumbent-relative}, while the protocols change Base architecture, ranking unit, source history and candidate universe together. It is not an isolated treatment effect of any one of those factors.
-
 \begin{figure}[!htbp]
 \centering
 \begin{tikzpicture}[x=1cm,y=6.7cm]
@@ -483,6 +481,9 @@ More precisely, the 5,350 SASRec F-only calls contribute $+0.014262$ NDCG@10 acr
 
 \subsection{Frozen Base-Relative Selection Across Tasks and Incumbents}
 \label{sec:results-selection-context}
+
+\paragraph{The unconstrained specialist defines the quality ceiling.} In the M3 full-active \emph{author}-ranking TEST, fixed Memory attains NDCG@10 $0.34679$ on 47,575 requests, exceeding each of the six trained SASRec/GRU4Rec incumbents ($0.25800$--$0.26065$), including a $+0.08879$ advantage over the primary SASRec Base. This provides the unconditional specialist reference for interpreting the selective policies below. It is evidence from the M3 author-ranking task, distinct from the Twitch streamer and KuaiLive room diagnostics.
+
 
 \paragraph{Relative-value prediction supports pre-outcome selection.}
 On frozen Twitch TEST, the DEV-calibrated Utility rule invokes Memory on 6,650 of 44,221 events (15.04\%) and increases NDCG@10 from the Base's $0.58211$ to $0.58983$ (paired gain $+0.00772$, 95\% CI $[+0.00641,+0.00903]$), with HR@10 gain $+0.00945$ (CI $[+0.00776,+0.01117]$). A Difficulty score attains NDCG@10 $0.58340$ when retrospectively matched to the same TEST call count, giving Utility a $+0.00644$ advantage (CI $[+0.00528,+0.00762]$). The count-matched Oracle achieves $0.64806$ but uses the observed outcomes. Unlike those retrospective equal-count references, Utility makes pointwise choices under its \emph{frozen DEV threshold} (Table~\ref{tab:results-twitch-policy}). Its chosen requests show mean Memory-minus-Base value $+0.05136$, compared with $-0.05890$ for unchosen requests, linking pre-outcome selection to realized source value.
