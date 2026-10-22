@@ -47,6 +47,15 @@
 - Restored the exact frozen audit phrase “event decisions disagree” in the DEV allocation paragraph; counts and descriptive/non-causal interpretation remain unchanged.
 - Current main-source blob after W3: 21c45169fc5d638ee3f980963e371841150bd0fe. This exact source still requires a successful C7/C8V, cross-source and dual-PDF run.
 
+## Phase 7 — W4/W5 discussion and conclusion alignment (2026-10-22)
+
+- Interpreted candidate-indexed value and the prior-art gap without reciting all frozen result tables; the known component-by-candidate-regime interaction is noted as DEV evidence, not a new causal result.
+- Strengthened RQ2 interpretation as prioritization among valuable Memory calls, with unchanged DEV counts and a clear separation from H1 causal mediation.
+- Concentrated H2 composite-source interpretation, incomplete prereveal TRAIN-only Popularity check, same-period cohort, corrected-S method-admission limit, Always Memory accuracy advantage and unfavorable legacy cost timing in the validity section.
+- Conclusion now states the bounded knowledge-use decision contract and avoids a repeated result/limitation list.
+- Main-source scientific semantics: no frozen results, formula bodies, method parameters, or TEST evaluations changed. Main blob after W4/W5: `434349de841af37194e5f16e0672738d019905bf`.
+- Technical CI verification of this source **pending**; reviewer/legal/author publication gates remain open.
+
 ## Remaining phases
 
 1. Continue W2: revise Results opening and section bridges so each subsection follows question → design/comparator → result → interpretation → transition; then align Experimental Design and framework responsibilities in W3.
