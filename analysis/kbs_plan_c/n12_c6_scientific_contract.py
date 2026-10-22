@@ -144,7 +144,7 @@ def check(root=ROOT):
     assert_ok("candidate-aligned" in front and "supervision" in front,"abstract lacks C6 contribution")
     # Guard scientific content, not historical editorial phrasing.
     assert_ok("strict matched-call" in discussion.lower() and
-              "realized h1 invocation rates differ" in discussion.lower(),
+              "realized additional-target invocation rates differ" in discussion.lower(),
               "H1 strict-call comparison caveat lost")
     for z in ("not measured and sealed before target reveal",
               "uncorrected sampled", "Always Memory", "deployment-savings", "historical"):
