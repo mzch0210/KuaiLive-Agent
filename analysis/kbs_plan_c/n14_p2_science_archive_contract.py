@@ -47,7 +47,7 @@ def check():
       "DEV Allocation: Which Requests Change Specialist Use?",
       "Quality, Comparator and Operating Boundaries",
     ]
-    got=re.findall(r"\subsection\{([^}]+)\}",res)
+    got=re.findall(r"\\subsection\{([^}]+)\}",res)
     require(got==expected_headers, "Results must follow the one-question evidence sequence")
     require(not re.search(r"\bRQ[123]\b",res), "parallel RQ labels reintroduced")
     require("Twitch" not in res,"cross-task Twitch selection results reintroduced")
