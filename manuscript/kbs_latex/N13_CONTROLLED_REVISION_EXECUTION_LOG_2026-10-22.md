@@ -70,3 +70,15 @@
 - Full-candidate supervision is compared with the original uncorrected sampled-label policy; no valid corrected-S policy was trained and evaluated.
 - The F-aligned policy's lower realized call fractions do not establish lower end-to-end latency or deployment cost.
 - The nested 4,096-target historical-null comparison retains the unverified pre-reveal TRAIN-only Popularity-margin condition; do not rewrite it as a completed preregistered check.
+
+## W6 supplement editorial pass (2026-10-23)
+
+- Verified C8V run [#39882720702](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/39882720702) on commit `71ca2770ea415d580074d0d89ee872449a2ede8f`: both main-paper and complete-supplement jobs SUCCESS. This is the pre-W6 accepted source baseline.
+- Supplement S1.5–S1.6 now state actual provenance and restricted derivative availability without instructions to authors or unapproved promises of permanent public deposits.
+- Supplement S2.4 uses a neutral restricted-storage description in place of a named internal host while retaining sealed ranking and one-shot label reveal provenance.
+- Supplement S3.3, S5.7 and S6.1 replace infrastructure troubleshooting narratives with the scientifically relevant result lineage and exclusion/canonical-source status, preserving citations and quantitative discrepancy details in S6.6.
+- The entire S10 source section was compared as an identical source substring before committing: **no S10.1–S10.19 values, table cells, titles or historical-source acceptance statements were changed**. No new experiment was run.
+- Source after W6: supplement blob `778fa2cf8e584ffea83e2b56ccba4f6278455172`; commit `2b1620e3fc2b9f998209cc09cf6cc15ef3fe4be1`.
+- Current W6 workflow: [#39883705990](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/39883705990); its final status must be checked before treating W6 as CI-accepted.
+- W7 abstract and conclusion were compared against the W0/W1 storyboard: the 30k same-period policy result is central; weighted invocation, 50,049 DEV switch denominator, nested 4,096 historical-source study and the original uncorrected sampled comparator are all already identified. No additional abstract rewrite is warranted solely for wording variation.
+- Remaining: source-to-provenance mapping before any further supplement deduplication, complete final PDF review, and author-owned data rights, declarations and submission approval.
