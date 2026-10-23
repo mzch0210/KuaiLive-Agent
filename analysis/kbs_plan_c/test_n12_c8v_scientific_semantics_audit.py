@@ -44,8 +44,8 @@ class ScientificSemanticsV0Test(unittest.TestCase):
 
     def test_reject_dev_as_h1_mechanism(self):
         s=self.main.replace(
-            "not a causal decomposition of the separate 30,000-target H1 contrast",
-            "a causal decomposition of the separate 30,000-target H1 contrast",1)
+            "not a causal decomposition of the separate additional 30,000-target policy contrast",
+            "a causal decomposition of the separate additional 30,000-target policy contrast",1)
         self.assertNotEqual(s,self.main)
         with self.assertRaises(AssertionError):self.check(s)
 
