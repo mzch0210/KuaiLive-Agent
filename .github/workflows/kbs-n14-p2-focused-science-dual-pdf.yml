@@ -42,7 +42,7 @@ jobs:
           m=Path('manuscript/kbs_latex/main.tex').read_text()
           s=Path('manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md').read_text()
           archive=Path('manuscript/kbs_latex/N14_N13_COMPLETE_RESULTS_RESEARCH_ARCHIVE_2026-10-23.tex').read_text()
-          assert m.count(r'\\begin{table}')>=2
+          assert m.count(r'\begin{table}')>=2
           assert 'Holm' in m and '0.000600' in m and '0.000800' in m
           assert 'NOT VERIFIED' in s
           assert 'tab:results-m3-additional-relation-identity' in archive
