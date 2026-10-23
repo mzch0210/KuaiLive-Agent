@@ -425,7 +425,9 @@ GRU4Rec & 0.300945 & \textbf{0.304530} & $+0.003585$ $[0.001599,0.005576]$ & 8,6
 \end{tabularx}
 \end{table}
 
-The F-supervised complete policies have higher eligible-population-weighted full-active NDCG@10 than the S-supervised policies: for SASRec, $+0.005391$ (95\% paired user CI $[+0.003646,+0.007174]$; Holm $p=0.000600$), and for GRU4Rec, $+0.003585$ (CI $[+0.001599,+0.005576]$; Holm $p=0.000800$). The original three-comparison prereveal Holm family also included a nested historical-source contrast, whose frozen result and incomplete acceptance subgate remain disclosed in the Supplement/research archive; removing it as an independent main-text question does not retrospectively redefine the family.
+Under full-active evaluation, the F-supervised policies improve weighted NDCG@10 over S-supervised policies: SASRec $+0.005391$ (95\% paired-user CI $[+0.003646,+0.007174]$; Holm $p=0.000600$) and GRU4Rec $+0.003585$ (CI $[+0.001599,+0.005576]$; Holm $p=0.000800$).
+
+The original three-comparison prereveal Holm family also included a nested historical-source contrast. Its result and incomplete prereveal acceptance check are retained in the Supplement and research archive. Removing the contrast from the main research question does not redefine that family.
 
 With the same predeclared 20-cell eligible-population weights, the realized Memory-call fractions are 29.203\% (F) versus 30.537\% (S) for SASRec, and 29.008\% versus 30.809\% for GRU4Rec (Supplementary Table S10.9). The distinct unweighted calls are 8,704/9,105 and 8,629/9,168, respectively. Their unweighted invocation-rate gaps of 1.337 and 1.797 percentage points exceed the original approximately 1pp near-equal-call tolerance. Thus these are comparisons of entire frozen policy configurations, not an experimentally isolated equal-resource effect of changing only the supervision labels.
 
