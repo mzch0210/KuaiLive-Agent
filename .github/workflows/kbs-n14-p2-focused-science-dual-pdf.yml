@@ -1,0 +1,154 @@
+name: KBS N14 P2 focused Results, immutable science archive and dual PDF QA
+# C7 verifies migrated tables cell by cell and retains C6 science/PDF QA.
+on:
+  push:
+    branches: [kbs-n14-single-question-scope-reset-20261023]
+    paths:
+      - 'manuscript/kbs_latex/main.tex'
+      - 'manuscript/kbs_latex/N14_N13_COMPLETE_RESULTS_RESEARCH_ARCHIVE_2026-10-23.tex'
+      - 'analysis/kbs_plan_c/n14_p2_science_archive_contract.py'
+      - '.github/workflows/kbs-n14-p2-focused-science-dual-pdf.yml'
+      - 'manuscript/kbs_latex/Highlights.txt'
+      - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md'
+      - 'analysis/kbs_plan_c/n12_c7_full_table_cell_audit.py'
+      - 'analysis/kbs_plan_c/test_n12_c7_full_table_cell_audit.py'
+      - 'analysis/kbs_plan_c/n12_c6_scientific_contract.py'
+      - 'analysis/kbs_plan_c/n12_c8v_scientific_semantics_audit.py'
+      - 'analysis/kbs_plan_c/n12_c8v_i2_path_a_claim_audit.py'
+      - 'analysis/kbs_plan_c/test_n12_c8v_i2_path_a_claim_audit.py'
+      - 'manuscript/kbs_latex/kbs_references.bib'
+      - 'analysis/kbs_plan_c/test_n12_c8v_scientific_semantics_audit.py'
+      - '.github/workflows/kbs-n12-c8v-v0-semantic-pdf-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-n14-p2-focused-science-pdfs
+  cancel-in-progress: true
+jobs:
+  main-paper:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: N14 P2 independent frozen result and archive audit
+        run: |
+          set -euo pipefail
+          python analysis/kbs_plan_c/n14_p2_science_archive_contract.py
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          m=Path('manuscript/kbs_latex/main.tex').read_text()
+          s=Path('manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md').read_text()
+          archive=Path('manuscript/kbs_latex/N14_N13_COMPLETE_RESULTS_RESEARCH_ARCHIVE_2026-10-23.tex').read_text()
+          assert m.count(r'\\begin{table}')>=2
+          assert 'Holm' in m and '0.000600' in m and '0.000800' in m
+          assert 'NOT VERIFIED' in s
+          assert 'tab:results-m3-additional-relation-identity' in archive
+          print('N14 P2 provenance, expected policy main tables, H2 disclosure PASS')
+          PY
+      - name: Install PDF extraction for manuscript QA
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+      - name: Compile updated LaTeX paper
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: main.tex
+          working_directory: manuscript/kbs_latex
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
+      - name: Verify focused N14 manuscript PDF
+        run: |
+          set -euo pipefail
+          test -s manuscript/kbs_latex/main.pdf
+          pdftotext -layout manuscript/kbs_latex/main.pdf main-n14-p2.txt
+          grep -F '0.005391' main-n14-p2.txt
+          grep -F '0.003585' main-n14-p2.txt
+          grep -F '0.348744' main-n14-p2.txt
+          grep -F '50,049' main-n14-p2.txt
+          grep -F 'Experimental Design' main-n14-p2.txt
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('manuscript/kbs_latex/main.log').read_text(errors='replace')
+          assert not any(e in s for e in ['! LaTeX Error:', '! Undefined control sequence.',
+                     'Missing $ inserted.', 'Emergency stop', 'Fatal error occurred',
+                     'There were undefined references'])
+          assert 'Overfull \\hbox' not in s, 'Manuscript PDF has overfull text'
+          print('N14 P2 MAIN PDF source/zero-overfull PASS')
+          PY
+      - name: Archive revised manuscript PDF
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-n14-p2-main
+          path: |
+            manuscript/kbs_latex/main.pdf
+            manuscript/kbs_latex/main.log
+            manuscript/kbs_latex/main.blg
+          if-no-files-found: warn
+          retention-days: 60
+  complete-supplement:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Install pandoc
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq pandoc poppler-utils
+      - name: Convert and postprocess S1-S10.18 Markdown
+        run: |
+          set -euo pipefail
+          cd manuscript/kbs_latex
+          pandoc SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md \
+            -f markdown+pipe_tables+raw_tex+tex_math_dollars+yaml_metadata_block \
+            -t latex -s --toc --toc-depth=1 \
+            -V documentclass=article -V fontsize=10pt \
+            -V mainfont='DejaVu Serif' -V sansfont='DejaVu Sans' -V monofont='DejaVu Sans Mono' \
+            -V geometry:margin=0.75in -V colorlinks=true -V urlcolor=blue \
+            --pdf-engine=xelatex -o supplementary_information_n9.tex
+          cd ../..
+          python analysis/kbs_n9_supplement_tex_postprocess.py manuscript/kbs_latex/supplementary_information_n9.tex
+          test -s manuscript/kbs_latex/supplementary_information_n9.tex
+      - name: Compile revised S1-S10.18 PDF
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: supplementary_information_n9.tex
+          working_directory: manuscript/kbs_latex
+          args: -pdfxe -file-line-error -halt-on-error -interaction=nonstopmode
+      - name: Validate supplement PDF
+        run: |
+          set -euo pipefail
+          test -s manuscript/kbs_latex/supplementary_information_n9.pdf
+          pdftotext -layout manuscript/kbs_latex/supplementary_information_n9.pdf supp-n12c8v.txt
+          grep -F '0.005391' supp-n12c8v.txt
+          grep -F '0.031145' supp-n12c8v.txt
+          grep -F 'S10.15' supp-n12c8v.txt
+          grep -F 'S10.16' supp-n12c8v.txt
+          grep -F 'S10.17' supp-n12c8v.txt
+          grep -F 'S10.18' supp-n12c8v.txt
+          grep -F 'S10.19' supp-n12c8v.txt
+          grep -F 'Table S10.13.' supp-n12c8v.txt
+          grep -F 'Table S10.16.' supp-n12c8v.txt
+          grep -F '0.69165' supp-n12c8v.txt
+          grep -F '0.021867' supp-n12c8v.txt
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('manuscript/kbs_latex/supplementary_information_n9.log').read_text(errors='replace')
+          assert not any(e in s for e in ['! LaTeX Error:','! Undefined control sequence.','Missing $ inserted.','Emergency stop','Fatal error occurred'])
+          assert 'Overfull \\hbox' not in s, 'Supplement PDF has overfull text'
+          print('S10.1-S10.19 supplement zero-overfull PASS')
+          PY
+      - name: Archive revised supplement PDF
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kbs-n14-p2-supplement
+          path: |
+            manuscript/kbs_latex/supplementary_information_n9.pdf
+            manuscript/kbs_latex/supplementary_information_n9.tex
+            manuscript/kbs_latex/supplementary_information_n9.log
+          if-no-files-found: warn
+          retention-days: 60
