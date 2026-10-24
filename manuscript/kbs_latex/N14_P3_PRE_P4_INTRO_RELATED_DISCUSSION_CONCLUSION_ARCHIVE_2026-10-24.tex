@@ -1,0 +1,118 @@
+% N14 P4: frozen pre-rewrite front/back source for single-question claim audit.
+% Based on N14 P3 source main.tex blob c04708349cd71f9ed76e6c6cb31f9e0a4e3228c3.
+% Not typeset; includes complete abstract, Introduction + Related Work, Discussion + Conclusion.
+
+% ===== \begin{abstract} =====
+\begin{abstract}
+Selecting when to use historical viewer--creator relationships requires estimating their value relative to the incumbent ranking on the candidates available at each request. We study how sampled- versus full-candidate supervision of this Base-relative value shapes the use of a fixed relationship Memory ranker. Offline NDCG@10 increments provide sampled- or full-candidate labels for selection policies trained on pretarget history and Base-score features; both frozen policies are then evaluated on identical full-active candidates. In 10,222 paired KuaiLive room-ranking events, Memory-minus-Base utility shifts from $-0.04120$ with sampled-active candidates to $+0.04631$ with full-active candidates. The primary evaluation uses 30,000 additional author-ranking targets from the same recording period. Relative to policies fitted using the original uncorrected sampled labels, full-candidate-supervised policies improve weighted full-ranking NDCG@10 by $0.005391$ (SASRec) and $0.003585$ (GRU4Rec), with lower population-weighted Memory-call fractions under their naturally realized policies. Exploratory development analyses of 50,049 requests find different Memory-use decisions on 21.32\% (SASRec) and 23.01\% (GRU4Rec) of requests. On a nested 4,096-target cohort, authentic histories outperform constrained historical randomizations by $0.031145$ NDCG@10 under fixed candidates. The comparisons concern complete frozen policies, with unequal realized calls and an uncorrected sampled-label baseline. Together, the results show that candidate-aligned supervision is consequential for the allocation and full-ranking quality of selective historical knowledge use.
+
+
+% ===== \section{Introduction} =====
+\section{Introduction}
+
+Sequential recommendation has to use a bounded history to rank the alternatives available at a given moment \cite{kang2018sasrec,sun2019bert4rec}. Live-streaming platforms make this constraint especially visible: room availability changes from session to session, whereas a viewer's relationships with creators may extend across many broadcasts. A separate historical relationship source can recover useful evidence beyond the incumbent model's recent input, but it may also repeat preferences the incumbent already captures. The question for a knowledge-based recommender is therefore when accessing that source improves the ranking that would otherwise be produced.
+
+Conditional expert selection provides a natural way to express this question, but its usefulness depends on the target used to supervise the decision. Knowledge-enhanced recommendation and memory-management methods primarily study how relational evidence is represented, integrated or retained \cite{xie2026mhgfcl,zhong2026samd}. Learning-to-defer and adaptive inference study how to choose between predictors or inference paths \cite{mozannar2020defer,mao2024regression,yuan2026dsframe}. In the present setting, these concerns meet at the incremental value of an \emph{already fixed} Memory ranker relative to a designated Base. That value determines which requests could benefit from additional historical evidence.
+
+The candidate universe creates a further, consequential distinction. A relationship source and a Base may appear differently matched when ranked against a small sampled subset rather than the full set of eligible alternatives. Sampling-induced changes in ranking metrics are well established \cite{krichene2020kdd}, and prediction targets need not align with downstream decisions \cite{mandi2024decisionfocused}. Here the practical question is more specific: when sampled- and full-candidate evaluations provide different \emph{Base-relative utility labels}, do the resulting fitted selectors invoke the historical specialist on different requests, and does that change full-candidate ranking performance? We examine this question through separately fitted, DEV-calibrated selection policies for the same fixed incumbent and relationship specialist. Pretarget history and Base-score descriptors support the selection decision; the observed target supplies offline supervision but never becomes a deployment-time input.
+
+Our empirical design separates the main policy consequence from the evidence needed to interpret it. Twitch streamer rankings and paired KuaiLive room rankings establish why relationship value must be evaluated relative to the incumbent and the candidate roster (RQ1). The central M3 experiment compares independently frozen sampled- and full-supervised complete selection policies on 30,000 previously unevaluated author-ranking targets from the same recording period (RQ2); a development-cohort analysis describes the requests whose Memory allocation differs. A parallel test then holds current full candidates and the Memory scorer fixed while comparing authentic viewer--creator histories with constrained historical randomizations on a nested 4,096-target cohort (RQ3). The different ranking units and evidence roles are specified in Section~\ref{sec:experimental-setup}.
+
+We make three connected empirical contributions:
+\begin{itemize}
+    \item \textbf{Candidate-aligned supervision and policy-level allocation.} On 30,000 previously unevaluated M3 author-ranking targets from the same recording period, the full-candidate-supervised frozen policies achieve higher weighted full-candidate ranking quality and lower population-weighted Memory-call fractions than policies trained with the original, uncorrected sampled-candidate labels. A separate DEV allocation trace describes which requests change specialist use; it is not an independent confirmation of the additional-target result.
+    \item \textbf{Context for incumbent-relative relationship value.} Historical-state diagnostics and paired KuaiLive room-ranking comparisons show how the measured gain from the same fixed knowledge source depends on the incumbent context and ranking-candidate regime.
+    \item \textbf{Parallel historical-source evidence.} Under identical full candidates and specialist scoring, a parallel nested study compares authentic viewer--creator histories with constrained historical randomizations, testing the informational contribution of the relationship source.
+\end{itemize}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\small},
+  central/.style={draw,rounded corners=2pt,align=center,text width=.82\linewidth,
+                  inner xsep=5pt,inner ysep=6pt},
+  branch/.style={draw,rounded corners=2pt,align=center,text width=.37\linewidth,
+                 inner xsep=4pt,inner ysep=6pt},
+  arr/.style={-{Latex[length=2.2mm]},line width=.55pt}
+]
+\node[central] (value) {\textbf{RQ1: Define the value of fixed relationship knowledge}\\
+Historical Memory $M$, incumbent $B$, and current candidates $C$\\
+Event-level ranking gain $\Delta_M(x;B,C)$};
+\node[branch,below=9mm of value,xshift=-.225\linewidth] (decision)
+{\textbf{RQ2: Predict value and choose}\\
+Pretarget information $Z$ $\rightarrow$ estimated gain $\eta(Z)$\\
+Invocation-constrained Base/Memory decision};
+\node[branch,below=9mm of value,xshift=.225\linewidth] (source)
+{\textbf{RQ3: Verify the history source}\\
+Hold current candidates and scorer fixed\\
+Authentic history\\
+versus constrained\\
+historical randomizations};
+\draw[arr] (value.south) -- (decision.north);
+\draw[arr] (value.south) -- (source.north);
+\end{tikzpicture}
+\caption{One knowledge-valuation object and two complementary empirical tests. Candidate-aligned prediction examines the consequences of using relationship evidence, while fixed-candidate historical perturbations assess source validity. The branches share the same fixed specialist and ranking utility definition; neither test is presented as a causal consequence of the other.}
+\label{fig:knowledge-value-chain}
+\end{figure}
+
+\section{Related Work}
+
+\subsection{Knowledge Representation, Relationship Memory, and Memory Management}
+
+Sequential recommendation represents preferences from ordered interactions, including attention-based and multi-interest architectures \cite{kang2018sasrec,sun2019bert4rec,ni2025idmarec,sheng2025dsmgrec}. Knowledge-aware methods extend that representation by integrating relational information: CKLF combines graph propagation and sequential interests \cite{chen2024cklf}; MHGFCL fuses collaborative, semantic and structural views \cite{xie2026mhgfcl}; and KAPER selects preference-aware graph paths for reranking \cite{kim2026kaper}. These methods principally address how auxiliary knowledge enters a recommender's representation or ranking function.
+
+A related line of work studies what information should remain available for later decisions. SAMD evaluates which personal interactions merit retention \cite{zhong2026samd}; MemRec organizes collaborative memory for LLM recommendation \cite{chen2026memrec}; and denoising or reliability-aware approaches examine the quality of additional signals \cite{peng2025negative,zhu2026mifusr,zhang2026mcd4sr}. Information-value reasoning also links a source's usefulness to its consequences for an action \cite{abbas2025voi}. These developments motivate evaluating a retained relationship source at the moment of use. In our experiments the source and incumbent are fixed, allowing the marginal contribution of choosing the specialist's complete ranking to be measured directly.
+
+\subsection{Utility-Based Expert Selection and Adaptive Inference}
+
+Learning-to-defer provides established tools for selecting among predictors according to their relative losses, consistency properties and potential invocation costs \cite{mozannar2020defer,narasimhan2022posthoc,mao2024regression,mao2025mastering}. In recommendation, DS-Frame studies a learned selector between fast predictions and more expensive refinement \cite{yuan2026dsframe}. Uncertainty-based routing, including LLM-guided approaches such as GUIDER, offers additional selection strategies \cite{xu2026guider}. Together, these studies provide the methodological context for selective use of a fixed specialist.
+
+The supervision target is central to that selection. Decision-focused learning shows why predictive accuracy on a surrogate need not coincide with decision quality \cite{mandi2024decisionfocused}. For a historical Memory ranker, predicting Base difficulty, Memory accuracy and Memory-minus-Base ranking utility are different objectives. We evaluate the last of these with identical Base, specialist and deployment-time feature definitions while varying the candidate regime used to construct its training labels and the associated DEV-calibrated selection policies. This isolates a concrete empirical comparison between \emph{complete policies}, rather than proposing a general expert-routing algorithm. Invocation quotas define the selection objective; realized serving costs must be assessed separately.
+
+\subsection{Candidate-Dependent Ranking in Live Recommendation}
+
+Live recommendation combines recurring viewer--creator interactions with time-varying broadcast eligibility. LiveRec models streamer consumption \cite{rappaz2021liverec}, KuaiLive distinguishes persistent creators from active room sessions \cite{qu2026kuailive}, and DCGLive models interactions among users, rooms and creators \cite{guo2026dcglive}. Research on repeated viewing and engagement further motivates explicit historical context \cite{gao2023driver,zhu2025repeated}. These settings provide complementary evidence, although ranking streamers, rooms and persistent authors entails distinct candidate definitions.
+
+Sampled evaluation complicates comparisons of ranking utility. Krichene and Rendle show that sampled ranking metrics need not preserve full-ranking model comparisons \cite{krichene2020kdd}. Subsequent work estimates rank distributions or full-ranking metrics from samples using weighted likelihood, maximum-entropy and EM-based approaches, and studies small-$K$ blind spots and adaptive sampling \cite{jin2021sampledeval,li2023reliable,li2024itemsampling}. Candidate sampling can interact with popularity bias \cite{ihemelandu2023candidatesampling}, while negative-sampling corrections have also been proposed for training ranking losses \cite{subbiah2024rankestimation}. Reliability analyses further examine the interplay of logged exposure and sampling in offline model comparisons \cite{pereira2025samplingreliability}. This literature establishes that the candidate and observation protocols matter for estimating ranking performance.
+
+Our question concerns a downstream consequence of that established sensitivity. Sampled-candidate evaluation supplies a label for the \emph{relative value of invoking} a fixed relationship specialist; learning from that label can change which requests use the specialist when full-active candidates are available. We first characterize this dependence with paired room-ranking evidence, then compare frozen sampled- and full-supervised author-ranking policies on identical full candidate rosters. A separate fixed-candidate history comparison assesses the source supplying the Memory signal. These experiments connect candidate-dependent evaluation to selective knowledge access while retaining the distinct experimental roles of each ranking task.
+
+
+
+% ===== \section{Discussion} =====
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Candidate-Indexed Value as a Knowledge-Use Decision Contract}
+\label{sec:discussion-values}
+
+For a fixed historical relationship source, its usefulness cannot be determined from specialist accuracy alone. The relevant object is its incremental ranking value over the incumbent on the candidates eligible for the request. In Twitch, recoverable relationships can complement a sequential model whose input window omits earlier evidence. In paired KuaiLive room rankings, changing from sampled-active to full-active alternatives reverses the measured Base--Memory advantage. Because candidate membership, competition and scoring reference may change together, this is evidence of candidate-regime sensitivity, not an isolated candidate-count effect. The DEV component comparisons reinforce that regime dependence: Long-only outranks the fixed Full mixture under sampled candidates, whereas the Full mixture outranks Long-only under full-active candidates. These are within-regime comparisons, not a common-scale estimate of one component's causal contribution.
+
+Existing knowledge representation and memory-management work considers how relational evidence is constructed and retained \cite{xie2026mhgfcl,zhong2026samd}; learning-to-defer considers when alternative predictors are used \cite{mozannar2020defer,mao2024regression}. Sampled-ranking evaluation and decision-focused learning further establish that supervision proxies may differ from downstream objectives \cite{krichene2020kdd,mandi2024decisionfocused}. Our contribution is the empirical decision consequence at their intersection: the candidate regime used to label \emph{Memory's incumbent-relative value} changes the requests selected for the already fixed specialist and the full-candidate performance of the fitted policies. Candidate definition is therefore part of the knowledge-use supervision contract, not merely an offline reporting choice.
+
+\subsection{From Supervision Regime to Allocated Knowledge Calls}
+\label{sec:discussion-selective-decisions}
+
+The additional M3 evaluation associates full-candidate-relative supervision with higher full-candidate ranking quality and lower population-weighted Memory-call fractions than the original, uncorrected sampled-label policies. Both arms use the same fixed Base--Memory pair and pretarget feature definition, but are separately fitted and DEV-calibrated complete policies. Their additional targets have event IDs not previously evaluated in the original M3 TEST, although they come from the same recording period.
+
+The shared-DEV decision trace helps interpret the allocation difference without supplying another held-out confirmation. Approximately 21--23\% of event decisions disagree; requests newly assigned to Memory under full-candidate supervision have greater mean observed incremental value than the displaced requests. Importantly, both groups are beneficial on average. The evidence therefore concerns \emph{prioritization among useful calls}, not just rejection of requests with negative realized specialist value. The accounting is descriptive and is not a causal mediation analysis of the additional-target result.
+
+This conclusion is bounded by the comparator and resource contract. The S labels originate from the original target-retained, uncorrected sampled-candidate protocol, not a statistically corrected sampled-only estimator. The realized additional-target invocation rates differ by 1.337 and 1.797 percentage points, so the contrast is not a strict matched-call or label-only effect. 
+
+\subsection{Source Validity, Evaluation Limits and Actual Operating Conditions}
+\label{sec:discussion-validity}
+
+The fixed-candidate historical-source test supplies a parallel check on the content being selected. Authentic viewer--creator histories outperform the constrained alternatives when current candidates and the Memory scorer remain unchanged. However, each perturbation modifies both repeated relationships and broader historical structure, so the result supports composite source validity rather than an isolated semantic mechanism. The prereveal protocol checks were \emph{partially completed}: performance, positive-support and substantial-rewiring checks passed, but the nested cohort's prespecified TRAIN-only Popularity margin was \emph{not measured and sealed before target reveal}. Its separate DEV analogue cannot retroactively certify that requirement.
+
+Transfer beyond the tested protocols remains open. Twitch streamer, KuaiLive room and M3 author ranking differ in ranked units, incumbent models and candidate construction. The additional M3 sample is event-ID-disjoint from the original evaluation but not a new recording period or user-disjoint replication. Observed single-positive interactions may also be shaped by historical exposure, a concern in sampled offline recommender comparisons \cite{pereira2025samplingreliability}. A defensible sampled-only correction could narrow the observed F-versus-S policy difference; we did not train or evaluate a selector using such corrected labels and cannot rule out that alternative. The existing method-admission studies did not establish a deployable corrected-S policy under the current information contract. The policy results consequently establish the specified offline comparisons, not causal online user outcomes or future-period generalization.
+
+Finally, selective use is meaningful only under an explicit resource objective. On the additional M3 cohort, Always Memory offers higher unconstrained ranking quality than the selective policies; in a separate warmed DEV replay, the earlier pointwise Utility path was slower than unconditional Memory. The newer vectorized F-aligned selector was not timed end to end. Invocation fractions, gate-computation time and production access costs are distinct quantities, so the present results do not establish a deployment-savings result. Access quotas or externally imposed capacity limits are plausible settings for this policy contract, but their actual economic value requires independent serving measurements.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+The value of a fixed relationship-memory source is relative to the incumbent and the candidates actually eligible for ranking. Across the studied live-streaming protocols, sampled- and full-candidate supervision of that value lead to different frozen allocations of Memory and different full-candidate ranking outcomes. The principal M3 policy comparison supports this candidate-aligned supervision lesson; contextual Twitch and room results explain why the value target changes, while a parallel history-source test shows that the authentic relationship evidence itself carries information.
+
+These findings define a bounded knowledge-use decision contract rather than a new universal routing algorithm or an established deployment cost saving. The evaluated S comparator uses original uncorrected sampled labels and the two policies realize different call fractions. Corrected sampled supervision, comparable resource contracts and independent future-period recordings remain directions for evaluating how far the result transfers.
+
+
