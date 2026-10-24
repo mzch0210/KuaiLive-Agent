@@ -162,9 +162,9 @@ which motivates estimating incumbent-relative value rather than standalone speci
 \node[note,below=2mm of keep] {Policy output $a_{\tau_r}=0$};
 \node[note,below=2mm of invoke] {Policy output $a_{\tau_r}=1$};
 \node[box,dashed,text width=11.7cm,below=11mm of invoke,xshift=-3.15cm] (offline)
-{Offline only: target $y$ + rankings $B,M$ $\rightarrow$ $\Delta_M$ supervision;\\ target $y$ + history $\rightarrow$ diagnostic $S_L$. Neither is an online input.};
+{Offline only: observed target $y$ and frozen $B,M$ rankings\\ define sampled/full incremental-value labels $\Delta_S,\Delta_F$. Neither label is an online input.};
 \end{tikzpicture}
-\caption{Conditional specialist use and retrospective evidence analysis. The online path obtains base scores and observable state descriptors before deciding whether to compute the relationship-memory ranking. Supervision by realized relative ranking utility and target-specific visibility states is restricted to offline development or analysis.}
+\caption{Candidate-regime-supervised use of a fixed relationship source. The online path uses pretarget context and Base scores for the DEV-frozen decision; sampled/full relative-value labels are computed only during offline supervision.}
 \label{fig:framework}
 \end{figure}
 \FloatBarrier
