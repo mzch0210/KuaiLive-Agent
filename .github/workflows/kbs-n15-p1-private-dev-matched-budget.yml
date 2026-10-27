@@ -68,6 +68,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1${PYTHONPATH:+:$PYTHONPATH}"
           export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 PYTHONUNBUFFERED=1
           DEV="$HOME/.cache/kuailive-agent-kbs/klm3_b1_full_dev_candidate_labels_seed20261012_v1"
           OUT="$RUNNER_TEMP/n15-p1-matched-dev-$GITHUB_RUN_ID"
