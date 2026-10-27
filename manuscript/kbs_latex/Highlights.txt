@@ -1,5 +1,5 @@
-- Candidate-aligned supervision changes which requests use relationship Memory.
-- F-aligned policies improve full-ranking quality on 30,000 same-period targets.
-- F-aligned policies have lower population-weighted Memory-call fractions.
-- Memory-use decisions differ on 21–23% of 50,049 DEV requests.
-- Authentic histories outperform constrained nulls under fixed candidates.
+- Candidate-regime labels change which requests invoke fixed Memory.
+- F-supervised policies improve full ranking on 30,000 same-period targets.
+- F-supervised policies use fewer weighted Memory calls than S-supervised policies.
+- S/F decisions differ on 21-23% of 50,049 DEV requests.
+- Policy results do not isolate an equal-call label-only effect.

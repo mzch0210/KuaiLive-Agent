@@ -23,7 +23,7 @@
 \author{Anonymous Authors}
 
 \begin{abstract}
-Selecting when to use historical viewer--creator relationships requires estimating their value relative to the incumbent ranking on the candidates available at each request. We study how sampled- versus full-candidate supervision of this Base-relative value shapes the use of a fixed relationship Memory ranker. Offline NDCG@10 increments provide sampled- or full-candidate labels for selection policies trained on pretarget history and Base-score features; both frozen policies are then evaluated on identical full-active candidates. In 10,222 paired KuaiLive room-ranking events, Memory-minus-Base utility shifts from $-0.04120$ with sampled-active candidates to $+0.04631$ with full-active candidates. The primary evaluation uses 30,000 additional author-ranking targets from the same recording period. Relative to policies fitted using the original uncorrected sampled labels, full-candidate-supervised policies improve weighted full-ranking NDCG@10 by $0.005391$ (SASRec) and $0.003585$ (GRU4Rec), with lower population-weighted Memory-call fractions under their naturally realized policies. Exploratory development analyses of 50,049 requests find different Memory-use decisions on 21.32\% (SASRec) and 23.01\% (GRU4Rec) of requests. On a nested 4,096-target cohort, authentic histories outperform constrained historical randomizations by $0.031145$ NDCG@10 under fixed candidates. The comparisons concern complete frozen policies, with unequal realized calls and an uncorrected sampled-label baseline. Together, the results show that candidate-aligned supervision is consequential for the allocation and full-ranking quality of selective historical knowledge use.
+A historical relationship ranker may help a live-streaming recommender only on some requests, and its measured gain over a fixed incumbent depends on the available candidates. We examine whether the candidate regime used to supervise that relative value changes the resulting frozen knowledge-use policies. Sampled-active and full-active NDCG@10 increments supply labels for separately fitted selectors using the same pretarget features and fixed Base/Memory pair; both policies are evaluated on identical full-active candidates. In a retrospective paired comparison of 10,222 KuaiLive room-ranking events, Memory-minus-Base value changes from $-0.04120$ under sampled-active candidates to $+0.04631$ under full-active candidates. The primary evaluation uses 30,000 additional M3 author-ranking targets from the same recording period. Relative to the original uncorrected sampled-label policies, full-candidate-supervised policies increase weighted full-candidate NDCG@10 by $0.005391$ for SASRec and $0.003585$ for GRU4Rec, with lower population-weighted Memory-call fractions under naturally realized policies. A shared 50,049-request DEV analysis finds different invocation decisions on 21.32\% and 23.01\% of requests, respectively. These observations compare complete, separately calibrated frozen policies with unequal call rates; they do not identify an equal-resource label-only causal effect or demonstrate deployment cost savings. The findings position candidate alignment as a consequential part of the supervision contract for selective use of fixed historical knowledge.
 \end{abstract}
 
 \begin{keyword}
@@ -34,85 +34,44 @@ live-streaming recommendation \sep sequential recommendation \sep relationship m
 
 \section{Introduction}
 
-Sequential recommendation has to use a bounded history to rank the alternatives available at a given moment \cite{kang2018sasrec,sun2019bert4rec}. Live-streaming platforms make this constraint especially visible: room availability changes from session to session, whereas a viewer's relationships with creators may extend across many broadcasts. A separate historical relationship source can recover useful evidence beyond the incumbent model's recent input, but it may also repeat preferences the incumbent already captures. The question for a knowledge-based recommender is therefore when accessing that source improves the ranking that would otherwise be produced.
+Live-streaming recommenders rank choices that change as broadcasts begin and end, while viewer--creator relationships accumulate across sessions. A sequential incumbent can already represent part of that history; a separate relationship-memory ranker may add useful information on some requests but offer no advantage on others. For a knowledge-based decision system, the practical question is therefore not simply whether historical knowledge is predictive, but whether using a fixed additional source improves the ranking over the incumbent \emph{for the candidates currently available}.
 
-Conditional expert selection provides a natural way to express this question, but its usefulness depends on the target used to supervise the decision. Knowledge-enhanced recommendation and memory-management methods primarily study how relational evidence is represented, integrated or retained \cite{xie2026mhgfcl,zhong2026samd}. Learning-to-defer and adaptive inference study how to choose between predictors or inference paths \cite{mozannar2020defer,mao2024regression,yuan2026dsframe}. In the present setting, these concerns meet at the incremental value of an \emph{already fixed} Memory ranker relative to a designated Base. That value determines which requests could benefit from additional historical evidence.
+Learning to defer and selective inference provide established approaches to choosing between predictors \cite{mozannar2020defer,mao2024regression}. Such a choice requires a supervision target. We consider the observed NDCG@10 increment of a fixed Memory ranking over a fixed Base ranking. When the same target is scored against 575 sampled-active candidates instead of all eligible candidates, that increment can change. Sampled ranking metrics are already known to distort full-ranking comparisons \cite{krichene2020kdd}; our question is narrower and downstream: \emph{does the candidate regime used to construct relative-value labels change the requests selected for historical Memory and the full-candidate outcomes of the resulting policies?}
 
-The candidate universe creates a further, consequential distinction. A relationship source and a Base may appear differently matched when ranked against a small sampled subset rather than the full set of eligible alternatives. Sampling-induced changes in ranking metrics are well established \cite{krichene2020kdd}, and prediction targets need not align with downstream decisions \cite{mandi2024decisionfocused}. Here the practical question is more specific: when sampled- and full-candidate evaluations provide different \emph{Base-relative utility labels}, do the resulting fitted selectors invoke the historical specialist on different requests, and does that change full-candidate ranking performance? We examine this question through separately fitted, DEV-calibrated selection policies for the same fixed incumbent and relationship specialist. Pretarget history and Base-score descriptors support the selection decision; the observed target supplies offline supervision but never becomes a deployment-time input.
+We evaluate this question without proposing a new Memory representation or a new generic routing algorithm. Two pretarget selection policies share the same incumbent, Memory scorer and full-candidate decision features, but learn from sampled-active or full-active relative-value labels. Each policy is separately fitted and development-calibrated before evaluation on identical full-active candidate sets. The primary evidence comprises 30,000 additional M3 author-ranking targets from the same recorded TEST-source period, not a new chronological or user-disjoint replication. A previously evaluated paired room-ranking cohort motivates the label distinction; a separate DEV decision trace characterizes allocation changes without serving as an independent held-out test.
 
-Our empirical design separates the main policy consequence from the evidence needed to interpret it. Twitch streamer rankings and paired KuaiLive room rankings establish why relationship value must be evaluated relative to the incumbent and the candidate roster (RQ1). The central M3 experiment compares independently frozen sampled- and full-supervised complete selection policies on 30,000 previously unevaluated author-ranking targets from the same recording period (RQ2); a development-cohort analysis describes the requests whose Memory allocation differs. A parallel test then holds current full candidates and the Memory scorer fixed while comparing authentic viewer--creator histories with constrained historical randomizations on a nested 4,096-target cohort (RQ3). The different ranking units and evidence roles are specified in Section~\ref{sec:experimental-setup}.
-
-We make three connected empirical contributions:
+The design supports two connected empirical contributions:
 \begin{itemize}
-    \item \textbf{Candidate-aligned supervision and policy-level allocation.} On 30,000 previously unevaluated M3 author-ranking targets from the same recording period, the full-candidate-supervised frozen policies achieve higher weighted full-candidate ranking quality and lower population-weighted Memory-call fractions than policies trained with the original, uncorrected sampled-candidate labels. A separate DEV allocation trace describes which requests change specialist use; it is not an independent confirmation of the additional-target result.
-    \item \textbf{Context for incumbent-relative relationship value.} Historical-state diagnostics and paired KuaiLive room-ranking comparisons show how the measured gain from the same fixed knowledge source depends on the incumbent context and ranking-candidate regime.
-    \item \textbf{Parallel historical-source evidence.} Under identical full candidates and specialist scoring, a parallel nested study compares authentic viewer--creator histories with constrained historical randomizations, testing the informational contribution of the relationship source.
+    \item \textbf{Candidate-regime sensitivity of the supervision target.} In paired room-ranking events with the same frozen rankers, moving from sampled-active to full-active candidates changes the measured Memory-minus-Base utility, motivating candidate-aware labels. This is a diagnostic of the evaluation contract, not an isolated candidate-count effect.
+    \item \textbf{Frozen policy consequences.} On additional M3 author-ranking events, F-supervised policies improve population-weighted full-candidate NDCG@10 and have lower realized weighted Memory-call fractions than policies trained with the original, uncorrected sampled labels. DEV request-level allocation differences describe fitted decisions, not causal mediation of the additional-target result.
 \end{itemize}
 
-\begin{figure}[t]
-\centering
-\begin{tikzpicture}[
-  every node/.style={font=\small},
-  central/.style={draw,rounded corners=2pt,align=center,text width=.82\linewidth,
-                  inner xsep=5pt,inner ysep=6pt},
-  branch/.style={draw,rounded corners=2pt,align=center,text width=.37\linewidth,
-                 inner xsep=4pt,inner ysep=6pt},
-  arr/.style={-{Latex[length=2.2mm]},line width=.55pt}
-]
-\node[central] (value) {\textbf{RQ1: Define the value of fixed relationship knowledge}\\
-Historical Memory $M$, incumbent $B$, and current candidates $C$\\
-Event-level ranking gain $\Delta_M(x;B,C)$};
-\node[branch,below=9mm of value,xshift=-.225\linewidth] (decision)
-{\textbf{RQ2: Predict value and choose}\\
-Pretarget information $Z$ $\rightarrow$ estimated gain $\eta(Z)$\\
-Invocation-constrained Base/Memory decision};
-\node[branch,below=9mm of value,xshift=.225\linewidth] (source)
-{\textbf{RQ3: Verify the history source}\\
-Hold current candidates and scorer fixed\\
-Authentic history\\
-versus constrained\\
-historical randomizations};
-\draw[arr] (value.south) -- (decision.north);
-\draw[arr] (value.south) -- (source.north);
-\end{tikzpicture}
-\caption{One knowledge-valuation object and two complementary empirical tests. Candidate-aligned prediction examines the consequences of using relationship evidence, while fixed-candidate historical perturbations assess source validity. The branches share the same fixed specialist and ranking utility definition; neither test is presented as a causal consequence of the other.}
-\label{fig:knowledge-value-chain}
-\end{figure}
+The scientific boundary is part of the question. The two frozen policies realize different call rates and the sampled comparator has no evaluated statistically corrected counterpart; the contrast is not an experimentally isolated equal-resource label effect. Unconditional Memory can rank better when invocation is unrestricted, and lower call fractions do not establish production latency savings. Sections~\ref{sec:framework}--\ref{sec:results} define, test and interpret the candidate-aligned supervision contract while preserving those limitations.
 
 \section{Related Work}
 
-\subsection{Knowledge Representation, Relationship Memory, and Memory Management}
+\subsection{Relationship Knowledge and Decisions to Use It}
 
-Sequential recommendation represents preferences from ordered interactions, including attention-based and multi-interest architectures \cite{kang2018sasrec,sun2019bert4rec,ni2025idmarec,sheng2025dsmgrec}. Knowledge-aware methods extend that representation by integrating relational information: CKLF combines graph propagation and sequential interests \cite{chen2024cklf}; MHGFCL fuses collaborative, semantic and structural views \cite{xie2026mhgfcl}; and KAPER selects preference-aware graph paths for reranking \cite{kim2026kaper}. These methods principally address how auxiliary knowledge enters a recommender's representation or ranking function.
+Knowledge-aware and sequential recommenders investigate how historical interactions and relational evidence enter a ranking model \cite{kang2018sasrec,chen2024cklf,xie2026mhgfcl,kim2026kaper}. Other work studies which user information should be retained or organized for later prediction \cite{zhong2026samd,chen2026memrec}. These questions concern representation or storage. In contrast, we hold the historical Short--Long--Popularity Memory scorer fixed and study the \emph{use-time decision} to replace an incumbent ranking with its ranking on an available candidate roster.
 
-A related line of work studies what information should remain available for later decisions. SAMD evaluates which personal interactions merit retention \cite{zhong2026samd}; MemRec organizes collaborative memory for LLM recommendation \cite{chen2026memrec}; and denoising or reliability-aware approaches examine the quality of additional signals \cite{peng2025negative,zhu2026mifusr,zhang2026mcd4sr}. Information-value reasoning also links a source's usefulness to its consequences for an action \cite{abbas2025voi}. These developments motivate evaluating a retained relationship source at the moment of use. In our experiments the source and incumbent are fixed, allowing the marginal contribution of choosing the specialist's complete ranking to be measured directly.
+Learning-to-defer and adaptive inference already formalize selection among predictors, including relative loss and instance-dependent costs \cite{mozannar2020defer,narasimhan2022posthoc,mao2024regression,yuan2026dsframe}. Decision-focused learning further explains why surrogate prediction quality need not match downstream decision quality \cite{mandi2024decisionfocused}. Our experiments do not claim a new consistency theorem, deferral architecture or gate optimizer. They ask what happens when the \emph{labels supervising a fixed specialist's relative value} are computed in a candidate regime different from the one used for ranking.
 
-\subsection{Utility-Based Expert Selection and Adaptive Inference}
+\subsection{Sampled Ranking and Candidate-Regime Alignment}
 
-Learning-to-defer provides established tools for selecting among predictors according to their relative losses, consistency properties and potential invocation costs \cite{mozannar2020defer,narasimhan2022posthoc,mao2024regression,mao2025mastering}. In recommendation, DS-Frame studies a learned selector between fast predictions and more expensive refinement \cite{yuan2026dsframe}. Uncertainty-based routing, including LLM-guided approaches such as GUIDER, offers additional selection strategies \cite{xu2026guider}. Together, these studies provide the methodological context for selective use of a fixed specialist.
+LiveRec and KuaiLive provide examples of time-varying broadcast eligibility and persistent viewer--creator histories, although streamer, room and author ranking are distinct tasks \cite{rappaz2021liverec,qu2026kuailive}. Candidate sampling in large-scale recommendation is not a neutral evaluation shortcut: sampled ranking metrics may fail to preserve the ordering of methods under exact full-catalog metrics \cite{krichene2020kdd}. Rank-estimation and sampling-correction methods seek more reliable full-ranking estimates or training losses \cite{jin2021sampledeval,li2023reliable,li2024itemsampling,subbiah2024rankestimation}. Logged exposure adds a further constraint on what observed positive interactions can establish \cite{pereira2025samplingreliability}.
 
-The supervision target is central to that selection. Decision-focused learning shows why predictive accuracy on a surrogate need not coincide with decision quality \cite{mandi2024decisionfocused}. For a historical Memory ranker, predicting Base difficulty, Memory accuracy and Memory-minus-Base ranking utility are different objectives. We evaluate the last of these with identical Base, specialist and deployment-time feature definitions while varying the candidate regime used to construct its training labels and the associated DEV-calibrated selection policies. This isolates a concrete empirical comparison between \emph{complete policies}, rather than proposing a general expert-routing algorithm. Invocation quotas define the selection objective; realized serving costs must be assessed separately.
+That literature establishes the possibility of sampled/full ranking disagreement; it does not by itself provide this study's frozen downstream knowledge-use comparison. Here sampled evaluation generates a target for the \emph{incremental benefit of invoking Memory over Base}. The consequent fitted policies are then compared on the same full-active candidates. The tested sampled-label arm uses the original, uncorrected target-retained protocol; a valid corrected sampled-only policy could narrow the observed difference and has not been evaluated. The study's contribution is therefore a bounded empirical decision consequence, not a general proof that full-candidate labels dominate every corrected sampling approach.
 
-\subsection{Candidate-Dependent Ranking in Live Recommendation}
-
-Live recommendation combines recurring viewer--creator interactions with time-varying broadcast eligibility. LiveRec models streamer consumption \cite{rappaz2021liverec}, KuaiLive distinguishes persistent creators from active room sessions \cite{qu2026kuailive}, and DCGLive models interactions among users, rooms and creators \cite{guo2026dcglive}. Research on repeated viewing and engagement further motivates explicit historical context \cite{gao2023driver,zhu2025repeated}. These settings provide complementary evidence, although ranking streamers, rooms and persistent authors entails distinct candidate definitions.
-
-Sampled evaluation complicates comparisons of ranking utility. Krichene and Rendle show that sampled ranking metrics need not preserve full-ranking model comparisons \cite{krichene2020kdd}. Subsequent work estimates rank distributions or full-ranking metrics from samples using weighted likelihood, maximum-entropy and EM-based approaches, and studies small-$K$ blind spots and adaptive sampling \cite{jin2021sampledeval,li2023reliable,li2024itemsampling}. Candidate sampling can interact with popularity bias \cite{ihemelandu2023candidatesampling}, while negative-sampling corrections have also been proposed for training ranking losses \cite{subbiah2024rankestimation}. Reliability analyses further examine the interplay of logged exposure and sampling in offline model comparisons \cite{pereira2025samplingreliability}. This literature establishes that the candidate and observation protocols matter for estimating ranking performance.
-
-Our question concerns a downstream consequence of that established sensitivity. Sampled-candidate evaluation supplies a label for the \emph{relative value of invoking} a fixed relationship specialist; learning from that label can change which requests use the specialist when full-active candidates are available. We first characterize this dependence with paired room-ranking evidence, then compare frozen sampled- and full-supervised author-ranking policies on identical full candidate rosters. A separate fixed-candidate history comparison assesses the source supplying the Memory signal. These experiments connect candidate-dependent evaluation to selective knowledge access while retaining the distinct experimental roles of each ranking task.
-
-\section{Knowledge Valuation and Selective Use}
+\section{Candidate-Aligned Knowledge-Use Supervision}
 \label{sec:problem}
 \label{sec:framework}
 
-The framework separates three objects: the utility of a fixed historical relationship source relative to an incumbent, a candidate-regime-specific supervised estimate of that utility, and a selective-use policy based only on pretarget information. Base and Memory share the eligible alternatives within each ranking decision. Observed outcomes define offline labels; the deployment path in Figure~\ref{fig:framework} uses pretarget features to decide whether to invoke Memory.
+We examine one decision: given a trained incumbent ranker and a fixed historical relationship specialist, should the system use the specialist for the current eligible candidates? The central object is \emph{incumbent-relative ranking value}, measured with the candidate roster actually evaluated. Only the predicted value and pretarget observations enter the learned invocation decision; target-dependent ranking labels are used offline.
 
-\subsection{Ranking Events and Candidate-Dependent Utility}
+\subsection{Ranking Events and Candidate-Dependent Value}
 \label{sec:event-utility}
 
-For user $u$, decision time $t$ and candidate regime $r$, let $\xi_r=(u,t,\mathcal{C}^{(r)}_{u,t},\mathcal{H}_{u,t})$ denote the pre-outcome context. The set $\mathcal{C}^{(r)}_{u,t}$ contains the eligible ranking alternatives and $\mathcal{H}_{u,t}$ the interactions observed strictly before $t$. An offline evaluated event is $x_r=(\xi_r,y)$, where $y$ is the subsequently observed target in that eligible set. Rankers operate on $\xi_r$ without seeing $y$; the target is used only to evaluate their outputs. Candidate regime $r$ specifies how candidates and their scores are constructed, and a given event can be evaluated under more than one regime. We suppress $r$ when it is fixed.
-
-Let $r_A(y\mid\xi)$ be the one-indexed position of target $y$ in the candidate ranking returned by model $A$. For one observed relevant item, event-level normalized discounted cumulative gain at cutoff $K$ is
+Let $\xi_r=(u,t,\mathcal{C}^{(r)}_{u,t},\mathcal{H}_{u,t})$ denote user $u$, decision time $t$, an eligible candidate roster under regime $r$, and interactions strictly preceding $t$. After observing the target $y$, the offline evaluation event is $x_r=(\xi_r,y)$. For a ranker $A$ returning a target position $r_A(y\mid\xi)$, we use one-positive NDCG@$K$:
 \begin{equation}
     u_K(A,x)=
     \begin{cases}
@@ -121,15 +80,13 @@ Let $r_A(y\mid\xi)$ be the one-indexed position of target $y$ in the candidate r
     \end{cases}
     \label{eq:event-ndcg}
 \end{equation}
-Mean NDCG@$K$ is calculated across an explicitly specified evaluation sample, with $K=10$ throughout the experiments. Since ranks depend on the eligible alternatives, changing the candidate regime may change the observed value of the same ranker without changing its historical evidence or scoring function.
+We set $K=10$. The same ranker may obtain different NDCG on sampled-active $S$ versus full-active $F$ alternatives because eligible identities and their competition differ; this by itself is not evidence of a change in the ranker's parameters.
 
-\subsection{Fixed Incumbent and Explicit Relationship Knowledge}
+\subsection{Fixed Base and Historical Relationship Memory}
 \label{sec:framework-base}
 \label{sec:framework-memory}
 
-The trained \emph{Base} ranker $B$ is the designated incumbent within each dataset's evaluation protocol. Twitch uses availability-aware LiveRec \cite{rappaz2021liverec}; the original KuaiLive room-ranking model combines room- and creator-identity SASRec branches, standardizing scores within each candidate set before their development-selected fusion; and KuaiLive-M3 uses author-ranking SASRec and GRU4Rec. These are protocol-specific trained models, not a single incumbent transferred between streamer-, room- and author-ranking tasks. Their training and checkpoint-selection procedures are described in Section~\ref{sec:experimental-setup} and Supplementary S2--S3.
-
-The \emph{Memory} ranker $M$ is a fixed and auditable specialist defined by prior user--creator relationships. Let $n_{u,i}(t)$ count interactions with creator $i$ before the event and $n_{u,\max}(t)=\max_j n_{u,j}(t)$ across eligible recorded history. The long-term score is $\mathrm{Long}(u,i,t)=n_{u,i}(t)/\max\{1,n_{u,\max}(t)\}$. For the user's last $K_s=10$ creator interactions, indexed backward from the most recent by $d=0$, define $\mathrm{Short}(u,i,t)=\max_{\{d:i_d=i\}}\exp(-d/3)$, with zero if no matching event exists. The popularity component $\mathrm{Pop}(i)$ is the log-count transform of TRAIN-split creator frequency followed by min--max scaling; it is zero for a creator absent from that reference. The specialist score is
+The trained Base $B$ is fixed within each comparison. The original KuaiLive \emph{room}-ranking diagnostic uses a fixed dual-identity SASRec fusion, while the primary M3 \emph{author}-ranking policy study uses separately fixed SASRec or GRU4Rec incumbents. These are different tasks and not replications of one ranking unit. The deterministic Memory ranker $M$ is an unchanged combination of previous viewer--creator interaction recency, historical repetition, and TRAIN-only author popularity:
 \begin{equation}
 s_M(u,i,t)=
 0.45\,\mathrm{Short}(u,i,t)
@@ -137,41 +94,53 @@ s_M(u,i,t)=
 +0.10\,\mathrm{Pop}(i).
 \label{eq:memory-scoring}
 \end{equation}
-The weights remain fixed across ranking events and the specialist does not retrain or fuse its coefficients for a particular user. Eligible rooms in the original KuaiLive protocol may share a creator-level score, whereas Twitch and M3 rank persistent streamer or author identities directly. In M3, Short uses the last ten \emph{all-author} interactions, and Long's history normalization considers past authors even if they are not in the current TRAIN-known vocabulary. Such historical observations affect recency and normalization, but they do not create additional eligible current candidates. Both $B$ and $M$ rank the \emph{same} event-specific candidates; eligibility and tie-breaking rules are recorded in Section~\ref{sec:exp-data} and Supplementary S1--S2.
+Here $\mathrm{Short}$ assigns $\exp(-d/3)$ to the most recent occurrence among the previous ten creator interactions (zero if absent), with $d=0$ for the latest. $\mathrm{Long}=n_{u,i}(t)/\max\{1,\max_j n_{u,j}(t)\}$ uses all accessible prior author interactions. $\mathrm{Pop}$ is a normalized log-frequency based only on TRAIN interactions. The mixture weights are fixed at 0.45/0.45/0.10; no specialist training or per-request weight fitting occurs. Both $B$ and $M$ rank the same candidates in each evaluated event. Source eligibility, ties and historical availability are specified in focused Supplement N14-S1 and the original research archive.
 
-\subsection{Incumbent-Relative Knowledge Value and Candidate Regimes}
+\subsection{Supervision Regimes and Frozen Policy Comparison}
 \label{sec:relative-utility}
 \label{sec:conditional-utility}
 
-Knowledge value is defined as the difference between two fully specified ranking decisions, rather than the specialist's isolated predictive quality. For the same event and eligible candidates, write
+On the same event and eligible roster, the observed incremental value of the specialist is:
 \begin{equation}
     \Delta_M(x)=u_K(M,x)-u_K(B,x).
     \label{eq:delta-memory}
 \end{equation}
-Positive or negative values mean that replacing $B$ with $M$ improves or worsens the realized top-$K$ rank utility. The target-dependent $\Delta_M$ is observable during supervised development and offline evaluation; it is \emph{not} itself a decision-time feature.
+Its sampled-active and full-active versions, $\Delta_S$ and $\Delta_F$, are different offline labels. In the original sampled training-label construction, the observed target is retrospectively retained among 575 active candidates. This is permitted only for label computation, never for a live feature or online candidate generator.
 
-Let $Z$ denote features computed from pretarget history, current candidate availability and Base scores. The regime-specific conditional value function is
+For a pretarget descriptor vector $Z$, the regime-specific conditional value is
 \begin{equation}
     \eta_r(z)
     =\mathbb{E}\!\left[\Delta_M(X)\mid Z=z,R=r\right].
     \label{eq:eta}
 \end{equation}
-A model fitted to these labels yields $\hat{\eta}_r(z)$ as the decision-time prediction of using $M$ instead of $B$. Candidate regime is part of the value target even if the selector is not given a separate categorical regime indicator.
-
-For the paired development tasks, $\Delta_S$ and $\Delta_F$ are the incremental utilities measured on sampled and full-active candidate sets, respectively. An observed target may be retained in a retrospectively constructed sampled \emph{training label}; this construction is separate from the information available to a deployed selector. Let $\pi_S$ and $\pi_F$ be policies trained and calibrated under their respective labels and evaluated on the same full-active events. Define $V_F(\pi)=\mathbb{E}[u_{10}(B,X_F)+\pi(Z)\Delta_F(X)]$. The policy transfer comparison is
+Separate regressors estimate $\hat\eta_S$ or $\hat\eta_F$ and yield separately calibrated frozen policies $\pi_S,\pi_F$. Their common full-candidate outcome contrast is
 \begin{equation}
     \mathcal{R}_{S\rightarrow F}
     =V_F(\pi_F)-V_F(\pi_S),
     \label{eq:candidate-supervision-transfer}
 \end{equation}
-This is a contrast between the realized full-candidate performance of \emph{frozen fitted policies}, not an identity guaranteeing that aligned supervision is superior or that their realized specialist-call rates are equal.
+with $V_F(\pi)=\mathbb E[u_{10}(B,X_F)+\pi(Z)\Delta_F(X)]$. This is the difference in realized full-F ranking quality between \emph{complete fitted policies}, not an isolated causal effect of changing labels at identical realized call rates.
 
-\subsection{Pretarget Estimation and Observable Evidence}
+\subsection{Pretarget Information and Invocation Rule}
 \label{sec:framework-estimation}
+\label{sec:decision-rule}
+\label{sec:framework-controls}
 
-The feature vector $Z$ combines summaries of historical creator repetition and support with the incumbent's score distribution over the currently available candidates. These descriptors characterize the knowledge that could be useful and the incumbent decision it could change. Task-specific feature counts and operational descriptors are specified in Section~\ref{sec:exp-comparators}.
-
-Observed targets and their realized ranking positions define offline supervision and evaluation, but are not inputs to $Z$. Target identity, realized NDCG, target-specific recurrence and hindsight Oracle outcomes are excluded from $Z$; any evidence state requiring knowledge of the observed target's membership in the Base input or historical sequence remains a retrospective diagnostic. Full feature definitions and audit rules appear in Supplementary S2 and S7.
+$Z$ contains only already-observed user-history summaries, current eligible candidate descriptors and Base ranking scores. Current target identity, its observed position or NDCG, and outcome-derived history-state categories never enter the policy. M3 uses twelve descriptors, instantiated in Section~\ref{sec:exp-comparators}; exact definitions and leakage checks are retained in focused Supplement N14-S1 and the archived feature definitions. The fitted policy uses a threshold fixed through development out-of-fold predictions:
+\begin{equation}
+    a_{\tau_r}(z)=\mathbf{1}\!\left[
+    \hat{\eta}_r(z)\mathrel{\succeq_r}\tau_r
+    \right].
+    \label{eq:utility-threshold}
+\end{equation}
+Here $\tau_r$ is selected under a nominal development Memory-call fraction $q_r$. The threshold is never reselected using additional evaluation targets. A DEV quota is not an enforced equal TEST call count or a statement about serving cost. The mean expected improvement has the usual selective-decision identity,
+\begin{align}
+    &\mathbb{E}\!\left[u_K^{\mathrm{sel}}(X;a)-u_K(B,X)\mid R=r\right] \\
+    &\qquad=\mathbb{E}\!\left[a(Z)\Delta_M(X)\mid R=r\right]
+    =\mathbb{E}\!\left[a(Z)\eta_r(Z)\mid R=r\right].
+    \label{eq:expected-selective-gain}
+\end{align}
+which motivates estimating incumbent-relative value rather than standalone specialist quality \cite{mozannar2020defer,narasimhan2022posthoc}.
 
 \begin{figure}[t]
 \centering
@@ -193,237 +162,64 @@ Observed targets and their realized ranking positions define offline supervision
 \node[note,below=2mm of keep] {Policy output $a_{\tau_r}=0$};
 \node[note,below=2mm of invoke] {Policy output $a_{\tau_r}=1$};
 \node[box,dashed,text width=11.7cm,below=11mm of invoke,xshift=-3.15cm] (offline)
-{Offline only: target $y$ + rankings $B,M$ $\rightarrow$ $\Delta_M$ supervision;\\ target $y$ + history $\rightarrow$ diagnostic $S_L$. Neither is an online input.};
+{Offline only: observed target $y$ and frozen $B,M$ rankings\\ define sampled/full incremental-value labels $\Delta_S,\Delta_F$. Neither label is an online input.};
 \end{tikzpicture}
-\caption{Conditional specialist use and retrospective evidence analysis. The online path obtains base scores and observable state descriptors before deciding whether to compute the relationship-memory ranking. Supervision by realized relative ranking utility and target-specific visibility states is restricted to offline development or analysis.}
+\caption{Candidate-regime-supervised use of a fixed relationship source. The online path uses pretarget context and Base scores for the DEV-frozen decision; sampled/full relative-value labels are computed only during offline supervision.}
 \label{fig:framework}
 \end{figure}
 \FloatBarrier
 
-\subsection{Invocation-Constrained Use and Retrospective Diagnostics}
-\label{sec:decision-rule}
-\label{sec:framework-controls}
-
-A policy first computes the Base ranking and the observable features. For each event it either returns $B$ or computes the ranking from $M$ using the identical eligible candidates. Denoting this pretarget decision by $a(Z)\in\{0,1\}$, the realized selected utility is $u_K^{\mathrm{sel}}(x;a)=(1-a)u_K(B,x)+a\,u_K(M,x)$. Taking expectations conditional on a regime yields
-\begin{align}
-    &\mathbb{E}\!\left[u_K^{\mathrm{sel}}(X;a)-u_K(B,X)\mid R=r\right] \\
-    &\qquad=\mathbb{E}\!\left[a(Z)\Delta_M(X)\mid R=r\right]
-    =\mathbb{E}\!\left[a(Z)\eta_r(Z)\mid R=r\right].
-    \label{eq:expected-selective-gain}
-\end{align}
-The identity connects conditional incremental value with expected selection quality, following established learning-to-defer formulations \cite{mozannar2020defer,narasimhan2022posthoc}. It motivates using the estimated value to calibrate a selective policy.
-
-The Utility policy compares the fitted gain estimate with a DEV-selected threshold. With $\succeq_r$ denoting the protocol's deterministic boundary convention, the policy is
-\begin{equation}
-    a_{\tau_r}(z)=\mathbf{1}\!\left[
-    \hat{\eta}_r(z)\mathrel{\succeq_r}\tau_r
-    \right].
-    \label{eq:utility-threshold}
-\end{equation}
-A threshold is chosen on development data for an invocation-fraction design limit $q_r$: $\hat q_{\mathrm{DEV}}=n_{\mathrm{DEV}}^{-1}\sum_i a_{\tau_r}(z_i)\le q_r$. Calibration constrains the \emph{development} call count and does not guarantee an identical realized fraction on the evaluation cohort. It is a limit on specialist invocations, rather than an observed cap on production compute time or monetary expense. The same frozen Base--Memory pair supports comparisons with predicted Base difficulty, standalone Memory performance and available pretarget heuristics; see Section~\ref{sec:exp-comparators}.
-
-To analyze the conditions behind RQ1 after decisions have been evaluated, we also use outcome-dependent historical evidence categories. These are explanatory descriptors rather than inputs to the selective policy.
-
-\paragraph{Retrospective relationship-evidence states.}
-\label{sec:framework-states}
-Let $V_L(x)$ indicate that the \emph{observed target creator} occurs in the Base's most recent $L$ input interactions, and let $H(x)$ indicate that the creator occurs in eligible earlier user history. For explanatory analysis after the target outcome, define
-\begin{equation}
-S_L(x)=
-\begin{cases}
-\text{represented},&V_L(x)=1,\\
-\text{recoverable but unrepresented},&V_L(x)=0,\ H(x)=1,\\
-\text{unavailable},&V_L(x)=0,\ H(x)=0.
-\end{cases}
-\label{eq:diagnostic-states}
-\end{equation}
-The three states distinguish evidence represented in the input window, recoverable outside that window and not observed in accessible history. The label \emph{represented} describes sequence membership, not proof that the trained embedding retained every relationship. Since these states depend on the observed target, they are \emph{never} features for the real selector.
-
-\paragraph{Regime-level retrospective decomposition.}
-\label{sec:regime-decomposition}
-Let $S$ denote the preceding mutually exclusive historical-evidence states. Their contribution to mean specialist value obeys
-\begin{equation}
-    \bar{\Delta}_r
-    =\sum_s P(S=s\mid R=r)
-    \,\mathbb{E}\!\left[\Delta_M(X)\mid S=s,R=r\right],
-    \label{eq:regime-decomposition}
-\end{equation}
-The decomposition separates state prevalence from conditional Memory--Base utility. It supports retrospective candidate-regime analysis (Section~\ref{sec:exp-regimes}) and does not enter decision-time features or introduce another training target.
-
 \section{Experimental Design}
 \label{sec:experimental-setup}
 
-The primary evaluation compares frozen policies trained with sampled- versus full-candidate relative-value labels on additional M3 author-ranking events (RQ2). Two supporting analyses explain the problem and its implications: Twitch and paired KuaiLive room rankings characterize the contextual value of relationship evidence (RQ1), and a nested M3 historical-source comparison examines whether authentic relationships matter on fixed candidates (RQ3). The M3 DEV decision-allocation analysis explains fitted policy differences without supplying a separate held-out confirmation. Table~\ref{tab:exp-datasets} separates the ranked units, cohorts and evidence roles before the detailed protocols.
+The primary frozen experiment compares sampled- and full-candidate \emph{value-label supervision} for a fixed specialist on identical full-active M3 author-ranking targets. A previously examined KuaiLive room-ranking cohort supplies a short candidate-regime diagnostic; a shared DEV cohort describes the policies' allocation decisions. The historical-source null study belongs to the original multiplicity family but is not a parallel research question in this paper.
 
-\subsection{Ranking Tasks and Evidence Hierarchy}
+\subsection{Ranking Units, Cohorts and Candidate Regimes}
 \label{sec:exp-data}
 
-\paragraph{Twitch/LiveRec: historical complementarity and frozen selection.}
-In an availability-aware, ten-minute observation-step protocol, Twitch ranks eligible persistent streamers \cite{rappaz2021liverec}. The filtered data comprise 46,878 development (DEV) and 44,221 held-out TEST requests, each with one recorded relevant streamer. LiveRec uses the 16 most recent input interactions, while relationship histories contain only interactions preceding the target observation. Eligibility is determined by the recorded crawl-step boundary; these records do not establish exact physical session entry or exit. Training data determine the Memory popularity reference (Supplementary S1). The observed target is used to score the frozen ranking and retrospectively characterize evidence recoverability, never to construct an online selector feature.
+\paragraph{Paired room-ranking diagnostic.}
+The original KuaiLive protocol ranks active \emph{rooms}, though Memory scores historical creator identities \cite{qu2026kuailive}. The same 10,222 previously examined target events, user histories and fixed dual-identity Base/Memory pair are evaluated with two candidate sets: $S$, the target plus 574 distinct active non-target rooms, and $F$, the contemporaneous full-active room roster. The Base's candidate-dependent standardized fusion scores and the candidate identities change together. This is a within-event retrospective sensitivity analysis; it is not a new M3 target cohort or a clean intervention on candidate count alone. Original checkpoint, eligibility and session-boundary conditions are in focused Supplement N14-S1 and the archived room protocol.
 
-\paragraph{Original KuaiLive room ranking.}
-The original KuaiLive protocol ranks an active \emph{room}, although relationship knowledge is indexed by its persistent creator \cite{qu2026kuailive}. A per-user chronological leave-last-two-out split yields 10,222 eligible users and paired DEV/previously examined TEST room targets. The sampled-active evaluation ranks the positive alongside 574 distinct active non-target rooms (575 total); the full-active evaluation uses the recorded contemporaneous active room roster. Half-open session intervals determine candidate availability, with the observed positive retained when its source interval conflicts with the event. Sampled alternatives are not assumed to be verified disliked items. The same 10,222 previously examined TEST events, Base checkpoint and Memory history are used in both candidate regimes. This is a retrospective within-event comparison rather than a new, prospectively frozen room-ranking evaluation.
+\paragraph{M3 full-candidate author ranking.}
+M3 ranks persistent \texttt{author\_id} identities eligible through recorded active rooms. TRAIN ends on 23 March 2026 at 12:00 and DEV ends on 27 March 2026 at 14:00, with no unsupported source timezone assumed. The 24,995,148 TRAIN interactions establish the ranker vocabulary and TRAIN-only popularity. From the previously constructed M3 population, 50,049 full-active DEV requests (12,628 users) support policy fitting and exploratory allocation accounting. The original 47,575 target TEST events (12,533 users) were already evaluated in the precursor experiment and are not presented as an independent validation here. Each evaluation target refers to a TRAIN-known available author and requires at least two earlier valid user interactions. All event histories are updated only from earlier recorded observations.
 
-\paragraph{KuaiLive-M3: original forward-time author ranking.}
-M3 ranks persistent \texttt{author\_id} identities; active room sessions determine which TRAIN-known authors are available at a decision. The recorded-time TRAIN boundary is 23 March 2026, 12:00, and DEV ends on 27 March 2026, 14:00; the subsequent interval supplies TEST targets. No time zone absent from source metadata is imputed. From 24,995,148 eligible TRAIN interactions, a deterministic outcome-independent construction provides 50,049 DEV and 47,575 original TEST requests, the latter from 12,533 users. Each selected target belongs to the TRAIN-known author vocabulary and has at least two earlier valid user interactions. The full-active candidate set contains all distinct TRAIN-known authors with at least one active room at the event time (median 31,065 authors on original TEST). The separate 4,096-request, 575-author DEV panel selects neural checkpoints; it is not the full-active TEST ranking environment. The globally chronological split does not make users disjoint across time.
+\paragraph{Additional frozen policy targets.}
+An outcome-blind freeze selected 30,000 more eligible M3 author-ranking event IDs (10,387 users) from the \emph{same original recording period}, excluding events scored in the initial author-ranking evaluation. Selection used five source dates crossed with four pretarget-history quartiles (20 cells), 1,500 selected events per cell. These targets are event-ID-disjoint, \emph{not} a future-period or user-disjoint replication. The same full-active candidates, Base, Memory and target-blind features are used for both policies. The nested 4,096-target historical-source comparison is retained in the complete original science archive and Supplement solely for original inferential-family disclosure, not as another main experiment.
 
-\paragraph{M3 additional targets and auxiliary analyses.}
-A separate pre-outcome freeze selected 30,000 additional author-ranking targets (10,387 users) from the \emph{same} original March 2026 TEST-source collection interval, with no overlap in \emph{evaluated event IDs} with the 47,575 original TEST requests. A nested 4,096-target/3,059-user sample tests authentic versus perturbed relationship history. Neither sample is a newly collected later-period TEST; users and earlier interaction streams may overlap the initial evaluation. M3 exploratory DEV analyses compare candidate-supervision regimes and historical components; additional DEV historical nulls assess source controls. A matched 256-request DEV hardware replay measures scoring-path time, not online service cost. Their specific methodological roles are kept separate from the original forward-time and additional-target inference.
-
-\begin{table}[t]
-\centering
-\caption{Evaluation tasks and evidence tiers. The original and additional M3 target IDs are disjoint as evaluated events within the same recorded period. DEV source controls and device timing are supporting analyses; counts refer to selected events unless users are specified.}
-\label{tab:exp-datasets}
-\footnotesize
-\setlength{\tabcolsep}{5pt}
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.65cm}X>{\raggedright\arraybackslash}p{2.50cm}@{}}
-\toprule
-Setting and ranked unit & Evaluated cohort and candidate universe & Evidence role \\
-\midrule
-Twitch (streamer) & 46,878 DEV; 44,221 held-out TEST; recorded active streamers & Frozen RQ1/RQ2 \\
-Original KuaiLive (room) & 10,222 previously examined paired targets; sampled 575 versus full-active rooms & Paired RQ1 diagnostic \\
-M3 initial (author) & 50,049 DEV; 47,575 forward-time TEST; full-active TRAIN-known authors & Frozen RQ2 decision \\
-M3 additional (author) & 30,000 same-period targets (10,387 users); full-active authors & Frozen RQ2 labels \\
-M3 nested (author) & 4,096 nested targets (3,059 users); fixed candidates, authentic versus three null histories & Frozen RQ3 source \\
-M3 DEV studies (author) & 50,049 DEV transfer requests and 1,024 DEV source-null requests & Exploratory RQ2/RQ3 \\
-M3 device (author) & 256 distinct DEV requests, three repeated passes & Cost diagnostic \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-The additionally frozen M3 policy cohort is the primary full-candidate comparison; original TEST evaluations and paired room analyses establish context, while the smaller nested and DEV studies address distinct supporting questions. Each cohort retains its own evidence status in the analyses below.
-
-\subsection{Fixed Rankers and Selection Objectives}
+\subsection{Fixed Models, Features and Label Regimes}
 \label{sec:exp-comparators}
 
-Each evaluation pairs the protocol-specific trained Base and fixed Short--Long--Popularity Memory defined in Section~\ref{sec:framework} on the same event-specific candidate alternatives. M3 uses author-ranking SASRec and GRU4Rec with three separately trained initialization seeds (20261012, 20261013 and 20261014). The six M3 fits share the original TEST requests and therefore measure checkpoint robustness, not six independent test populations.
+The M3 primary analysis uses the fixed SASRec and GRU4Rec checkpoint seeds 20261012 and unchanged Short--Long--Popularity Memory. The Base architecture uses 64-dimensional author embeddings, the last 16 interactions, and one SASRec attention or GRU4Rec recurrent layer. Three initial seeds per Base family were examined on the same original TEST population; this earlier robustness study is archived rather than interpreted as six independent TESTs.
 
-To distinguish estimated marginal knowledge value from general recommendation difficulty, the supervised policies predict either \emph{Utility}, $u_{10}(M,x)-u_{10}(B,x)$; \emph{Difficulty}, $-u_{10}(B,x)$; or \emph{Specialist Quality}, $u_{10}(M,x)$. M3 additionally uses two pretarget heuristic scores: \emph{Uncertainty}, the negative Base top-two ranking-score margin, and \emph{History}, the user's previous interaction count. The margin is a heuristic, not a separately calibrated uncertainty estimator. Always Base and Always Memory form unconditional references. Random@budget is an expected-allocation control, and the hindsight Oracle uses realized outcomes only as an offline upper bound. Utility, Difficulty and Specialist Quality share the relevant protocol's regression class and available pre-outcome feature family; their prediction targets, not the underlying Base or Memory rankers, differ.
+Operationally, $Z$ has five Base-score summaries (top-two margin, score standard deviation, standardized top score, top score, mean score) and seven pretarget descriptors (past interactions, TRAIN-known past interactions, distinct past warm authors, maximum warm-author repeats, distinct recent warm authors, candidate-history support, log active-candidate count). Both S and F policies use this identical \emph{full-active decision-time} feature set. What differs is the offline label: original uncorrected target-retained sampled-active $\Delta_S$ versus full-active $\Delta_F$. There is no validated corrected sampled-only trained comparator. Full features, candidate generation, checkpoint selection and original policy objectives remain in focused Supplement N14-S1--N14-S2 and the original full protocol archive.
 
-\begin{table}[t]
-\centering
-\caption{Selection and evidence-comparison identities. The frozen original M3 Utility gate, exploratory M3 candidate-label selectors and separately frozen additional-target F/S gates are distinct fitted policies; no selector is transferred across the Twitch and M3 tasks.}
-\label{tab:exp-methods}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.45cm}X>{\raggedright\arraybackslash}p{2.2cm}@{}}
-\toprule
-Comparison & Fixed rankers and varying factor & Evidence status \\
-\midrule
-Twitch selection & LiveRec vs Memory; Utility and Difficulty; count-matched Oracle & Frozen Utility, retrospective controls \\
-Original room pair & Same Dual-ID Base and Memory; candidate regime / normalization & Retrospective paired \\
-M3 original policies & SASRec/GRU4Rec vs Memory; five DEV-calibrated choice scores & Frozen original TEST \\
-M3 S/F transfer & Same Base, Memory and pretarget full-active features; sampled vs full supervision labels & DEV exploratory; later frozen targets \\
-M3 history validity & Same F candidates and Memory scorer; authentic versus controlled null history & DEV and frozen nested sample \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-Operationally, M3 instantiates $Z$ with five Base-score summaries (top-two margin, score standard deviation, standardized top score, top and mean scores) and seven pretarget history/candidate descriptors (total past interactions, past TRAIN-known interactions, distinct past warm authors, maximum warm-author repetition, distinct recent warm authors, candidate-history support and log candidate count). Twitch uses six historical and eight Base-score descriptors. These task-specific feature sets instantiate the pretarget information contract defined in Section~\ref{sec:framework-estimation}; complete definitions and the original room-model competitiveness checks are in Supplementary S2--S3 and S7.
-
-\subsection{Development Calibration and Pre-Outcome Information}
+\subsection{Development Calibration, Freezing and Information Access}
 \label{sec:exp-freeze}
 
-Neural incumbents and the deterministic Memory formulation are fixed before the corresponding held-out evaluation. Twitch uses five DEV out-of-fold (OOF) partitions for utility regression and freezes the Utility threshold before TEST. The Twitch Difficulty and hindsight Oracle references retrospectively match the \emph{realized Utility TEST Memory-call count}; they are equal-count quality controls, not independently frozen deployable policies. The original room experiment reuses previously examined TEST events solely for its paired candidate diagnostic.
+The additional-target policy uses four user-group-disjoint DEV out-of-fold partitions and nominal 30\% DEV Memory-call calibration. Per Base, S and F receive separate development thresholds from those out-of-fold predictions; final predictors of the unchanged histogram-gradient-boosting capacity (120 iterations) are fitted on all DEV and use their already frozen respective thresholds. The same full-candidate feature contract and frozen Base/Memory scores apply to both arms. Four target-blind policy outputs and ranking lists were sealed before the additional cohort's target labels were used to calculate the results. Neither threshold nor realized call fraction was readjusted after target reveal.
 
-For each of the six original M3 Base fits, a common sampled-candidate DEV screening panel selects the neural checkpoint, while five \emph{user-group-disjoint} DEV OOF folds train and calibrate each supervised selection objective on full-active ranking events. Five policy scores (the three fitted objectives and two deterministic heuristics) receive independently chosen, inclusive-tie thresholds maximizing DEV OOF incremental ranking utility subject to at most 30\% DEV Memory invocations. These thresholds and predictors are fixed before the 47,575-event original TEST. The policy is applied pointwise without using outcomes, recalibrating on TEST, or selecting the top requests of a TEST batch. Consequently a common DEV cap does not imply equal realized TEST call fractions, which may exceed 30\%.
+This four-fold/120-iteration protocol is distinct from the original M3 selector study's five-fold/200-iteration DEV fitting and from the separate nested exploratory DEV comparisons. Observed targets may enter retrospective S labels and outcome evaluation, but not online $Z$, candidate availability, Memory history, selection thresholds or a target-dependent decision rule. Outcomes from earlier chronological events can contribute to later history only after they occurred; current or future targets cannot.
 
-M3 ranking and history updates follow recorded event time. Past interactions, including TEST-period observations that have already occurred but are not among evaluated TEST target events, may update a subsequent request's history. No current or future outcome participates in the live candidate set, Base/Memory scoring, policy descriptors or threshold selection. Candidate rank ties use a deterministic author-identity convention. The saved decisions and rank outputs precede revelation of their corresponding target for metric computation. This causal information boundary differs from the retrospective sampled \emph{training-label} construction, where the observed author is retained in the sampled DEV ranking roster solely to define $\Delta_S$. The latter is never used as an online candidate generator or a predictor feature (Supplementary S1--S2).
-
-\subsection{Additional-Target Freeze and Prespecified Comparisons}
-
-To evaluate candidate-aligned supervision on targets not previously scored in the original M3 TEST, an outcome-blind selection freezes 30,000 eligible event IDs (10,387 users) drawn from the same previously studied March 2026 TEST-source interval. Selection is stratified into twenty population-weighted cells: five recorded source dates crossed with four within-date \emph{pretarget-history} quartiles, with 1,500 selected events per cell. Event selection uses source identities and earlier-observable activity, not current target authors or model utility. A nested, independently frozen 4,096-event subset (3,059 users) supports the historical-source test. Neither selection creates new future-period source data or user-disjoint replication.
-
-For each primary original M3 Base family (SASRec and GRU4Rec, checkpoint seed 20261012), the sampled-supervised and full-supervised gates use the same fixed Base/Memory pair and twelve \emph{full-candidate} decision-time features. Their four-fold user-disjoint DEV OOF scores determine separate thresholds under the nominal 30\% DEV call limit; a final predictor of unchanged capacity is then fitted on all DEV data and used with its arm's previously selected OOF threshold, without recalibration on the additional targets. The nominal constraint applies to OOF selection, not to the final refit's realized call fraction or any TEST-period quota. Gate structure and capacity are held constant; the labels differ because sampled training utilities are calculated with target-retained DEV subsets, whereas full labels use complete active candidates. Four final predictors, thresholds and target-blind rankings were sealed before the additional-event author outcomes were revealed. All four choices are evaluated on the same original full-active candidates, without test-time threshold adjustment or equalizing realized calls after the fact.
-
-For the 4,096 nested targets, the unchanged original Full Memory scorer uses either the authentic historical source or three previously sealed, closed-hour historical author-label permutations. Each condition ranks identical full-active candidates, with source event times, author-hour activity margins and candidate availability preserved as specified in the DEV control. The three nulls are alternate histories of the \emph{same} target sample. The original protocol included a cohort-specific, pre-unseal comparison to TRAIN-only Popularity as a nondegeneracy acceptance condition; \emph{this additional cohort's Popularity margin was not scored and sealed before the outcome revelation}, so that original condition is not retrospectively certified. The completed DEV popularity control and other observed null nonfloor diagnostics do not establish the missing acceptance check (Supplementary S10.15 for supervision, S10.16 for the historical control, and S10.18 for the acceptance audit).
-
-\subsection{Candidate-Regime and Historical-Source Controls}
-\label{sec:exp-regimes}
-
-The following paired candidate and historical perturbations provide contextual and explanatory evidence alongside the frozen policy comparison, rather than additional confirmatory TEST populations.
-
-\paragraph{Room-ranking candidate-regime comparison (RQ1).}
-For original KuaiLive, the same histories, targets and fixed raw Base/Memory scorers are evaluated on sampled-active $S$ and full-active $F$ candidates. The Base combines its branches after a score standardization whose candidate reference may vary with the roster. Event-level sampled-to-full changes are
-\begin{equation}
-D_i =
-\big[u_{10}(M,x_i^{\mathrm{full}})-u_{10}(B,x_i^{\mathrm{full}})\big]
--
-\big[u_{10}(M,x_i^{\mathrm{sampled}})-u_{10}(B,x_i^{\mathrm{sampled}})\big].
-\label{eq:paired-regime-shift}
-\end{equation}
-To distinguish membership from score-normalization reference, write $g_i(C,R)$ for Memory-minus-Base utility with ranked candidates $C\in\{S,F\}$ and score-reference roster $R\in\{S,F\}$. Order-averaged allocations are
-\begin{align}
-A_{C,i}&=\tfrac12\big[g_i(F,S)-g_i(S,S)+g_i(F,F)-g_i(S,F)\big],\nonumber\\
-A_{R,i}&=\tfrac12\big[g_i(S,F)-g_i(S,S)+g_i(F,F)-g_i(F,S)\big].
-\label{eq:factorial-allocations}
-\end{align}
-This is a within-event accounting of the observed regime shift: candidate membership changes the number, identities and competitive ranks of alternatives jointly. Three checkpoint pairs and nine sampled candidate draws on the same previously examined room cohort provide sensitivity checks (Supplementary S5 and S8), not new independent TEST populations.
-
-\paragraph{Exploratory M3 supervised-label transfer (RQ2).}
-A distinct DEV analysis uses the original 50,049 full-active M3 author-ranking DEV events from 12,628 users and primary SASRec/GRU4Rec Base seeds. Holding the trained Base, deterministic Memory and twelve full-active pretarget features fixed, a five-outer/four-inner \emph{user-disjoint} design fits and calibrates sampled-label $S\!\rightarrow\!F$ and full-label $F\!\rightarrow\!F$ selectors. The sampled label retains the target retrospectively, whereas all policies are evaluated on identical full-active candidates using target-blind features. An adapted condition uses full-active labels from outer-training users and is not an unsupervised or label-free transfer. Inner DEV caps are 30\%; outer call fractions arise naturally. These HGB fits use 120 iterations rather than the original M3 policies' 200. Follow-up DEV source-component (Long-only, Short-only, TRAIN-popularity and placement) and reduced-feature controls provide exploratory mechanisms; 2,000 paired user-cluster bootstrap replicates describe their differences (Supplementary S10). They are not new chronological TESTs or members of the original TEST hypothesis family.
-
-\paragraph{DEV historical identity perturbation (RQ3).}
-The historical-source diagnostic freezes 1,024 requests from 992 DEV users in 16 pretarget-time/activity strata, excluding a preceding 128-request feasibility pilot. An original Full/Long scorer parity check precedes constrained null construction. Historical author labels are exchanged between different viewers within the same source hour, preserving each viewer's observed event times and counts, source author-hour totals and contemporaneous creator availability. A swap affects target histories only after its source hour fully closes; the active source hour stays authentic. Three fixed seeds (20261014--20261016) leave the evaluated $F$ and retrospective $S$ candidate rosters unchanged. Original-versus-null Full Memory NDCG@10 on common $F$ candidates is analyzed with 2,000 paired user-cluster bootstrap draws per seed. These are three perturbations on \emph{one} DEV cohort, not population replicates. The DEV control also checks its own TRAIN-only Popularity ranking floor; that check does not substitute for a different cohort's prospective acceptance requirement (Supplementary S10.14 and S10.18).
-
-\subsection{Endpoints, Statistical Inference, and System Measurements}
+\subsection{Primary Estimand, Uncertainty and Scientific Boundaries}
 \label{sec:exp-statistics}
 \label{sec:exp-implementation}
+\label{sec:exp-regimes}
 
-The primary rank endpoint is event-level NDCG@10 (Eq.~\eqref{eq:event-ndcg}); secondary reporting includes HR@10 and the realized Memory invocation fraction. All stated ranking comparisons are paired by evaluated event, and uncertainty estimation resamples at the user level. Oracle and random allocation at a given call level provide hindsight and expected-allocation references.
+The primary endpoint is event-level full-active NDCG@10. The estimand weights the 20 original date/history strata by their frequencies in the eligible residual TEST-source population. Policy differences are paired on the same event. We use 5,000 user-cluster bootstrap draws for two-sided 95\% CIs and 5,000 user-cluster sign randomizations for the frozen directional tests.
 
-Twitch TEST reports 5,000 user-paired bootstrap replicates. The paired original KuaiLive room candidate shift uses 3,000 paired user resamples. For the initial M3 47,575-event/12,533-user TEST, 5,000 user-cluster paired bootstrap draws form percentile intervals, and 5,000 user-cluster sign randomizations provide one-sided tests under an approximate within-user sign-symmetry assumption. The original M3 predeclared family compares Utility against Always Base, Difficulty and Specialist Quality, with Holm adjustment \cite{holm1979} for three comparisons \emph{separately within each} of the six Base--seed fits. Shared evaluation users prevent interpretation as six independent population replications or blanket correction across eighteen tests. Uncertainty, History and Always Memory comparisons are additional evaluations.
+Holm adjustment preserves the \emph{original three-test prereveal family}, not an artificially reduced two-test family: (i) SASRec full-label policy minus sampled-label policy; (ii) corresponding GRU4Rec policy; (iii) authentic historical Memory versus within-event mean of three constrained history nulls on a nested 4,096-target subset. The third contrast is retained in the scientific Supplement/archive with its originally unmet cohort-specific pre-reveal TRAIN-only Popularity acceptance subgate; it is not used as evidence that the H1 policy effect is mediated by authentic source structure. Removing that study from the main narrative does not alter the original statistical family or its Holm-adjusted p-values.
 
-For the 30,000 additional M3 target events, the twenty-cell poststratification estimator weights each sampled cell by its frequency in the eligible residual TEST-source population. User-cluster pairing is maintained in 5,000 bootstrap draws for two-sided 95\% intervals and 5,000 cluster sign randomizations for one-sided tests. Holm adjustment covers exactly three precommitted directional comparisons: SASRec full-supervised minus sampled-supervised ranking utility, the analogous GRU4Rec contrast, and authentic Full Memory minus the \emph{within-event mean} of three historical null utilities on the nested cohort. This is a distinct comparison family from the initial original TEST. Different realized F/S Memory-call counts are reported explicitly, not retrospectively equalized. The additional targets share the source recording period with the initial TEST and do not constitute external future-time validation.
+The DEV decision-switch trace uses all 50,049 previously fitted DEV requests and is descriptive, not independently held-out confirmation or causal mediation. Realized raw and population-weighted Memory-call rates are reported separately: nominal DEV constraint does not make the new policies equal-budget on additional targets. Always Memory is the unrestricted quality reference. The only previously measured GPU latency belongs to a legacy pointwise selector in a separately warmed, counterbalanced 256-request DEV replay (three passes on RTX 3090); it does not estimate the newer F-aligned selector's online latency. Source manifests, user-level uncertainty implementation, family decisions and reproducibility limits remain in focused Supplement N14-S2 and the complete research archive.
 
-The original KuaiLive Base comprises 64-dimensional ReChorus SASRec room/creator branches, one attention layer, four heads and maximum input length 50. LiveRec uses context length 16; M3 Base models use 64-dimensional embeddings, 16-item histories and one SASRec self-attention or GRU4Rec recurrent layer. Original Twitch and M3 supervised gates use histogram gradient boosting (200 iterations, learning rate 0.05, depth 3, minimum leaf size 50 and $\ell_2$ penalty 1); the later exploratory DEV gates use the explicitly different capacity reported above. Full training, history processing and reproducibility specifications remain in Supplementary S1--S3 and S7--S10.
-
-A separately timed \emph{DEV-only} scoring experiment executes the original primary-seed SASRec pointwise Utility selector, Always Base and Always Memory on the same 256 distinct author-ranking requests, each repeated three times in counterbalanced order on an RTX 3090, with CUDA synchronization. Pretarget history-source scanning and author-roster construction are timed separately from the warmed per-request scoring paths (Supplementary S10.17). This is neither production end-to-end serving latency nor a timing evaluation of the additional-target vectorized F-aligned gate. Memory-call constraints, absolute ranking utility and realized computation time are therefore reported as different outcomes.
 \section{Results}
 \label{sec:results}
 
-The results follow the evidence hierarchy established in Section~\ref{sec:experimental-setup}. We first characterize how the value of a fixed relationship source varies with historical context and candidate regime (RQ1). We then test the primary policy consequence of candidate-aligned supervision on common full-active candidates (RQ2), followed by a descriptive account of DEV allocation changes and the established frozen-selection comparisons. A parallel fixed-candidate history-null comparison examines source validity (RQ3). We close with invocation constraints and measured scoring-path costs, which delimit the operational interpretation of selective use.
+The evidence follows one question: whether the candidate regime used to supervise the incumbent-relative value of a fixed Memory source affects frozen knowledge-use decisions and full-candidate ranking quality. A paired room-ranking comparison first establishes the candidate sensitivity of the evaluation target. The primary policy contrast then uses an additional same-period M3 author-ranking cohort, followed by descriptive DEV allocation accounting and the observed operating limitations. The room and author experiments have distinct ranked units and do not form an isolated causal chain.
 
-\subsection{RQ1: When Is Relationship Knowledge Incrementally Valuable?}
-\label{sec:results-heterogeneity}
+\subsection{Candidate-Regime Sensitivity of the Supervision Target}
 \label{sec:results-regimes}
 
-\paragraph{Complementarity depends on the incumbent's usable historical context.}
-On 44,221 held-out Twitch streamer-ranking requests, unconditional Memory obtains NDCG@10 $0.53980$, below the LiveRec incumbent's $0.58211$ (paired difference $-0.04232$, 95\% user-bootstrap CI $[-0.04521,-0.03950]$). The aggregate, however, combines different historical situations. On 5,539 \emph{recoverable-but-unrepresented} events—where the relevant creator is present in accessible earlier history but absent from the Base input—Memory contributes $+0.22045$ NDCG@10 relative to Base (95\% CI $[+0.21140,+0.23001]$). The corresponding gains are $-0.01935$ for 24,285 represented events and $-0.18215$ for 14,397 events without prior accessible target history. Figure~\ref{fig:results-evidence-states} presents this stable pattern across DEV and frozen TEST; all group-specific Base/Memory means, counts and uncertainty intervals are preserved in Supplementary Table S10.13. These are \emph{outcome-defined diagnostic groups}, not labels supplied to the online selector.
-
-\begin{figure}[!htbp]
-\centering
-\begin{tikzpicture}[x=1cm,y=6.7cm]
-  \draw[->,thin] (0.65,-0.245) -- (0.65,0.277)
-    node[above,font=\scriptsize] {$\Delta_M$};
-  \foreach \v in {-0.2,-0.1,0,0.1,0.2}{
-    \draw[thin] (0.59,\v) -- (0.71,\v);
-    \node[anchor=east,font=\scriptsize] at (0.51,\v) {$\v$};
-  }
-  \draw[densely dashed,gray] (0.70,0) -- (9.60,0);
-  \node[font=\scriptsize,anchor=west] at (2.55,0.265)
-    {\tikz[baseline=-0.4ex]\draw (0,0) circle[radius=2.3pt];\quad DEV};
-  \node[font=\scriptsize,anchor=west] at (5.5,0.265)
-    {\tikz[baseline=-0.4ex]\fill (0,0) circle[radius=2.3pt];\quad Frozen TEST};
-  % Each adjacent pair shows the same evidence state across two windows.
-  \draw[thin,gray] (1.89,-0.01995) -- (2.30,-0.01935012);
-  \draw[thin,gray] (4.89,0.23096894) -- (5.30,0.22044597);
-  \draw[thin,gray] (7.89,-0.19562009) -- (8.30,-0.18214811);
-  \draw[fill=white] (1.89,-0.01995) circle[radius=2.3pt];
-  \draw[fill=white] (4.89,0.23096894) circle[radius=2.3pt];
-  \draw[fill=white] (7.89,-0.19562009) circle[radius=2.3pt];
-  \fill (2.30,-0.01935012) circle[radius=2.3pt];
-  \fill (5.30,0.22044597) circle[radius=2.3pt];
-  \fill (8.30,-0.18214811) circle[radius=2.3pt];
-  \node[anchor=north,font=\scriptsize] at (2.1,-0.247) {Represented};
-  \node[anchor=north,font=\scriptsize] at (5.1,-0.247) {Recoverable};
-  \node[anchor=north,font=\scriptsize] at (8.1,-0.247) {Unavailable};
-\end{tikzpicture}
-\caption{State-conditional Memory-minus-Base NDCG@10 on Twitch development and frozen test events. Paired open and filled markers denote development and test means for the same state definition; connecting lines are visual guides, not paired event trajectories. Numerical TEST 95\% confidence intervals are provided in Supplementary Table S10.13. The states are assigned retrospectively.}
-\label{fig:results-evidence-states}
-\end{figure}
-
-\paragraph{Candidate membership can reverse the evaluated value for the same ranking event.}
-The original KuaiLive \emph{room}-ranking candidate comparison keeps 10,222 target events, user histories and fixed raw ranker functions unchanged. On the 575-room sampled-active evaluation, Memory-minus-Base NDCG@10 is $-0.04120$ (Base $0.60709$, Memory $0.56589$). On the contemporaneous full-active roster, the difference becomes $+0.04631$ (Base $0.38571$, Memory $0.43202$). The within-event shift is $+0.08751$ (95\% paired user CI $[+0.08210,+0.09326]$). The crossed candidate/reference comparison in Table~\ref{tab:results-factorial} allocates $+0.08827$ (CI $[+0.08287,+0.09397]$) to the candidate-membership dimension and $-0.00076$ (CI $[-0.00117,-0.00036]$) to the score-normalization reference. Membership changes competing identities, number and top-rank competition together; the accounting does not identify candidate count alone as a cause.
+The original KuaiLive \emph{room}-ranking comparison holds 10,222 evaluated events, their histories and the frozen Base/Memory ranker pair fixed while changing the eligible candidate set. With 575 sampled-active alternatives, Base NDCG@10 is $0.60709$ and Memory NDCG@10 is $0.56589$, giving Memory-minus-Base $-0.04120$. On the contemporaneous full-active roster, Base scores $0.38571$ and Memory scores $0.43202$, reversing the relative value to $+0.04631$. The within-event shift is $+0.08751$ (95\% paired user CI $[+0.08210,+0.09326]$). The crossed comparison in Table~\ref{tab:results-factorial} assigns $+0.08827$ to candidate membership and $-0.00076$ to the scoring reference. These are accounting dimensions: candidate identity, count and rank competition change together. This diagnostic motivates aligning the \emph{supervision target} with actual alternatives but does not independently test the later M3 author-ranking policy.
 
 \begin{table}[!htbp]
 \centering
@@ -441,16 +237,10 @@ Full-active ($F$) & $+0.04761$ & $+0.04631$ \\
 \end{tabular}
 \end{table}
 
-The direction of this reversal persists over three alternative KuaiLive checkpoint pairs and nine sampled candidate draws on the same previously examined room cohort (Supplementary S5 and S8); it is not an independent new TEST. Together with the Twitch recoverability pattern, the paired comparison establishes the empirical meaning of RQ1: the value of a fixed historical specialist is specific to the incumbent, available history and actual ranking alternatives. It therefore motivates supervising a knowledge-use policy with utility computed on the \emph{candidate regime where that policy is evaluated}.
-
-\FloatBarrier
-\subsection{RQ2: Does Candidate-Aligned Value Supervision Improve Knowledge Use?}
+\subsection{Primary Frozen Full-Candidate Policy Comparison}
 \label{sec:results-decision}
 
-\paragraph{Actual-candidate labels improve frozen policy outcomes.}
-The primary comparison asks whether training labels derived from the full-active candidate regime improve the full-active ranking outcomes of separately frozen knowledge-use policies. The S-supervised comparator uses the original, uncorrected 575-candidate labels obtained by retrospectively retaining the observed target. The regime-adapted DEV control in Supplementary Table S10.14 uses full-candidate training labels and is not a sampled-only statistical correction.
-
-On identical full-active $F$ evaluation candidates, F-supervised policies improve eligible-population-weighted NDCG@10 over the S-supervised policies by $+0.005391$ for SASRec (95\% paired user CI $[+0.003646,+0.007174]$, Holm $p=0.000600$) and $+0.003585$ for GRU4Rec (CI $[+0.001599,+0.005576]$, Holm $p=0.000800$). Table~\ref{tab:results-m3-b4a-supervision} reports the policy scores. The F-aligned configurations achieve higher weighted ranking utility with fewer realized calls: SASRec 8,704 versus 9,105; GRU4Rec 8,629 versus 9,168. These are unweighted call counts, not the population-weighted invocation fractions.
+The primary analysis uses 30,000 additional M3 \emph{author}-ranking targets (10,387 users) from the same recording period as the original TEST-source collection. These target event IDs were not included in the original 47,575-event evaluation; this is not a separate future-period or user-disjoint replication. Each policy uses the same fixed incumbent--Memory pair and full-active decision-time feature contract. The S-supervised comparator is trained using original, uncorrected 575-candidate labels with retrospective target retention; the F-supervised policy uses full-active candidate labels. Separately fitted and DEV-calibrated policies are evaluated on identical full-active candidate rosters.
 
 \begin{table}[!htbp]
 \centering
@@ -468,195 +258,55 @@ GRU4Rec & 0.300945 & \textbf{0.304530} & $+0.003585$ $[0.001599,0.005576]$ & 8,6
 \end{tabularx}
 \end{table}
 
-The F-supervised policies also have lower realized Memory-call fractions under the same predeclared 20-cell eligible-population weights: 29.203\% versus 30.537\% for SASRec and 29.008\% versus 30.809\% for GRU4Rec (Supplementary Table S10.9). The unweighted call counts are 8,704 versus 9,105 and 8,629 versus 9,168, corresponding to realized call-rate gaps of 1.337 and 1.797 percentage points. These gaps exceed the original approximate 1pp near-equal-call tolerance. The observed advantage therefore belongs to the complete frozen policy configurations: the unequal weighted call rates do not establish an equal-resource, label-only effect. This is not an experimentally isolated equal-resource effect of changing only the labels.
+Under full-active evaluation, the F-supervised policies improve weighted NDCG@10 over S-supervised policies: SASRec $+0.005391$ (95\% paired-user CI $[+0.003646,+0.007174]$; Holm $p=0.000600$) and GRU4Rec $+0.003585$ (CI $[+0.001599,+0.005576]$; Holm $p=0.000800$).
 
-\FloatBarrier
+The original three-comparison prereveal Holm family also included a nested historical-source contrast. Its result and incomplete prereveal acceptance check are retained in the Supplement and research archive. Removing the contrast from the main research question does not redefine that family.
 
-\subsection{How Supervision Reallocates Historical Knowledge Calls}
+With the same predeclared 20-cell eligible-population weights, the realized Memory-call fractions are 29.203\% (F) versus 30.537\% (S) for SASRec, and 29.008\% versus 30.809\% for GRU4Rec (focused Supplement Table N14-S1 (source Table S10.9)). The distinct unweighted calls are 8,704/9,105 and 8,629/9,168, respectively. Their unweighted invocation-rate gaps of 1.337 and 1.797 percentage points exceed the original approximately 1pp near-equal-call tolerance. Thus these are comparisons of entire frozen policy configurations, not an experimentally isolated equal-resource effect of changing only the supervision labels.
+
+\subsection{DEV Allocation: Which Requests Change Specialist Use?}
 \label{sec:results-allocation}
 
-The shared 50,049-request full-active M3 DEV cohort provides a descriptive view of how the fitted policies allocate Memory calls. F-supervised versus S-supervised policies achieve $0.302658$ versus $0.296499$ NDCG@10 for SASRec (difference $+0.006159$; CI $[+0.004835,+0.007543]$) and $0.303093$ versus $0.298123$ for GRU4Rec ($+0.004970$; CI $[+0.003550,+0.006369]$). Although their realized call totals are similar, 10,672 (21.32\%) and 11,517 (23.01\%) event decisions disagree between the policies. The F-only requests have larger mean observed Memory-minus-Base gain than the S-only requests (SASRec 0.133417 versus 0.076194; GRU4Rec 0.126600 versus 0.079135). 
+On the shared 50,049 full-active M3 DEV requests, policy decisions disagree for 10,672 requests (21.32\%) under SASRec and 11,517 (23.01\%) under GRU4Rec. These are percentages of all evaluated DEV \emph{requests}, not of Memory invocations. The F-only versus S-only decisions number 5,350 versus 5,322 for SASRec and 5,639 versus 5,878 for GRU4Rec. F-only decisions have larger mean observed full-candidate Memory-minus-Base gains than displaced S-only decisions: $0.133417$ versus $0.076194$ for SASRec and $0.126600$ versus $0.079135$ for GRU4Rec. Both selected and displaced groups have positive mean benefit, consistent with improved prioritization among useful invocations rather than a simple positive-versus-negative filter.
 
-More precisely, the 5,350 SASRec F-only calls contribute $+0.014262$ NDCG@10 across the whole DEV cohort while 5,322 displaced S-only calls contribute $-0.008102$, for net $+0.006159$. For GRU4Rec, 5,639 added and 5,878 displaced calls contribute $+0.014264$ and $-0.009294$, yielding net $+0.004970$. This switch accounting is an algebraic partition of realized DEV policy value, not a causal decomposition of the separate additional 30,000-target policy contrast. Full per-policy values, call counts and the adapted condition appear in Supplementary Table S10.14.
+DEV policies achieve NDCG@10 $0.302658$ (F) versus $0.296499$ (S) for SASRec and $0.303093$ versus $0.298123$ for GRU4Rec. The switch accounting is an algebraic partition of realized DEV policy value, not a causal decomposition of the separate additional 30,000-target policy contrast. Full DEV policy/call results, confidence intervals and the full-label adapted control are preserved in focused Supplement Table N14-S2 (source Table S10.14). This is explanatory same-DEV evidence, not another independent confirmatory TEST.
 
-This allocation trace describes the DEV policy differences; the following frozen-policy comparisons place selective use in context across the established Twitch and M3 tasks.
+\subsection{Quality, Comparator and Operating Boundaries}
+\label{sec:results-boundaries}
 
-\subsection{Frozen Base-Relative Selection Across Tasks and Incumbents}
-\label{sec:results-selection-context}
+On the additional 30,000-target cohort, unrestricted Always Memory achieves weighted full-candidate NDCG@10 $0.348744$, above both tested selective F-supervised policies ($0.305446$ and $0.304530$). Thus the primary result concerns the observed policies under invocation limits, not unconstrained rank-quality dominance. The original sampled comparator was not statistically corrected: no scientifically admitted sampled-only corrected-S selector was trained and independently evaluated, so a valid correction could narrow the reported policy difference.
 
-\paragraph{The unconstrained specialist defines the quality ceiling.} In the M3 full-active \emph{author}-ranking TEST, fixed Memory attains NDCG@10 $0.34679$ on 47,575 requests, exceeding each of the six trained SASRec/GRU4Rec incumbents ($0.25800$--$0.26065$), including a $+0.08879$ advantage over the primary SASRec Base. This provides the unconditional specialist reference for interpreting the selective policies below. It is evidence from the M3 author-ranking task, distinct from the Twitch streamer and KuaiLive room diagnostics.
-
-
-\paragraph{Relative-value prediction supports pre-outcome selection.}
-On frozen Twitch TEST, the DEV-calibrated Utility rule invokes Memory on 6,650 of 44,221 events (15.04\%) and increases NDCG@10 from the Base's $0.58211$ to $0.58983$ (paired gain $+0.00772$, 95\% CI $[+0.00641,+0.00903]$), with HR@10 gain $+0.00945$ (CI $[+0.00776,+0.01117]$). A Difficulty score attains NDCG@10 $0.58340$ when retrospectively matched to the same TEST call count, giving Utility a $+0.00644$ advantage (CI $[+0.00528,+0.00762]$). The count-matched Oracle achieves $0.64806$ but uses the observed outcomes. Unlike those retrospective equal-count references, Utility makes pointwise choices under its \emph{frozen DEV threshold} (Table~\ref{tab:results-twitch-policy}). Its chosen requests show mean Memory-minus-Base value $+0.05136$, compared with $-0.05890$ for unchosen requests, linking pre-outcome selection to realized source value.
-
-\begin{table}[!h]
-\centering
-\caption{Frozen Twitch/LiveRec TEST comparison ($n=44{,}221$). Utility applies a DEV-frozen pointwise threshold. Difficulty uses its DEV-trained score to select a retrospectively matched count $m=6{,}650$ across the TEST batch; Oracle uses realized TEST utility to select the same $m$. Only Utility is evaluated as a prospective-feature, fixed-threshold pointwise policy.}
-\label{tab:results-twitch-policy}
-\footnotesize
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-Ranking policy & NDCG@10 & HR@10 & Memory invocations \\
-\midrule
-Always-Base & 0.58211 & 0.75503 & 0 \\
-Always-Memory & 0.53980 & 0.68402 & 44,221 \\
-Utility (DEV-frozen) & \textbf{0.58983} & \textbf{0.76448} & 6,650 \\
-Difficulty (equal count) & 0.58340 & 0.75252 & 6,650 \\
-Oracle (hindsight) & 0.64806 & 0.80455 & 6,650 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The original frozen M3 \emph{author}-ranking TEST supplies the cross-Base selection context for the additional policy comparison. On the primary SASRec checkpoint, Utility achieves NDCG@10 $0.30287$ at 29.21\% Memory calls, versus Base $0.25800$, and exceeds each of the four specified selection comparators while making fewer realized calls (Table~\ref{tab:results-m3-policy}). Across six SASRec/GRU4Rec fits on the \emph{same} 47,575 evaluated TEST requests, Utility NDCG@10 ranges from $0.30177$ to $0.30400$, its improvement over each incumbent from $+0.04237$ to $+0.04515$, and its Memory-call rate from 27.72\% to 29.21\% (Table~\ref{tab:results-m3-robustness}). These are pointwise frozen DEV thresholds, not equal-TEST-count batch choices.
-
-For the primary SASRec fit, the three predeclared contrasts yield Utility-minus-Base $+0.04486$ (95\% CI $[+0.04281,+0.04692]$), Utility-minus-Difficulty $+0.02039$ (CI $[+0.01837,+0.02244]$), and Utility-minus-Specialist Quality $+0.02331$ (CI $[+0.02118,+0.02551]$). They pass within-fit Holm adjustment ($p_{\mathrm{adj}}\approx0.00060$). The other fitted-model statistics are in Supplementary S8; six fits share one TEST population, and those corrections are not a single 18-test family. The observed quality and call-count comparison does not by itself imply an unconstrained accuracy or serving-cost advantage.
-
-\begin{table}[!htbp]
-\centering
-\caption{KuaiLive-M3 frozen full-active author-ranking TEST for the primary SASRec seed 20261012 ($n=47{,}575$). All five selection thresholds were optimized on DEV with at most 30\% Memory calls and then frozen. The percentages are \emph{realized TEST} calls, not post-hoc equalized quotas. Always Memory is the unconditional specialist reference.}
-\label{tab:results-m3-policy}
-\footnotesize
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-Ranking policy & NDCG@10 & $\Delta$ vs Base & TEST Memory calls (\%) \\
-\midrule
-Always Base & 0.25800 & --- & 0.00 \\
-Always Memory & \textbf{0.34679} & $+0.08879$ & 100.00 \\
-Utility (DEV-frozen) & 0.30287 & $+0.04486$ & 29.21 \\
-Difficulty (DEV-frozen) & 0.28248 & $+0.02448$ & 29.90 \\
-Specialist Quality (DEV-frozen) & 0.27956 & $+0.02155$ & 29.57 \\
-Uncertainty (DEV-frozen) & 0.28937 & $+0.03137$ & 30.18 \\
-History (DEV-frozen) & 0.27979 & $+0.02179$ & 35.47 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[!htbp]
-\centering
-\caption{KuaiLive-M3 frozen TEST robustness across two Base families and three independently trained seeds per family, using the \emph{same} 47,575 author-ranking events. Utility--Uncertainty is a secondary comparison. Full five-policy values, three-contrast confidence intervals and Holm statistics are provided in Supplementary S8.}
-\label{tab:results-m3-robustness}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}llrrrr@{}}
-\toprule
-Base & Seed & Base NDCG & Utility NDCG & Utility$-$Base & Utility$-$Uncert. \\
-\midrule
-SASRec & 20261012 & 0.25800 & 0.30287 & $+0.04486$ & $+0.01349$ \\
-SASRec & 20261013 & 0.25881 & 0.30177 & $+0.04296$ & $+0.01363$ \\
-SASRec & 20261014 & 0.25867 & 0.30306 & $+0.04439$ & $+0.01368$ \\
-GRU4Rec & 20261012 & 0.26003 & 0.30400 & $+0.04397$ & $+0.01311$ \\
-GRU4Rec & 20261013 & 0.26065 & 0.30302 & $+0.04237$ & $+0.01301$ \\
-GRU4Rec & 20261014 & 0.25840 & 0.30355 & $+0.04515$ & $+0.01431$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Auxiliary pretarget-feature evidence.}
-A separate Twitch DEV ablation compares the pretarget feature families. Combining history and Base-score features yields $+0.00838$ NDCG@10, compared with $+0.00372$ for history only and $+0.00160$ for Base scores only, at a matched retrospective DEV call count (Supplementary Table S10.16). These fitted DEV contrasts support using both feature families.
-
-Together, the frozen policy contrasts and DEV allocation trace link candidate-relative value supervision to observable differences in specialist-use decisions. A parallel source-validity question remains: whether the fixed Memory specialist depends on authentic viewer--creator history when current candidate rosters are unchanged.
+The earlier matched warmed DEV GPU replay also does not establish production savings: the \emph{original pointwise} Utility path averaged 1.76941 ms per request, versus 0.69165 ms for Always Memory and 0.72759 ms for Always Base. The newer F-supervised vectorized path was not measured end to end. A lower Memory-call fraction is therefore not evidence of reduced total serving latency or monetary cost. These constraints delimit the current offline decision-policy observation rather than defining another efficiency contribution.
 
 \FloatBarrier
-\subsection{RQ3: Does Authentic Relationship History Matter with Fixed Candidates?}
-\label{sec:results-robustness}
 
-\paragraph{Frozen additional-target source comparison.}
-The nested 4,096-target M3 author-ranking cohort holds the incumbent task, full-active eligible candidates and unchanged Full Memory scorer fixed, varying only the historical viewer--creator source between authentic observed relationships and three time- and author-activity-constrained null histories. Authentic Full Memory obtains weighted full-candidate NDCG@10 $0.334942$ versus the within-event mean of null scores $0.303797$, a paired gain of $+0.031145$ (95\% user-cluster CI $[+0.027389,+0.035098]$, Holm-adjusted $p=0.000600$; Table~\ref{tab:results-m3-additional-relation-identity}). The three seed-specific nulls score 0.303905, 0.304689 and 0.302796. They are three randomized sources for the \emph{same} sample, not three new target cohorts.
-
-\begin{table}[!htbp]
-\centering
-\caption{Historical-source specificity on 4,096 additional M3 author-ranking targets (3,059 users) from the same original recording period. The Full Memory scorer and full-active candidates are identical across original and null histories. Values use the frozen 20-cell eligible-population weights; the paired interval resamples users across the \emph{same} requests with three null utilities averaged within event. The prespecified TRAIN-only Popularity margin for this cohort was not verified before outcome revelation.}
-\label{tab:results-m3-additional-relation-identity}
-\footnotesize
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}lrl@{}}
-\toprule
-Historical source & Weighted $F$ NDCG@10 & Paired 95\% CI for gap \\
-\midrule
-Authentic Full Memory & \textbf{0.334942} & --- \\
-Null seed 20261014 & 0.303905 & --- \\
-Null seed 20261015 & 0.304689 & --- \\
-Null seed 20261016 & 0.302796 & --- \\
-Mean of three nulls & 0.303797 & --- \\
-Authentic minus mean null & $\mathbf{+0.031145}$ & $[+0.027389,+0.035098]$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The constrained rewiring replaces approximately 76.78--76.80\% of eligible historical relation edges yet leaves 1,903--1,913 relevant targets in the top ten for each null. The three nulls pass the reported nondegeneracy checks on their own ranking performance, top-ten support and substantial history rewiring; this is \emph{not} certification of every originally specified control check. The original-versus-null difference supports the value of authentic \emph{historical source arrangement} beyond candidate membership and recorded author-hour availability; it does not isolate a single viewer--creator semantic mechanism because repeated pairs and higher-order structures also change. Furthermore, the cohort-specific TRAIN-only Popularity margin included among the \emph{original pre-unseal acceptance conditions} was \emph{not measured and sealed before target reveal}. Its earlier DEV counterpart and partial null nondegeneracy diagnostics do not certify the unfulfilled condition (Supplementary S10.16--S10.18). This result is a fixed-source-period historical validity check, not later-period external validation.
-
-\paragraph{Supporting source and composition analyses.}
-The separate 1,024-request M3 DEV history study provides consistent source sensitivity on common full-active candidates: across three null seeds, the original Full-minus-null gain ranges from $+0.032858$ to $+0.035544$, with positive paired intervals (Supplementary S10.14 and S10.18). The DEV cohort's TRAIN-only Popularity control passed its own nonfloor requirement, which is \emph{not} transferable as certification for the additional-target study.
-
-At the component level, Full Memory ranks above Long-only under full-active M3 DEV candidates (NDCG@10 $0.343509$ versus $0.333231$), but Long-only ranks above the unchanged Full mixture under retrospective sampled candidates ($0.773602$ versus $0.668498$). Full-minus-Long is $+0.010278$ (CI $[+0.007906,+0.012668]$) under $F$ and $-0.105104$ (CI $[-0.108326,-0.101683]$) under $S$, a paired interaction of $+0.115382$ (CI $[+0.111724,+0.119065]$). The interaction is driven largely by sampled top-ten support, including $+0.100885$ (87.4\%) from events with zero source gap under at least one regime; only 66 events have strictly opposite nonzero source-gap signs. Supplementary Table S10.15 preserves the full DEV Full/Long/Short/Popularity/placement results. The contrast establishes candidate-conditional rankings of different knowledge representations but does not independently identify a single causal relation feature.
-
-Taken together, the source tests demonstrate that the history used by the fixed specialist is informative on the same full candidate rosters, complementing the RQ1 value characterization and RQ2 use decisions. They are neither a causal mediation chain nor independent longitudinal evidence.
-
-\FloatBarrier
-\subsection{Operational Conditions: Invocation Limits and Measured Scoring Cost}
-\label{sec:results-efficiency}
-
-Selection only becomes an operational advantage under an explicit resource objective. In the original frozen M3 TEST, Utility invokes Memory on 27.72--29.21\% of requests after DEV-limited calibration; a History heuristic reaches 35.47\% on TEST. In the additional 30,000-target cohort, the unconstrained Always Memory reference obtains weighted full-candidate NDCG@10 $0.348744$, exceeding SASRec and GRU4Rec F-aligned selective policy scores of $0.305446$ and $0.304530$. These values delimit the accuracy benefit of invoking the specialist unconditionally.
-
-On original M3 DEV, raising the inner call limit from 30\% to 50\% improves SASRec selective NDCG@10 from $0.302658$ to $0.319654$ and GRU4Rec from $0.303093$ to $0.320478$; at a 90\% limit both reach approximately $0.34105$, approaching Always Memory $0.343509$. Without a cap the learned policies invoke Memory on 99.91\% and 99.44\% of events, respectively. An additional decision analysis of $J_\lambda(\pi)=V_F(\pi)-\lambda q(\pi)$, with \emph{hypothetical} NDCG-denominated marginal specialist-call disutility, selects the 30\%-inner-cap option only in the observed point-estimate intervals $\lambda\in[0.084516,0.111321]$ for SASRec and $[0.083119,0.104379]$ for GRU4Rec; at zero penalty Always Memory is preferable. These DEV-only policy-frontier analyses assume zero incremental gate overhead and do not constitute measured savings (Supplementary S10).
-
-In matched and counterbalanced 256-request M3 DEV replay (three measured repetitions per request), actual GPU scoring paths tell a different cost story. The original frozen SASRec pointwise Utility selector averages 1.769 ms against 0.692 ms for Always Memory and 0.728 ms for Always Base (Table~\ref{tab:results-n10-cost}). Utility invokes Memory on only 80/256 (31.25\%) distinct requests; Base scoring, feature construction and prediction overhead together exceed the avoided Memory work. Source history and active-author roster preparation were timed separately, not interpreted as online per-request latency. This test evaluates the \emph{original pointwise Utility gate}, not the newer F-aligned 30,000-target policy or complete production serving.
-
-\begin{table}[!htbp]
-\centering
-\caption{Matched, counterbalanced \emph{DEV-only} full-active ranking-path timing on RTX 3090 (256 requests, each repeated three times). History and candidate preparation are reported separately; the timed selector is the original pointwise SASRec Utility gate, not the full-aligned vectorized gate or an online deployed system.}
-\label{tab:results-n10-cost}
-\footnotesize
-\setlength{\tabcolsep}{8pt}
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-Execution path & Mean (ms) & Median (ms) & P95 (ms) \\
-\midrule
-Always Base & 0.728 & 0.722 & 0.871 \\
-Always Memory & \textbf{0.692} & \textbf{0.657} & 1.089 \\
-Frozen Utility selective & 1.769 & 1.701 & 2.290 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Thus the demonstrated decision benefit is \emph{higher ranking utility at stipulated specialist-invocation constraints} for the evaluated policies, not an observed lower end-to-end latency or monetary cost relative to unconditional Memory. The explicit call fractions, unconstrained specialist quality and measured overhead are necessary when deciding whether candidate-relative knowledge selection should be deployed (Supplementary S10.17).
 \section{Discussion}
 \label{sec:discussion}
 
-\subsection{Candidate-Indexed Value as a Knowledge-Use Decision Contract}
+\subsection{What Candidate-Aligned Supervision Changes}
 \label{sec:discussion-values}
 
-For a fixed historical relationship source, its usefulness cannot be determined from specialist accuracy alone. The relevant object is its incremental ranking value over the incumbent on the candidates eligible for the request. In Twitch, recoverable relationships can complement a sequential model whose input window omits earlier evidence. In paired KuaiLive room rankings, changing from sampled-active to full-active alternatives reverses the measured Base--Memory advantage. Because candidate membership, competition and scoring reference may change together, this is evidence of candidate-regime sensitivity, not an isolated candidate-count effect. The DEV component comparisons reinforce that regime dependence: Long-only outranks the fixed Full mixture under sampled candidates, whereas the Full mixture outranks Long-only under full-active candidates. These are within-regime comparisons, not a common-scale estimate of one component's causal contribution.
+Our study concerns a use-time decision for an already fixed relationship source, not a new representation or routing algorithm. The paired room-ranking diagnostic shows why the target for that decision must be indexed by the evaluated candidates: Memory's advantage relative to Base reverses when candidate membership and the score-reference roster change. This is an observed regime contrast, not an intervention isolating the number of candidates. In the M3 author-ranking study, the separate complete-policy comparison supports the practical consequence: full-candidate supervision is associated with better full-active ranking under the tested frozen F/S policy configurations.
 
-Existing knowledge representation and memory-management work considers how relational evidence is constructed and retained \cite{xie2026mhgfcl,zhong2026samd}; learning-to-defer considers when alternative predictors are used \cite{mozannar2020defer,mao2024regression}. Sampled-ranking evaluation and decision-focused learning further establish that supervision proxies may differ from downstream objectives \cite{krichene2020kdd,mandi2024decisionfocused}. Our contribution is the empirical decision consequence at their intersection: the candidate regime used to label \emph{Memory's incumbent-relative value} changes the requests selected for the already fixed specialist and the full-candidate performance of the fitted policies. Candidate definition is therefore part of the knowledge-use supervision contract, not merely an offline reporting choice.
+The shared DEV switch trace makes the decision difference interpretable. The policies disagree on 21--23\% of requests, and calls added under F supervision have greater mean observed Memory-minus-Base value than displaced S-only calls. Both groups nevertheless have positive average value. The pattern is therefore consistent with a shift in the \emph{priority} of useful specialist calls, not simply filtering out all harmful calls. This is descriptive accounting on the fitting/development population, not causal mediation or an independent confirmation of the additional-target comparison.
 
-\subsection{From Supervision Regime to Allocated Knowledge Calls}
-\label{sec:discussion-selective-decisions}
-
-The additional M3 evaluation associates full-candidate-relative supervision with higher full-candidate ranking quality and lower population-weighted Memory-call fractions than the original, uncorrected sampled-label policies. Both arms use the same fixed Base--Memory pair and pretarget feature definition, but are separately fitted and DEV-calibrated complete policies. Their additional targets have event IDs not previously evaluated in the original M3 TEST, although they come from the same recording period.
-
-The shared-DEV decision trace helps interpret the allocation difference without supplying another held-out confirmation. Approximately 21--23\% of event decisions disagree; requests newly assigned to Memory under full-candidate supervision have greater mean observed incremental value than the displaced requests. Importantly, both groups are beneficial on average. The evidence therefore concerns \emph{prioritization among useful calls}, not just rejection of requests with negative realized specialist value. The accounting is descriptive and is not a causal mediation analysis of the additional-target result.
-
-This conclusion is bounded by the comparator and resource contract. The S labels originate from the original target-retained, uncorrected sampled-candidate protocol, not a statistically corrected sampled-only estimator. The realized additional-target invocation rates differ by 1.337 and 1.797 percentage points, so the contrast is not a strict matched-call or label-only effect. 
-
-\subsection{Source Validity, Evaluation Limits and Actual Operating Conditions}
+\subsection{What This Comparison Cannot Establish}
 \label{sec:discussion-validity}
 
-The fixed-candidate historical-source test supplies a parallel check on the content being selected. Authentic viewer--creator histories outperform the constrained alternatives when current candidates and the Memory scorer remain unchanged. However, each perturbation modifies both repeated relationships and broader historical structure, so the result supports composite source validity rather than an isolated semantic mechanism. The prereveal protocol checks were \emph{partially completed}: performance, positive-support and substantial-rewiring checks passed, but the nested cohort's prespecified TRAIN-only Popularity margin was \emph{not measured and sealed before target reveal}. Its separate DEV analogue cannot retroactively certify that requirement.
+The sampled-label comparator retains the observed target retrospectively among 575 alternatives and uses no validated sampling correction. A defensible sampled-only correction could narrow the observed F-versus-S policy difference; we did not train or evaluate a selector using such corrected labels and cannot rule out that alternative. The separately fitted arms are calibrated with different development thresholds, and their additional-target invocation rates differ. The result therefore concerns the tested \emph{complete frozen policies}, not a strictly matched-call, label-only causal contrast.
 
-Transfer beyond the tested protocols remains open. Twitch streamer, KuaiLive room and M3 author ranking differ in ranked units, incumbent models and candidate construction. The additional M3 sample is event-ID-disjoint from the original evaluation but not a new recording period or user-disjoint replication. Observed single-positive interactions may also be shaped by historical exposure, a concern in sampled offline recommender comparisons \cite{pereira2025samplingreliability}. A defensible sampled-only correction could narrow the observed F-versus-S policy difference; we did not train or evaluate a selector using such corrected labels and cannot rule out that alternative. The existing method-admission studies did not establish a deployable corrected-S policy under the current information contract. The policy results consequently establish the specified offline comparisons, not causal online user outcomes or future-period generalization.
+The additional M3 targets are event-ID-disjoint from the original evaluation, but occur in the same recording period and may share users or earlier history. The room-ranking diagnostic uses a different ranked unit and Base checkpoint; it motivates the candidate question without isolating the mechanism in the author-ranking cohort. Observed single-positive targets are also subject to logging and exposure limitations \cite{pereira2025samplingreliability}. Accordingly these results support the stated offline policy comparison, not a future-period replication or causal online user outcomes.
 
-Finally, selective use is meaningful only under an explicit resource objective. On the additional M3 cohort, Always Memory offers higher unconstrained ranking quality than the selective policies; in a separate warmed DEV replay, the earlier pointwise Utility path was slower than unconditional Memory. The newer vectorized F-aligned selector was not timed end to end. Invocation fractions, gate-computation time and production access costs are distinct quantities, so the present results do not establish a deployment-savings result. Access quotas or externally imposed capacity limits are plausible settings for this policy contract, but their actual economic value requires independent serving measurements.
+The original prereveal Holm family included a separate nested authentic-history-versus-null comparison. That experiment is preserved in the Supplement and research archive, not used as a parallel main-paper contribution or as proof of the H1 mechanism. Its original acceptance protocol was \emph{partially completed}: the nested cohort's specified TRAIN-only Popularity margin was \emph{not measured and sealed before target reveal}. The completed DEV analogue cannot retrospectively supply this missing check. Retaining this disclosure protects the original multiplicity record without enlarging the present paper's question.
+
+Finally, Always Memory yields greater unconstrained full-candidate ranking quality than either selective F policy. A warmed DEV replay of the original pointwise Utility selector was slower than unconditional Memory; the newer vectorized F policy has no measured end-to-end serving latency. Lower invocation fractions therefore cannot establish deployment-savings or monetary benefits. They describe one policy resource dimension and motivate further evaluation only when actual capacity or cost constraints are specified.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-The value of a fixed relationship-memory source is relative to the incumbent and the candidates actually eligible for ranking. Across the studied live-streaming protocols, sampled- and full-candidate supervision of that value lead to different frozen allocations of Memory and different full-candidate ranking outcomes. The principal M3 policy comparison supports this candidate-aligned supervision lesson; contextual Twitch and room results explain why the value target changes, while a parallel history-source test shows that the authentic relationship evidence itself carries information.
+The candidate regime used to supervise the relative value of fixed historical relationship Memory matters for the observed decisions and full-candidate ranking outcomes of the tested frozen selection policies. A paired room-ranking diagnostic establishes why the relative-value label is candidate-dependent; a separate same-period M3 author-ranking comparison shows higher weighted full-candidate NDCG and lower naturally realized Memory-call fractions for full-supervised policies than for the original uncorrected sampled-supervised policies. The DEV allocation trace provides descriptive, not causal, insight into the changed calls.
 
-These findings define a bounded knowledge-use decision contract rather than a new universal routing algorithm or an established deployment cost saving. The evaluated S comparator uses original uncorrected sampled labels and the two policies realize different call fractions. Corrected sampled supervision, comparable resource contracts and independent future-period recordings remain directions for evaluating how far the result transfers.
+This is a bounded empirical knowledge-use supervision result, not a new deferral theorem or proof of deployment efficiency. Corrected sampled-label policies, strict resource-matched evaluation, independent future-period cohorts and end-to-end serving measurements remain untested alternatives or transfer conditions.
 
 \bibliographystyle{elsarticle-num}
 \bibliography{kbs_references}
