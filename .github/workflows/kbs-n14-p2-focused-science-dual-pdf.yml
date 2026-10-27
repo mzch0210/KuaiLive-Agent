@@ -7,6 +7,7 @@ on:
       - 'manuscript/kbs_latex/main.tex'
       - 'manuscript/kbs_latex/N14_N13_COMPLETE_RESULTS_RESEARCH_ARCHIVE_2026-10-23.tex'
       - 'analysis/kbs_plan_c/n14_p2_science_archive_contract.py'
+      - 'analysis/kbs_plan_c/n14_p5_focused_tex_postprocess.py'
       - '.github/workflows/kbs-n14-p2-focused-science-dual-pdf.yml'
       - 'manuscript/kbs_latex/Highlights.txt'
       - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md'
@@ -117,7 +118,7 @@ jobs:
             -V geometry:margin=0.75in -V colorlinks=true -V urlcolor=blue \
             --pdf-engine=xelatex -o supplementary_information_n9.tex
           cd ../..
-          python analysis/kbs_n9_supplement_tex_postprocess.py manuscript/kbs_latex/supplementary_information_n9.tex
+          python analysis/kbs_plan_c/n14_p5_focused_tex_postprocess.py manuscript/kbs_latex/supplementary_information_n9.tex manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_N14_FOCUSED_2026-10-27.md
           test -s manuscript/kbs_latex/supplementary_information_n9.tex
       - name: Compile N14 focused supplement PDF
         uses: xu-cheng/latex-action@v4
