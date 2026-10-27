@@ -1,4 +1,4 @@
-name: KBS N14 P2 focused Results, immutable science archive and dual PDF QA
+name: KBS N14 focused science, original archive and dual PDF QA
 # C7 verifies migrated tables cell by cell and retains C6 science/PDF QA.
 on:
   push:
@@ -10,6 +10,7 @@ on:
       - '.github/workflows/kbs-n14-p2-focused-science-dual-pdf.yml'
       - 'manuscript/kbs_latex/Highlights.txt'
       - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md'
+      - 'manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_N14_FOCUSED_2026-10-27.md'
       - 'analysis/kbs_plan_c/n12_c7_full_table_cell_audit.py'
       - 'analysis/kbs_plan_c/test_n12_c7_full_table_cell_audit.py'
       - 'analysis/kbs_plan_c/n12_c6_scientific_contract.py'
@@ -47,6 +48,12 @@ jobs:
           assert 'NOT VERIFIED' in s
           assert 'tab:results-m3-additional-relation-identity' in archive
           print('N14 P2 provenance, expected policy main tables, H2 disclosure PASS')
+          f=Path('manuscript/kbs_latex/SUPPLEMENTARY_INFORMATION_N14_FOCUSED_2026-10-27.md').read_text()
+          assert all(x in f for x in ['0.005391','0.003585','0.031145','NOT VERIFIED',
+                     'three', '0.348744','29.203%', '30.537%', '30.809%','50,049'])
+          assert '# N14-S1.' in f and '# N14-S6.' in f
+          assert '# S10.' not in f, 'Focused journal supplement must not be an unedited full archive'
+          print('N14 P5 focused supplement scientific coverage PASS')
           PY
       - name: Install PDF extraction for manuscript QA
         run: |
@@ -98,11 +105,11 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq pandoc poppler-utils
-      - name: Convert and postprocess S1-S10.18 Markdown
+      - name: Convert focused N14 journal Supplement Markdown
         run: |
           set -euo pipefail
           cd manuscript/kbs_latex
-          pandoc SUPPLEMENTARY_INFORMATION_S1-S10_2026-10-13.md \
+          pandoc SUPPLEMENTARY_INFORMATION_N14_FOCUSED_2026-10-27.md \
             -f markdown+pipe_tables+raw_tex+tex_math_dollars+yaml_metadata_block \
             -t latex -s --toc --toc-depth=1 \
             -V documentclass=article -V fontsize=10pt \
@@ -112,40 +119,34 @@ jobs:
           cd ../..
           python analysis/kbs_n9_supplement_tex_postprocess.py manuscript/kbs_latex/supplementary_information_n9.tex
           test -s manuscript/kbs_latex/supplementary_information_n9.tex
-      - name: Compile revised S1-S10.18 PDF
+      - name: Compile N14 focused supplement PDF
         uses: xu-cheng/latex-action@v4
         with:
           root_file: supplementary_information_n9.tex
           working_directory: manuscript/kbs_latex
           args: -pdfxe -file-line-error -halt-on-error -interaction=nonstopmode
-      - name: Validate supplement PDF
+      - name: Validate focused journal supplement PDF
         run: |
           set -euo pipefail
           test -s manuscript/kbs_latex/supplementary_information_n9.pdf
-          pdftotext -layout manuscript/kbs_latex/supplementary_information_n9.pdf supp-n12c8v.txt
-          grep -F '0.005391' supp-n12c8v.txt
-          grep -F '0.031145' supp-n12c8v.txt
-          grep -F 'S10.15' supp-n12c8v.txt
-          grep -F 'S10.16' supp-n12c8v.txt
-          grep -F 'S10.17' supp-n12c8v.txt
-          grep -F 'S10.18' supp-n12c8v.txt
-          grep -F 'S10.19' supp-n12c8v.txt
-          grep -F 'Table S10.13.' supp-n12c8v.txt
-          grep -F 'Table S10.16.' supp-n12c8v.txt
-          grep -F '0.69165' supp-n12c8v.txt
-          grep -F '0.021867' supp-n12c8v.txt
+          pdftotext -layout manuscript/kbs_latex/supplementary_information_n9.pdf supp-n14.txt
+          grep -F '0.005391' supp-n14.txt
+          grep -F '0.003585' supp-n14.txt
+          grep -F '0.031145' supp-n14.txt
+          grep -F 'NOT VERIFIED' supp-n14.txt
+          grep -F 'N14-S6.' supp-n14.txt
           python - <<'PY'
           from pathlib import Path
           s=Path('manuscript/kbs_latex/supplementary_information_n9.log').read_text(errors='replace')
           assert not any(e in s for e in ['! LaTeX Error:','! Undefined control sequence.','Missing $ inserted.','Emergency stop','Fatal error occurred'])
-          assert 'Overfull \\hbox' not in s, 'Supplement PDF has overfull text'
-          print('S10.1-S10.19 supplement zero-overfull PASS')
+          assert 'Overfull \\hbox' not in s, 'Focused supplement PDF has overfull text'
+          print('N14 P5 focused supplement PDF zero-overfull PASS')
           PY
       - name: Archive revised supplement PDF
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: kbs-n14-p2-supplement
+          name: kbs-n14-p5-focused-supplement
           path: |
             manuscript/kbs_latex/supplementary_information_n9.pdf
             manuscript/kbs_latex/supplementary_information_n9.tex
