@@ -7,6 +7,7 @@ on:
       - 'manuscript/kbs_latex/main.tex'
       - 'manuscript/kbs_latex/N14_N13_COMPLETE_RESULTS_RESEARCH_ARCHIVE_2026-10-23.tex'
       - 'analysis/kbs_plan_c/n14_p2_science_archive_contract.py'
+      - 'analysis/kbs_plan_c/n14_p6_cross_document_consistency.py'
       - 'analysis/kbs_plan_c/n14_p5_focused_tex_postprocess.py'
       - '.github/workflows/kbs-n14-p2-focused-science-dual-pdf.yml'
       - 'manuscript/kbs_latex/Highlights.txt'
@@ -38,6 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           python analysis/kbs_plan_c/n14_p2_science_archive_contract.py
+          python analysis/kbs_plan_c/n14_p6_cross_document_consistency.py
           python - <<'PY'
           from pathlib import Path
           import json
