@@ -41,7 +41,7 @@ User-cluster paired percentile intervals use **5,000 bootstrap draws**. Frozen d
 
 # N14-S3. Primary frozen policy outcome and calls
 
-**Table S10.9. Additional M3 targets, fixed full-active F ranking, 20-cell natural population weighting.**
+**Table N14-S1. Additional M3 targets, fixed full-active F ranking, 20-cell natural population weighting (exact source: original Table S10.9).**
 
 | Frozen policy | Weighted F NDCG@10 | Realized Memory calls | Unweighted call rate | Weighted call rate |
 | --- | ---: | ---: | ---: | ---: |
@@ -57,7 +57,7 @@ The SASRec F-minus-S paired contrast is **+0.005391** (95% user-cluster CI **[+0
 
 # N14-S4. Shared-DEV decision allocation (descriptive only)
 
-**Table S10.14. M3 exploratory DEV user-disjoint candidate-supervision transfer (50,049 author-ranking DEV events; 12,628 users).**
+**Table N14-S2. M3 exploratory DEV candidate-supervision transfer (50,049 author-ranking DEV events; 12,628 users; exact source: original Table S10.14).**
 
 | Base | Training supervision → evaluation candidates | Full-F NDCG@10 | Realized Memory calls |
 | --- | --- | ---: | ---: |
