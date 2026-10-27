@@ -23,7 +23,7 @@ def polish(tex_path: Path, markdown_path: Path) -> dict:
       lambda m: "\\texttt{\\seqsplit{"+m.group(1)+"}}",source)
     # Exact code-hash characters are preserved, but line wrapping is permitted.
     source=re.sub(r"(?<=\d),(?=[+−-]\d)",lambda _:r",\allowbreak ",source)
-    expected=len(re.findall(r"^\*\*Table S10\.(?:9|14)\.", original,flags=re.M))
+    expected=len(re.findall(r"^\*\*Table N14-S[12]\.", original,flags=re.M))
     actual=len(re.findall(r"\\begin\{longtable\}",source))
     if expected!=2 or actual!=expected:
         raise ValueError(f"Two copied S10 aggregate result tables required: {expected}, generated {actual}")
