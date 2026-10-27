@@ -1,0 +1,107 @@
+name: KBS N15 P1 restricted DEV equal-budget experiment
+on:
+  push:
+    branches: [kbs-n15-scientific-strengthening-20261027]
+    paths:
+      - '.github/workflows/kbs-n15-p1-private-dev-matched-budget.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-n15-p1-restricted-dev
+  cancel-in-progress: false
+jobs:
+  hosted-science-source-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Static compile and no-TEST source boundary
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/n15_p1_matched_budget_dev.py
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('analysis/kbs_plan_c/n15_p1_matched_budget_dev.py').read_text()
+          assert '37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea' in s
+          assert 'DEV_EXPLORATORY_ONLY' in s and 'n_test_labels_accessed' in s
+          assert 'GroupKFold(n_splits=5)' in s and 'exact_batch_topk' in s
+          for forbidden in ('test_cohort.parquet','B4A_A4','G5_ONE_SHOT','test_labels.csv'):
+              assert forbidden not in s
+          print('N15_RESTRICTED_SOURCE_SCOPE_PASS')
+          PY
+  selfhost-private-dev:
+    needs: hosted-science-source-preflight
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Verify restricted DEV source and analytical environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          DEV="$HOME/.cache/kuailive-agent-kbs/klm3_b1_full_dev_candidate_labels_seed20261012_v1"
+          test -r "$DEV/summary.json"
+          test -r "$DEV/dev_pair_candidate_labels.csv"
+          test -x "$HOME/venvs/kuailive-gpu/bin/python"
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import pathlib,hashlib,json,sklearn,numpy,pandas
+          folder=pathlib.Path.home()/'.cache/kuailive-agent-kbs/klm3_b1_full_dev_candidate_labels_seed20261012_v1'
+          m=json.loads((folder/'summary.json').read_text())
+          expected='37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea'
+          h=hashlib.sha256()
+          with (folder/'dev_pair_candidate_labels.csv').open('rb') as f:
+              for b in iter(lambda:f.read(8<<20),b''):h.update(b)
+          assert h.hexdigest()==expected and m.get('private_event_source_csv_sha256')==expected
+          assert m.get('n_dev_events')==50049 and m.get('n_users')==12628
+          assert m.get('test_accessed') is False and m.get('scope')=='DEV_ONLY_POST_G5_EXPLORATORY'
+          print('N15_PRIVATE_DEV_HASH_AND_METADATA_PASS; no raw rows disclosed')
+          PY
+      - name: Run cross-fitted DEV equal quota and output aggregates only
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 PYTHONUNBUFFERED=1
+          DEV="$HOME/.cache/kuailive-agent-kbs/klm3_b1_full_dev_candidate_labels_seed20261012_v1"
+          OUT="$RUNNER_TEMP/n15-p1-matched-dev-$GITHUB_RUN_ID"
+          test ! -e "$OUT"
+          "$HOME/venvs/kuailive-gpu/bin/python" \
+            analysis/kbs_plan_c/n15_p1_matched_budget_dev.py \
+            --source "$DEV" --out "$OUT" --bootstrap 2000
+          "$HOME/venvs/kuailive-gpu/bin/python" - <<'PY'
+          import json,os,pathlib
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/('n15-p1-matched-dev-'+os.environ['GITHUB_RUN_ID'])
+          d=json.loads((out/'aggregate_only.json').read_text())
+          assert d['status']=='DEV_EXPLORATORY_ONLY'
+          assert d['n_events']==50049 and d['n_users']==12628
+          assert d['n_test_labels_accessed']==0 and d['prospective_confirmatory_result'] is False
+          assert set(d['families'])=={'sasrec','gru4rec'}
+          for family,f in d['families'].items():
+              assert sum(s['n_events'] for s in f['folds'])==50049
+              for q,x in f['budgets'].items():
+                  assert x['calls_F']==x['calls_S'],(family,q)
+                  assert x['F_only']==x['S_only'],(family,q)
+                  assert x['paired_identity_error']<1e-12,(family,q)
+                  assert x['both_calls']+x['F_only']+x['S_only']+x['neither_calls']==50049
+              p=f['budgets']['0.30']
+              print('N15_MATCHED_DEV_RESEARCH_EXPLORATORY',json.dumps({
+                  'family':family,'q':0.3,'calls':p['calls_F'],
+                  'ndcg_F':p['full_F_ndcg_F'],'ndcg_S':p['full_F_ndcg_S'],
+                  'F_minus_S':p['F_minus_S_full_F_ndcg'],
+                  'user_ci':p['user_cluster_bootstrap_95ci_exploratory'],
+                  'F_only':p['F_only'],'S_only':p['S_only'],
+              },sort_keys=True))
+          PY
+      - name: Upload only safe population-level aggregates
+        uses: actions/upload-artifact@v4
+        with:
+          name: n15-p1-exploratory-dev-matched-aggregate
+          path: ${{ runner.temp }}/n15-p1-matched-dev-${{ github.run_id }}/aggregate_only.json
+          if-no-files-found: error
+          retention-days: 30
