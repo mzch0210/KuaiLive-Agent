@@ -85,3 +85,9 @@ The next action is **not another experiment**. The human project/data owner must
 ## 8. Addendum — user-confirmed narrow data use (2026-10-28)
 
 After the original NO-GO decision, the user explicitly confirmed “确认数据可以使用”. The decision is therefore superseded **only for the narrowly scoped internal P1-D diagnostic**, not for public redistribution or general legal clearance. The user confirmation and distinction are recorded in N12-C7 rights register. A separate execution gate freezes q=.30, six descriptors, Full versus Long-only, existing five user-disjoint folds, restricted self-hosted compute and aggregate-only output. The P1-D workflow has been committed and its run is currently pending; no empirical result is claimed yet. The original concern about inconsistent public license declarations remains open for publication/redistribution and is not silently cleared by this user confirmation.
+
+
+
+## 9. P1-D execution and novelty consequence (2026-10-28)
+
+The narrow P1-D run completed successfully on [Actions #40633996865](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40633996865); full results are in [N15_P1D_SIX_FEATURE_SOURCE_INTERACTION_RESULTS_2026-10-28.md](../../experiments/kbs_plan_c/N15_P1D_SIX_FEATURE_SOURCE_INTERACTION_RESULTS_2026-10-28.md). Its six-feature exact-quota interaction reverses sign for SASRec and attenuates to an interval crossing zero for GRU4Rec relative to P1-B's 12-feature result. Therefore source specificity remains important to a KBS framing but the available evidence is feature-panel conditional and exploratory; it does not establish an invariant knowledge-source mechanism. Do not pursue additional same-DEV feature/quota searches. Keep N14 unchanged, P3 and submission HOLD, and reassess whether a bounded empirical decision-design contribution clears the KBS novelty bar.
