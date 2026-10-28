@@ -2,7 +2,9 @@
 
 **Established:** 2026-10-27. **Parent:** N14 draft PR #8, branch `kbs-n14-single-question-scope-reset-20261023`, commit `de73da5e62ee58c01337ecca69ec562411af08ee`. **N15 branch:** `kbs-n15-scientific-strengthening-20261027`.
 
-**Status updated 2026-10-28:** P0 baseline/provenance retained; P1-A and P1-B exploratory DEV computations completed; P1-C desk-based estimand reconciliation completed in [N15_P1C_ESTIMAND_RECONCILIATION_AND_FEATURE_PANEL_DECISION_2026-10-28.md](N15_P1C_ESTIMAND_RECONCILIATION_AND_FEATURE_PANEL_DECISION_2026-10-28.md). P1-D six-feature exact-quota diagnostic is **CONDITIONAL HOLD / NOT AUTHORIZED**. This remains an internally authored audit, not a real external journal review. N14 manuscript and frozen original results remain untouched. KBS originality remains HIGH-CONTESTABLE; submission remains HOLD.
+**Historical status snapshot (2026-10-28, before P1-D authorization/execution):** P0 baseline/provenance retained; P1-A and P1-B exploratory DEV computations completed; P1-C desk-based estimand reconciliation completed in [N15_P1C_ESTIMAND_RECONCILIATION_AND_FEATURE_PANEL_DECISION_2026-10-28.md](N15_P1C_ESTIMAND_RECONCILIATION_AND_FEATURE_PANEL_DECISION_2026-10-28.md). P1-D was then **CONDITIONAL HOLD / NOT AUTHORIZED**. This preserves the pre-execution decision and is superseded only as to P1-D execution status by Section 9 below.
+
+**Current status (verified 2026-10-28):** P1-D completed successfully as a narrow, aggregate-only exploratory DEV diagnostic on [Actions #40633996865](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40633996865); see [the result report](../../experiments/kbs_plan_c/N15_P1D_SIX_FEATURE_SOURCE_INTERACTION_RESULTS_2026-10-28.md). The six-feature result makes feature-panel dependence **OBSERVED / MATERIAL**; it does not establish a causal or invariant source mechanism. No further same-DEV quota/feature/source search is authorized. This remains an internally authored audit, not a real independent journal review. N14 and frozen original results remain unchanged; KBS originality remains HIGH-CONTESTABLE and P3/submission remain HOLD.
 
 ## 1. Scope and one testable question
 
@@ -81,9 +83,9 @@ Novelty admissible only as a **bounded empirical/decision-design insight**, unle
 - N14's three-member Holm family, original H1/H2 values, manuscript and archived research sources remain immutable. No corrected-S universal impossibility claim; no production cost/latency claim; no independent replication claim.
 
 
-## 8. 2026-10-28 P2 novelty reassessment and P1-D admission decision
+## 8. Initial 2026-10-28 P2 novelty reassessment and P1-D admission decision (historical; superseded for P1-D execution only)
 
-See [N15_P2_NOVELTY_REASSESSMENT_AND_P1D_ADMISSION_DECISION_2026-10-28.md](N15_P2_NOVELTY_REASSESSMENT_AND_P1D_ADMISSION_DECISION_2026-10-28.md). Decision: source-specificity is essential to the intended KBS positioning but remains unproven; P1-D is **NO-GO in the current phase** because explicit source-owner/data-rights authorization is not documented in the project record. Do not run a private six-feature diagnostic, do not substitute another reused-DEV search, and do not infer authorization from prior successful workflows. Reopen only after a human owner records lawful-use basis, authorized compute location, aggregate-only output permission and source provenance in the rights register, followed by a fresh admission review. KBS originality remains HIGH-CONTESTABLE and submission remains HOLD.
+See [N15_P2_NOVELTY_REASSESSMENT_AND_P1D_ADMISSION_DECISION_2026-10-28.md](N15_P2_NOVELTY_REASSESSMENT_AND_P1D_ADMISSION_DECISION_2026-10-28.md). At the time of the initial review, source-specificity was judged essential to the intended KBS positioning but unproven, and P1-D was **NO-GO** because explicit source-owner/data-rights authorization was not documented in the project record. That historical gate is retained as decision provenance. A later narrow user confirmation authorized the internal diagnostic only; the run then completed successfully as recorded in Section 9. This does not establish public redistribution permission or general legal clearance. KBS originality remains HIGH-CONTESTABLE and submission remains HOLD.
 
 
 ## 9. 2026-10-28 P1-D result adjudication
