@@ -1,6 +1,8 @@
 # N15 P1 — Implementation status and restricted-source execution gate
 
-**Status updated 2026-10-28.** P1-A and P1-B code, synthetic QA and private aggregate-only exploratory DEV runs have completed successfully. P1-C existing-evidence reconciliation is complete. The next possible six-feature diagnostic (P1-D) is **CONDITIONAL HOLD / NOT AUTHORIZED TO EXECUTE**. Baseline N14 remains immutable; PR #9 remains Draft.
+**Current status updated 2026-10-28 after P1-D execution.** P1-A and P1-B exploratory DEV runs and P1-C evidence reconciliation are complete. P1-D completed successfully as an aggregate-only exploratory DEV diagnostic on [Actions #40633996865](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40633996865); see `experiments/kbs_plan_c/N15_P1D_SIX_FEATURE_SOURCE_INTERACTION_RESULTS_2026-10-28.md`. The result makes feature-panel dependence OBSERVED / MATERIAL in the tested protocol. No further same-DEV quota/feature/source search is authorized. N14 and frozen original results remain unchanged; P3 and KBS submission remain HOLD; PR #9 remains Draft.
+
+The **CONDITIONAL HOLD / NOT AUTHORIZED** status retained in the historical gate below describes the pre-execution state, not the current P1-D execution status.
 
 ## Implemented
 
@@ -28,7 +30,7 @@
 
 **Met:** public code compiles, tests pass, SHA/schema/info scope enforced, no private outputs in source.
 
-**P1-A/B runs are complete. Before any additional P1-D private execution, all of the following are still required:**
+**Historical pre-execution admission checklist (preserved for audit; not authorization for another P1-D run):** At the time of the original gate, P1-A/B runs were complete and the following conditions were required before the one-shot P1-D diagnostic:
 - Confirm self-hosted resource authorized/available for N15 and verify access rights to original restricted cache; do not assume that presence of old self-hosted workflows is authorization to access private data.
 - Confirm correct private source directory `$HOME/.cache/kuailive-agent-kbs/klm3_b1_full_dev_candidate_labels_seed20261012_v1` and unmodified B1 source SHA.
 - Approve N15 aggregate-only output on an isolated immutable path, without raw rows or model weights in Actions artifacts.
@@ -39,7 +41,7 @@
 - If source specificity is not essential, a rights/source gate fails, or a result would not change the paper's claim, mark P1-D NO-GO and stop reused-DEV experimentation.
 - Before future independent P3, separately freeze hypothesis family, model, budget, data, legal conditions and a valid new cohort. P3 remains HOLD.
 
-**Gate status (2026-10-28):** P1-A_ENGINEERING_AND_EXPLORATORY_DEV_PASS / P1-B_EXPLORATORY_INTERACTION_PASS / P1-C_RECONCILIATION_COMPLETE / P1-D_CONDITIONAL_HOLD / P3_INDEPENDENT_TEST_HOLD / KBS_SUBMISSION_HOLD.
+**Historical gate status before P1-D execution (2026-10-28):** P1-A_ENGINEERING_AND_EXPLORATORY_DEV_PASS / P1-B_EXPLORATORY_INTERACTION_PASS / P1-C_RECONCILIATION_COMPLETE / P1-D_CONDITIONAL_HOLD. **Subsequent current status:** P1-D_EXECUTION_PASS / EXPLORATORY_ONLY / NO_FURTHER_SAME_DEV_SEARCH / P3_INDEPENDENT_TEST_HOLD / KBS_SUBMISSION_HOLD.
 
 This file reports **no new empirical NDCG number**, no accepted KBS-level novelty verdict, and no independent human referee.
 
