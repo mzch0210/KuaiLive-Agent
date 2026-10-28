@@ -49,3 +49,18 @@ C7必须将代码commit、配置/版本、公开汇总、PDF工件manifest长存
 Elsevier在2026-06更新的生成式AI期刊政策：https://www.elsevier.com/en-gb/about/policies-and-standards/generative-ai-policies-for-journals 。人类作者必须核验内容；实质性AI文稿组织/句子改写应在投稿稿件中提供独立Declaration，说明工具名、用途与作者审核；如果AI被用于研究设计或方法/分析，应在Methods提供可复现描述。任何未确认的工具使用范围、作者责任与伦理事项均不得由自动化助手代替作者签字。KBS最新投稿清单、ORCID/CRediT、funding/COI、Data/code availability、授权及隐私须以实际提交时的期刊要求为准。
 
 **C7后续验收**：先以自动审计通过证实17行/49数值cell及双PDF未变，再完成人工审阅PDF关键图表与数据来源权利记录。未确认的原始许可和作者声明必须留给C8且视为投稿阻断，不得把C7代码审计写成法律授权PASS。
+
+
+## 6. 2026-10-28 project-use confirmation and restricted P1-D scope
+
+**User confirmation:** On 2026-10-28, the user explicitly confirmed in the project conversation: “确认数据可以使用” (the data may be used). This confirmation is recorded as permission to proceed with the narrowly scoped internal P1-D diagnostic described in the N15 gate record. It is not represented as an independently obtained source-owner letter or legal opinion.
+
+**Public-source cross-check:** The original [KuaiLive repository](https://github.com/imgkkk574/KuaiLive) states CC BY-NC-SA 4.0; the [KuaiLive-M3 Hugging Face page](https://huggingface.co/datasets/imgkkk2004/KuaiLive-M3) labels the dataset CC BY-SA 4.0 while its README/data card is empty. These public declarations differ. They do not by themselves establish identical terms for the exact downloaded M3 release, private B1/B2 derived artifacts, model weights, or user-level features. The exact source release/commit and applicable terms should remain part of author-side verification before any public redistribution.
+
+**Permitted narrow action under the user's confirmation:** one q=0.30 P1-D exploratory diagnostic, on the already-existing restricted B1/B2 DEV artifacts and approved self-hosted runner only; exact frozen six-feature panel; Full versus Long-only; five existing user-disjoint folds; aggregate-only JSON. No raw rows, identifiers, per-event scores, checkpoints, model weights or private cache files may be exported to GitHub. No TEST/G5/B4-A access, retraining of Base/Memory models, source expansion, quota sweep or public data/model release is authorized by this entry.
+
+**Rights status split:**
+- Internal, narrow P1-D computation: **USER-CONFIRMED TO PROCEED**, subject to the protocol/hash/compute/output gates in the dated N15 P1-D record.
+- Independent legal verification of upstream licensing, and public redistribution of source data or derived private artifacts: **OPEN / NOT CLEARED**.
+
+This distinction prevents the user's project-level confirmation from being misreported as a verified license grant for every upstream or derived artifact.
