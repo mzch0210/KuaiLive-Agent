@@ -79,3 +79,8 @@ Novelty admissible only as a **bounded empirical/decision-design insight**, unle
 - P1-C reconciliation: completed as desk analysis only. No private rows were read, no models refit, no TEST opened, and no new empirical estimate created.
 - Revised next step: first decide whether source specificity is essential to the KBS contribution. Only if yes, and all rights/source/protocol gates pass, consider one q=.30 six-feature exact-quota diagnostic. Otherwise stop further reused-DEV experimentation.
 - N14's three-member Holm family, original H1/H2 values, manuscript and archived research sources remain immutable. No corrected-S universal impossibility claim; no production cost/latency claim; no independent replication claim.
+
+
+## 8. 2026-10-28 P2 novelty reassessment and P1-D admission decision
+
+See [N15_P2_NOVELTY_REASSESSMENT_AND_P1D_ADMISSION_DECISION_2026-10-28.md](N15_P2_NOVELTY_REASSESSMENT_AND_P1D_ADMISSION_DECISION_2026-10-28.md). Decision: source-specificity is essential to the intended KBS positioning but remains unproven; P1-D is **NO-GO in the current phase** because explicit source-owner/data-rights authorization is not documented in the project record. Do not run a private six-feature diagnostic, do not substitute another reused-DEV search, and do not infer authorization from prior successful workflows. Reopen only after a human owner records lawful-use basis, authorized compute location, aggregate-only output permission and source provenance in the rights register, followed by a fresh admission review. KBS originality remains HIGH-CONTESTABLE and submission remains HOLD.
