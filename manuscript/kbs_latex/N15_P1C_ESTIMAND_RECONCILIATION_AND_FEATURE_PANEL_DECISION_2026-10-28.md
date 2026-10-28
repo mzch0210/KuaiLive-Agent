@@ -110,3 +110,8 @@ P1-C is a desk-based reconciliation of existing aggregate files; it does not rea
 - N15 P0 no-repeat contract and corrected-S method gate.
 
 No change is authorized to N14 main.tex, the original N13 research archive, original H1/H2 values, the original three-test Holm family, or previously revealed TEST outcomes.
+
+
+## P1-D result addendum (2026-10-28)
+
+P1-D has now executed successfully; see [N15 P1-D result report](../../experiments/kbs_plan_c/N15_P1D_SIX_FEATURE_SOURCE_INTERACTION_RESULTS_2026-10-28.md) and [Actions run #40633996865](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40633996865). Under the six-feature panel at q=.30, SASRec interaction I=+0.001676476 (descriptive user-cluster 95% interval [+0.000152109,+0.003104834]), reversing P1-B's 12-feature sign. GRU4Rec I=−0.000478588 (interval [−0.001899109,+0.000884844]), attenuated and crossing zero. This confirms a material feature-panel dependence concern for the tested reused-DEV offline batch protocol, not a formal panel-by-source interaction test or causal explanation. No further same-DEV feature/quota/source search is authorized.
