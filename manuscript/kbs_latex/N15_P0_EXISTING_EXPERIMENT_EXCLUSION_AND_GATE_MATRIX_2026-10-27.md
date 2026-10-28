@@ -17,7 +17,15 @@
 | H2 same 4096 / 3 null seeds | Original 3-test Holm and incomplete TRAIN-only popularity prereveal subgate | Treat as independent cohorts, repair pre-reveal certification after reveal | Preserve in archive as bounded composite historical evidence |
 | KuaiRec Big→Small Rev3.1 | `REV3_1_X0B_REAL_KUAIREC_FEASIBILITY_GATE_VERDICT_2026-10-20.md` | Repackage failed 7/1411 strict repeat-author records as valid independent transfer | Only reconsider if genuinely new eligible data/protocol meets predeclared coverage test |
 
-## 2. Exact scientific decisions still open
+## 2. Updated evidence state and exact scientific decisions still open
+
+**As of 2026-10-28:** N15 P1-A exact-call DEV allocation and P1-B Full-vs-Long interaction have completed as exploratory analyses. P1-C existing-evidence reconciliation is complete in `N15_P1C_ESTIMAND_RECONCILIATION_AND_FEATURE_PANEL_DECISION_2026-10-28.md`. These do not create an independent cohort or change N14's frozen H1/H2 evidence. The remaining central interpretation risk is feature-panel dependence of the source interaction.
+
+- P1-A is an offline batch Top-k estimand, not an online policy or a rewrite of the original B4-A threshold comparison.
+- P1-B interaction is supported descriptively under the 12-feature panel only; prior B2 six-feature threshold-policy results are a different estimand and motivate a bounded sensitivity check, not a direct contradiction.
+- P1-D six-feature exact-quota diagnostic is conditional and unauthorized until the scientific-necessity, data-rights, source-hash, feature/fold-parity and synthetic-QA gates pass.
+
+
 
 **Risk A (highest):** Is there an incremental **equal-resource** policy effect, rather than merely different realized call rates? The answer is NOT established by existing 30,000 B4-A or old DEV.
 
@@ -27,7 +35,7 @@
 
 **Risk D:** Is specialist use actually constrained by independently justified operating conditions? Always Memory wins unconstrained accuracy; old selection implementation loses latency. Claim only specified hypothetical call-cap allocation until measured otherwise.
 
-## 3. Admission conditions for any P1 execution
+## 3. Admission conditions for any further execution
 
 1. DEV only, never G5/B4-A revealed TEST for fitting/rule selection.
 2. Validate exact original B1 DEV source SHA256 `37a43cb7622c708c6b1c87c3e916b0058275792654465a7b329ce2bac44bceea`, 50,049 event rows and 12,628 users.
@@ -40,12 +48,20 @@
 9. Existing N14 metrics, original thresholds, test results and Holm family are immutable.
 10. Formal one-shot P3 only on new eligible targets with separately locked hypothesis family; otherwise result status remains `DEV_EXPLORATORY_ONLY`.
 
-## 4. Gate classification
+## 4. Revised gate classification
 
 - **P0 evidence & duplicate map:** PASS_FOR_PLANNING, not a scientific performance pass.
-- **P1 method feasibility:** Protocol written separately; source access, host execution and empirical checks PENDING.
+- **P1-A exact-call batch allocation:** exploratory DEV computation PASS; not confirmatory.
+- **P1-B Full-vs-Long source interaction:** exploratory DEV computation PASS under 12 features; feature-panel dependence unresolved.
+- **P1-C existing-evidence reconciliation:** COMPLETE; no new fitting or private row access.
+- **P1-D six-feature exact-quota sensitivity:** CONDITIONAL HOLD / NOT AUTHORIZED. One q=.30 run only if source specificity is essential to the intended KBS contribution and every legal/source/protocol gate passes.
 - **Corrected-S:** HOLD/NO-GO for previously tested candidates.
 - **External dataset:** HOLD; prior KuaiRec path NO-GO.
 - **N14 KBS originality and submission:** HOLD.
 
 The present file authorizes neither private source disclosure nor a new TEST unseal.
+
+
+## 5. Revised no-repeat and stop rule (2026-10-28)
+
+Do not repeat the original P1-A/B analyses, the B2 five-source sweep, the four quota points, or the six-feature B2 threshold analysis and label any of them new confirmation. If P1-D is admitted, it is limited to q=.30, Full vs Long-only, six frozen descriptors and the same five outer user folds. Do not extend to additional quotas, feature panels or sources after viewing the outcome. If admission criteria fail or the result would not change the manuscript's claim, stop at P1-C. P3 remains HOLD until a truly unseen lawful cohort and a separate prospective hypothesis family are available. N14's original three-member Holm family and all revealed TEST values are immutable.
