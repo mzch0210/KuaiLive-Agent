@@ -64,3 +64,5 @@ class ExactQuotaAndInteractionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+# Trigger the branch-scoped CI after the workflow definition was added.
