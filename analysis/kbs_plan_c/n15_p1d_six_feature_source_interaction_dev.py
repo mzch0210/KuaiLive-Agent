@@ -3,8 +3,7 @@
 
 Exploratory reused-DEV analysis only. Reads certified B1/B2 private DEV CSVs;
 outputs aggregate metrics only. Never reads TEST, never exports event/user rows.
-Uses the same frozen 12 pretarget features, HGB capacity, outer user folds,
-batch quotas and label-blind tie rule as N15 P1-A.
+Uses the frozen six-descriptor B2 panel, the established HGB capacity and outer user folds; q=0.30 only.
 """
 from __future__ import annotations
 import argparse
@@ -176,8 +175,8 @@ def validate_sources(source_b2: Path, source_b1: Path) -> tuple[pd.DataFrame, st
 
 def run_family(data: pd.DataFrame, family: str, reps: int) -> dict:
     features = ["x_candidate_log_count"] + ["x_" + family + "_" + x for x in BASE]
-    if len(features) != 12 or not set(features).issubset(data.columns):
-        raise RuntimeError("Original 12 pretarget features unavailable")
+    if len(features) != 6 or not set(features).issubset(data.columns):
+        raise RuntimeError("Frozen six-feature B2 panel unavailable")
     X = data[features].to_numpy(dtype=np.float64)
     users = data.user_id.astype(str).to_numpy()
     if not np.isfinite(X).all():
@@ -321,7 +320,7 @@ def main():
     ap.add_argument("--bootstrap", type=int, default=2000)
     args = ap.parse_args()
     if args.out.exists():
-        raise FileExistsError("Never overwrite N15 P1-B output")
+        raise FileExistsError("Never overwrite an existing N15 P1-D output")
     if args.bootstrap < 0:
         raise ValueError("Bootstrap repetitions must be nonnegative")
     data, b2_sha = validate_sources(args.source_b2, args.source_b1)
