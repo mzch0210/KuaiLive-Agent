@@ -2,7 +2,9 @@
 
 **Date:** 2026-10-28  
 **Branch:** `kbs-n15-scientific-strengthening-20261027`; Draft PR #9  
-**Decision:** **Source-specificity is essential to the intended KBS positioning, but P1-D is NO-GO in the current phase because required source-owner/data-rights authorization is not documented.** No private experiment or alternative reused-DEV search is authorized by this record.
+**Initial decision (historical; superseded for P1-D execution only by Sections 8–9):** Source-specificity is essential to the intended KBS positioning, but P1-D was NO-GO at the initial gate because required source-owner/data-rights authorization was not yet documented. No private experiment or alternative reused-DEV search was authorized at that point.
+
+**Current status (verified 2026-10-28):** The narrowly scoped P1-D diagnostic subsequently ran successfully on [Actions #40633996865](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40633996865); see [the aggregate-only results](../../experiments/kbs_plan_c/N15_P1D_SIX_FEATURE_SOURCE_INTERACTION_RESULTS_2026-10-28.md). This does not authorize public redistribution or further same-DEV quota/feature/source searches. The result confirms feature-panel dependence is material in the tested exploratory setting; method-level originality remains HIGH-CONTESTABLE, and P3/KBS submission remain HOLD.
 
 ## 1. Executive decision
 
