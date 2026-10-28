@@ -1,8 +1,12 @@
 # N15 P1 — Implementation status and restricted-source execution gate
 
-**2026-10-27. P1 CODE/SYNTHETIC QA PASS, PRIVATE DEV SCIENTIFIC RUN NOT YET PERFORMED.** Baseline N14 immutable. Current N15 source in draft PR #9.
+**Status updated 2026-10-28.** P1-A and P1-B code, synthetic QA and private aggregate-only exploratory DEV runs have completed successfully. P1-C existing-evidence reconciliation is complete. The next possible six-feature diagnostic (P1-D) is **CONDITIONAL HOLD / NOT AUTHORIZED TO EXECUTE**. Baseline N14 remains immutable; PR #9 remains Draft.
 
 ## Implemented
+
+- P1-A restricted-source execution and aggregate-only output completed successfully: Actions [#40510033361](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40510033361). See `experiments/kbs_plan_c/N15_P1_EQUAL_BUDGET_DEV_RESULTS_AND_ADJUDICATION_2026-10-27.md`.
+- P1-B Full-vs-Long source interaction completed successfully: Actions [#40622271751](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40622271751). See `experiments/kbs_plan_c/N15_P1B_SOURCE_INTERACTION_RESULTS_2026-10-28.md`.
+- P1-C desk-based estimand/feature-panel reconciliation completed without private row reads, fitting, or TEST access: `N15_P1C_ESTIMAND_RECONCILIATION_AND_FEATURE_PANEL_DECISION_2026-10-28.md`.
 
 - `analysis/kbs_plan_c/n15_p1_matched_budget_dev.py`: frozen B1 DEV file metadata + SHA check, 50,049 rows/12,628 users, original 12 pretarget variables, SASRec and GRU4Rec fixed HGB capacity; 5 outer user-disjoint group folds and held-out model scores.
 - Exact top-k per fold at q=0.10,0.20,0.30,0.40; deterministic SHA256 stable original DEV row-index tie ordering, independent of target identity/labels. At any q both arms receive exactly the same raw number of calls in every fold.
@@ -20,17 +24,26 @@
 6. User bootstrap resamples observed held-out decisions at fixed fitted policies; it does not account for repeated policy refitting or the multi-stage model selection process. Label as descriptive uncertainty.
 7. Stable original row-index hashed tie key depends on input CSV ordering, protected by exact SHA. The row index is neither a target label nor an online identifier.
 
-## Decision gate for self-hosted private source run
+## Revised decision gate for any further private source run
 
 **Met:** public code compiles, tests pass, SHA/schema/info scope enforced, no private outputs in source.
 
-**Still required before private execution:**
+**P1-A/B runs are complete. Before any additional P1-D private execution, all of the following are still required:**
 - Confirm self-hosted resource authorized/available for N15 and verify access rights to original restricted cache; do not assume that presence of old self-hosted workflows is authorization to access private data.
 - Confirm correct private source directory `$HOME/.cache/kuailive-agent-kbs/klm3_b1_full_dev_candidate_labels_seed20261012_v1` and unmodified B1 source SHA.
 - Approve N15 aggregate-only output on an isolated immutable path, without raw rows or model weights in Actions artifacts.
 - Inspect source-run diagnostics and actual group split parity. No TEST/B4-A revealed target outcome reads.
-- Before conducting future independent P3, separately freeze hypothesis family, model, budget, data, legal conditions and valid new cohort. P3 currently HOLD.
+- First record an explicit scientific decision that source specificity is essential to the intended KBS contribution and that the six-feature result could change the manuscript decision.
+- Freeze P1-D at q=.30 only, Full vs Long-only only, exactly the six existing candidate-count/Base-score descriptors, the existing five user-disjoint folds and label-blind exact-call rule. No additional quota or feature-panel search.
+- Confirm exact B1/B2 source parity and feature/fold parity; synthetic tests must cover feature selection and interaction identities. No private execution without explicit rights/source-owner authorization.
+- If source specificity is not essential, a rights/source gate fails, or a result would not change the paper's claim, mark P1-D NO-GO and stop reused-DEV experimentation.
+- Before future independent P3, separately freeze hypothesis family, model, budget, data, legal conditions and a valid new cohort. P3 remains HOLD.
 
-**Gate status:** P1_ENGINEERING_PASS / PRIVATE_DEV_RUN_HOLD / KBS_SUBMISSION_HOLD.
+**Gate status (2026-10-28):** P1-A_ENGINEERING_AND_EXPLORATORY_DEV_PASS / P1-B_EXPLORATORY_INTERACTION_PASS / P1-C_RECONCILIATION_COMPLETE / P1-D_CONDITIONAL_HOLD / P3_INDEPENDENT_TEST_HOLD / KBS_SUBMISSION_HOLD.
 
 This file reports **no new empirical NDCG number**, no accepted KBS-level novelty verdict, and no independent human referee.
+
+
+## Revised stopping rule (2026-10-28)
+
+Do not continue with a broad source × quota × feature grid. P1-D, if admitted, is one q=.30 six-feature sensitivity diagnostic only. If the interaction weakens, crosses zero descriptively, or reverses, narrow the interpretation to a feature-conditional association and stop; do not search for a panel that restores significance. All outcomes remain exploratory reused-DEV evidence. N14, original three-test Holm family, G5/B4-A TEST and all protected numeric results remain unchanged.
