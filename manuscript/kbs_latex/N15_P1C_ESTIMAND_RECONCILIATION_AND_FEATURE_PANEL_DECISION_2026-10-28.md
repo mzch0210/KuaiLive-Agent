@@ -2,7 +2,9 @@
 
 **Date:** 2026-10-28  
 **Branch:** kbs-n15-scientific-strengthening-20261027; Draft PR #9  
-**Status:** P1-A and P1-B computation PASS as exploratory DEV evidence. P1-C existing-evidence reconciliation COMPLETE. A single six-feature exact-quota diagnostic is CONDITIONAL / NOT AUTHORIZED TO EXECUTE YET. Independent P3 and KBS submission remain HOLD.
+**Historical status at initial P1-C decision (2026-10-28; superseded by the P1-D result addendum below):** P1-A and P1-B computation PASS as exploratory DEV evidence. P1-C existing-evidence reconciliation COMPLETE. A single six-feature exact-quota diagnostic was then CONDITIONAL / NOT AUTHORIZED TO EXECUTE YET.
+
+**Current status (verified 2026-10-28):** P1-D has since completed successfully as an aggregate-only exploratory DEV diagnostic on [Actions #40633996865](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40633996865); see [the result report](../../experiments/kbs_plan_c/N15_P1D_SIX_FEATURE_SOURCE_INTERACTION_RESULTS_2026-10-28.md). The result makes feature-panel dependence OBSERVED / MATERIAL for this reused-DEV offline batch protocol. No further same-DEV feature/quota/source search is authorized. N14 remains unchanged; independent P3 and KBS submission remain HOLD.
 
 ## Executive decision
 
@@ -12,7 +14,9 @@ The P1-A result shows that the F-supervision advantage does not disappear under 
 
 The key newly elevated risk is **feature-panel dependence of the source interaction**. Earlier B2 threshold-policy results using six descriptors (candidate count plus five Base-score descriptors) showed that the Full-minus-Long transfer-regret contrast can weaken or change direction relative to the 12-feature panel. Because B2 used a different threshold-policy estimand, it does not directly refute P1-B; it does mean the source interaction must not be described as an invariant knowledge-source mechanism.
 
-**Revised sequence:** (1) complete and record this source-level estimand reconciliation; (2) decide whether source specificity is essential to the proposed KBS contribution; (3) only if it is essential, rights and source gates pass, and the result could change the manuscript decision, consider one q=0.30 six-feature exact-quota diagnostic; (4) independently assess novelty and future-data eligibility before any confirmatory work. Do not expand the reused-DEV search.
+**Original revised sequence at the time of P1-C decision (historical; superseded by the P1-D result addendum below):** (1) complete and record this source-level estimand reconciliation; (2) decide whether source specificity is essential to the proposed KBS contribution; (3) only if it is essential, rights and source gates pass, and the result could change the manuscript decision, consider one q=0.30 six-feature exact-quota diagnostic; (4) independently assess novelty and future-data eligibility before any confirmatory work. Do not expand the reused-DEV search.
+
+**Current disposition:** P1-D is complete and is not authorization for further same-DEV exploration. The next legitimate step is reuse of existing independent-review materials and resolution of author-owned publication/data-rights gates; P3 and KBS submission remain HOLD.
 
 ## 1. Evidence reconciliation: do not pool unlike estimands
 
