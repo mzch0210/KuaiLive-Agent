@@ -80,3 +80,8 @@ Keep the N14 manuscript source unchanged in this phase. If a later author-approv
 ## 7. Next legitimate action
 
 The next action is **not another experiment**. The human project/data owner must resolve and record the outstanding rights/authorization status. If the owner cannot establish it, close P1-D without execution and reassess whether the bounded empirical contribution is sufficient for KBS or whether a different venue is more appropriate. If authorization is later established, make a new dated admission decision; do not silently reopen the current NO-GO.
+
+
+## 8. Addendum — user-confirmed narrow data use (2026-10-28)
+
+After the original NO-GO decision, the user explicitly confirmed “确认数据可以使用”. The decision is therefore superseded **only for the narrowly scoped internal P1-D diagnostic**, not for public redistribution or general legal clearance. The user confirmation and distinction are recorded in N12-C7 rights register. A separate execution gate freezes q=.30, six descriptors, Full versus Long-only, existing five user-disjoint folds, restricted self-hosted compute and aggregate-only output. The P1-D workflow has been committed and its run is currently pending; no empirical result is claimed yet. The original concern about inconsistent public license declarations remains open for publication/redistribution and is not silently cleared by this user confirmation.
