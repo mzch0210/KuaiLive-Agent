@@ -301,7 +301,9 @@ def run_family(data: pd.DataFrame, family: str, reps: int) -> dict:
         interaction_values[q] = interaction
     out["primary_budget"] = PRIMARY_Q
     out["primary_interaction"] = out["budgets"][f"{PRIMARY_Q:.2f}"]["full_minus_long_interaction"]
-    out["interpretation_guardrails"] = {\n        "feature_panel": "candidate count plus five Base-score descriptors; not a literal no-history panel",\n        "only_quota": 0.30,
+    out["interpretation_guardrails"] = {
+        "feature_panel": "candidate count plus five Base-score descriptors; not a literal no-history panel",
+        "only_quota": 0.30,
         "offline_outer_fold_batch_top_k_not_online": True,
         "reused_post_G5_DEV_exploratory_only": True,
         "bootstrap_conditions_on_fitted_fold_policies": True,
