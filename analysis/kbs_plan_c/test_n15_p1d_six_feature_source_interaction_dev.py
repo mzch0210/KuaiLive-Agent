@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 SCRIPT = pathlib.Path(__file__).with_name("n15_p1d_six_feature_source_interaction_dev.py")
-spec = importlib.util.spec_from_file_location("n15_p1b_source_supervision_interaction_dev", SCRIPT)
+spec = importlib.util.spec_from_file_location("n15_p1d_six_feature_source_interaction_dev", SCRIPT)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
 
