@@ -47,3 +47,8 @@ This file reports **no new empirical NDCG number**, no accepted KBS-level novelt
 ## Revised stopping rule (2026-10-28)
 
 Do not continue with a broad source × quota × feature grid. P1-D, if admitted, is one q=.30 six-feature sensitivity diagnostic only. If the interaction weakens, crosses zero descriptively, or reverses, narrow the interpretation to a feature-conditional association and stop; do not search for a panel that restores significance. All outcomes remain exploratory reused-DEV evidence. N14, original three-test Holm family, G5/B4-A TEST and all protected numeric results remain unchanged.
+
+
+## P1-D completion addendum (2026-10-28)
+
+Actions [#40633996865](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40633996865) completed successfully: public preflight and restricted self-hosted DEV job both PASS. B1/B2 provenance, roster and source parity passed; 50,049 events / 12,628 users; 15,014 calls per policy/source at q=.30; zero TEST access; aggregate-only artifact uploaded. Results are recorded in `experiments/kbs_plan_c/N15_P1D_SIX_FEATURE_SOURCE_INTERACTION_RESULTS_2026-10-28.md`. P1-D status is EXECUTION_PASS / EXPLORATORY_ONLY. No further same-DEV feature/quota search; N14 and original Holm family remain frozen.
