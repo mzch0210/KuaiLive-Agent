@@ -2,7 +2,7 @@
 
 **Established:** 2026-10-27. **Parent:** N14 draft PR #8, branch `kbs-n14-single-question-scope-reset-20261023`, commit `de73da5e62ee58c01337ecca69ec562411af08ee`. **N15 branch:** `kbs-n15-scientific-strengthening-20261027`.
 
-**Status: P0 provenance inspected; research execution NOT STARTED.** This is an internally authored scientific planning/audit document, not a real external journal review. N14 manuscript, original experimental source and frozen numeric results are untouched. N14 KBS originality remains HIGH-CONTESTABLE; submission remains HOLD.
+**Status updated 2026-10-28:** P0 baseline/provenance retained; P1-A and P1-B exploratory DEV computations completed; P1-C desk-based estimand reconciliation completed in [N15_P1C_ESTIMAND_RECONCILIATION_AND_FEATURE_PANEL_DECISION_2026-10-28.md](N15_P1C_ESTIMAND_RECONCILIATION_AND_FEATURE_PANEL_DECISION_2026-10-28.md). P1-D six-feature exact-quota diagnostic is **CONDITIONAL HOLD / NOT AUTHORIZED**. This remains an internally authored audit, not a real external journal review. N14 manuscript and frozen original results remain untouched. KBS originality remains HIGH-CONTESTABLE; submission remains HOLD.
 
 ## 1. Scope and one testable question
 
@@ -70,3 +70,12 @@ Novelty admissible only as a **bounded empirical/decision-design insight**, unle
 - N14 primary numeric source and NI1g, N9 B1B and G2 audited read-only.
 - New N15 branch created from N14 head with NO changes to protected original experiments.
 - This document does not assert new equal-budget NDCG or new replication.
+
+
+## 7. 2026-10-28 decision addendum — after N15 P1-A/P1-B
+
+- P1-A exact-call offline batch allocation: exploratory DEV result PASS; F−S +0.006133 SASRec and +0.005398 GRU4Rec at q=.30, with 15,014 calls per arm. This is a new estimand, not a revision of B4-A H1.
+- P1-B Full-vs-Long interaction: exploratory DEV result PASS under the 12-feature panel; I(0.30)=−0.005047 SASRec and −0.004893 GRU4Rec. The feature-panel dependence highlighted by the prior B2 six-feature threshold-policy analysis is now a primary open interpretation risk.
+- P1-C reconciliation: completed as desk analysis only. No private rows were read, no models refit, no TEST opened, and no new empirical estimate created.
+- Revised next step: first decide whether source specificity is essential to the KBS contribution. Only if yes, and all rights/source/protocol gates pass, consider one q=.30 six-feature exact-quota diagnostic. Otherwise stop further reused-DEV experimentation.
+- N14's three-member Holm family, original H1/H2 values, manuscript and archived research sources remain immutable. No corrected-S universal impossibility claim; no production cost/latency claim; no independent replication claim.
