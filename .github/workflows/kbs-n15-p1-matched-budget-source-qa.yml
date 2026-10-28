@@ -1,0 +1,44 @@
+name: KBS N15 P1 matched-budget source and synthetic QA
+on:
+  push:
+    branches: [kbs-n15-scientific-strengthening-20261027]
+    paths:
+      - 'analysis/kbs_plan_c/n15_p1_matched_budget_dev.py'
+      - 'analysis/kbs_plan_c/test_n15_p1_matched_budget_dev.py'
+      - '.github/workflows/kbs-n15-p1-matched-budget-source-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-synthetic-qa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install public numerical test dependencies only
+        run: |
+          python -m pip install --disable-pip-version-check numpy pandas scikit-learn
+      - name: Compile and run synthetic tests
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/n15_p1_matched_budget_dev.py analysis/kbs_plan_c/test_n15_p1_matched_budget_dev.py
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n15_p1_matched_budget_dev.py' -v
+      - name: Confirm no protected N14 science edits and no private input paths
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          s=Path("analysis/kbs_plan_c/n15_p1_matched_budget_dev.py").read_text()
+          assert "GroupKFold(n_splits=5)" in s
+          assert "sha256(csv) == SHA" in s
+          assert "n_test_labels_accessed" in s and "DEV_EXPLORATORY_ONLY" in s
+          assert "exact_batch_topk" in s and "paired_allocation_value" in s
+          assert "test_cohort.parquet" not in s
+          assert "B4A" not in s or "Never reads TEST" in s
+          print("N15_P1_PUBLIC_SYNTHETIC_SCOPE_PASS")
+          PY

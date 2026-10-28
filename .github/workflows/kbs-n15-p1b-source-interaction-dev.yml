@@ -1,0 +1,104 @@
+name: KBS N15 P1-B Full-vs-Long source interaction DEV
+on:
+  push:
+    branches: [kbs-n15-scientific-strengthening-20261027]
+    paths:
+      - '.github/workflows/kbs-n15-p1b-source-interaction-dev.yml'
+      - 'analysis/kbs_plan_c/n15_p1b_source_supervision_interaction_dev.py'
+      - 'analysis/kbs_plan_c/test_n15_p1b_source_supervision_interaction_dev.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kbs-n15-p1b-source-interaction-dev
+  cancel-in-progress: false
+jobs:
+  public-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install public test dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas scikit-learn
+      - name: Compile and synthetic test only
+        run: |
+          set -euo pipefail
+          python -m py_compile analysis/kbs_plan_c/n15_p1b_source_supervision_interaction_dev.py
+          python -m unittest discover -s analysis/kbs_plan_c -p 'test_n15_p1b_source_supervision_interaction_dev.py' -v
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('analysis/kbs_plan_c/n15_p1b_source_supervision_interaction_dev.py').read_text()
+          assert 'B1_SHA' in s and 'sha256(b2_csv) == b2_sha' in s
+          assert 'GroupKFold(n_splits=5)' in s and 'exact_batch_topk' in s
+          assert 'n_test_labels_accessed' in s and 'DEV_EXPLORATORY_ONLY' in s
+          for forbidden in ('test_cohort.parquet','test_labels.csv','B4A_A4'):
+              assert forbidden not in s
+          print('N15_P1B_PUBLIC_SYNTHETIC_SCOPE_PASS')
+          PY
+  selfhost-private-dev:
+    needs: public-preflight
+    runs-on: [self-hosted, linux, x64, gpu-3090]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify source manifests and run source interaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export PYTHONPATH="$HOME/.cache/kuailive-agent-kbs/e2-py312-sklearn-v1:$HOME/.cache/kuailive-agent-kbs/audit-py312-tools-v1${PYTHONPATH:+:$PYTHONPATH}"
+          export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 PYTHONUNBUFFERED=1
+          PY="$HOME/venvs/kuailive-gpu/bin/python"
+          "$PY" -c 'import numpy,pandas,sklearn; assert sklearn.__version__.startswith("1.5.")'
+          ROOT="$HOME/.cache/kuailive-agent-kbs"
+          B1="$ROOT/klm3_b1_full_dev_candidate_labels_seed20261012_v1"
+          B2="$ROOT/klm3_b2_full_dev_memory_source_ablation_seed20261013_v1"
+          OUT="$RUNNER_TEMP/n15-p1b-source-interaction-$GITHUB_RUN_ID"
+          test -r "$B1/summary.json"
+          test -r "$B1/dev_pair_candidate_labels.csv"
+          test -r "$B2/summary.json"
+          test -r "$B2/dev_memory_source_ablation_pairs.csv"
+          test ! -e "$OUT"
+          "$PY" analysis/kbs_plan_c/n15_p1b_source_supervision_interaction_dev.py \
+            --source-b1 "$B1" --source-b2 "$B2" --out "$OUT" --bootstrap 2000
+          "$PY" - <<'PY'
+          import json,os,pathlib
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/('n15-p1b-source-interaction-'+os.environ['GITHUB_RUN_ID'])
+          d=json.loads((out/'aggregate_only.json').read_text())
+          assert d['status']=='DEV_EXPLORATORY_ONLY'
+          assert d['n_events']==50049 and d['n_users']==12628
+          assert d['n_test_labels_accessed']==0 and d['prospective_confirmatory_result'] is False
+          assert set(d['families'])=={'sasrec','gru4rec'}
+          for fam,x in d['families'].items():
+              for q,entry in x['budgets'].items():
+                  for source in ('full','long_only'):
+                      y=entry['by_source'][source]
+                      assert y['calls_F_supervised']==y['calls_S_supervised'],(fam,q,source)
+                      assert y['paired_identity_error']<1e-12,(fam,q,source)
+                      assert y['F_only']==y['S_only'],(fam,q,source)
+                  inter=entry['full_minus_long_interaction']
+                  assert inter['identity_error']<1e-12,(fam,q)
+              print('N15_P1B_SOURCE_INTERACTION_EXPLORATORY',json.dumps({
+                  'family':fam,'q':.30,
+                  'D_full':x['budgets']['0.30']['by_source']['full']['F_minus_S_full_F_ndcg10'],
+                  'D_long':x['budgets']['0.30']['by_source']['long_only']['F_minus_S_full_F_ndcg10'],
+                  'interaction':x['primary_interaction']['mean'],
+                  'interaction_ci':x['primary_interaction']['user_cluster_bootstrap_95ci_descriptive'],
+                  'calls':x['budgets']['0.30']['by_source']['full']['calls_F_supervised'],
+              },sort_keys=True))
+          PY
+          echo "N15_P1B_AGGREGATE_READY $OUT/aggregate_only.json"
+      - name: Upload only aggregate outcome table
+        uses: actions/upload-artifact@v4
+        with:
+          name: n15-p1b-source-interaction-dev-aggregate
+          path: ${{ runner.temp }}/n15-p1b-source-interaction-${{ github.run_id }}/aggregate_only.json
+          if-no-files-found: error
+          retention-days: 30

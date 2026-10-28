@@ -1,0 +1,56 @@
+# N15 P1 — Implementation status and restricted-source execution gate
+
+**Current status updated 2026-10-28 after P1-D execution.** P1-A and P1-B exploratory DEV runs and P1-C evidence reconciliation are complete. P1-D completed successfully as an aggregate-only exploratory DEV diagnostic on [Actions #40633996865](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40633996865); see `experiments/kbs_plan_c/N15_P1D_SIX_FEATURE_SOURCE_INTERACTION_RESULTS_2026-10-28.md`. The result makes feature-panel dependence OBSERVED / MATERIAL in the tested protocol. No further same-DEV quota/feature/source search is authorized. N14 and frozen original results remain unchanged; P3 and KBS submission remain HOLD; PR #9 remains Draft.
+
+The **CONDITIONAL HOLD / NOT AUTHORIZED** status retained in the historical gate below describes the pre-execution state, not the current P1-D execution status.
+
+## Implemented
+
+- P1-A restricted-source execution and aggregate-only output completed successfully: Actions [#40510033361](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40510033361). See `experiments/kbs_plan_c/N15_P1_EQUAL_BUDGET_DEV_RESULTS_AND_ADJUDICATION_2026-10-27.md`.
+- P1-B Full-vs-Long source interaction completed successfully: Actions [#40622271751](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40622271751). See `experiments/kbs_plan_c/N15_P1B_SOURCE_INTERACTION_RESULTS_2026-10-28.md`.
+- P1-C desk-based estimand/feature-panel reconciliation completed without private row reads, fitting, or TEST access: `N15_P1C_ESTIMAND_RECONCILIATION_AND_FEATURE_PANEL_DECISION_2026-10-28.md`.
+
+- `analysis/kbs_plan_c/n15_p1_matched_budget_dev.py`: frozen B1 DEV file metadata + SHA check, 50,049 rows/12,628 users, original 12 pretarget variables, SASRec and GRU4Rec fixed HGB capacity; 5 outer user-disjoint group folds and held-out model scores.
+- Exact top-k per fold at q=0.10,0.20,0.30,0.40; deterministic SHA256 stable original DEV row-index tie ordering, independent of target identity/labels. At any q both arms receive exactly the same raw number of calls in every fold.
+- For each family and quota: observed F and S full-candidate NDCG; identity check versus `mean[(pi_F-pi_S)*Delta_F]`; call partition and exploratory user-bootstrap CI at q=.30; explicit Always Base/Always Memory adverse references.
+- `analysis/kbs_plan_c/test_n15_p1_matched_budget_dev.py`: five fully synthetic tests for exact calls, permutation invariance, tied scores, invalid input/empty quota, allocation-value identity and reproducible cluster uncertainty.
+- `.github/workflows/kbs-n15-p1-matched-budget-source-qa.yml`: public hosted syntax/test/scope check; Actions [#40508328475](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40508328475) public-synthetic-qa **SUCCESS**.
+
+## Scientific distinctions and caveats
+
+1. N15 `exact_batch_topk` is an **offline fold-batch allocation** with access to all fold request scores. It is NOT a feasible causal-time online streaming serving algorithm. In original B4-A H1, policy decisions used frozen DEV-calibrated thresholds and naturally realized call rates; N15 batch matching is a **different policy comparison estimand**.
+2. The two arms train on different label information (F full, S uncorrected target-retained sampled); matched calls do not eliminate this information difference or prove a pure intervention on labels.
+3. User-disjoint outer-fold fitting protects evaluated DEV rows from direct in-sample label fitting, but B1/G2 source, feature/algorithm selection and N15 quota design have been chosen after earlier DEV analyses. New N15 DEV is therefore **exploratory**; no claim of independent confirmation.
+4. The current script evaluates the existing Full Memory source ONLY. Full-vs-Long knowledge-interaction component remains a gated later extension; it is **not silently claimed completed**.
+5. No 20-cell B4-A population weights are applied to original DEV. Calls and rankings are unweighted original DEV metrics; do NOT compare them as identical estimands to B4-A population-weighted results.
+6. User bootstrap resamples observed held-out decisions at fixed fitted policies; it does not account for repeated policy refitting or the multi-stage model selection process. Label as descriptive uncertainty.
+7. Stable original row-index hashed tie key depends on input CSV ordering, protected by exact SHA. The row index is neither a target label nor an online identifier.
+
+## Revised decision gate for any further private source run
+
+**Met:** public code compiles, tests pass, SHA/schema/info scope enforced, no private outputs in source.
+
+**Historical pre-execution admission checklist (preserved for audit; not authorization for another P1-D run):** At the time of the original gate, P1-A/B runs were complete and the following conditions were required before the one-shot P1-D diagnostic:
+- Confirm self-hosted resource authorized/available for N15 and verify access rights to original restricted cache; do not assume that presence of old self-hosted workflows is authorization to access private data.
+- Confirm correct private source directory `$HOME/.cache/kuailive-agent-kbs/klm3_b1_full_dev_candidate_labels_seed20261012_v1` and unmodified B1 source SHA.
+- Approve N15 aggregate-only output on an isolated immutable path, without raw rows or model weights in Actions artifacts.
+- Inspect source-run diagnostics and actual group split parity. No TEST/B4-A revealed target outcome reads.
+- First record an explicit scientific decision that source specificity is essential to the intended KBS contribution and that the six-feature result could change the manuscript decision.
+- Freeze P1-D at q=.30 only, Full vs Long-only only, exactly the six existing candidate-count/Base-score descriptors, the existing five user-disjoint folds and label-blind exact-call rule. No additional quota or feature-panel search.
+- Confirm exact B1/B2 source parity and feature/fold parity; synthetic tests must cover feature selection and interaction identities. No private execution without explicit rights/source-owner authorization.
+- If source specificity is not essential, a rights/source gate fails, or a result would not change the paper's claim, mark P1-D NO-GO and stop reused-DEV experimentation.
+- Before future independent P3, separately freeze hypothesis family, model, budget, data, legal conditions and a valid new cohort. P3 remains HOLD.
+
+**Historical gate status before P1-D execution (2026-10-28):** P1-A_ENGINEERING_AND_EXPLORATORY_DEV_PASS / P1-B_EXPLORATORY_INTERACTION_PASS / P1-C_RECONCILIATION_COMPLETE / P1-D_CONDITIONAL_HOLD. **Subsequent current status:** P1-D_EXECUTION_PASS / EXPLORATORY_ONLY / NO_FURTHER_SAME_DEV_SEARCH / P3_INDEPENDENT_TEST_HOLD / KBS_SUBMISSION_HOLD.
+
+This file reports **no new empirical NDCG number**, no accepted KBS-level novelty verdict, and no independent human referee.
+
+
+## Revised stopping rule (2026-10-28)
+
+Do not continue with a broad source × quota × feature grid. P1-D, if admitted, is one q=.30 six-feature sensitivity diagnostic only. If the interaction weakens, crosses zero descriptively, or reverses, narrow the interpretation to a feature-conditional association and stop; do not search for a panel that restores significance. All outcomes remain exploratory reused-DEV evidence. N14, original three-test Holm family, G5/B4-A TEST and all protected numeric results remain unchanged.
+
+
+## P1-D completion addendum (2026-10-28)
+
+Actions [#40633996865](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40633996865) completed successfully: public preflight and restricted self-hosted DEV job both PASS. B1/B2 provenance, roster and source parity passed; 50,049 events / 12,628 users; 15,014 calls per policy/source at q=.30; zero TEST access; aggregate-only artifact uploaded. Results are recorded in `experiments/kbs_plan_c/N15_P1D_SIX_FEATURE_SOURCE_INTERACTION_RESULTS_2026-10-28.md`. P1-D status is EXECUTION_PASS / EXPLORATORY_ONLY. No further same-DEV feature/quota search; N14 and original Holm family remain frozen.
