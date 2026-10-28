@@ -42,3 +42,18 @@ The public preflight has passed in Actions run [#40622237969](https://github.com
 ## Literature boundary
 
 Krichene & Rendle (KDD 2020) already establish that sampled top-k ranking metrics can reverse model comparisons. The contribution must therefore not be framed as discovering generic sampled-metric inconsistency; it can only be a source-specific decision-quality mechanism if the gated interaction is stable, interpretable, and later prospectively confirmed.
+
+
+## Completed run — 2026-10-28
+
+**Status corrected: COMPUTATION PASS; results available; interpretation remains DEV_EXPLORATORY_ONLY.**
+
+Successful latest run: [Actions #40622271751](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40622271751). Aggregate-only artifact: [n15-p1b-source-interaction-dev-aggregate](https://github.com/mzch0210/KuaiLive-Agent/actions/runs/40622271751/artifacts/12788126538). Artifact ZIP SHA256: 6aab1febf65a5fde75535c69ec0040e14970501058e05021e14abaa66153e214. The run checked 50,049 DEV events and 12,628 users; B1/B2 source parity passed; no TEST labels were accessed.
+
+At the primary quota q=0.30 (15,014 calls per policy/source):
+- SASRec: D_Full=+0.006133; D_LongOnly=+0.011180; interaction I=-0.005047, descriptive user-cluster 95% interval [-0.007022,-0.003235].
+- GRU4Rec: D_Full=+0.005398; D_LongOnly=+0.010291; interaction I=-0.004893, descriptive user-cluster 95% interval [-0.006725,-0.003070].
+
+The interaction is negative at all four predeclared quotas (0.10, 0.20, 0.30, 0.40) for both Base families; all eight descriptive intervals exclude zero. At q=0.30, Long-only also has more switched decisions than Full (SASRec 8,221 vs 5,338 F-only/S-only pairs; GRU4Rec 7,812 vs 5,786), with larger mean full-F utility separation between exchanged decisions.
+
+Interpretation: under this fixed offline equal-call policy, the F-vs-S supervision gap is consistently smaller with Full than with Long-only. This is not a causal source effect, independent replication, real-time feasibility result, or TEST confirmation. P1-B and P1-A reuse the same DEV cohort; their agreement is a parity/estimand-sensitivity check, not independent evidence. Preserve P3 and KBS submission decision as HOLD pending a fresh eligible cohort or a defensible non-causal manuscript framing.
